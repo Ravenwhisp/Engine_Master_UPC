@@ -11,19 +11,12 @@ SummonerSummonState::SummonerSummonState(GameObject* owner)
 
 void SummonerSummonState::OnStateEnter()
 {
-	m_controller = GameObjectAPI::findScript<SummonerEnemyController>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SummonerAttackConfig>(getOwner());
-	m_animation = AnimationAPI::getAnimationComponent(getOwner());
+    m_controller = GameObjectAPI::findScript<SummonerEnemyController>(getOwner());
+    m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	if (!m_controller)
 	{
 		Debug::error("[SummonerSummonState] EnemyController not found.");
-		return;
-	}
-
-	if (!m_attackConfig)
-	{
-		Debug::error("[SummonerSummonState] AttackConfig not found.");
 		return;
 	}
 
@@ -41,26 +34,32 @@ void SummonerSummonState::OnStateEnter()
 
 void SummonerSummonState::OnStateUpdate()
 {
-	if (!m_controller || !m_attackConfig || !m_animation)
-	{
-		return;
-	}
+    if (!m_controller || !m_animation)
+    {
+        return;
+    }
 
-	if (m_controller->trySendDeathTrigger(m_animation))
-	{
-		return;
-	}
+    if (m_controller->trySendDeathTrigger(m_animation))
+    {
+        return;
+    }
 
-	m_stateTimer += Time::getDeltaTime();
+    const SummonerAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
 
-	if (!m_hasSummoned && m_stateTimer >= m_attackConfig->m_summonCastTime)
-	{
-		m_controller->summonSpidersAroundSelf();
-		m_controller->consumeSummonCooldown();
-		m_hasSummoned = true;
-	}
+    m_stateTimer += Time::getDeltaTime();
 
-	if (m_stateTimer >= m_attackConfig->m_summonTotalDuration)
+    if (!m_hasSummoned && m_stateTimer >= cfg->m_summonCastTime)
+    {
+        m_controller->summonSpidersAroundSelf();
+        m_controller->consumeSummonCooldown();
+        m_hasSummoned = true;
+    }
+
+    if (m_stateTimer >= cfg->m_summonTotalDuration)
 	{
 		AnimationAPI::sendTrigger(m_animation, "ToRecover");
 	}
@@ -74,4 +73,6 @@ void SummonerSummonState::OnStateExit()
 	Debug::log("[SummonerSummonState] EXIT");
 }
 
-IMPLEMENT_SCRIPT(SummonerSummonState)
+IMPLEMENT_SCRIPT_FIELDS(SummonerSummonState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

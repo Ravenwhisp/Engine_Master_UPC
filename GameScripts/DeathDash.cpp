@@ -24,14 +24,6 @@ void DeathDash::Start()
         return;
     }
 
-    m_config = GameObjectAPI::findScript<DeathConfig>(getOwner());
-
-    if (!m_config)
-    {
-        Debug::error("[DeathDash] DeathConfig not found.");
-        return;
-    }
-
     m_sound = GameObjectAPI::findScript<DeathSound>(getOwner());
 
     if (!m_sound)
@@ -51,17 +43,23 @@ void DeathDash::Start()
 
 float DeathDash::getCooldown() const
 {
-    return m_config->m_dashCooldown;
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return 0.0f;
+    return cfg->m_dashCooldown;
 }
 
 float DeathDash::getDashDuration() const
 {
-    return m_config->m_dashDuration;
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return 0.0f;
+    return cfg->m_dashDuration;
 }
 
 float DeathDash::getDashDistance() const
 {
-    return m_config->m_dashDistance;
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return 0.0f;
+    return cfg->m_dashDistance;
 }
 
 void DeathDash::onDashStarted()
@@ -133,6 +131,9 @@ bool DeathDash::anyEnemyInsideDashRectangle() const
 
 bool DeathDash::isInsideDashRectangle(const Vector3& point) const
 {
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return false;
+
     Transform* t = GameObjectAPI::getTransform(getOwner());
     Vector3    endPos = (t != nullptr) ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
 
@@ -156,11 +157,14 @@ bool DeathDash::isInsideDashRectangle(const Vector3& point) const
     float   longitudinal = toPoint.Dot(fwd);
     float   lateral = toPoint.Dot(side);
 
-    return (longitudinal >= 0.0f && longitudinal <= length) && (lateral >= -m_config->m_dashHitWidth && lateral <= m_config->m_dashHitWidth);
+    return (longitudinal >= 0.0f && longitudinal <= length) && (lateral >= -cfg->m_dashHitWidth && lateral <= cfg->m_dashHitWidth);
 }
 
 void DeathDash::applyDashDamage()
 {
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return;
+
     if (m_dashDamageDealt)
     {
         return;
@@ -198,7 +202,7 @@ void DeathDash::applyDashDamage()
         {
             {
                 EnemyHitContext ctx;
-                ctx.damage = m_config->m_dashDamage;
+                ctx.damage = cfg->m_dashDamage;
                 ctx.attacker = GameObjectAPI::getTransform(getOwner());
                 ctx.attackType = EnemyAttackType::DeathDash;
                 damageable->takeDamage(ctx);
@@ -219,5 +223,9 @@ void DeathDash::applyDashDamage()
         m_sound->playMarkApply();
     }
 }
+
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathDash, AbilityDash,
+    SERIALIZED_ASSET_REF(m_config, "Death Config", AssetType::DATA_CONTAINER)
+)
 
 IMPLEMENT_SCRIPT(DeathDash)

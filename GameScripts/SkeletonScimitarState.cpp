@@ -12,9 +12,8 @@ SkeletonScimitarState::SkeletonScimitarState(GameObject* owner)
 
 void SkeletonScimitarState::OnStateEnter()
 {
-	m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SkeletonAttackConfig>(getOwner());
-	m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
+    m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
+    m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
 	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	if (!m_controller)
@@ -23,13 +22,7 @@ void SkeletonScimitarState::OnStateEnter()
 		return;
 	}
 
-	if (!m_attackConfig)
-	{
-		Debug::error("[SkeletonScimitarState] SkeletonAttackConfig not found.");
-		return;
-	}
-
-	if (!m_attackExecutor)
+    if (!m_attackExecutor)
 	{
 		Debug::error("[SkeletonScimitarState] EnemyAttackExecutor not found.");
 		return;
@@ -45,8 +38,16 @@ void SkeletonScimitarState::OnStateEnter()
 	m_controller->resetRepathTimer();
 	m_controller->updateCurrentTarget();
 
-	m_previousAnimationSpeed = AnimationAPI::getSpeedMultiplier(m_animation);
-	AnimationAPI::setSpeedMultiplier(m_animation, m_attackConfig->m_attackAnimationSpeed);
+    m_previousAnimationSpeed = AnimationAPI::getSpeedMultiplier(m_animation);
+
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        Debug::error("[SkeletonScimitarState] SkeletonAttackConfig not found.");
+        return;
+    }
+
+    AnimationAPI::setSpeedMultiplier(m_animation, cfg->m_attackAnimationSpeed);
 
 	changePhase(Phase::Dash);
 
@@ -55,7 +56,7 @@ void SkeletonScimitarState::OnStateEnter()
 
 void SkeletonScimitarState::OnStateUpdate()
 {
-	if (!m_controller || !m_attackConfig || !m_attackExecutor || !m_animation)
+    if (!m_controller || !m_attackExecutor || !m_animation)
 	{
 		return;
 	}
@@ -115,12 +116,18 @@ void SkeletonScimitarState::changePhase(Phase phase)
 	m_phaseTimer = 0.0f;
 	m_hasAppliedHit = false;
 
-	if (!m_animation || !m_attackConfig)
-	{
-		return;
-	}
+    if (!m_animation)
+    {
+        return;
+    }
 
-	if (phase == Phase::Attack1 || phase == Phase::Attack2 || phase == Phase::Attack3)
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    if (phase == Phase::Attack1 || phase == Phase::Attack2 || phase == Phase::Attack3)
 	{
 		AnimationAPI::playOverrideClip(m_animation, "Skeleton_Attak", 0.05, false);
 	}
@@ -128,7 +135,13 @@ void SkeletonScimitarState::changePhase(Phase phase)
 
 void SkeletonScimitarState::updateDash()
 {
-	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 	if (!ownerTransform)
 	{
 		return;
@@ -137,10 +150,10 @@ void SkeletonScimitarState::updateDash()
 	Vector3 forward = TransformAPI::getForward(ownerTransform);
 	forward.y = 0.0f;
 
-	moveInDirection(forward, m_attackConfig->m_scimitarDashSpeed);
+    moveInDirection(forward, cfg->m_scimitarDashSpeed);
 
-	if (m_controller->isCurrentTargetInRange(m_attackConfig->m_scimitarDashStopRange) ||
-		m_phaseTimer >= m_attackConfig->m_scimitarDashDuration)
+    if (m_controller->isCurrentTargetInRange(cfg->m_scimitarDashStopRange) ||
+        m_phaseTimer >= cfg->m_scimitarDashDuration)
 	{
 		changePhase(Phase::Attack1);
 		return;
@@ -183,7 +196,13 @@ void SkeletonScimitarState::updateAttack()
 
 void SkeletonScimitarState::updateBackstep()
 {
-	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 	if (!ownerTransform)
 	{
 		return;
@@ -192,9 +211,9 @@ void SkeletonScimitarState::updateBackstep()
 	Vector3 backward = -TransformAPI::getForward(ownerTransform);
 	backward.y = 0.0f;
 
-	moveInDirection(backward, m_attackConfig->m_stepBackSpeed);
+    moveInDirection(backward, cfg->m_stepBackSpeed);
 
-	if (m_phaseTimer >= m_attackConfig->m_stepBackDuration)
+    if (m_phaseTimer >= cfg->m_stepBackDuration)
 	{
 		changePhase(Phase::Attack3);
 		return;
@@ -203,7 +222,13 @@ void SkeletonScimitarState::updateBackstep()
 
 void SkeletonScimitarState::applyHit(bool shouldStun)
 {
-	Transform* currentTarget = m_controller->getCurrentTarget();
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    Transform* currentTarget = m_controller->getCurrentTarget();
 	if (!currentTarget)
 	{
 		return;
@@ -220,28 +245,28 @@ void SkeletonScimitarState::applyHit(bool shouldStun)
 
 	if (shouldStun)
 	{
-		m_attackExecutor->tryDamageAndStunSingleTargetInCone(
-			currentTarget,
-			center,
-			forward,
-			m_attackConfig->m_scimitarStunHitRange,
-			m_attackConfig->m_scimitarHalfAngleDegrees,
-			m_attackConfig->m_basicAttackDamage,
-			m_attackConfig->m_scimitarStunDuration,
-			"SkeletonScimitar"
-		);
-	}
-	else
-	{
-		m_attackExecutor->tryDamageTargetInCone(
-			currentTarget,
-			center,
-			forward,
-			m_attackConfig->m_basicAttackRange,
-			m_attackConfig->m_scimitarHalfAngleDegrees,
-			m_attackConfig->m_basicAttackDamage,
-			"SkeletonScimitar"
-		);
+        m_attackExecutor->tryDamageAndStunSingleTargetInCone(
+            currentTarget,
+            center,
+            forward,
+            cfg->m_scimitarStunHitRange,
+            cfg->m_scimitarHalfAngleDegrees,
+            cfg->m_basicAttackDamage,
+            cfg->m_scimitarStunDuration,
+            "SkeletonScimitar"
+        );
+    }
+    else
+    {
+        m_attackExecutor->tryDamageTargetInCone(
+            currentTarget,
+            center,
+            forward,
+            cfg->m_basicAttackRange,
+            cfg->m_scimitarHalfAngleDegrees,
+            cfg->m_basicAttackDamage,
+            "SkeletonScimitar"
+        );
 	}
 }
 
@@ -285,12 +310,26 @@ void SkeletonScimitarState::goToChase()
 
 float SkeletonScimitarState::getScimitarAttackClipDuration() const
 {
-	return m_attackConfig->m_attackClipDuration / m_attackConfig->m_attackAnimationSpeed;
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return 0.0f;
+    }
+
+    return cfg->m_attackClipDuration / cfg->m_attackAnimationSpeed;
 }
 
 float SkeletonScimitarState::getScimitarAttackHitTime() const
 {
-	return getScimitarAttackClipDuration() * m_attackConfig->m_attackHitTime;
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return 0.0f;
+    }
+
+    return getScimitarAttackClipDuration() * cfg->m_attackHitTime;
 }
 
-IMPLEMENT_SCRIPT(SkeletonScimitarState)
+IMPLEMENT_SCRIPT_FIELDS(SkeletonScimitarState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

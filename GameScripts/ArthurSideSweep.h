@@ -33,7 +33,7 @@ public:
 
 private:
     ArthurBossController* m_arthurController = nullptr;
-    ArthurAttackConfig* m_attackConfig = nullptr;
+    AssetRef<ArthurAttackConfig> m_attackConfig;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
     ArthurUI* m_arthurUI = nullptr;

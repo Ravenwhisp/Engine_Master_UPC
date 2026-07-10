@@ -7,7 +7,8 @@
 #include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(SkeletonDamageable, EnemyDamageable,
-	SERIALIZED_FLOAT(m_downedHealthBarScale.x, "Downed Health Bar Scale X", 0.0f, 10.0f, 0.1f),
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER),
+    SERIALIZED_FLOAT(m_downedHealthBarScale.x, "Downed Health Bar Scale X", 0.0f, 10.0f, 0.1f),
 	SERIALIZED_FLOAT(m_downedHealthBarScale.y, "Downed Health Bar Scale Y", 0.0f, 10.0f, 0.1f)
 )
 
@@ -20,20 +21,14 @@ void SkeletonDamageable::Start()
 {
 	EnemyDamageable::Start();
 
-	m_skeletonController = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SkeletonAttackConfig>(getOwner());
+    m_skeletonController = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
 
-	if (!m_skeletonController)
-	{
-		Debug::warn("[SkeletonDamageable] SkeletonEnemyController not found.");
-	}
+    if (!m_skeletonController)
+    {
+        Debug::warn("[SkeletonDamageable] SkeletonEnemyController not found.");
+    }
 
-	if (!m_attackConfig)
-	{
-		Debug::warn("[SkeletonDamageable] SkeletonAttackConfig not found.");
-	}
-
-	cacheHealthBarBackgroundTransform();
+    cacheHealthBarBackgroundTransform();
 	applyHealthBarScaleForState();
 }
 
@@ -79,10 +74,16 @@ bool SkeletonDamageable::isPermanentlyDead() const
 
 void SkeletonDamageable::startDowned()
 {
-	m_lifeState = SkeletonLifeState::Downed;
-	m_previousMaxHp = getMaxHp();
-	m_maxHp = m_attackConfig->m_downedHP;
-	m_currentHp = m_attackConfig->m_downedHP;
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    m_lifeState = SkeletonLifeState::Downed;
+    m_previousMaxHp = getMaxHp();
+    m_maxHp = cfg->m_downedHP;
+    m_currentHp = cfg->m_downedHP;
 	m_isDead = false;
 
 	applyHealthBarScaleForState();
@@ -172,17 +173,18 @@ void SkeletonDamageable::applyHealthBarScaleForState()
 
 bool SkeletonDamageable::shouldBlockDamage(const EnemyHitContext& enemyCtx) const
 {
-	if (!m_skeletonController)
-	{
-		return false;
-	}
+    if (!m_skeletonController)
+    {
+        return false;
+    }
 
-	if (!m_attackConfig)
-	{
-		return false;
-	}
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return false;
+    }
 
-	if (!m_skeletonController->isGuarding())
+    if (!m_skeletonController->isGuarding())
 	{
 		return false;
 	}
@@ -224,7 +226,7 @@ bool SkeletonDamageable::shouldBlockDamage(const EnemyHitContext& enemyCtx) cons
 	const float dot = forward.Dot(toAttacker);
 
 	constexpr float degreesToRadians = 3.14159265f / 180.0f;
-	const float minDot = std::cos(m_attackConfig->m_guardBlockHalfAngleDegrees * degreesToRadians);
+    const float minDot = std::cos(cfg->m_guardBlockHalfAngleDegrees * degreesToRadians);
 
 	return dot >= minDot; // if dot >= minDot - attacker is in front | if dot < minDot - attacker is side/back
 }

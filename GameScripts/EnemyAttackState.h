@@ -16,6 +16,8 @@ class EnemyAttackState : public StateMachineScript
 public:
     explicit EnemyAttackState(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void OnStateEnter() override;
     void OnStateUpdate() override;
     void OnStateExit() override;
@@ -26,7 +28,7 @@ private:
 
 private:
     EnemyBaseController* m_controller = nullptr;
-    EnemyBaseAttackConfig* m_attackConfig = nullptr;
+    AssetRef<EnemyBaseAttackConfig> m_attackConfig;
     AnimationComponent* m_animation = nullptr;
     PaladinVFX* m_paladinVFX = nullptr;
     EnemySound* m_enemySound = nullptr;

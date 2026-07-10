@@ -30,5 +30,5 @@ public:
     Vector3 m_rangeIndicatorFullScale = Vector3(1.0f, 1.0f, 1.0f);
 
 private:
-    DeathConfig* m_deathConfig = nullptr;
+    AssetRef<DeathConfig> m_deathConfig;
 };

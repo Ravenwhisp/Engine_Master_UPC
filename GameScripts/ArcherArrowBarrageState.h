@@ -18,6 +18,8 @@ class ArcherArrowBarrageState : public StateMachineScript
 public:
     explicit ArcherArrowBarrageState(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void OnStateEnter() override;
     void OnStateUpdate() override;
     void OnStateExit() override;
@@ -29,7 +31,7 @@ private:
 
 private:
     RangedEnemyController* m_archerController = nullptr;
-    ArcherAttackConfig* m_attackConfig = nullptr;
+    AssetRef<ArcherAttackConfig> m_attackConfig;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
     ArcherUI* m_archerUI = nullptr;

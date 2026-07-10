@@ -3,16 +3,39 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "FieldUtils.h"
+#include "JsonArchive.h"
+#include "GenericTypeFactory.h"
 
 #include <string>
 
 void DataContainer::serialize(IArchive& archive)
 {
-	FieldList fields = getExposedFields();
-	if (!fields.fields.empty())
-	{
-		FieldUtils::serialize(*this, reinterpret_cast<const char*>(this), archive);
-	}
+    std::string typeName = getTypeName();
+    if (DataContainerFactory::isRegistered(typeName))
+    {
+        archive.serialize(typeName, "_typeName");
+    }
+
+    FieldList fields = getExposedFields();
+    if (!fields.fields.empty())
+    {
+        FieldUtils::serialize(*this, reinterpret_cast<const char*>(this), archive);
+        return;
+    }
+
+    // Fallback: when there are no bound fields (base DataContainer during
+    // initial import), copy the raw JSON into m_data so that
+    // resolveDataContainerType can discover _typeName and upgrade
+    // to the correct derived class (e.g. BoundConfig).
+    JsonArchive* jarc = dynamic_cast<JsonArchive*>(&archive);
+    if (jarc && jarc->mode() == ArchiveMode::Input)
+    {
+        const rapidjson::Value* input = jarc->currentInput();
+        if (input && input->IsObject())
+        {
+            m_data.CopyFrom(*input, m_data.GetAllocator());
+        }
+    }
 }
 
 void DataContainer::drawUI()

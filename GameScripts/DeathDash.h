@@ -14,6 +14,8 @@ class DeathDash : public AbilityDash
 public:
     explicit DeathDash(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void Start() override;
 
 protected:
@@ -31,7 +33,7 @@ protected:
 
 private:
     DeathCharacter* m_deathCharacter = nullptr;
-    DeathConfig* m_config = nullptr;
+    AssetRef<DeathConfig> m_config;
     DeathSound* m_sound = nullptr;
     DeathParticles* m_particles = nullptr;
 

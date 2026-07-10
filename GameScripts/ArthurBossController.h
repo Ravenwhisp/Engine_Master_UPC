@@ -71,7 +71,7 @@ public:
 
 private:
 	ArthurDetectionAggro* m_arthurDetectionAggro = nullptr;
-	ArthurAttackConfig* m_attackConfig = nullptr;
+	AssetRef<ArthurAttackConfig> m_attackConfig;
 	ArthurUI* m_arthurUI = nullptr;
 
 	ArthurBossPhase m_phase = ArthurBossPhase::Phase1;

@@ -68,6 +68,7 @@ bool ScriptLibraryLoader::unload()
     }
 
     ScriptFactory::clear();
+    DataContainerFactory::clear();
 
     if (!FreeLibrary(m_module))
     {

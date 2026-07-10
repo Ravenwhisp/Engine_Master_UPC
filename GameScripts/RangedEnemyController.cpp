@@ -13,16 +13,10 @@ RangedEnemyController::RangedEnemyController(GameObject* owner) : EnemyBaseContr
 void RangedEnemyController::Start()
 {
     m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
-    m_attackConfig = GameObjectAPI::findScript<ArcherAttackConfig>(getOwner());
 
     if (!m_enemyDetectionAggro)
     {
         Debug::warn("[RangedEnemyController] EnemyDetectionAggro not found on '%s'.", GameObjectAPI::getName(getOwner()));
-    }
-
-    if (!m_attackConfig)
-    {
-        Debug::warn("[RangedEnemyController] ArcherAttackConfig not found on '%s'.", GameObjectAPI::getName(getOwner()));
     }
 
     m_currentTarget = nullptr;
@@ -69,17 +63,29 @@ bool RangedEnemyController::isTargetDowned(Transform* target) const
 
 bool RangedEnemyController::isTargetInAttackRange() const
 {
-    if (!hasValidTarget() || !m_attackConfig)
+    if (!hasValidTarget())
     {
         return false;
     }
 
-    return isCurrentTargetInRange(m_attackConfig->m_basicAttackRange);
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return false;
+    }
+
+    return isCurrentTargetInRange(cfg->m_basicAttackRange);
 }
 
 bool RangedEnemyController::playerInSomersaultRange() const
 {
-    if (!m_enemyDetectionAggro || !m_attackConfig)
+    if (!m_enemyDetectionAggro)
+    {
+        return false;
+    }
+
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return false;
     }
@@ -98,7 +104,7 @@ bool RangedEnemyController::playerInSomersaultRange() const
         m_enemyDetectionAggro->getDeathTransform()
     };
 
-    const float triggerRangeSquared = m_attackConfig->m_somersaultTriggerRange * m_attackConfig->m_somersaultTriggerRange;
+    const float triggerRangeSquared = cfg->m_somersaultTriggerRange * cfg->m_somersaultTriggerRange;
 
     for (Transform* playerTransform : playerTransforms)
     {
@@ -133,12 +139,13 @@ bool RangedEnemyController::isSomersaultReady() const
 
 void RangedEnemyController::consumeSomersaultCooldown()
 {
-    if (!m_attackConfig)
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return;
     }
 
-    m_somersaultCooldownTimer = m_attackConfig->m_somersaultCooldown;
+    m_somersaultCooldownTimer = cfg->m_somersaultCooldown;
 }
 
 void RangedEnemyController::updateSomersaultCooldown(float dt)
@@ -241,12 +248,13 @@ bool RangedEnemyController::isArrowBarrageReady() const
 
 void RangedEnemyController::consumeArrowBarrageCooldown()
 {
-    if (!m_attackConfig)
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return;
     }
 
-    m_arrowBarrageCooldownTimer = m_attackConfig->m_arrowBarrageCooldown;
+    m_arrowBarrageCooldownTimer = cfg->m_arrowBarrageCooldown;
 }
 
 void RangedEnemyController::updateArrowBarrageCooldown(float dt)
@@ -266,12 +274,20 @@ void RangedEnemyController::updateArrowBarrageCooldown(float dt)
 
 bool RangedEnemyController::isTargetInArrowBarrageRange() const
 {
-    if (!hasValidTarget() || !m_attackConfig)
+    if (!hasValidTarget())
     {
         return false;
     }
 
-    return isCurrentTargetInRange(m_attackConfig->m_arrowBarrageRange);
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return false;
+    }
+
+    return isCurrentTargetInRange(cfg->m_arrowBarrageRange);
 }
 
-IMPLEMENT_SCRIPT(RangedEnemyController)
+IMPLEMENT_SCRIPT_FIELDS(RangedEnemyController,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

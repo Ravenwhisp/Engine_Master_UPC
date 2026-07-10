@@ -6,6 +6,7 @@ class Transform;
 class Damageable;
 class HeartbeatHaptic;
 class CooperativeSound;
+class BoundConfig;
 
 class Bound : public Script
 {
@@ -26,6 +27,8 @@ public:
     ComponentRef<Transform> m_secondTarget;
 
     ComponentRef<Transform> m_BoundUI;
+
+    AssetRef<BoundConfig> m_config;
 
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;

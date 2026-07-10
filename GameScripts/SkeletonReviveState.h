@@ -14,6 +14,7 @@ class SkeletonReviveState : public StateMachineScript
 
 public:
 	explicit SkeletonReviveState(GameObject* owner);
+	FieldList getExposedFields() const override;
 
 	void OnStateEnter() override;
 	void OnStateUpdate() override;
@@ -39,7 +40,7 @@ private:
 private:
 	SkeletonEnemyController* m_controller = nullptr;
 	SkeletonDamageable* m_damageable = nullptr;
-	SkeletonAttackConfig* m_attackConfig = nullptr;
+    AssetRef<SkeletonAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 
 	Phase m_phase = Phase::ReviveStart;

@@ -11,6 +11,8 @@ class LyrielBasicAttack : public LyrielAbilityBase
 public:
     explicit LyrielBasicAttack(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void Start() override;
     void Update() override;
 

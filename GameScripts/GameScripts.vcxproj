@@ -275,6 +275,7 @@
     <ClInclude Include="AudioListenerFollow.h" />
     <ClInclude Include="BarrierEnemyDamageable.h" />
     <ClInclude Include="Bound.h" />
+    <ClInclude Include="BoundConfig.h" />
     <ClInclude Include="BreakableDamageable.h" />
     <ClInclude Include="BreakableExplosive.h" />
     <ClInclude Include="BreakableHealingDrop.h" />

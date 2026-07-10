@@ -12,6 +12,7 @@
 #include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(ArthurBossController, EnemyBaseController,
+	SERIALIZED_ASSET_REF(m_attackConfig, "Arthur Attack Config", AssetType::DATA_CONTAINER),
 	SERIALIZED_FLOAT(m_combatRange, "Combat Range", 0.0f, 50.0f, 0.1f)
 )
 
@@ -26,13 +27,6 @@ void ArthurBossController::Start()
 	if (!m_arthurDetectionAggro)
 	{
 		Debug::error("ArthurDetectionAggro script not found!");
-	}
-
-	m_attackConfig = GameObjectAPI::findScript<ArthurAttackConfig>(getOwner());
-
-	if (!m_attackConfig)
-	{
-		Debug::error("ArthurAttackConfig script not found!");
 	}
 
 	m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
@@ -202,35 +196,38 @@ void ArthurBossController::updateAttackCooldowns(float dt)
 
 void ArthurBossController::consumeChargingSlamCooldown()
 {
-	if (!m_attackConfig)
+	const ArthurAttackConfig* cfg = m_attackConfig.get();
+	if (!cfg)
 	{
 		Debug::error("[ArthurBossController] AtrhurAttackConfig not found.");
 		return;
 	}
 
-	m_chargingSlamCooldownTimer = m_attackConfig->m_chargingSlamCooldown;
+	m_chargingSlamCooldownTimer = cfg->m_chargingSlamCooldown;
 }
 
 void ArthurBossController::consumeSideSweepCooldown()
 {
-	if (!m_attackConfig)
+	const ArthurAttackConfig* cfg = m_attackConfig.get();
+	if (!cfg)
 	{
 		Debug::error("[ArthurBossController] AtrhurAttackConfig not found.");
 		return;
 	}
 
-	m_sideSweepCooldownTimer = m_attackConfig->m_sideSweepCooldown;
+	m_sideSweepCooldownTimer = cfg->m_sideSweepCooldown;
 }
 
 void ArthurBossController::consumeEarthHammerCooldown()
 {
-	if (!m_attackConfig)
+	const ArthurAttackConfig* cfg = m_attackConfig.get();
+	if (!cfg)
 	{
 		Debug::error("[ArthurBossController] AtrhurAttackConfig not found.");
 		return;
 	}
 
-	m_earthHammerCooldownTimer = m_attackConfig->m_earthHammerCooldown;
+	m_earthHammerCooldownTimer = cfg->m_earthHammerCooldown;
 }
 
 Transform* ArthurBossController::getNonFocusTarget() const
@@ -263,7 +260,8 @@ Transform* ArthurBossController::getNonFocusTarget() const
 
 bool ArthurBossController::areBothPlayersInEarthHammerRange() const
 {
-	if (!m_attackConfig || !m_arthurDetectionAggro)
+	const ArthurAttackConfig* cfg = m_attackConfig.get();
+	if (!cfg || !m_arthurDetectionAggro)
 	{
 		return false;
 	}
@@ -285,7 +283,7 @@ bool ArthurBossController::areBothPlayersInEarthHammerRange() const
 	Vector3 lyrielPosition = TransformAPI::getGlobalPosition(lyriel);
 	Vector3 deathPosition = TransformAPI::getGlobalPosition(death);
 
-	float earthHammerRange = m_attackConfig->m_earthHammerRadius;
+	float earthHammerRange = cfg->m_earthHammerRadius;
 	float lyrielDistance = (lyrielPosition - ownerPosition).Length();
 	float deathDistance = (deathPosition - ownerPosition).Length();
 
@@ -294,14 +292,15 @@ bool ArthurBossController::areBothPlayersInEarthHammerRange() const
 
 bool ArthurBossController::isTargetInChargingSlamRange() const
 {
-	if (!m_attackConfig)
+	const ArthurAttackConfig* cfg = m_attackConfig.get();
+	if (!cfg)
 	{
 		return false;
 	}
 	
 	float distance = getDistanceToCurrentTarget();
 
-	return distance >= m_attackConfig->m_chargingSlamMinRange && distance <= m_attackConfig->m_chargingSlamMaxRange;
+	return distance >= cfg->m_chargingSlamMinRange && distance <= cfg->m_chargingSlamMaxRange;
 }
 
 bool ArthurBossController::isCurrentTargetInsideHeavySwipeArea(float range, float halfAngleDegrees) const
@@ -350,7 +349,8 @@ bool ArthurBossController::isCurrentTargetInsideHeavySwipeArea(float range, floa
 
 bool ArthurBossController::isTargetInsideSideSweepZone(Transform* targetTransform, int side) const
 {
-	if (!m_attackConfig)
+	const ArthurAttackConfig* cfg = m_attackConfig.get();
+	if (!cfg)
 	{
 		return false;
 	}
@@ -373,7 +373,7 @@ bool ArthurBossController::isTargetInsideSideSweepZone(Transform* targetTransfor
 	toTarget.y = 0.0f;
 
 	float distanceSquared = toTarget.LengthSquared();
-	float rangeSquared = m_attackConfig->m_sideSweepRange * m_attackConfig->m_sideSweepRange;
+	float rangeSquared = cfg->m_sideSweepRange * cfg->m_sideSweepRange;
 
 	if (distanceSquared > rangeSquared)
 	{
@@ -407,7 +407,7 @@ bool ArthurBossController::isTargetInsideSideSweepZone(Transform* targetTransfor
 	}
 
 	constexpr float degreesToRadians = 3.14159265f / 180.0f;
-	float minDot = std::cos(m_attackConfig->m_sideSweepHalfAngleDegrees * degreesToRadians);
+	float minDot = std::cos(cfg->m_sideSweepHalfAngleDegrees * degreesToRadians);
 
 	return dot >= minDot;
 }
@@ -450,7 +450,7 @@ bool ArthurBossController::trySelectSideSweepSide()
 		m_arthurDetectionAggro = GameObjectAPI::findScript<ArthurDetectionAggro>(getOwner());
 	}
 
-	if (!m_arthurDetectionAggro || !m_attackConfig)
+	if (!m_arthurDetectionAggro || !m_attackConfig.get())
 	{
 		return false;
 	}

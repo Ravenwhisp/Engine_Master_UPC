@@ -13,6 +13,7 @@ class SummonerEnergyBallState : public StateMachineScript
 
 public:
 	explicit SummonerEnergyBallState(GameObject* owner);
+	FieldList getExposedFields() const override;
 
 	void OnStateEnter() override;
 	void OnStateUpdate() override;
@@ -23,7 +24,7 @@ private:
 
 private:
 	SummonerEnemyController* m_controller = nullptr;
-	SummonerAttackConfig* m_attackConfig = nullptr;
+    AssetRef<SummonerAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 
 	Transform* m_committedTarget = nullptr;

@@ -12,6 +12,7 @@ class SkeletonEnemyController : public EnemyBaseController
 
 public:
 	explicit SkeletonEnemyController(GameObject* owner);
+	FieldList getExposedFields() const override;
 
 	void Start() override;
 	void Update() override;
@@ -36,7 +37,7 @@ protected:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-	SkeletonAttackConfig* m_attackConfig = nullptr;
+    AssetRef<SkeletonAttackConfig> m_attackConfig;
 	SkeletonDamageable* m_damageable = nullptr;
 
 	float m_guardCooldownTimer = 0.0f;

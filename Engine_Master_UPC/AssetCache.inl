@@ -9,7 +9,13 @@
 #include "FileIO.h"
 #include "AssetsDictionary.h"
 #include "JsonArchive.h"
+#include "DataContainer.h"
+#include "GenericTypeFactory.h"
+
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
 #include <cstdint>
+#include <cstdio>
 #include <vector>
 
 template<typename T>
@@ -39,6 +45,42 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
 
     std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
     importer->load(buffer.data(), asset.get());
+
+    if (ref.m_type == AssetType::DATA_CONTAINER)
+    {
+        DataContainer* dc = dynamic_cast<DataContainer*>(asset.get());
+        if (dc && dc->getExposedFields().fields.empty())
+        {
+            const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
+            if (entry && !entry->sourcePath.empty())
+            {
+                std::string pathStr = entry->sourcePath.string();
+                FILE* fp = std::fopen(pathStr.c_str(), "rb");
+                if (fp)
+                {
+                    char buf[65536];
+                    rapidjson::FileReadStream is(fp, buf, sizeof(buf));
+                    rapidjson::Document doc;
+                    doc.ParseStream(is);
+                    std::fclose(fp);
+
+                    if (!doc.HasParseError() && doc.HasMember("_typeName") &&
+                        doc["_typeName"].IsString())
+                    {
+                        const char* typeName = doc["_typeName"].GetString();
+                        auto derived = DataContainerFactory::create(typeName, ref);
+                        if (derived)
+                        {
+                            JsonArchive archive(ArchiveMode::Input);
+                            archive.setValue(doc);
+                            derived->serialize(archive);
+                            asset.reset(derived.release());
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 #ifndef GAME_RELEASE
     const AssetIndexEntry* entry = index.findEntry(ref.m_uid);

@@ -17,6 +17,7 @@
 
 using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector2;
+using DirectX::SimpleMath::Matrix;
 
 class GameObject;
 class Transform;

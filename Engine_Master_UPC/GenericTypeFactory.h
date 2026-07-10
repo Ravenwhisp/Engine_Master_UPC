@@ -64,6 +64,7 @@ public:
 		m_registry.clear();
 	}
 
+
 private:
 	static inline std::vector<Entry> m_registry;
 };

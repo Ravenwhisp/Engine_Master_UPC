@@ -327,6 +327,7 @@
     <ClInclude Include="PlayAnimationAction.h" />
     <ClInclude Include="PopUpController.h" />
     <ClInclude Include="PopUpEvent.h" />
+    <ClInclude Include="BoundConfig.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

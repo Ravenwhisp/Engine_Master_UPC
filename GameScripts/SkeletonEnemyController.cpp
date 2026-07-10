@@ -14,21 +14,15 @@ SkeletonEnemyController::SkeletonEnemyController(GameObject* owner)
 
 void SkeletonEnemyController::Start()
 {
-	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SkeletonAttackConfig>(getOwner());
-	m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
+    m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
+    m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
 
-	if (!m_enemyDetectionAggro)
-	{
-		Debug::warn("[SkeletonEnemyController] EnemyDetectionAggro not found on '%s'.", GameObjectAPI::getName(getOwner()));
-	}
+    if (!m_enemyDetectionAggro)
+    {
+        Debug::warn("[SkeletonEnemyController] EnemyDetectionAggro not found on '%s'.", GameObjectAPI::getName(getOwner()));
+    }
 
-	if (!m_attackConfig)
-	{
-		Debug::warn("[SkeletonEnemyController] SkeletonAttackConfig not found on '%s'.", GameObjectAPI::getName(getOwner()));
-	}
-
-	if (!m_damageable)
+    if (!m_damageable)
 	{
 		Debug::warn("[SkeletonEnemyController] SkeletonDamageable not found on '%s'.", GameObjectAPI::getName(getOwner()));
 	}
@@ -76,12 +70,18 @@ bool SkeletonEnemyController::isTargetDowned(Transform* target) const
 
 bool SkeletonEnemyController::isTargetInScimitarRange() const
 {
-	if (!hasValidTarget() || !m_attackConfig)
-	{
-		return false;
-	}
+    if (!hasValidTarget())
+    {
+        return false;
+    }
 
-	return isCurrentTargetInRange(m_attackConfig->m_scimitarStartRange);
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return false;
+    }
+
+    return isCurrentTargetInRange(cfg->m_scimitarStartRange);
 }
 
 bool SkeletonEnemyController::isGuardReady() const
@@ -91,12 +91,13 @@ bool SkeletonEnemyController::isGuardReady() const
 
 void SkeletonEnemyController::consumeGuardCooldown()
 {
-	if (!m_attackConfig)
-	{
-		return;
-	}
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
 
-	m_guardCooldownTimer = m_attackConfig->m_guardCooldown;
+    m_guardCooldownTimer = cfg->m_guardCooldown;
 }
 
 void SkeletonEnemyController::updateGuardCooldown(float dt)
@@ -116,17 +117,23 @@ void SkeletonEnemyController::updateGuardCooldown(float dt)
 
 bool SkeletonEnemyController::shouldUseGuard() const
 {
-	if (!hasValidTarget() || !m_attackConfig)
+    if (!hasValidTarget())
+    {
+        return false;
+    }
+
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return false;
+    }
+
+    if (!isGuardReady())
 	{
 		return false;
 	}
 
-	if (!isGuardReady())
-	{
-		return false;
-	}
-
-	if (!isCurrentTargetInRange(m_attackConfig->m_guardRange))
+    if (!isCurrentTargetInRange(cfg->m_guardRange))
 	{
 		return false;
 	}
@@ -162,7 +169,7 @@ bool SkeletonEnemyController::shouldUseGuard() const
 	float dot = forward.Dot(toTarget);
 
 	constexpr float degreesToRadians = 3.14159265f / 180.0f;
-	const float minDot = std::cos(m_attackConfig->m_guardBlockHalfAngleDegrees * degreesToRadians);
+    const float minDot = std::cos(cfg->m_guardBlockHalfAngleDegrees * degreesToRadians);
 
 	return dot >= minDot;
 }
@@ -212,4 +219,6 @@ bool SkeletonEnemyController::trySendReviveTrigger(AnimationComponent* animation
 	return true;
 }
 
-IMPLEMENT_SCRIPT(SkeletonEnemyController)
+IMPLEMENT_SCRIPT_FIELDS(SkeletonEnemyController,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)
