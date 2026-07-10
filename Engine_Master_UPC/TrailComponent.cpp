@@ -146,6 +146,7 @@ std::unique_ptr<Component> TrailComponent::clone(GameObject* newOwner) const
    cloned->m_spawnDistance = m_spawnDistance;
    cloned->m_pointLifetime = m_pointLifetime;
    cloned->m_colorOverTime = m_colorOverTime;
+   std::copy(std::begin(m_colorCurve), std::end(m_colorCurve), std::begin(cloned->m_colorCurve));
 
     return cloned;
 }
@@ -195,6 +196,14 @@ void TrailComponent::serialize(IArchive& archive)
         }
 
         archive.endArray();
+
+        uint32_t curveCount = static_cast<uint32_t>(sizeof(m_colorCurve));
+        archive.beginArray(curveCount, "ColorCurve");
+        archive.serialize(m_colorCurve[0], "");
+        archive.serialize(m_colorCurve[1], "");
+        archive.serialize(m_colorCurve[2], "");
+        archive.serialize(m_colorCurve[3], "");
+        archive.endArray();
     }
     else
     {
@@ -233,6 +242,21 @@ void TrailComponent::serialize(IArchive& archive)
         }
 
         archive.endArray();
+
+        uint32_t curveCount = static_cast<uint32_t>(sizeof(m_colorCurve));
+
+        float x = 0.0f, y = 0.0f, z = 0.0f, w = 0.0f;
+
+        archive.beginArray(curveCount, "ColorCurve");
+        archive.serialize(x, "");
+        archive.serialize(y, "");
+        archive.serialize(z, "");
+        archive.serialize(w, "");
+        archive.endArray();
+        m_colorCurve[0] = x;
+        m_colorCurve[1] = y;
+        m_colorCurve[2] = z;
+        m_colorCurve[3] = w;
     }
 }
 
