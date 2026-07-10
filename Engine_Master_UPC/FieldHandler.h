@@ -1,16 +1,15 @@
 #pragma once
 
-#include <rapidjson/document.h>
-
+class IArchive;
 class IFieldContainer;
 class SceneReferenceResolver;
+
 struct FieldInfo;
-class IArchive;
 
 struct FieldHandler
 {
     void (*drawUi)(const FieldInfo& field, void* data, IFieldContainer& container);
-    void (*serialize)(const FieldInfo& field, void* data, IArchive& archieve);
+    void (*serialize)(const FieldInfo& field, void* data, IArchive& archive);
     void (*clone)(const FieldInfo& field, const void* sourceData, void* targetData);
     void (*fixReferences)(const FieldInfo& field, void* data, const SceneReferenceResolver& resolver);
 };

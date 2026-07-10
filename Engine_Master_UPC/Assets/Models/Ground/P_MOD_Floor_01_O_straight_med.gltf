@@ -1,0 +1,60 @@
+{
+  "SourcePath": "Assets\\Models\\Ground\\P_MOD_Floor_01_O_straight_med.gltf",
+  "Name": "P_MOD_Floor_01_O_straight_med",
+  "Version": 2,
+  "PrefabUID": 7145307308463627257,
+  "OverrideMap": {
+    "ModifiedProperties": {
+      "0": [
+        "properties"
+      ],
+      "1": [
+        "properties"
+      ]
+    },
+    "AddedComponents": [],
+    "RemovedComponents": []
+  },
+  "GameObject": {
+    "Name": "P_MOD_Floor_01_O_straight_med",
+    "Active": true,
+    "PrefabLink": {
+      "SourcePath": "Assets\\Models\\Ground\\P_MOD_Floor_01_O_straight_med.gltf",
+      "AssetUID": "2715c6b15334c78b78eed12b94187df2",
+      "PrefabUID": 7145307308463627257
+    },
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 1,
+        "Data": {
+          "UID": 12027074808171383570,
+          "ComponentType": 1,
+          "Active": true,
+          "MeshAssetId": "4aba9becfad46c9031a83a0fd85244b9",
+          "MaterialAssetId": [
+            "ca264c8f65cd6c409219c5fcdd010f0b"
+          ]
+        }
+      }
+    ],
+    "Children": []
+  }
+}

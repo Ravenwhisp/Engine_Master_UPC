@@ -8,7 +8,8 @@
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx12.h"
 
-
+#include "IconsFontAwesome5.h"
+#include <filesystem>
 
 ImGuiPass::ImGuiPass(ID3D12Device4* device, HWND hWnd, D3D12_CPU_DESCRIPTOR_HANDLE cpuTextHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuTextHandle)
 {
@@ -61,6 +62,23 @@ ImGuiPass::ImGuiPass(ID3D12Device4* device, HWND hWnd, D3D12_CPU_DESCRIPTOR_HAND
     {
         io.Fonts->AddFontDefault();
     }
+
+    ImFontConfig config;
+    config.MergeMode = true;
+    config.PixelSnapH = true;
+    config.GlyphMinAdvanceX = 13.0f;
+
+    static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+
+    std::string currentPath = std::filesystem::current_path().string();
+	std::string path = currentPath + "\\Editor\\Fonts\\fa-solid-900.ttf";
+
+    fp = fopen(path.c_str(), "r");
+    if (fp) 
+    {
+        fclose(fp);
+        io.Fonts->AddFontFromFileTTF(path.c_str(), 24.0f, &config, icon_ranges);
+    }
         
     io.Fonts->Build();
     //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
@@ -72,7 +90,11 @@ ImGuiPass::ImGuiPass(ID3D12Device4* device, HWND hWnd, D3D12_CPU_DESCRIPTOR_HAND
 
 ImGuiPass::~ImGuiPass()
 {
-    heap = nullptr;
+    if (m_fontDescriptor.IsValid())
+    {
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).free(m_fontDescriptor.handle);
+        m_fontDescriptor = {};
+    }
 
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();

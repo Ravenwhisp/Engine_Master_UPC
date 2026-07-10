@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "Component.h"
-
+#include "IArchive.h"
 #include "GameObject.h"
 
 #include <rapidjson/document.h>

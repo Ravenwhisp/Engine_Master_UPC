@@ -12,7 +12,6 @@ public:
 
     void Start() override;
     void Update() override;
-    FieldList getExposedFields() const override;
 
     void drawGizmo() override;
 
@@ -26,6 +25,9 @@ protected:
     virtual void onDashEnded() {}
     virtual bool validateDashTarget() { return true; }
 
+    virtual float getDashDuration() const = 0;
+    virtual float getDashDistance() const = 0;
+
 private:
     void startDash();
     void updateDash(float dt);
@@ -36,9 +38,6 @@ protected:
     PlayerController* m_playerController = nullptr;
     PlayerMovement* m_playerMovement = nullptr;
 
-    float m_dashDuration = 0.15f;
-    float m_dashDistance = 3.0f;
-
     float m_dashTimer = 0.0f;
     bool m_isDashing = false;
 
@@ -46,5 +45,4 @@ protected:
 
     Vector3 m_dashTargetPosition = Vector3::Zero;
     Vector3 m_dashStartPosition = Vector3::Zero;
-    bool m_hasDashTarget = false;
 };

@@ -6,16 +6,11 @@
 #include "PlayerRotation.h"
 #include "PersistingPowerupState.h"
 #include "EnemyShadowMark.h"
+#include "DeathUI.h"
+#include "DeathConfig.h"
+#include "DeathParticles.h"
 
 #include <cmath>
-
-IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathTaunt, DeathAbilityBase,
-    SERIALIZED_FLOAT(m_tauntDuration, "Taunt Duration", 0.0f, 10.0f, 0.1f),
-    SERIALIZED_COMPONENT_REF(m_AbilityUI, "Ability UI", ComponentType::TRANSFORM),
-    SERIALIZED_FLOAT(m_TauntDurationSeconds, "Ability Duration", 1.0f, 10.0f, 0.05f),
-    SERIALIZED_FLOAT(m_TauntRange, "Cone Range", 1.0f, 10.0f, 0.1f),
-    SERIALIZED_FLOAT(m_TauntHalfAngleDegrees, "Cone Angle", 1.0f, 180.0f, 1.0f)
-)
 
 DeathTaunt::DeathTaunt(GameObject* owner)
     : DeathAbilityBase(owner)
@@ -30,6 +25,20 @@ void DeathTaunt::Start()
     {
         m_playerRotation = m_character->getPlayerRotation();
     }
+
+    m_deathUI = GameObjectAPI::findScript<DeathUI>(getOwner());
+
+    if (!m_deathUI)
+    {
+        Debug::warn("[DeathTaunt] DeathUI not found.");
+    }
+
+    m_deathParticles = GameObjectAPI::findScript<DeathParticles>(getOwner());
+
+    if (!m_deathParticles)
+    {
+        Debug::warn("[DeathTaunt] DeathParticles not found.");
+    }
 }
 
 void DeathTaunt::Update()
@@ -40,6 +49,12 @@ void DeathTaunt::Update()
     {
         m_isAiming = false;
         m_currentAimDirection = Vector3::Zero;
+
+        if (m_deathUI)
+        {
+            m_deathUI->hideTauntUI();
+        }
+
         return;
     }
 
@@ -71,6 +86,21 @@ bool DeathTaunt::canStartSpecificAbility() const
     return !m_isAiming;
 }
 
+void DeathTaunt::onAttackWindowFinished()
+{
+    if (m_movementLockedForCombo)
+    {
+        releaseComboMoveLock();
+    }
+}
+
+float DeathTaunt::getCooldown() const
+{
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return 0.0f;
+    return cfg->m_tauntCooldown;
+}
+
 void DeathTaunt::startAbility()
 {
 	beginAim();
@@ -83,13 +113,16 @@ void DeathTaunt::drawGizmo()
         return;
     }
 
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return;
+
     Transform* ownerTransform = GameObjectAPI::getTransform(m_owner);
     if (ownerTransform == nullptr)
     {
         return;
     }
 
-    const Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
+    const Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 
     Vector3 ownerForward = m_currentAimDirection;
     if (ownerForward.LengthSquared() <= 0.0001f)
@@ -104,7 +137,7 @@ void DeathTaunt::drawGizmo()
 
     ownerForward.Normalize();
 
-    const float clampedHalfAngle = (m_TauntHalfAngleDegrees < 0.1f) ? 0.1f : ((m_TauntHalfAngleDegrees > 89.9f) ? 89.9f : m_TauntHalfAngleDegrees);
+    const float clampedHalfAngle = (cfg->m_tauntHalfAngleDegrees < 0.1f) ? 0.1f : ((cfg->m_tauntHalfAngleDegrees > 89.9f) ? 89.9f : cfg->m_tauntHalfAngleDegrees);
     const float halfAngleRadians = clampedHalfAngle * (3.14159265f / 180.0f);
 
     const int numSteps = 16;
@@ -121,16 +154,8 @@ void DeathTaunt::drawGizmo()
             direction.x * std::sin(angle) + direction.z * std::cos(angle)
         );
         direction.Normalize();
-        Vector3 arcPoint = ownerPosition + direction * m_TauntRange;
+        Vector3 arcPoint = ownerPosition + direction * cfg->m_tauntRange;
         DebugDrawAPI::drawLine(ownerPosition, arcPoint, color, 0, false);
-    }
-}
-
-void DeathTaunt::onFieldEdited(const FieldInfo& field)
-{
-    if (strcmp(field.name, "Cone Range") == 0 || strcmp(field.name, "Cone Angle") == 0)
-    {
-        m_debugConeTimer = 1.0f;
     }
 }
 
@@ -152,9 +177,10 @@ void DeathTaunt::beginAim()
 		m_currentAimDirection = getFallbackFacingDirection();
     }
     faceDirection(m_currentAimDirection);
-    if (m_AbilityUI.getReferencedComponent())
+
+    if (m_deathUI)
     {
-        GameObjectAPI::setActive(m_AbilityUI.getReferencedComponent()->getOwner(), true);
+        m_deathUI->showTauntUI();
     }
 }
 
@@ -166,14 +192,11 @@ void DeathTaunt::updateAim()
         m_currentAimDirection = aimDirection;
         faceDirection(m_currentAimDirection);
     }
-    if (m_AbilityUI.getReferencedComponent())
+    
+    if (m_deathUI)
     {
         const Vector3 origin = TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner()));
-        const float yawRad = std::atan2(m_currentAimDirection.x, m_currentAimDirection.z);
-        const float targetYawDeg = yawRad * (180.0f / 3.14159265f);
-
-        TransformAPI::setPosition(m_AbilityUI.getReferencedComponent(), origin);
-        TransformAPI::setRotationEuler(m_AbilityUI.getReferencedComponent(), Vector3(0.0f, targetYawDeg, 0.0f));
+        m_deathUI->updateTauntUI(origin, m_currentAimDirection);
     }
 }
 
@@ -182,9 +205,9 @@ void DeathTaunt::releaseAimAndCast()
     Debug::log("[DeathTaunt] L2 released — casting.");
     m_isAiming = false;
 
-    if (m_AbilityUI.getReferencedComponent())
+    if (m_deathUI)
     {
-        GameObjectAPI::setActive(m_AbilityUI.getReferencedComponent()->getOwner(), false);
+        m_deathUI->hideTauntUI();
     }
 
     Vector3 finalDirection = m_currentAimDirection;
@@ -203,8 +226,19 @@ void DeathTaunt::releaseAimAndCast()
             sound->playTauntShout();
         }
 
+        if (m_deathParticles != nullptr)
+        {
+            m_deathParticles->SetTauntActive(finalDirection);
+        }
+
         applyTauntToEnemiesInCone(finalDirection);
+        notifyAbilitySuccessfullyStarted();
         m_debugConeTimer = 0.25f;
+
+        const DeathConfig* cfg = m_config.get();
+        m_movementLockedForCombo = true;
+        beginAttackPresentation();
+        beginAttackWindow(cfg ? cfg->m_tauntLockDuration : 0.0f);
     }
 
     m_currentAimDirection = Vector3::Zero;
@@ -215,13 +249,16 @@ void DeathTaunt::releaseAimAndCast()
 
 void DeathTaunt::applyTauntToEnemiesInCone(const Vector3& ownerForward) const
 {
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return;
+
     Transform* ownerTransform = GameObjectAPI::getTransform(m_owner);
     if (ownerTransform == nullptr)
     {
         return;
     }
 
-    const Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
+    const Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 
     const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY);
     Debug::log("[DeathTaunt] Enemies with Tag::ENEMY found: %d", (int)enemies.size());
@@ -243,8 +280,8 @@ void DeathTaunt::applyTauntToEnemiesInCone(const Vector3& ownerForward) const
             continue;
         }
 
-        enemyAggro->applyTaunt(ownerTransform, m_TauntDurationSeconds);
-        Debug::log("[DeathTaunt] Taunt applied to '%s' for %.1fs.", GameObjectAPI::getName(enemy), m_TauntDurationSeconds);
+        enemyAggro->applyTaunt(ownerTransform, cfg->m_tauntDuration);
+        Debug::log("[DeathTaunt] Taunt applied to '%s' for %.1fs.", GameObjectAPI::getName(enemy), cfg->m_tauntDuration);
 
         if (PersistingPowerupState::isUnlocked(PowerupId::DeathPowerup1))
         {
@@ -304,6 +341,9 @@ bool DeathTaunt::isAimStickValid(const Vector3& direction) const
 
 bool DeathTaunt::isEnemyInsideTauntCone(GameObject* enemy, const Vector3& ownerPosition, const Vector3& ownerForward) const
 {
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return false;
+
     if (enemy == nullptr)
     {
         return false;
@@ -315,11 +355,11 @@ bool DeathTaunt::isEnemyInsideTauntCone(GameObject* enemy, const Vector3& ownerP
         return false;
     }
 
-    Vector3 directionToEnemy = TransformAPI::getPosition(enemyTransform) - ownerPosition;
+    Vector3 directionToEnemy = TransformAPI::getGlobalPosition(enemyTransform) - ownerPosition;
     directionToEnemy.y = 0.0f;
 
     const float distanceToEnemy = directionToEnemy.Length();
-    if (distanceToEnemy <= 0.0f || distanceToEnemy > m_TauntRange)
+    if (distanceToEnemy <= 0.0f || distanceToEnemy > cfg->m_tauntRange)
     {
         return false;
     }
@@ -333,11 +373,15 @@ bool DeathTaunt::isEnemyInsideTauntCone(GameObject* enemy, const Vector3& ownerP
     flattenedForward.Normalize();
     directionToEnemy.Normalize();
 
-    const float halfAngleRadians = m_TauntHalfAngleDegrees * (3.14159265f / 180.0f);
+    const float halfAngleRadians = cfg->m_tauntHalfAngleDegrees * (3.14159265f / 180.0f);
     const float coneThreshold = std::cos(halfAngleRadians);
 
     // TODO: Add a line-of-sight / wall check before confirming the taunt hit.
     return flattenedForward.Dot(directionToEnemy) >= coneThreshold;
 }
+
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathTaunt, DeathAbilityBase,
+    SERIALIZED_ASSET_REF(m_config, "Death Config", AssetType::DATA_CONTAINER)
+)
 
 IMPLEMENT_SCRIPT(DeathTaunt)

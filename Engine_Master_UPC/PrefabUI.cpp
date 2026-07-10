@@ -427,11 +427,16 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         Scene* scene = app->getModuleScene()->getScene();
         if (scene)
         {
-
-            GameObject* go = app->getModuleAssets()->getPrefabManager()->spawnPrefab(realPath, scene);
-            if (go)
+            const UID uid = app->getModuleAssets()->getIndex().findUID(realPath);
+            AssetReference* ref = app->getModuleAssets()->findReference(uid);
+            if (ref)
             {
-                app->getModuleEditor()->setSelectedGameObject(go);
+                GameObject* go = app->getModuleAssets()->getPrefabManager()->spawnPrefab(*ref, scene);
+                delete ref;
+                if (go)
+                {
+                    app->getModuleEditor()->setSelectedGameObject(go);
+                }
             }
         }
     }
@@ -525,38 +530,34 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
         ImGui::EndPopup();
     }
 
-    // ── Rename modal ─────────────────────────────────────────────────────────
-    const bool isPrefabRename = renamingPrefab;
-    if (renamingPrefab) { ImGui::OpenPopup("##pfRenameModal"); renamingPrefab = false; }
-    if (renamingAsset) { ImGui::OpenPopup("##pfRenameModal"); renamingAsset = false; }
-    ImGui::SetNextWindowPos(screenCenter, ImGuiCond_Appearing, { 0.5f, 0.5f });
-    ImGui::SetNextWindowSize({ 420, 0 });
-    if (ImGui::BeginPopupModal("##pfRenameModal", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    if (beginModal("##pfRenameModal", renamingPrefab, screenCenter))
     {
-        ImGui::Text(isPrefabRename ? "Rename prefab:" : "Rename asset:");
-        ImGui::TextDisabled("%s", buffers.renameSource);
+        ImGui::Text("Rename prefab:");
+        ImGui::Text("From:  %s", buffers.renameSource);
         ImGui::Separator();
         ImGui::SetNextItemWidth(-1);
         const bool enterPressed = ImGui::InputText("New name##rname", buffers.renameDest, buffers.renameDestSize, ImGuiInputTextFlags_EnterReturnsTrue);
         ImGui::Spacing();
         if ((ImGui::Button("Rename", { 100, 0 }) || enterPressed)
-            && strlen(buffers.renameDest) > 0
-            && strcmp(buffers.renameSource, buffers.renameDest) != 0)
+            && strlen(buffers.renameDest) > 0)
         {
-            // Both buffers hold full paths — no folder is assumed.
-            const std::filesystem::path srcPath(buffers.renameSource);
-            const std::filesystem::path dstPath(buffers.renameDest);
-            if (FileIO::move(srcPath, dstPath))
+            const auto srcAsset = std::filesystem::path(buffers.renameSource);
+            if (strcmp(buffers.renameDest, srcAsset.stem().string().c_str()) != 0)
             {
-                std::filesystem::path srcMeta = srcPath;
-                std::filesystem::path dstMeta = dstPath;
-                srcMeta += METADATA_EXTENSION;
-                dstMeta += METADATA_EXTENSION;
-                if (FileIO::exists(srcMeta))
+                const auto dir = srcAsset.parent_path();
+                const auto ext = srcAsset.extension().string();
+                const auto dstAsset = dir / (std::string(buffers.renameDest) + ext);
+                auto srcMeta = srcAsset; srcMeta += ".metadata";
+                auto dstMeta = dstAsset; dstMeta += ".metadata";
+
+                app->getModuleAssets()->unregisterAsset(srcAsset);
+                bool ok = FileIO::move(srcAsset, dstAsset);
+                if (ok) ok = FileIO::move(srcMeta, dstMeta);
+                if (ok)
                 {
-                    FileIO::move(srcMeta, dstMeta);
+                    AssetReference ref;
+                    app->getModuleAssets()->importAsset(dstAsset, ref);
                 }
-                app->getModuleAssets()->refresh();
             }
             ImGui::CloseCurrentPopup();
         }

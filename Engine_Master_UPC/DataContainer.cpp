@@ -3,17 +3,39 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "FieldUtils.h"
-#include "IArchive.h"
+#include "JsonArchive.h"
+#include "GenericTypeFactory.h"
+
+#include <string>
 
 void DataContainer::serialize(IArchive& archive)
 {
-	if (archive.mode() == ArchiveMode::Output && m_typeName.empty())
-	{
-		m_typeName = getTypeName();
-	}
-	archive.serialize(m_typeName, "_typeName");
+    std::string typeName = getTypeName();
+    if (DataContainerFactory::isRegistered(typeName))
+    {
+        archive.serialize(typeName, "_typeName");
+    }
 
-	FieldUtils::serialize(*this, reinterpret_cast<char*>(this), archive);
+    FieldList fields = getExposedFields();
+    if (!fields.fields.empty())
+    {
+        FieldUtils::serialize(*this, reinterpret_cast<const char*>(this), archive);
+        return;
+    }
+
+    // Fallback: when there are no bound fields (base DataContainer during
+    // initial import), copy the raw JSON into m_data so that
+    // resolveDataContainerType can discover _typeName and upgrade
+    // to the correct derived class (e.g. BoundConfig).
+    JsonArchive* jarc = dynamic_cast<JsonArchive*>(&archive);
+    if (jarc && jarc->mode() == ArchiveMode::Input)
+    {
+        const rapidjson::Value* input = jarc->currentInput();
+        if (input && input->IsObject())
+        {
+            m_data.CopyFrom(*input, m_data.GetAllocator());
+        }
+    }
 }
 
 void DataContainer::drawUI()
@@ -43,4 +65,121 @@ void DataContainer::drawUI()
 		return;
 	}
 
+	if (m_data.IsObject() && m_data.MemberCount() == 0)
+	{
+		ImGui::TextDisabled("No properties defined.");
+		ImGui::Spacing();
+		ImGui::TextWrapped("Override getExposedFields() in a subclass to add typed properties,");
+		ImGui::TextWrapped("or add entries directly in the .datacontainer JSON file.");
+		return;
+	}
+
+	if (!m_data.IsObject())
+	{
+		ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Invalid data document.");
+		return;
+	}
+
+	for (auto it = m_data.MemberBegin(); it != m_data.MemberEnd(); ++it)
+	{
+		const char* key = it->name.GetString();
+		rapidjson::Value& value = it->value;
+
+		ImGui::PushID(key);
+
+		if (value.IsString())
+		{
+			std::string buffer = value.GetString();
+			buffer.resize(256, '\0');
+			if (ImGui::InputText(key, &buffer[0], buffer.size()))
+			{
+				value.SetString(buffer.c_str(), m_data.GetAllocator());
+			}
+		}
+		else if (value.IsInt())
+		{
+			int v = value.GetInt();
+			if (ImGui::InputInt(key, &v))
+			{
+				value.SetInt(v);
+			}
+		}
+		else if (value.IsInt64())
+		{
+			int v = static_cast<int>(value.GetInt64());
+			if (ImGui::InputInt(key, &v))
+			{
+				value.SetInt64(v);
+			}
+		}
+		else if (value.IsUint64())
+		{
+			int v = static_cast<int>(value.GetUint64());
+			if (ImGui::InputInt(key, &v))
+			{
+				value.SetUint64(static_cast<uint64_t>(v));
+			}
+		}
+		else if (value.IsFloat() || value.IsDouble())
+		{
+			float v = value.GetFloat();
+			if (ImGui::DragFloat(key, &v, 0.1f))
+			{
+				value.SetFloat(v);
+			}
+		}
+		else if (value.IsBool())
+		{
+			bool v = value.GetBool();
+			if (ImGui::Checkbox(key, &v))
+			{
+				value.SetBool(v);
+			}
+		}
+		else if (value.IsArray())
+		{
+			if (ImGui::TreeNode(key, "%s [%u items]", key, value.Size()))
+			{
+				for (rapidjson::SizeType i = 0; i < value.Size(); ++i)
+				{
+					ImGui::PushID(static_cast<int>(i));
+					rapidjson::Value& elem = value[i];
+
+					if (elem.IsString())
+					{
+						ImGui::Text("[%u]: %s", i, elem.GetString());
+					}
+					else if (elem.IsNumber())
+					{
+						if (elem.IsInt())
+							ImGui::Text("[%u]: %d", i, elem.GetInt());
+						else
+							ImGui::Text("[%u]: %.3f", i, elem.GetFloat());
+					}
+					else if (elem.IsBool())
+					{
+						ImGui::Text("[%u]: %s", i, elem.GetBool() ? "true" : "false");
+					}
+					else if (elem.IsObject())
+					{
+						ImGui::Text("[%u]: { ... }", i);
+					}
+
+					ImGui::PopID();
+				}
+
+				ImGui::TreePop();
+			}
+		}
+		else if (value.IsObject())
+		{
+			ImGui::Text("%s: { ... }", key);
+		}
+		else
+		{
+			ImGui::TextDisabled("%s: (unsupported type)", key);
+		}
+
+		ImGui::PopID();
+	}
 }

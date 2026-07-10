@@ -6,6 +6,7 @@
 class RangedEnemyController;
 class ArcherAttackConfig;
 class AnimationComponent;
+class ArcherGuardParticles;
 
 class ArcherSomersaultState : public StateMachineScript
 {
@@ -13,6 +14,8 @@ class ArcherSomersaultState : public StateMachineScript
 
 public:
     explicit ArcherSomersaultState(GameObject* owner);
+
+    FieldList getExposedFields() const override;
 
     void OnStateEnter() override;
     void OnStateUpdate() override;
@@ -24,8 +27,9 @@ private:
 
 private:
     RangedEnemyController* m_archerController = nullptr;
-    ArcherAttackConfig* m_attackConfig = nullptr;
+    AssetRef<ArcherAttackConfig> m_attackConfig;
     AnimationComponent* m_animation = nullptr;
+    ArcherGuardParticles* m_particles = nullptr;
 
     Vector3 m_escapeDirection = Vector3(0.0f, 0.0f, 0.0f);
 

@@ -1,0 +1,13 @@
+{
+    "uid": 18365803716561692494,
+    "contentHash": "d09422f935e0c2fb68070557ffbd3c50",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_cd_death_charged.png",
+    "sourceFileSize": 8173,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

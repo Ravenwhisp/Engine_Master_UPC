@@ -8,6 +8,7 @@
 #include "ModuleD3D12.h"
 #include "ModuleScene.h"
 #include "ModuleMusic.h"
+#include "ModuleAssets.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -18,6 +19,7 @@
 #include "SceneSnapshot.h"
 #include "Transform.h"
 #include "SceneReferenceResolver.h"
+#include "SoundBankAsset.h"
 
 #include "IArchive.h"
 
@@ -28,9 +30,13 @@
 #include <algorithm>
 
 
-Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) 
+Scene::Scene(AssetReference& id) : Asset(id, AssetType::SCENE)
 {
     m_triggerSystem = std::make_unique<TriggerSystem>();
+    m_skybox = {};
+    m_skybox.cubemapAssetId.m_uid = 16369577574978536111;
+    m_skybox.cubemapAssetId.m_type = AssetType::TEXTURE;
+    m_skybox.cubemapAssetId.m_libId = "88b330e7e6260491cfb645f0282a1427";
 }
 
 Scene::~Scene() = default;
@@ -53,6 +59,7 @@ bool Scene::init()
     setDefaultCamera(gameCamera->GetComponentAs<CameraComponent>(ComponentType::CAMERA));
 
     m_allObjects.push_back(std::move(gameCamera));
+    m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
     m_rootObjects.push_back(rawPtr);
 
     for (const auto& go : m_allObjects)
@@ -129,6 +136,7 @@ GameObject* Scene::createGameObject()
     else
     {
         m_allObjects.push_back(std::move(newGameObject));
+        m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
         m_rootObjects.push_back(rawPtr);
         markDirty();
     }
@@ -151,6 +159,7 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     else
     {
         m_allObjects.push_back(std::move(newGameObject));
+        m_objectIndexMap[raw] = m_allObjects.size() - 1;
         m_rootObjects.push_back(raw);
         markDirty();
     }
@@ -250,6 +259,7 @@ void Scene::flushPendingGameObjects()
 
     for (auto& pendingObject : m_pendingObjectsToAdd)
     {
+        m_objectIndexMap[pendingObject.get()] = m_allObjects.size();
         m_allObjects.push_back(std::move(pendingObject));
     }
 
@@ -262,6 +272,22 @@ void Scene::flushPendingGameObjects()
 void Scene::releasePendingDestroyedGameObjects()
 {
     CommandQueue* commandQueue = app->getModuleD3D12()->getCommandQueue();
+
+    {
+        bool needsSignal = false;
+        for (const auto& p : m_pendingDestroyedObjects)
+        {
+            if (p.fenceValue == 0) { needsSignal = true; break; }
+        }
+        if (needsSignal)
+        {
+            const uint64_t fenceValue = commandQueue->signal();
+            for (auto& p : m_pendingDestroyedObjects)
+            {
+                if (p.fenceValue == 0) p.fenceValue = fenceValue;
+            }
+        }
+    }
 
     auto it = m_pendingDestroyedObjects.begin();
 
@@ -288,45 +314,84 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
         for (auto& child : all[i]->releaseChildren())
             all.push_back(std::move(child));
 
+    std::vector<GameObject*> newGOs;
+    newGOs.reserve(all.size());
+
     for (auto& go : all)
     {
         GameObject* raw = go.get();
+        newGOs.push_back(raw);
         m_allObjects.push_back(std::move(go));
+        m_objectIndexMap[raw] = m_allObjects.size() - 1;
         if (raw->GetTransform()->getRoot() == nullptr)
             m_rootObjects.push_back(raw);
     }
 
     markDirty();
 
-    auto allGOs = getAllGameObjects();
-    fixReferencesFor(allGOs);
+    SceneReferenceResolver resolver;
+    for (GameObject* obj : newGOs)
+    {
+        resolver.registerGameObject(obj, obj);
+        for (Component* c : obj->GetAllComponents())
+            resolver.registerComponent(c->getID(), c);
+    }
+
+    for (GameObject* obj : newGOs)
+    {
+        for (Component* c : obj->GetAllComponents())
+            c->fixReferences(resolver);
+    }
+
+    for (GameObject* obj : newGOs)
+    {
+        TriggerComponent* trigger = obj->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+        if (trigger != nullptr)
+        {
+            registerTrigger(trigger);
+        }
+    }
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
 {
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        unregisterTrigger(trigger);
+    }
+
     removeFromRootList(gameObject);
 
-    auto it = std::find_if(
-        m_allObjects.begin(),
-        m_allObjects.end(),
-        [gameObject](const std::unique_ptr<GameObject>& ptr)
-        {
-            return ptr.get() == gameObject;
+    auto mapIt = m_objectIndexMap.find(gameObject);
+    if (mapIt == m_objectIndexMap.end()) return;
+
+    const size_t idx = mapIt->second;
+    const size_t lastIdx = m_allObjects.size() - 1;
+
+    app->getModuleScene()->removeGameObjectFromQuadtree(*m_allObjects[idx].get());
+
+    m_pendingDestroyedObjects.push_back(
+        PendingDestroyedGameObject{
+            std::move(m_allObjects[idx]),
+            0
         });
 
-    if (it != m_allObjects.end())
+    if (idx != lastIdx)
     {
-        const uint64_t fenceValue = app->getModuleD3D12()->getCommandQueue()->signal();
-
-		app->getModuleScene()->removeGameObjectFromQuadtree(*it->get());
-
-        m_pendingDestroyedObjects.push_back(
-            PendingDestroyedGameObject{
-                std::move(*it),
-                fenceValue
-            });
-        m_allObjects.erase(it);
+        m_allObjects[idx] = std::move(m_allObjects[lastIdx]);
+        m_objectIndexMap[m_allObjects[idx].get()] = idx;
     }
+
+    m_allObjects.pop_back();
+    m_objectIndexMap.erase(mapIt);
     markDirty();
 }
 
@@ -425,6 +490,7 @@ GameObject* Scene::createDirectionalLightOnInit()
     raw->init();
 
     m_allObjects.push_back(std::move(go));
+    m_objectIndexMap[raw] = m_allObjects.size() - 1;
     m_rootObjects.push_back(raw);
     markDirty();
 
@@ -552,7 +618,15 @@ void Scene::clearScene()
     m_rootObjects.clear();
     m_allObjects.clear();
 
+    m_objectIndexMap.clear();
     m_defaultCamera = nullptr;
+    m_navMesh = AssetReference{};
+    m_loadedBankRefs.clear();
+    m_loadedBankNameCache.clear();
+    m_isUpdating = false;
+    m_objectsToRemove.clear();
+    m_pendingObjectsToAdd.clear();
+    m_pendingRootObjectsToAdd.clear();
     markDirty();
 }
 
@@ -566,57 +640,175 @@ void Scene::markDirty()
     }
 }
 
+#pragma region Triggers
 void Scene::registerTrigger(TriggerComponent* trigger)
 {
-    if (m_triggerSystem)
+    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
     {
-        m_triggerSystem->registerTrigger(trigger);
+        return;
     }
-}
 
+    if (m_triggerSystem == nullptr || trigger == nullptr)
+    {
+        return;
+    }
+
+    if (!trigger->isActive())
+    {
+        return;
+    }
+
+    m_triggerSystem->registerTrigger(trigger);
+}
 void Scene::unregisterTrigger(TriggerComponent* trigger)
 {
-    if (m_triggerSystem)
+    if (m_triggerSystem == nullptr || trigger == nullptr)
     {
-        m_triggerSystem->unregisterTrigger(trigger);
+        return;
     }
+
+    m_triggerSystem->unregisterTrigger(trigger);
 }
 
 void Scene::clearTriggers()
 {
-    if (m_triggerSystem)
-    {
-        m_triggerSystem->clear();
-    }
-}
-
-#pragma region MusicBanks
-const std::vector<std::string>& Scene::getLoadedBanks() const
-{
-    return m_loadedBanks;
-}
-
-void Scene::addLoadedBank(const std::string& bank)
-{
-    if (std::find(m_loadedBanks.begin(), m_loadedBanks.end(), bank) != m_loadedBanks.end())
+    if (m_triggerSystem == nullptr)
     {
         return;
     }
 
-    m_loadedBanks.push_back(bank);
+    m_triggerSystem->clear();
 }
 
-void Scene::removeLoadedBank(const std::string& bank)
+void Scene::registerAllTriggersInScene()
 {
-    for (auto it = m_loadedBanks.begin(); it != m_loadedBanks.end(); ++it)
+    clearTriggers();
+
+    for (const std::unique_ptr<GameObject>& gameObjectPtr : m_allObjects)
     {
-        if (*it != bank)
+        GameObject* gameObject = gameObjectPtr.get();
+
+        if (gameObject == nullptr)
         {
             continue;
         }
 
-        m_loadedBanks.erase(it);
+        TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+        if (trigger == nullptr)
+        {
+            continue;
+        }
+
+        registerTrigger(trigger);
+    }
+}
+
+void Scene::registerTriggersInGameObject(GameObject* gameObject)
+{
+    if (gameObject == nullptr)
+    {
         return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        registerTrigger(trigger);
+    }
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+    {
+        return;
+    }
+
+    for (GameObject* child : transform->getAllChildren())
+    {
+        registerTriggersInGameObject(child);
+    }
+}
+
+void Scene::unregisterTriggersInGameObject(GameObject* gameObject)
+{
+    if (gameObject == nullptr)
+    {
+        return;
+    }
+
+    TriggerComponent* trigger = gameObject->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
+
+    if (trigger != nullptr)
+    {
+        unregisterTrigger(trigger);
+    }
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+    {
+        return;
+    }
+
+    for (GameObject* child : transform->getAllChildren())
+    {
+        unregisterTriggersInGameObject(child);
+    }
+}
+#pragma endregion
+
+#pragma region MusicBanks
+void Scene::addLoadedBank(const std::string& bankName)
+{
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
+
+    for (const auto& name : m_loadedBankNameCache)
+        if (name == bankName)
+            return;
+
+    AssetReference ref = app->getModuleMusic()->findBankRef(bankName);
+    if (!ref.isValid())
+    {
+        UID uid = GenerateUID();
+        ref = AssetReference(uid, INVALID_ASSET_ID, AssetType::SOUND_BANK);
+    }
+    m_loadedBankRefs.push_back(ref);
+    m_loadedBankNameCache.push_back(bankName);
+}
+
+void Scene::removeLoadedBank(const std::string& bankName)
+{
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
+
+    for (size_t i = 0; i < m_loadedBankNameCache.size(); ++i)
+    {
+        if (m_loadedBankNameCache[i] == bankName)
+        {
+            m_loadedBankRefs.erase(m_loadedBankRefs.begin() + i);
+            m_loadedBankNameCache.erase(m_loadedBankNameCache.begin() + i);
+            return;
+        }
+    }
+}
+
+std::vector<std::string> Scene::getLoadedBankNames() const
+{
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
+    return m_loadedBankNameCache;
+}
+
+void Scene::resolveLoadedBankNames() const
+{
+    m_loadedBankNameCache.clear();
+    for (const auto& ref : m_loadedBankRefs)
+    {
+        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(ref));
+        m_loadedBankNameCache.push_back(asset ? asset->getBankName() : "");
     }
 }
 
@@ -638,15 +830,25 @@ void Scene::serialize(IArchive& archive)
     m_skybox.serialize(archive);
     archive.endObject();
 
+    archive.beginObject("NavMesh");
+    m_navMesh.serialize(archive);
+    archive.endObject();
+
+    archive.beginObject("SSAO");
+    m_ssao.serialize(archive);
+    archive.endObject();
+
     {
-        SoundBanksData soundData;
-        if (archive.mode() == ArchiveMode::Output)
-            soundData.banks = m_loadedBanks;
+        uint32_t bankCount = static_cast<uint32_t>(m_loadedBankRefs.size());
         archive.beginObject("SoundBanks");
-        soundData.serialize(archive);
+        archive.beginArray(bankCount, "banks");
+        m_loadedBankRefs.resize(bankCount);
+        for (uint32_t i = 0; i < bankCount; ++i)
+        {
+            m_loadedBankRefs[i].serialize(archive);
+        }
+        archive.endArray();
         archive.endObject();
-        if (archive.mode() == ArchiveMode::Input)
-            m_loadedBanks = std::move(soundData.banks);
     }
 
     uint64_t defaultCameraUid = 0;
@@ -680,7 +882,7 @@ void Scene::serialize(IArchive& archive)
             GameObject* go = createGameObjectWithUID((UID)uid, (UID)transformUid);
             go->serialize(archive);
 
-            goMeta.push_back({uid, transformUid, parentUid});
+            goMeta.push_back({ uid, transformUid, parentUid });
             gos.push_back(go);
 
             archive.endObject();

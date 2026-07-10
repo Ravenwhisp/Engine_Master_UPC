@@ -1,6 +1,17 @@
 #include "pch.h"
 #include "BreakableObject.h"
 
+#include "EnvironmentSound.h"
+
+namespace
+{
+    constexpr const char* k_barrelBreak = "Play_Environment_Barrel_Break";
+}
+
+IMPLEMENT_SCRIPT_FIELDS(BreakableObject,
+    SERIALIZED_ASSET_REF(m_dustEffectParticle, "Dust Effect Particle", AssetType::PREFAB)
+)
+
 BreakableObject::BreakableObject(GameObject* owner)
     : Script(owner)
 {
@@ -36,6 +47,18 @@ void BreakableObject::Start()
         GameObject* brokenObject = ComponentAPI::getOwner(m_brokenObjectTransform);
         GameObjectAPI::setActive(brokenObject, false);
     }
+
+    m_navBlocker = NavigationAPI::getRuntimeBlockerComponent(getOwner());
+    if (m_navBlocker != nullptr)
+    {
+        NavigationAPI::setBlocked(m_navBlocker, true);
+    }
+}
+
+void BreakableObject::onBreak()
+{
+    breakObject();
+    EnvironmentSound::play(getOwner(), k_barrelBreak);   // barrels & crates (same prefab)
 }
 
 void BreakableObject::breakObject()
@@ -57,7 +80,12 @@ void BreakableObject::breakObject()
     {
         GameObject* brokenObject = ComponentAPI::getOwner(m_brokenObjectTransform);
         GameObjectAPI::setActive(brokenObject, true);
-		GameObject* dustEffect = GameObjectAPI::instantiatePrefab("Assets/Prefabs/Particles/Dust_1.prefab", TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
+		GameObject* dustEffect = GameObjectAPI::instantiatePrefab(m_dustEffectParticle.m_ref, TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
+    }
+
+    if (m_navBlocker != nullptr)
+    {
+        NavigationAPI::setBlocked(m_navBlocker, false);
     }
 
     Debug::log("[BreakableObject] '%s' broke.", GameObjectAPI::getName(getOwner()));

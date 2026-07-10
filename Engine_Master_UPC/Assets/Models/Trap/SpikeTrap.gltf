@@ -1,0 +1,175 @@
+{
+  "SourcePath": "Assets\\Models\\Trap\\SpikeTrap.gltf",
+  "Name": "SpikeTrap",
+  "Version": 2,
+  "GameObject": {
+    "Name": "SpikeTrap",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "PrefabLink": {
+      "SourcePath": "Assets\\Models\\Trap\\SpikeTrap.gltf",
+      "AssetUID": 5609205649917604619
+    },
+    "Transform": {
+      "position": [
+        53.89027404785156,
+        0.006744980812072754,
+        -120.10385131835938
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 1,
+        "Data": {
+          "UID": 16531416110771539581,
+          "ComponentType": 1,
+          "Active": true,
+          "MeshAssetId": {
+            "uid": 9787522221163303608,
+            "libId": "f9f61a2ca93ec59cf0233e3d09f61cfa"
+          },
+          "SkinAssetId": {
+            "uid": 0,
+            "libId": ""
+          },
+          "MaterialAssetId": [
+            {
+              "uid": 7489748572007598388,
+              "libId": "a6d873373b28a23bd0431af658d304c6"
+            }
+          ]
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 2722275625151100539,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "SpikeTrap",
+          "ScriptFields": {
+            "Alternative Mode": false,
+            "Active Duration": 2.0,
+            "Preparing Duration": 1.0,
+            "Start Position Y": -1.0,
+            "Wait Position Y": -0.699999988079071,
+            "Active Position Y": 0.0,
+            "Trap Damage": 20.0
+          }
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "Normal",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            -1.0260000228881836,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 4417822598410609657,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": {
+                "uid": 17412517385445504489,
+                "libId": "3f64c6425417658e4ce2a06417223583"
+              },
+              "SkinAssetId": {
+                "uid": 0,
+                "libId": ""
+              },
+              "MaterialAssetId": [
+                {
+                  "uid": 7489748572007598388,
+                  "libId": "a6d873373b28a23bd0431af658d304c6"
+                }
+              ]
+            }
+          }
+        ],
+        "Children": []
+      },
+      {
+        "Name": "Spectral",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            -1.0260000228881836,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 1,
+            "Data": {
+              "UID": 17169051764833444210,
+              "ComponentType": 1,
+              "Active": true,
+              "MeshAssetId": {
+                "uid": 3998816102135884164,
+                "libId": "3f64c6425417658e4ce2a06417223583"
+              },
+              "SkinAssetId": {
+                "uid": 0,
+                "libId": ""
+              },
+              "MaterialAssetId": [
+                {
+                  "uid": 6057061331494909289,
+                  "libId": "7f2d6bbc872cecd9016622ff7e939b1c"
+                }
+              ]
+            }
+          }
+        ],
+        "Children": []
+      }
+    ]
+  }
+}

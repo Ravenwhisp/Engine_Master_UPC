@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -17,13 +18,13 @@ namespace
 
     void serializeVec3Field(const FieldInfo& field, void* data, IArchive& archive)
     {
-        Vector3* value = reinterpret_cast<Vector3*>(data);
-        DirectX::SimpleMath::Vector3 v(value->x, value->y, value->z);
-        archive.serialize(v, field.name);
-        if (archive.mode() == ArchiveMode::Input)
-        {
-            value->x = v.x; value->y = v.y; value->z = v.z;
-        }
+        Vector3 value = *reinterpret_cast<const Vector3*>(data);
+        archive.serialize(value, field.name);
+    }
+
+    void deserializeVec3Field(const FieldInfo& field, void* data, IArchive& archive)
+    {
+        archive.serialize(*reinterpret_cast<Vector3*>(data), field.name);
     }
 
     void cloneVec3Field(const FieldInfo&, const void* sourceData, void* targetData)

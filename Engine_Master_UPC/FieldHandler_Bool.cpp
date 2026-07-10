@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -17,8 +18,8 @@ namespace
 
     void serializeBoolField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        bool* value = reinterpret_cast<bool*>(data);
-        archive.serialize(*value, field.name);
+        bool value = *reinterpret_cast<const bool*>(data);
+        archive.serialize(value, field.name);
     }
 
     void cloneBoolField(const FieldInfo&, const void* sourceData, void* targetData)
@@ -30,7 +31,7 @@ namespace
     {
     }
 
-    const FieldHandler boolFieldHandler = { &drawBoolFieldUi, &serializeBoolField, &cloneBoolField, &fixReferencesBoolField};
+    const FieldHandler boolFieldHandler ={&drawBoolFieldUi, &serializeBoolField, &cloneBoolField, &fixReferencesBoolField};
 }
 
 const FieldHandler* getBoolFieldHandler()

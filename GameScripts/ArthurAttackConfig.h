@@ -1,21 +1,20 @@
 #pragma once
 
-#include "ScriptAPI.h"
+#include "DataContainerAPI.h"
 #include "Transform2D.h"
 #include "UISlider.h"
 
-class ArthurAttackConfig : public Script
+class ArthurAttackConfig : public DataContainer
 {
-    DECLARE_SCRIPT(ArthurAttackConfig)
+    DECLARE_DATACONTAINER(ArthurAttackConfig)
 
 public:
-    explicit ArthurAttackConfig(GameObject* owner);
+    ArthurAttackConfig() = default;
+    explicit ArthurAttackConfig(AssetReference& id)
+        : DataContainer(id)
+    {
+    }
 
-    void Start() override;
-
-    FieldList getExposedFields() const override;
-
-public:
     // Heavy Swipe
     float m_heavySwipeDamage = 10.0f;
     float m_heavySwipeRange = 3.0f;
@@ -34,22 +33,6 @@ public:
     float m_heavySwipePhase2Hit4Time = 1.20f;
     float m_heavySwipePhase2RecoveryDuration = 0.45f;
 
-    ComponentRef<Transform> m_heavySwipeUICanvas;
-    ComponentRef<Transform2D> m_heavySwipeUIContainer;
-    ComponentRef<Transform2D> m_heavySwipeUIBackground;
-    ComponentRef<Transform2D> m_heavySwipeUIBorder;
-    ComponentRef<Transform2D> m_heavySwipeUIGlow;
-    ComponentRef<Transform2D> m_heavySwipeUIRightClaw;
-    ComponentRef<Transform2D> m_heavySwipeUILeftClaw;
-
-	Transform* m_heavySwipeUICanvasTransform = nullptr;
-	Transform2D* m_heavySwipeUIContainerTransform2D = nullptr;
-	Transform2D* m_heavySwipeUIBackgroundTransform2D = nullptr;
-	Transform2D* m_heavySwipeUIBorderTransform2D = nullptr;
-	Transform2D* m_heavySwipeUIGlowTransform2D = nullptr;
-	Transform2D* m_heavySwipeUIRightClawTransform2D = nullptr;
-	Transform2D* m_heavySwipeUILeftClawTransform2D = nullptr;
-
     // Side Sweep
     float m_sideSweepDamage = 12.0f;
     float m_sideSweepRange = 4.0f;
@@ -65,16 +48,6 @@ public:
     float m_sideSweepPhase2HitTime = 0.20f;
     float m_sideSweepPhase2TotalDuration = 0.55f;
     float m_sideSweepPhase2RecoveryDuration = 0.35f;
-
-    ComponentRef<Transform> m_sideSweepUICanvas;
-    ComponentRef<Transform2D> m_sideSweepUIContainer;
-    ComponentRef<Transform2D> m_sideSweepUIBackground;
-    ComponentRef<Transform2D> m_sideSweepUIShadow;
-
-    Transform* m_sideSweepUICanvasTransform = nullptr;
-    Transform2D* m_sideSweepUIContainerTransform2D = nullptr;
-    Transform2D* m_sideSweepUIBackgroundTransform2D = nullptr;
-    Transform2D* m_sideSweepUIShadowTransform2D = nullptr;
 
     // Charging Slam
     float m_chargingSlamDashDamage = 12.0f;
@@ -99,34 +72,6 @@ public:
     float m_chargingSlamMinRange = 5.0f;
     float m_chargingSlamMaxRange = 8.0f;
 
-    ComponentRef<Transform> m_chargingSlamUICanvas;
-    ComponentRef<Transform2D> m_chargingSlamUIContainer;
-	ComponentRef<Transform2D> m_chargingSlamUIBackground;
-    ComponentRef<Transform2D> m_chargingSlamUIBorders;
-    ComponentRef<Transform2D> m_chargingSlamUIShadow;
-    ComponentRef<Transform2D> m_chargingSlamUISpikes;
-    ComponentRef<UISlider> m_chargingSlamUIBordersSlider;
-    ComponentRef<UISlider> m_chargingSlamUIShadowSlider;
-
-    Transform* m_chargingSlamUICanvasTransform = nullptr;
-	Transform2D* m_chargingSlamUIContainerTransform2D = nullptr;
-    Transform2D* m_chargingSlamUIBackgroundTransform2D = nullptr;
-    Transform2D* m_chargingSlamUIBordersTransform2D = nullptr;
-    Transform2D* m_chargingSlamUIShadowTransform2D = nullptr;
-	Transform2D* m_chargingSlamUISpikesTransform2D = nullptr;
-	UISlider* m_chargingSlamUIBordersSliderComponent = nullptr;
-    UISlider* m_chargingSlamUIShadowSliderComponent = nullptr;
-
-	ComponentRef<Transform> m_chargingSlamImpactUICanvas;
-	ComponentRef<Transform2D> m_chargingSlamImpactUIContainer;
-    ComponentRef<Transform2D> m_chargingSlamImpactUICenter;
-    ComponentRef<Transform2D> m_chargingSlamImpactUIGlow;
-
-	Transform* m_chargingSlamImpactUICanvasTransform = nullptr;
-	Transform2D* m_chargingSlamImpactUIContainerTransform2D = nullptr;
-	Transform2D* m_chargingSlamImpactUICenterTransform2D = nullptr;
-	Transform2D* m_chargingSlamImpactUIGlowTransform2D = nullptr;
-
     // Earth Hammer
     float m_earthHammerDamage = 20.0f;
     float m_earthHammerRadius = 5.0f;
@@ -143,17 +88,60 @@ public:
     float m_earthHammerPhase2Damage = 25.0f;
     float m_earthHammerPhase2StunDuration = 1.75f;
 
-	ComponentRef<Transform> m_earthHammerUICanvas;
-	ComponentRef<Transform2D> m_earthHammerUIContainer;
-    ComponentRef<Transform2D> m_earthHammerUIInner;
-    ComponentRef<Transform2D> m_earthHammerUISpikes;
-	ComponentRef<Transform2D> m_earthHammerUIGlow;
-    ComponentRef<Transform2D> m_earthHammerUIRing;
-
-	Transform* m_earthHammerUICanvasTransform = nullptr;
-	Transform2D* m_earthHammerUIContainerTransform2D = nullptr;
-    Transform2D* m_earthHammerUIInnerTransform2D = nullptr;
-	Transform2D* m_earthHammerUISpikesTransform2D = nullptr;
-    Transform2D* m_earthHammerUIGlowTransform2D = nullptr;
-	Transform2D* m_earthHammerUIRingTransform2D = nullptr;
+    IMPLEMENT_DATACONTAINER_FIELDS(ArthurAttackConfig,
+        FIELD_GROUP_COLLAPSE("Heavy Swipe",
+            SERIALIZED_FLOAT(m_heavySwipeDamage, "Heavy Swipe Damage", 0.0f, 9999.0f, 1.0f),
+            SERIALIZED_FLOAT(m_heavySwipeRange, "Heavy Swipe Range", 0.0f, 20.0f, 0.1f),
+            SERIALIZED_FLOAT(m_heavySwipeHalfAngleDegrees, "Heavy Swipe Half Angle Degrees", 0.0f, 180.0f, 1.0f),
+            SERIALIZED_FLOAT(m_heavySwipeTotalDuration, "Heavy Swipe Total Duration", 0.1f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipeHit1Time, "Heavy Swipe Hit 1 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipeHit2Time, "Heavy Swipe Hit 2 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipeHit3Time, "Heavy Swipe Hit 3 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipeRecoveryDuration, "Heavy Swipe Recovery Duration", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipePhase2Hit1Time, "Heavy Swipe Phase 2 Hit 1 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipePhase2Hit2Time, "Heavy Swipe Phase 2 Hit 2 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipePhase2Hit3Time, "Heavy Swipe Phase 2 Hit 3 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipePhase2Hit4Time, "Heavy Swipe Phase 2 Hit 4 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipePhase2RecoveryDuration, "Heavy Swipe Phase 2 Recovery Duration", 0.0f, 10.0f, 0.05f)
+        ),
+        FIELD_GROUP_COLLAPSE("Side Sweep",
+            SERIALIZED_FLOAT(m_sideSweepDamage, "Side Sweep Damage", 0.0f, 9999.0f, 1.0f),
+            SERIALIZED_FLOAT(m_sideSweepRange, "Side Sweep Range", 0.0f, 30.0f, 0.1f),
+            SERIALIZED_FLOAT(m_sideSweepHalfAngleDegrees, "Side Sweep Half Angle Degrees", 0.0f, 180.0f, 1.0f),
+            SERIALIZED_FLOAT(m_sideSweepHitTime, "Side Sweep Hit Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_sideSweepTotalDuration, "Side Sweep Total Duration", 0.1f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_sideSweepRecoveryDuration, "Side Sweep Recovery Duration", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_sideSweepCooldown, "Side Sweep Cooldown", 0.0f, 10.0f, 0.1f),
+            SERIALIZED_FLOAT(m_sideSweepPhase2HitTime, "Side Sweep Phase 2 Hit Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_sideSweepPhase2TotalDuration, "Side Sweep Phase 2 Total Duration", 0.1f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_sideSweepPhase2RecoveryDuration, "Side Sweep Phase 2 Recovery Duration", 0.0f, 10.0f, 0.05f)
+        ),
+        FIELD_GROUP_COLLAPSE("Charging Slam",
+            SERIALIZED_FLOAT(m_chargingSlamDashDamage, "Charging Slam Dash Damage", 0.0f, 9999.0f, 1.0f),
+            SERIALIZED_FLOAT(m_chargingSlamFinalAreaImpactDamage, "Charging Slam Final Area Impact Damage", 0.0f, 9999.0f, 1.0f),
+            SERIALIZED_FLOAT(m_chargingSlamHitTime, "Charging Slam Hit Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_chargingSlamDashSpeed, "Charging Slam Dash Speed", 0.0f, 50.0f, 0.1f),
+            SERIALIZED_FLOAT(m_chargingSlamDashHitRadius, "Charging Slam Dash Hit Radius", 0.0f, 10.0f, 0.1f),
+            SERIALIZED_FLOAT(m_chargingSlamImpactRadius, "Charging Slam Impact Radius", 0.0f, 20.0f, 0.1f),
+            SERIALIZED_FLOAT(m_chargingSlamTotalDuration, "Charging Slam Total Duration", 0.1f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_chargingSlamRecoveryDuration, "Charging Slam Recovery Duration", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_chargingSlamImpactStunDuration, "Charging Slam Impact Stun Duration", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_chargingSlamCooldown, "Charging Slam Cooldown", 0.0f, 10.0f, 0.1f),
+            SERIALIZED_FLOAT(m_chargingSlamPhase2HitTime, "Charging Slam Phase 2 Hit Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_chargingSlamPhase2DashSpeed, "Charging Slam Phase 2 Dash Speed", 0.0f, 50.0f, 0.1f),
+            SERIALIZED_FLOAT(m_chargingSlamMinRange, "Charging Slam Min Range", 0.0f, 20.0f, 0.1f),
+            SERIALIZED_FLOAT(m_chargingSlamMaxRange, "Charging Slam Max Range", 0.0f, 20.0f, 0.1f)
+        ),
+        FIELD_GROUP_COLLAPSE("Earth Hammer",
+            SERIALIZED_FLOAT(m_earthHammerDamage, "Earth Hammer Damage", 0.0f, 9999.0f, 1.0f),
+            SERIALIZED_FLOAT(m_earthHammerRadius, "Earth Hammer Radius", 0.0f, 30.0f, 0.1f),
+            SERIALIZED_FLOAT(m_earthHammerTotalDuration, "Earth Hammer Total Duration", 0.1f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_earthHammerHitTime, "Earth Hammer Hit Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_earthHammerRecoveryDuration, "Earth Hammer Recovery Duration", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_earthHammerStunDuration, "Earth Hammer Stun Duration", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_earthHammerCooldown, "Earth Hammer Cooldown", 0.0f, 10.0f, 0.1f),
+            SERIALIZED_FLOAT(m_earthHammerPhase2Damage, "Earth Hammer Phase 2 Damage", 0.0f, 9999.0f, 1.0f),
+            SERIALIZED_FLOAT(m_earthHammerPhase2StunDuration, "Earth Hammer Phase 2 Stun Duration", 0.0f, 10.0f, 0.05f)
+        )
+    )
 };

@@ -16,6 +16,12 @@ public:
 
 	FieldList getExposedFields() const override;
 
+	void pauseDeathCountdown();
+	void resumeDeathCountdown();
+	void finalizeDeathNow();
+	void abortDeathForRevival();
+	bool isDeathActive() const { return m_waitingToDestroy && !m_deathFinished; }
+
 protected:
 	virtual void onDeathStarted(); // use this to trigger specific logic like open a locked door etc
 	virtual void onDeathFinished();
@@ -28,7 +34,7 @@ protected:
 	float m_destroyDelay = 2.0f;
 	float m_deathTimer = 0.0f;
 	
-	std::string m_healthPrefabPath = "";
+	PrefabRef m_healthPrefab;
 	bool m_shouldDropHealth = true;
 	int m_healthDropQuantity = 1;
 	float m_dropHealAmount = 10.0f;
@@ -38,4 +44,5 @@ protected:
 private:
 	bool m_waitingToDestroy = false;
 	bool m_deathFinished = false;
+	bool m_deathPaused = false;
 };

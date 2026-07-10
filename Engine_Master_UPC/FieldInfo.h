@@ -18,7 +18,7 @@ enum class FieldType
     GroupLabel,
     GroupCollapseBegin,
     GroupCollapseEnd,
-    DataContainerRef,
+    AssetRef,
 };
 
 struct FieldFloatInfo
@@ -44,6 +44,7 @@ struct FieldListInfo
     FieldType elementType;
     const FieldHandler* elementHandler;
 };
+
 
 struct FieldInfo
 {

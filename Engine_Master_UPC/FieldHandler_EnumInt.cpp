@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -37,11 +38,14 @@ namespace
 
     void serializeEnumIntField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        int* value = reinterpret_cast<int*>(data);
-        uint32_t v = static_cast<uint32_t>(*value);
-        archive.serialize(v, field.name);
-        if (archive.mode() == ArchiveMode::Input)
-            *value = static_cast<int>(v);
+        uint32_t value = static_cast<uint32_t>(*reinterpret_cast<const int*>(data));
+        archive.serialize(value, field.name);
+    }
+
+    void deserializeEnumIntField(const FieldInfo& field, void* data, IArchive& archive)
+    {
+        uint32_t raw = *reinterpret_cast<uint32_t*>(data);
+        archive.serialize(raw, field.name);
     }
 
     void cloneEnumIntField(const FieldInfo&, const void* sourceData, void* targetData)

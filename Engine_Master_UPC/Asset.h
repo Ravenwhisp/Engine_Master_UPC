@@ -4,10 +4,8 @@
 #include "UID.h"
 #include "MD5Fwd.h"
 #include "ImportSettings.h"
+#include <memory>
 #include "EngineAPI.h"
-
-#pragma warning(push)
-#pragma warning(disable: 4251)
 
 class IArchive;
 

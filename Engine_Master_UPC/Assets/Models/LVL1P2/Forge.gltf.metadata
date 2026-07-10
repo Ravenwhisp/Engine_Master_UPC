@@ -1,0 +1,651 @@
+{
+    "uid": 9402505384825119603,
+    "contentHash": "5d5678072aa46518692c407804d69e34",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\LVL1P2\\Forge.gltf",
+    "sourceFileSize": 116682,
+    "dependencies": [
+        {
+            "uid": 18444395939498477683,
+            "contentHash": "723d1673dc299fe554c4460d884ce37e",
+            "type": 2,
+            "displayName": "M_MOD_Wall_01_v3"
+        },
+        {
+            "uid": 13943930672824515158,
+            "contentHash": "39d91854f0c4467eb28de63cd8b61bc0",
+            "type": 2,
+            "displayName": "M_MOD_Trim_Stone_01_v3"
+        },
+        {
+            "uid": 9432259586660268350,
+            "contentHash": "001b9ff857f2ad14311768a5d4f0fd32",
+            "type": 2,
+            "displayName": "M_PROP_bow_dungeon"
+        },
+        {
+            "uid": 16928705993588345831,
+            "contentHash": "53d9e1186573caac1f09ced8d1897e9e",
+            "type": 2,
+            "displayName": "M_PROP_weapon_dungeon"
+        },
+        {
+            "uid": 1777431990753322400,
+            "contentHash": "ebfc327aa1f1f3636a03e7a7011e3c63",
+            "type": 2,
+            "displayName": "M_PROP_stone_deco_dungeon"
+        },
+        {
+            "uid": 16656595121879814599,
+            "contentHash": "2b092cb2aa4d6ae3566cd607ca3468e9",
+            "type": 2,
+            "displayName": "M_wood_planks_dungeon_03"
+        },
+        {
+            "uid": 1269189374518575840,
+            "contentHash": "8bd37d32f4486a0be75705d21c11e6fa",
+            "type": 2,
+            "displayName": "M_wood_planks_dungeon_04"
+        },
+        {
+            "uid": 14767917660176223410,
+            "contentHash": "d1888fccaf70791d88c6fa073075ab8a",
+            "type": 2,
+            "displayName": "M_PROP_goldpile_dungeon"
+        },
+        {
+            "uid": 4655148073579096163,
+            "contentHash": "881aea4dfce03042abc7eaca69b1248a",
+            "type": 2,
+            "displayName": "M_PROP_books_dungeon"
+        },
+        {
+            "uid": 7581082448035734501,
+            "contentHash": "43bbb815c2ca4672333cc5df66fcb0db",
+            "type": 2,
+            "displayName": "M_PROP_candle_dungeon"
+        },
+        {
+            "uid": 2759907163302670687,
+            "contentHash": "d78a6623acdc55682459b82d9db923a0",
+            "type": 2,
+            "displayName": "M_PROP_skeleton_dungeon"
+        },
+        {
+            "uid": 8473351420693493147,
+            "contentHash": "c6e1c4cbcf28a2e9c88b7bf04b12aae0",
+            "type": 2,
+            "displayName": "M_PROP_bottle_dungeon"
+        },
+        {
+            "uid": 13770602094728042877,
+            "contentHash": "33d7e9d3b3a13e191f3cce2301823fae",
+            "type": 2,
+            "displayName": "M_PROP_pot_dungeon"
+        },
+        {
+            "uid": 14369887175934056551,
+            "contentHash": "bac08e2fd82dfab6f1592b3da3280dfd",
+            "type": 2,
+            "displayName": "M_PROP_tools_dungeon"
+        },
+        {
+            "uid": 3317173696327345017,
+            "contentHash": "6d95e8232d88f3868a42a5ed0da73b4f",
+            "type": 2,
+            "displayName": "M_PROP_spiderweb_dungeon"
+        },
+        {
+            "uid": 12901051799485064112,
+            "contentHash": "6f672c97689070cd6b0eba1b4269d3fa",
+            "type": 2,
+            "displayName": "M_PROP_sack_dungeon"
+        },
+        {
+            "uid": 4455219462760850145,
+            "contentHash": "beb7d4a6a58f0a70745febe6dd184396",
+            "type": 2,
+            "displayName": "M_metal_dungeon_01"
+        },
+        {
+            "uid": 9066979518334161532,
+            "contentHash": "50cb6b03657bfcee13425608e016ed7d",
+            "type": 2,
+            "displayName": "M_wood_planks_dungeon_01"
+        },
+        {
+            "uid": 2960101397822293496,
+            "contentHash": "1c0124e58e16c34b2d661ab61758ea9a",
+            "type": 2,
+            "displayName": "M_wood_planks_dungeon_02"
+        },
+        {
+            "uid": 7983312060712851775,
+            "contentHash": "8e75a967395f7b212772605cdccdb617",
+            "type": 2,
+            "displayName": "M_MOD_Wall_01_v1"
+        },
+        {
+            "uid": 15250013294425380828,
+            "contentHash": "76dc453eee6eb96e99f5407ab5b450cb",
+            "type": 2,
+            "displayName": "M_PROP_campfire_dungeon"
+        },
+        {
+            "uid": 1452245988422588275,
+            "contentHash": "358bb124ad8038d7604649573f875b44",
+            "type": 2,
+            "displayName": "M_PROP_fabric_dungeon"
+        },
+        {
+            "uid": 10701797994329272999,
+            "contentHash": "5722c7837590a659d634ccc69f458996",
+            "type": 2,
+            "displayName": "M_MOD_Floor_01_v3"
+        },
+        {
+            "uid": 9921480424418987819,
+            "contentHash": "610c5bd10e44cd7d9c5764f584bd28ca",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_med"
+        },
+        {
+            "uid": 8508469916120156033,
+            "contentHash": "23a1d7937814958fe77ba1ae410e7169",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight"
+        },
+        {
+            "uid": 14556033385972332986,
+            "contentHash": "e28b61ae6687e3d70cf52c69e08bc9a3",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight"
+        },
+        {
+            "uid": 7102646076404661167,
+            "contentHash": "d26e663d71b50606adf15629f73bc80b",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_angle_med_1"
+        },
+        {
+            "uid": 11613507807957141860,
+            "contentHash": "c77566d0dbf2a524956c4f4aef3f90e7",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_angle_1"
+        },
+        {
+            "uid": 7125426570255686261,
+            "contentHash": "e7caa236df8811d177dbda3b5f8f7be9",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_angle_1"
+        },
+        {
+            "uid": 1695622095016105806,
+            "contentHash": "b8477aa8b1d16d74ab2b1fb2d982359f",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_med_half_R"
+        },
+        {
+            "uid": 13374240413839237544,
+            "contentHash": "5a07ebf45e07621ce9dcffc70a950407",
+            "type": 3,
+            "displayName": "MOD_WallCover_01_E_straight_half_R"
+        },
+        {
+            "uid": 9630407845737157296,
+            "contentHash": "bc19a28fe22ef59e27cf121dc91632a3",
+            "type": 3,
+            "displayName": "MOD_WallTrim_01_E_straight_half_R"
+        },
+        {
+            "uid": 5880978681522168165,
+            "contentHash": "b5473af93322acc00468e9744dbb57ee",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_small"
+        },
+        {
+            "uid": 5938694836911045636,
+            "contentHash": "959892daa9aaf6cd3ee330d2e72ae5bb",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_angle_small_1"
+        },
+        {
+            "uid": 542658429366795125,
+            "contentHash": "769f5dbd600ea86a42a02577e11fe600",
+            "type": 3,
+            "displayName": "MOD_Wall_01_E_straight_small_half_R"
+        },
+        {
+            "uid": 17075051668416877390,
+            "contentHash": "33597ff4baa86a385709c9c9d408febc",
+            "type": 3,
+            "displayName": "MOD_Column_01_base"
+        },
+        {
+            "uid": 4224113859244854502,
+            "contentHash": "f76c65e6326477a2ee2e3ad91c996e1e",
+            "type": 3,
+            "displayName": "MOD_Column_01_capital"
+        },
+        {
+            "uid": 4244946543661700244,
+            "contentHash": "da6fe43faeb9a76626183417e401eefc",
+            "type": 3,
+            "displayName": "MOD_Column_01_med"
+        },
+        {
+            "uid": 5087793809009890299,
+            "contentHash": "d2177cd4d520bad460f818d181974250",
+            "type": 3,
+            "displayName": "MOD_Column_01_large"
+        },
+        {
+            "uid": 18203653412703369010,
+            "contentHash": "d27b3af32329d9da3d584f2ae8d03c93",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_arrow_dungeon"
+        },
+        {
+            "uid": 9426976830100828811,
+            "contentHash": "4850ff022904da03f82584715f0cc4b3",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_sword_dungeon_01"
+        },
+        {
+            "uid": 16573848443444813593,
+            "contentHash": "fd61e76842a3092e287bb89b0aad6c0e",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_sword_dungeon_02"
+        },
+        {
+            "uid": 14265462191852463939,
+            "contentHash": "ea36c00cfabedf07b5bc290a8f4a0b8e",
+            "type": 3,
+            "displayName": "SM_PROP_altar_dungeon_01"
+        },
+        {
+            "uid": 18367414328166262376,
+            "contentHash": "09610703ac0a24d3b6253e573c8b8f19",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_shield_dungeon_01"
+        },
+        {
+            "uid": 7393252561042946877,
+            "contentHash": "3ad661ed2a6c40b38ee5510f3f65675c",
+            "type": 3,
+            "displayName": "SM_PROP_cup_dungeon_02"
+        },
+        {
+            "uid": 3595314040965992994,
+            "contentHash": "0bbd0bf67099dac20c041e23d059ded6",
+            "type": 3,
+            "displayName": "SM_PROP_cup_dungeon_01"
+        },
+        {
+            "uid": 8436456556441744030,
+            "contentHash": "05548d340d7901b0d10ef9390519e131",
+            "type": 3,
+            "displayName": "SM_PROP_bookshelf_dungeon_01"
+        },
+        {
+            "uid": 2143745958556037094,
+            "contentHash": "61e258aaab9714d1cb21090a86b3432b",
+            "type": 3,
+            "displayName": "SM_PROP_coin_dungeon_02"
+        },
+        {
+            "uid": 384681835648615700,
+            "contentHash": "04061253e55ff13ecc1731c8da7964b9",
+            "type": 3,
+            "displayName": "SM_PROP_chest_top_dungeon_03"
+        },
+        {
+            "uid": 1288489379262766186,
+            "contentHash": "c70a5662f469c0bac5a4ba5d5e1a3a78",
+            "type": 3,
+            "displayName": "SM_PROP_chest_dungeon_03"
+        },
+        {
+            "uid": 2849871731075943165,
+            "contentHash": "718bcd6dcf85b1db36cce141ae5926af",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_sword_dungeon_03"
+        },
+        {
+            "uid": 8436270004819092807,
+            "contentHash": "ff67a4289a8f3938742c86b22b6f53ee",
+            "type": 3,
+            "displayName": "SM_PROP_scroll_dungeon_03"
+        },
+        {
+            "uid": 3581108392318072368,
+            "contentHash": "ff2ce99b4088c940c454759c0c842ec9",
+            "type": 3,
+            "displayName": "SM_PROP_coin_dungeon_03"
+        },
+        {
+            "uid": 9563868215335459514,
+            "contentHash": "89f2556ca5326b6bb68f407e818552a5",
+            "type": 3,
+            "displayName": "SM_PROP_coin_dungeon_01"
+        },
+        {
+            "uid": 3291039058160714627,
+            "contentHash": "565838511803d2da268a0263613410d0",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_12"
+        },
+        {
+            "uid": 12668818332405270897,
+            "contentHash": "6b0e44dbc5cc4a9ff3079aab75484973",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_08"
+        },
+        {
+            "uid": 17838064516549321128,
+            "contentHash": "a162b7852c124d670e242d1e26678f55",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_09"
+        },
+        {
+            "uid": 10540792639778283047,
+            "contentHash": "6c7e2d474dc97101074d457d811ea59c",
+            "type": 3,
+            "displayName": "SM_PROP_cup_dungeon_03"
+        },
+        {
+            "uid": 18106996889914671769,
+            "contentHash": "c7965f263bc38add57ceca5666435c0b",
+            "type": 3,
+            "displayName": "SM_PROP_key_dungeon_01"
+        },
+        {
+            "uid": 7818621625120094541,
+            "contentHash": "43b586c7e013d92e67ac84472deb2e9b",
+            "type": 3,
+            "displayName": "SM_PROP_bottle_dungeon_17"
+        },
+        {
+            "uid": 320851649742177281,
+            "contentHash": "2207c33a2465eb982e621ddb2ad239f0",
+            "type": 3,
+            "displayName": "SM_PROP_bottle_dungeon_01"
+        },
+        {
+            "uid": 11226721537417780584,
+            "contentHash": "487a36d26016762ed4a8f0c155db7671",
+            "type": 3,
+            "displayName": "SM_PROP_bottle_dungeon_02"
+        },
+        {
+            "uid": 15943020703913994845,
+            "contentHash": "3e3193ff8f03976a36b924b7538c7954",
+            "type": 3,
+            "displayName": "SM_PROP_plate_dungeon_03"
+        },
+        {
+            "uid": 4931928357979739489,
+            "contentHash": "e47133c2f5661d09023c82fb234c338d",
+            "type": 3,
+            "displayName": "SM_PROP_shovel_dungeon"
+        },
+        {
+            "uid": 827483463031450038,
+            "contentHash": "f092b781c84ae8657975001ab6818ef9",
+            "type": 3,
+            "displayName": "SM_PROP_scroll_dungeon_02"
+        },
+        {
+            "uid": 1610756410821555893,
+            "contentHash": "6c244f8198c036dae91acdc23c10caf7",
+            "type": 3,
+            "displayName": "SM_PROP_scroll_dungeon_01"
+        },
+        {
+            "uid": 15930676205265156392,
+            "contentHash": "02ebe68262b46ecb59d272b537f97c83",
+            "type": 3,
+            "displayName": "SM_PROP_skeleton_skull_dungeon"
+        },
+        {
+            "uid": 4578387107677009645,
+            "contentHash": "6df391b7dd607be2a6076a30b93cc01b",
+            "type": 3,
+            "displayName": "SM_PROP_book_dungeon_04"
+        },
+        {
+            "uid": 6060228547901817127,
+            "contentHash": "41f51fa8e3c5138b3853dfb2a9e66a15",
+            "type": 3,
+            "displayName": "SM_PROP_book_dungeon_09"
+        },
+        {
+            "uid": 7193420338629802476,
+            "contentHash": "9ece0bfb924a00ce2d8d55124f14bd44",
+            "type": 3,
+            "displayName": "SM_PROP_spiderweb_dungeon_04"
+        },
+        {
+            "uid": 6961464122738125390,
+            "contentHash": "a58d58b5aecb8c211f212ad37317f29e",
+            "type": 3,
+            "displayName": "SM_PROP_pot_dungeon_07"
+        },
+        {
+            "uid": 11250685519870502300,
+            "contentHash": "ad7c16b9c140d1579427ab6b0af222df",
+            "type": 3,
+            "displayName": "SM_PROP_barrel_dungeon_02"
+        },
+        {
+            "uid": 11695791547944064967,
+            "contentHash": "29c42fd654e328b1ef4469aa1c4a4792",
+            "type": 3,
+            "displayName": "SM_PROP_weapon_bow_dungeon"
+        },
+        {
+            "uid": 5022957904470706982,
+            "contentHash": "f880aaff7dd379316e30fb7ffd7ab680",
+            "type": 3,
+            "displayName": "SM_PROP_cart_02_wheel_L_back"
+        },
+        {
+            "uid": 3244020050227889973,
+            "contentHash": "f880aaff7dd379316e30fb7ffd7ab680",
+            "type": 3,
+            "displayName": "SM_PROP_cart_02_wheel_L_front"
+        },
+        {
+            "uid": 3273241751789647316,
+            "contentHash": "f880aaff7dd379316e30fb7ffd7ab680",
+            "type": 3,
+            "displayName": "SM_PROP_cart_02_wheel_R_back"
+        },
+        {
+            "uid": 7579320121628480398,
+            "contentHash": "f880aaff7dd379316e30fb7ffd7ab680",
+            "type": 3,
+            "displayName": "SM_PROP_cart_02_wheel_R_front"
+        },
+        {
+            "uid": 3047103568925945987,
+            "contentHash": "98b71f91e73942539d7738d03eefd63c",
+            "type": 3,
+            "displayName": "SM_PROP_sack_dungeon_05"
+        },
+        {
+            "uid": 6714226639510693353,
+            "contentHash": "e2a9eec72e23bcd184523cadcb4ec525",
+            "type": 3,
+            "displayName": "SM_PROP_sack_dungeon_04"
+        },
+        {
+            "uid": 17596645101882835835,
+            "contentHash": "cff8a72cb5a6b5281e22791018493d45",
+            "type": 3,
+            "displayName": "SM_PROP_cookingpot_handle_dungeon_01"
+        },
+        {
+            "uid": 5563594118514598975,
+            "contentHash": "8dffc9be06a406dce95d5d0e8c2ad26e",
+            "type": 3,
+            "displayName": "SM_PROP_cookingpot_dungeon_01"
+        },
+        {
+            "uid": 18043499370416725017,
+            "contentHash": "4c7f60d1db69a5f0d3d8ec52e7103ad5",
+            "type": 3,
+            "displayName": "SM_PROP_bucket_dungeon_02"
+        },
+        {
+            "uid": 7270681440542681510,
+            "contentHash": "7cc666d9c45a842dc00d7dafc982c257",
+            "type": 3,
+            "displayName": "SM_PROP_barrel_dungeon_01"
+        },
+        {
+            "uid": 16429764486745682463,
+            "contentHash": "79a027f32a423339869a5033da740584",
+            "type": 3,
+            "displayName": "SM_PROP_crate_dungeon_01"
+        },
+        {
+            "uid": 7573115603404107362,
+            "contentHash": "e85981fb4aba5660f0c387b3c41ac94e",
+            "type": 3,
+            "displayName": "SM_PROP_box_dungeon_02"
+        },
+        {
+            "uid": 9190603960280756077,
+            "contentHash": "008f3cb240f84aae2af9b48c29462c43",
+            "type": 3,
+            "displayName": "SM_PROP_box_dungeon_04"
+        },
+        {
+            "uid": 16056386849892055863,
+            "contentHash": "4c6ba7689b2ea04d6a83a20250fd5699",
+            "type": 3,
+            "displayName": "SM_PROP_sack_dungeon_03"
+        },
+        {
+            "uid": 7405158869482246745,
+            "contentHash": "2df3a98defe44b5011f1052462006d70",
+            "type": 3,
+            "displayName": "SM_PROP_chest_top_dungeon_01"
+        },
+        {
+            "uid": 5994381245097673677,
+            "contentHash": "02939206f2cf609553fadb21ed801365",
+            "type": 3,
+            "displayName": "SM_PROP_chest_dungeon_01"
+        },
+        {
+            "uid": 3261104971730659962,
+            "contentHash": "bfce1d03c0884d1abd7b92748e05eb1c",
+            "type": 3,
+            "displayName": "SM_PROP_cart_dungeon_02"
+        },
+        {
+            "uid": 8100204547648739460,
+            "contentHash": "93cb53174b3cea43237ad18b9c1b9475",
+            "type": 3,
+            "displayName": "SM_PROP_fireplace_pole_dungeon"
+        },
+        {
+            "uid": 17943665008303436709,
+            "contentHash": "36400d2d7716c0da1983dc479f24df39",
+            "type": 3,
+            "displayName": "SM_PROP_fireplace_dungeon"
+        },
+        {
+            "uid": 9333248256063772978,
+            "contentHash": "a9160f487eff40fca71bff6d7804eea8",
+            "type": 3,
+            "displayName": "SM_PROP_fireplace_fire_dungeon_01"
+        },
+        {
+            "uid": 12872067098722027543,
+            "contentHash": "5c60d9cf4b4d035894c318ea5b5a10fb",
+            "type": 3,
+            "displayName": "SM_PROP_fireplace_hook_dungeon_02"
+        },
+        {
+            "uid": 1339288263549780144,
+            "contentHash": "2e5080774fa0d283eaa201c91ab08e80",
+            "type": 3,
+            "displayName": "SM_PROP_fireplace_hook_dungeon_01"
+        },
+        {
+            "uid": 8230767196070155094,
+            "contentHash": "fcd5200294553f7a05e75303223d7965",
+            "type": 3,
+            "displayName": "SM_PROP_logpile_dungeon"
+        },
+        {
+            "uid": 15153169476807294621,
+            "contentHash": "e033c83383f670982637fbf7424df8cf",
+            "type": 3,
+            "displayName": "SM_PROP_candle_dungeon_10"
+        },
+        {
+            "uid": 8845144575902175119,
+            "contentHash": "a4134e42c554d46234517ac91e8a632e",
+            "type": 3,
+            "displayName": "SM_PROP_plate_dungeon_09"
+        },
+        {
+            "uid": 12918942313344724798,
+            "contentHash": "bc81172d3f8d63d6ea6d2fba79d2546f",
+            "type": 3,
+            "displayName": "SM_PROP_cup_dungeon_04"
+        },
+        {
+            "uid": 12512185360866445956,
+            "contentHash": "aa20202d3492c0ed29abc7bc2ed3ddd7",
+            "type": 3,
+            "displayName": "SM_PROP_cup_dungeon_05"
+        },
+        {
+            "uid": 6442160757820590690,
+            "contentHash": "8265dd610cd4fdd5854afbc751b8b9f2",
+            "type": 3,
+            "displayName": "SM_PROP_rug_dungeon_01"
+        },
+        {
+            "uid": 5587045795900091173,
+            "contentHash": "8e6dc9a34bade96a1e1fbb1f71234734",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_straight_med"
+        },
+        {
+            "uid": 7238834245968404337,
+            "contentHash": "27438158194925acd198a53a6b38c476",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_E_straight_4"
+        },
+        {
+            "uid": 7432554936315357118,
+            "contentHash": "7c79b67dae7027eab377546c7ceb443d",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_angle_med"
+        },
+        {
+            "uid": 11706784045451539140,
+            "contentHash": "3f26f84254455a00272d67a9f2fd192c",
+            "type": 3,
+            "displayName": "MOD_Stairs_01_E_angle_concave_4"
+        },
+        {
+            "uid": 6990979027859451215,
+            "contentHash": "b3812d2d175fb71558151b8dd28fb461",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_angle_tiny"
+        },
+        {
+            "uid": 15511023486379342460,
+            "contentHash": "095e1e7b26e21658b947049ff8208744",
+            "type": 3,
+            "displayName": "MOD_Floor_01_O_straight_small"
+        }
+    ]
+}

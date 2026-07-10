@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "ComponentRef.h"
 #include "SceneReferenceResolver.h"
@@ -13,45 +14,97 @@
 
 namespace
 {
+    // --- Element-to-archive / archive-to-Element helpers ---
+
     template<typename T>
-    void elementSerialize(T& elem, IArchive& archive)
+    void elementSerialize(const T& element, IArchive& archive);
+
+    template<>
+    void elementSerialize<float>(const float& element, IArchive& archive)
     {
-        archive.serialize(elem, "");
+        float val = element;
+        archive.serialize(val);
     }
 
     template<>
-    void elementSerialize<int>(int& elem, IArchive& archive)
+    void elementSerialize<int>(const int& element, IArchive& archive)
     {
-        uint32_t v = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(elem) : 0;
-        archive.serialize(v, "");
-        if (archive.mode() == ArchiveMode::Input)
-            elem = static_cast<int>(v);
+        uint32_t val = static_cast<uint32_t>(element);
+        archive.serialize(val);
     }
 
     template<>
-    void elementSerialize<Vector3>(Vector3& elem, IArchive& archive)
+    void elementSerialize<bool>(const bool& element, IArchive& archive)
     {
-        DirectX::SimpleMath::Vector3 v(elem.x, elem.y, elem.z);
-        archive.serialize(v, "");
-        if (archive.mode() == ArchiveMode::Input)
-        {
-            elem.x = v.x; elem.y = v.y; elem.z = v.z;
-        }
+        bool val = element;
+        archive.serialize(val);
     }
 
     template<>
-    void elementSerialize<std::string>(std::string& elem, IArchive& archive)
+    void elementSerialize<Vector3>(const Vector3& element, IArchive& archive)
     {
-        archive.serialize(elem, "");
+        Vector3 val = element;
+        archive.serialize(val);
     }
 
     template<>
-    void elementSerialize<ComponentRef<Component>>(ComponentRef<Component>& elem, IArchive& archive)
+    void elementSerialize<std::string>(const std::string& element, IArchive& archive)
     {
-        archive.serialize(elem.uid, "");
-        if (archive.mode() == ArchiveMode::Input)
-            elem.component = nullptr;
+        std::string val = element;
+        archive.serialize(val);
     }
+
+    template<>
+    void elementSerialize<ComponentRef<Component>>(const ComponentRef<Component>& element, IArchive& archive)
+    {
+        uint64_t val = static_cast<uint64_t>(element.uid);
+        archive.serialize(val);
+    }
+
+    template<typename T>
+    void elementDeserialize(T& element, IArchive& archive);
+
+    template<>
+    void elementDeserialize<float>(float& element, IArchive& archive)
+    {
+        archive.serialize(element);
+    }
+
+    template<>
+    void elementDeserialize<int>(int& element, IArchive& archive)
+    {
+        uint32_t raw = static_cast<uint32_t>(element);
+        archive.serialize(raw);
+    }
+
+    template<>
+    void elementDeserialize<bool>(bool& element, IArchive& archive)
+    {
+        archive.serialize(element);
+    }
+
+    template<>
+    void elementDeserialize<Vector3>(Vector3& element, IArchive& archive)
+    {
+        archive.serialize(element);
+    }
+
+    template<>
+    void elementDeserialize<std::string>(std::string& element, IArchive& archive)
+    {
+        archive.serialize(element);
+    }
+
+    template<>
+    void elementDeserialize<ComponentRef<Component>>(ComponentRef<Component>& element, IArchive& archive)
+    {
+        uint64_t val = static_cast<uint64_t>(element.uid);
+        archive.serialize(val);
+        element.uid = static_cast<UID>(val);
+        element.component = nullptr;
+    }
+
+    // --- Generic list handler templates ---
 
     template<typename T>
     void drawListFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
@@ -119,29 +172,34 @@ namespace
     template<typename T>
     void serializeListField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        auto* vec = reinterpret_cast<std::vector<T>*>(data);
-        uint32_t count = archive.mode() == ArchiveMode::Output ? static_cast<uint32_t>(vec->size()) : 0;
+        const auto* vec = reinterpret_cast<const std::vector<T>*>(data);
+
+        uint32_t count = static_cast<uint32_t>(vec->size());
         archive.beginArray(count, field.name);
 
-        if (archive.mode() == ArchiveMode::Input)
+        for (const T& elem : *vec)
         {
-            vec->clear();
-            vec->reserve(count);
+            elementSerialize(elem, archive);
         }
+
+        archive.endArray();
+    }
+
+    template<typename T>
+    void deserializeListField(const FieldInfo& field, void* data, IArchive& archive)
+    {
+        auto* vec = reinterpret_cast<std::vector<T>*>(data);
+        vec->clear();
+
+        uint32_t count = 0;
+        archive.beginArray(count, field.name);
+        vec->reserve(count);
 
         for (uint32_t i = 0; i < count; ++i)
         {
-            if (archive.mode() == ArchiveMode::Output)
-            {
-                T elem = (*vec)[i];
-                elementSerialize(elem, archive);
-            }
-            else
-            {
-                T elem{};
-                elementSerialize(elem, archive);
-                vec->push_back(std::move(elem));
-            }
+            T elem{};
+            elementDeserialize(elem, archive);
+            vec->push_back(std::move(elem));
         }
 
         archive.endArray();

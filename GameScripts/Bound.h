@@ -1,12 +1,12 @@
 #pragma once
 
 #include "ScriptAPI.h"
-#include "DataContainerRef.h"
 
 class Transform;
 class Damageable;
-class BoundConfig;
 class HeartbeatHaptic;
+class CooperativeSound;
+class BoundConfig;
 
 class Bound : public Script
 {
@@ -28,10 +28,10 @@ public:
 
     ComponentRef<Transform> m_BoundUI;
 
+    AssetRef<BoundConfig> m_config;
+
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;
-
-    DataContainerRef<BoundConfig> m_config;
 
     float m_minDistance = 70.0f;
     float m_distanceDamage = 80.0f;
@@ -51,4 +51,5 @@ public:
 
 private:
     HeartbeatHaptic* m_haptic = nullptr;
+    CooperativeSound* m_coopSound = nullptr;
 };

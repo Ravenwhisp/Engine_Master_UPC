@@ -6,10 +6,6 @@
 #include "PlayerController.h"
 #include "EnemyDamageable.h"
 
-IMPLEMENT_SCRIPT_FIELDS(LevelCheats,
-    SERIALIZED_STRING_VECTOR(m_enemyPrefabPaths, "Enemy Prefab Paths")
-)
-
 LevelCheats::LevelCheats(GameObject* owner)
     : Script(owner)
 {
@@ -27,6 +23,8 @@ void LevelCheats::Update()
     if (KeyComboPressed(KeyCode::T)) ToggleInvincibility();
     if (KeyComboPressed(KeyCode::Num3)) SpawnEnemy(0);
     if (KeyComboPressed(KeyCode::Num4)) SpawnEnemy(1);
+	if (KeyComboPressed(KeyCode::Up)) SpawnEnemy(2);
+	if (KeyComboPressed(KeyCode::Down)) SpawnEnemy(3);
     if (KeyComboPressed(KeyCode::D)) restartLevel();
 	if (KeyComboPressed(KeyCode::F)) killEnemies();
     if (Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::A))
@@ -68,13 +66,13 @@ bool LevelCheats::KeyComboPressed(KeyCode mainKey)
 void LevelCheats::AutoWin()
 {
     Debug::warn("AutoWin activated!");
-	SceneAPI::requestSceneChange("WinScene");
+	SceneAPI::requestSceneChange("Win_Scene");
 }
 
 void LevelCheats::AutoLose()
 {
     Debug::log("AutoLose activated!");
-    SceneAPI::requestSceneChange("LoseScene");
+    SceneAPI::requestSceneChange("Lose_Scene");
 }
 
 void LevelCheats::Teleport()
@@ -84,7 +82,7 @@ void LevelCheats::Teleport()
     for (GameObject* player : players)
     {
         Transform* playerTransform = GameObjectAPI::getTransform(player);
-        TransformAPI::setPosition(playerTransform, spawnPoints[m_spawnIndex]);  
+        TransformAPI::setGlobalPosition(playerTransform, spawnPoints[m_spawnIndex]);  
     }
     m_spawnIndex += 1;
     if (m_spawnIndex >= spawnPoints.size())
@@ -111,7 +109,7 @@ void LevelCheats::ToggleInvincibility()
 
 void LevelCheats::SpawnEnemy(int enemyPrefabIndex)
 {
-    if (enemyPrefabIndex < 0 || enemyPrefabIndex >= static_cast<int>(m_enemyPrefabPaths.size()))
+    /*if (enemyPrefabIndex < 0 || enemyPrefabIndex >= static_cast<int>(m_enemyPrefabPaths.size()))
     {
         Debug::warn("[LevelCheats] Invalid enemy prefab index: %i", enemyPrefabIndex);
         return;
@@ -140,14 +138,14 @@ void LevelCheats::SpawnEnemy(int enemyPrefabIndex)
         return;
     }
 
-    Vector3 playerPosition = TransformAPI::getPosition(playerTransform);
+    Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
     Vector3 enemySpawnPosition = playerPosition + Vector3(2.0f, 0.0f, 0.0f);
 
-    const std::string& prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];
+    const AssetRef<Prefab> prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];
 
-    Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.c_str());
+    Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.m_ref);
 
-    GameObjectAPI::instantiatePrefab(prefabPath.c_str(), enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));
+    GameObjectAPI::instantiatePrefab(prefabPath.m_ref, enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));*/
 }
 
 void LevelCheats::RestoreHealth()

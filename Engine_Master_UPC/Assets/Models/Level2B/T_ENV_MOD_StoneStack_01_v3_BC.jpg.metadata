@@ -1,0 +1,13 @@
+{
+    "uid": 12612358592744368460,
+    "contentHash": "6e8ed668bfae36663543ea5a0c38ea61",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level2B\\T_ENV_MOD_StoneStack_01_v3_BC.jpg",
+    "sourceFileSize": 184853,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -3,9 +3,11 @@
 #include "ScriptAPI.h"
 #include "StateMachineScript.h"
 
-class RangedEnemyController;
-class ArcherAttackConfig;
+class EnemyBaseController;
+class EnemyBaseAttackConfig;
 class AnimationComponent;
+class EnemySound;
+class PaladinVFX;
 
 class EnemyAttackState : public StateMachineScript
 {
@@ -14,17 +16,22 @@ class EnemyAttackState : public StateMachineScript
 public:
     explicit EnemyAttackState(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void OnStateEnter() override;
     void OnStateUpdate() override;
     void OnStateExit() override;
 
 private:
     void tryDamageTarget(Transform* targetTransform);
+    void playBasicAttackEffect();
 
 private:
-    RangedEnemyController* m_archerController = nullptr;
-    ArcherAttackConfig* m_attackConfig = nullptr;
+    EnemyBaseController* m_controller = nullptr;
+    AssetRef<EnemyBaseAttackConfig> m_attackConfig;
     AnimationComponent* m_animation = nullptr;
+    PaladinVFX* m_paladinVFX = nullptr;
+    EnemySound* m_enemySound = nullptr;
 
     Transform* m_committedTarget = nullptr;
 

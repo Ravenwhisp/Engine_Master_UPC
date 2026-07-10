@@ -1,0 +1,13 @@
+{
+    "uid": 5900261477595207287,
+    "contentHash": "a5e8953540f50354aa9165ecc9a5f1ea",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_side_shadow.png",
+    "sourceFileSize": 34687,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

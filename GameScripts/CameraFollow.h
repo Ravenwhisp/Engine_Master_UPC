@@ -16,6 +16,11 @@ public:
 
     FieldList getExposedFields() const override;
 
+    void setFollowEnabled(bool enabled) { m_followEnabled = enabled; }
+    bool isFollowEnabled() const { return m_followEnabled; }
+
+    bool getDesiredCameraTransform(Vector3& outPosition, Vector3& outRotation);
+
 public:
     ComponentRef<Transform> m_firstTarget;
     ComponentRef<Transform> m_secondTarget;
@@ -30,8 +35,6 @@ public:
     float m_zoomEndDistance = 0.0f;
     float m_maxExtraHeight = 0.0f;
 
-    //int test = 0;
-
 private:
     Vector3 computeFollowPoint() const;
     float computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const;
@@ -45,5 +48,6 @@ private:
 private:
     bool m_firstUpdateAfterResolve = true;
 
+    bool m_followEnabled = true;
     float m_currentExtraHeight = 0.0f;
 };

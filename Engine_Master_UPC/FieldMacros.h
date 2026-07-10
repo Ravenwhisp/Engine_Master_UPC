@@ -67,11 +67,11 @@
 #define SERIALIZED_COMPONENT_REF(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, FieldType::ComponentRef, offsetof(ThisType, MemberName), getComponentRefFieldHandler(), {}, {}, { ComponentTypeValue } }
 
+#define SERIALIZED_ASSET_REF(MemberName, DisplayName, AssetTypeValue) \
+    { DisplayName, FieldType::AssetRef, offsetof(ThisType, MemberName), getAssetRefFieldHandler() }
+
 #define SERIALIZED_COMPONENT_REF_LIST(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, FieldType::ComponentRefList, offsetof(ThisType, MemberName), getComponentRefListFieldHandler(), {}, {}, { ComponentTypeValue } }
-
-#define SERIALIZED_DATACONTAINER_REF(MemberName, DisplayName) \
-    { DisplayName, FieldType::DataContainerRef, offsetof(ThisType, MemberName), getDataContainerRefFieldHandler() }
 
 // Vector (std::vector<T>) field macros
 

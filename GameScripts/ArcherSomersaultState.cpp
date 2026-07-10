@@ -3,6 +3,7 @@
 
 #include "RangedEnemyController.h"
 #include "ArcherAttackConfig.h"
+#include "ArcherGuardParticles.h"
 
 ArcherSomersaultState::ArcherSomersaultState(GameObject* owner)
     : StateMachineScript(owner)
@@ -12,8 +13,8 @@ ArcherSomersaultState::ArcherSomersaultState(GameObject* owner)
 void ArcherSomersaultState::OnStateEnter()
 {
     m_archerController = GameObjectAPI::findScript<RangedEnemyController>(getOwner());
-    m_attackConfig = GameObjectAPI::findScript<ArcherAttackConfig>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
+    m_particles = GameObjectAPI::findScript<ArcherGuardParticles>(getOwner());
 
     m_stateTimer = 0.0f;
     m_escapeDirection = Vector3(0.0f, 0.0f, 0.0f);
@@ -24,11 +25,6 @@ void ArcherSomersaultState::OnStateEnter()
         return;
     }
 
-    if (!m_attackConfig)
-    {
-        Debug::error("[ArcherSomersaultState] ArcherAttackConfig not found.");
-        return;
-    }
     if (!m_animation)
     {
         Debug::error("[ArcherSomersaultState] AnimationComponent not found.");
@@ -36,15 +32,18 @@ void ArcherSomersaultState::OnStateEnter()
     }
 
     m_archerController->clearPath();
+    m_archerController->resetRepathTimer();
 
     m_escapeDirection = m_archerController->getDirectionAwayFromClosestPlayer();
+
+    if (m_particles) m_particles->startChargeParticle();
 
     Debug::log("[ArcherSomersaultState] ENTER");
 }
 
 void ArcherSomersaultState::OnStateUpdate()
 {
-    if (!m_archerController || !m_attackConfig || !m_animation)
+    if (!m_archerController || !m_animation)
     {
         return;
     }
@@ -54,11 +53,23 @@ void ArcherSomersaultState::OnStateUpdate()
         return;
     }
 
+    if (m_archerController->trySendStunTrigger(m_animation))
+    {
+        return;
+    }
+
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
     m_stateTimer += Time::getDeltaTime();
 
+    if (m_particles) m_particles->updateChargeParticle();
     moveSomersault();
 
-    if (m_stateTimer >= m_attackConfig->m_somersaultDuration)
+    if (m_stateTimer >= cfg->m_somersaultDuration)
     {
         finishSomersault();
         return;
@@ -67,12 +78,14 @@ void ArcherSomersaultState::OnStateUpdate()
 
 void ArcherSomersaultState::OnStateExit()
 {
+    if (m_particles) m_particles->stopChargeParticle();
     Debug::log("[ArcherSomersaultState] EXIT");
 }
 
 void ArcherSomersaultState::moveSomersault()
 {
-    if (!m_attackConfig)
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return;
     }
@@ -84,22 +97,22 @@ void ArcherSomersaultState::moveSomersault()
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 
-    const float duration = m_attackConfig->m_somersaultDuration;
+    const float duration = cfg->m_somersaultDuration;
     if (duration <= 0.0f)
     {
         return;
     }
 
-    const float speed = m_attackConfig->m_somersaultDistance / duration;
+    const float speed = cfg->m_somersaultDistance / duration;
     const float stepDistance = speed * Time::getDeltaTime();
 
-    Vector3 currentPosition = TransformAPI::getPosition(ownerTransform);
+    Vector3 currentPosition = TransformAPI::getGlobalPosition(ownerTransform);
     Vector3 desiredPosition = currentPosition + m_escapeDirection * stepDistance;
 
     Vector3 nextPosition;
     if (NavigationAPI::moveAlongSurface(currentPosition, desiredPosition, nextPosition, Vector3(5.0f, 5.0f, 5.0f)))
     {
-        TransformAPI::setPosition(ownerTransform, nextPosition);
+        TransformAPI::setGlobalPosition(ownerTransform, nextPosition);
     }
 }
 
@@ -117,4 +130,6 @@ void ArcherSomersaultState::finishSomersault()
     Debug::log("[ArcherSomersaultState] Finished, Chase trigger sent");
 }
 
-IMPLEMENT_SCRIPT(ArcherSomersaultState)
+IMPLEMENT_SCRIPT_FIELDS(ArcherSomersaultState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

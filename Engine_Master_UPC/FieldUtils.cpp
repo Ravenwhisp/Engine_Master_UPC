@@ -1,5 +1,6 @@
 #include "Globals.h"
 #include "FieldUtils.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "FieldInfo.h"
 #include "SceneReferenceResolver.h"
@@ -35,7 +36,22 @@ namespace FieldUtils
         }
     }
 
-    void serialize(IFieldContainer& container, char* base, IArchive& archive)
+    void serialize(const IFieldContainer& container, const char* base, IArchive& archive)
+    {
+        FieldList fieldList = container.getExposedFields();
+
+        for (const FieldInfo& field : fieldList.fields)
+        {
+            if (!field.isDataField())
+                continue;
+
+            const void* data = base + field.offset;
+            assert(field.handler != nullptr);
+            field.handler->serialize(field, const_cast<void*>(data), archive);
+        }
+    }
+
+    void deserialize(IFieldContainer& container, char* base, IArchive& archive)
     {
         FieldList fieldList = container.getExposedFields();
 
@@ -49,6 +65,7 @@ namespace FieldUtils
             field.handler->serialize(field, data, archive);
         }
     }
+
 
     void clone(const IFieldContainer& source, const char* srcBase, IFieldContainer& target, char* dstBase)
     {

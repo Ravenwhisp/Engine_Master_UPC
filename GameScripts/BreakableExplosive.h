@@ -22,6 +22,8 @@ public:
     float m_explosionRadius = 5.0f;
     float m_explosionDamage = 30.0f;
 
+    PrefabRef m_explosionEffectParticle;
+
 private:
 	void onBreak() override;
 

@@ -22,6 +22,7 @@
 #include "DataContainer.h"
 #include "FieldMacros.h"
 #include "EngineAPI.h"
+#include "AssetRef.h"
 
 #define DECLARE_DATACONTAINER(TypeName) \
 	public: \

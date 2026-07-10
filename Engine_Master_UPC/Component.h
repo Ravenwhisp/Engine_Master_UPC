@@ -3,11 +3,10 @@
 #include "UID.h" 
 #include "IDebugDrawable.h"
 #include "ISerializable.h"
-#include "IArchive.h"
 
 class Transform;
 class GameObject;
-
+class IArchive;
 class SceneReferenceResolver;
 
 class IDebugDrawable;

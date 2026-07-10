@@ -17,10 +17,8 @@ cp .\Engine_Master_UPC\Keyboard.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\Layer.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\Script.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\ScriptAPI.h .\export\EngineDependencies\
-cp .\Engine_Master_UPC\ScriptAutoRegister.h .\export\EngineDependencies\
-cp .\Engine_Master_UPC\ScriptComponentRef.h .\export\EngineDependencies\
-cp .\Engine_Master_UPC\ScriptCreator.h .\export\EngineDependencies\
-cp .\Engine_Master_UPC\ScriptFieldInfo.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\ComponentRef.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\FieldInfo.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\Tag.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\Transform.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UID.h .\export\EngineDependencies\
@@ -31,14 +29,15 @@ cp .\Engine_Master_UPC\ScriptMethodList.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\StateMachineScript.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UISlider.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UIFill.h .\export\EngineDependencies\
-cp .\Engine_Master_UPC\ScriptFieldMacros.h .\export\EngineDependencies\
-cp .\Engine_Master_UPC\ScriptFieldHandler.h .\export\EngineDependencies\
-cp .\Engine_Master_UPC\ScriptFieldHandlerRegistry.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\FieldMacros.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\FieldHandler.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\FieldHandlerRegistry.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\NavMeshTypes.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\ISerializable.h .\export\EngineDependencies\
 
 cp .\Engine_Master_UPC\PrefabInstance.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\MD5Fwd.h .\export\EngineDependencies\
 
-cp .\Engine_Master_UPC\ScriptFieldTypeTraits.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\FieldTypeTraits.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\Transform2D.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UIRect.h .\export\EngineDependencies\

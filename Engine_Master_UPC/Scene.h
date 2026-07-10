@@ -7,9 +7,12 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
-#include "SoundBanksData.h"
 #include "SceneReferenceResolver.h"
+#include "AssetReference.h"
 #include "UID.h"
+
+#include <unordered_map>
+#include <SSAOSettings.h>
 
 struct ID3D12GraphicsCommandList;
 
@@ -19,7 +22,7 @@ class MeshRenderer;
 class TriggerSystem;
 class TriggerComponent;
 
-class Scene: public Asset
+class Scene : public Asset
 {
     friend class SceneSnapshot;
 private:
@@ -31,11 +34,15 @@ private:
     SceneLightingSettings m_lighting;
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
+    AssetReference m_navMesh;
+    SSAOSettings m_ssao;
 
     CameraComponent* m_defaultCamera;
     std::vector<GameObject*> m_rootObjects;
 
     std::vector<UID> m_objectsToRemove;
+
+    std::unordered_map<GameObject*, size_t> m_objectIndexMap;
 
     bool m_componentCacheDirty = true;
 
@@ -43,7 +50,8 @@ private:
 
     void removePendingGameObjects();
 
-    std::vector<std::string> m_loadedBanks;
+    std::vector<AssetReference> m_loadedBankRefs;
+    mutable std::vector<std::string> m_loadedBankNameCache;
 
     //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
     bool m_isUpdating = false;
@@ -95,7 +103,12 @@ public:
     const SceneDataCB& getCBData() const { return m_sceneDataCB; }
     SkyBoxSettings& getSkyBoxSettings() { return m_skybox; }
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
+    SSAOSettings& getSSAOSettings() { return m_ssao; }
+    const SSAOSettings& getSSAOSettings() const { return m_ssao; }
 
+    AssetReference& getNavMesh() { return m_navMesh; }
+    const AssetReference& getNavMesh() const { return m_navMesh; }
+    void setNavMesh(const AssetReference& ref) { m_navMesh = ref; }
 
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
     void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
@@ -136,12 +149,19 @@ public:
     void registerTrigger(TriggerComponent* trigger);
     void unregisterTrigger(TriggerComponent* trigger);
     void clearTriggers();
+
+    void registerAllTriggersInScene();
+
+    void registerTriggersInGameObject(GameObject* gameObject);
+    void unregisterTriggersInGameObject(GameObject* gameObject);
 #pragma endregion
 
 #pragma region MusicBanks
-    const std::vector<std::string>& getLoadedBanks() const;
-    void addLoadedBank(const std::string& bank);
-    void removeLoadedBank(const std::string& bank);
-	void unloadSoundBanks();
+    const std::vector<AssetReference>& getLoadedBankRefs() const { return m_loadedBankRefs; }
+    void addLoadedBank(const std::string& bankName);
+    void removeLoadedBank(const std::string& bankName);
+    std::vector<std::string> getLoadedBankNames() const;
+    void resolveLoadedBankNames() const;
+    void unloadSoundBanks();
 #pragma endregion
 };

@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -22,8 +23,14 @@ namespace
 
     void serializeStringField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        std::string* value = reinterpret_cast<std::string*>(data);
-        archive.serialize(*value, field.name);
+        const std::string* value = reinterpret_cast<const std::string*>(data);
+        std::string copy = *value;
+        archive.serialize(copy, field.name);
+    }
+
+    void deserializeStringField(const FieldInfo& field, void* data, IArchive& archive)
+    {
+        archive.serialize(*reinterpret_cast<std::string*>(data), field.name);
     }
 
     void cloneStringField(const FieldInfo&, const void* sourceData, void* targetData)

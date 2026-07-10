@@ -1,14 +1,17 @@
 #include "pch.h"
 #include "LyrielCharacter.h"
-#include "ArrowPool.h"
+#include "ProjectilePool.h"
 #include "LyrielDash.h"
 #include "LyrielArrowVolley.h"
 #include "LyrielSound.h"
 #include "PlayerMovement.h"
+#include "LyrielConfig.h"
+#include "LyrielBasicAttack.h"
+#include "LyrielChargedAttack.h"
 
 IMPLEMENT_SCRIPT_FIELDS(LyrielCharacter,
-    SERIALIZED_STRING(m_arrowSpawnChildName, "Arrow Spawn Child Name"),
-    SERIALIZED_FLOAT(m_volleyCooldownReductionPerExploit, "Volley CD Reduction Per Exploit", 0.0f, 1.0f, 0.05f)
+    SERIALIZED_ASSET_REF(m_config, "Lyriel Config", AssetType::DATA_CONTAINER),
+    SERIALIZED_STRING(m_arrowSpawnChildName, "Arrow Spawn Child Name")
 )
 
 LyrielCharacter::LyrielCharacter(GameObject* owner)
@@ -20,32 +23,48 @@ void LyrielCharacter::Start()
 {
     CharacterBase::Start();
 
-    m_arrowPool   = GameObjectAPI::findScript<ArrowPool>(getOwner());
-    m_dash        = GameObjectAPI::findScript<LyrielDash>(getOwner());
-    m_arrowVolley = GameObjectAPI::findScript<LyrielArrowVolley>(getOwner());
-    m_sound       = GameObjectAPI::findScript<LyrielSound>(getOwner());
-    m_movement    = GameObjectAPI::findScript<PlayerMovement>(getOwner());
-
+    m_arrowPool     = GameObjectAPI::findScript<ProjectilePool>(getOwner());
+    m_basicAttack = GameObjectAPI::findScript<LyrielBasicAttack>(getOwner());
+    m_chargedAttack = GameObjectAPI::findScript<LyrielChargedAttack>(getOwner());
+    m_dash          = GameObjectAPI::findScript<LyrielDash>(getOwner());
+    m_specialAbility   = GameObjectAPI::findScript<LyrielArrowVolley>(getOwner());
+    m_sound         = GameObjectAPI::findScript<LyrielSound>(getOwner());
+    m_movement      = GameObjectAPI::findScript<PlayerMovement>(getOwner());
     if (m_arrowPool == nullptr)
     {
         Debug::log("[LyrielCharacter] ArrowPool not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
+
+    if (m_basicAttack == nullptr)
+    {
+        Debug::warn("[LyrielCharacter] LyrielBasicAttack not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+
+    if (m_chargedAttack == nullptr)
+    {
+        Debug::warn("[LyrielCharacter] LyrielchargedAttack not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+
     if (m_dash == nullptr)
     {
         Debug::log("[LyrielCharacter] LyrielDash not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
-    if (m_arrowVolley == nullptr)
+
+    if (m_specialAbility == nullptr)
     {
         Debug::log("[LyrielCharacter] LyrielArrowVolley not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
+
     if (m_sound == nullptr)
     {
         Debug::log("[LyrielCharacter] LyrielSound not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
+
     if (m_movement == nullptr)
     {
         Debug::log("[LyrielCharacter] PlayerMovement not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
+
 }
 
 void LyrielCharacter::Update()
@@ -70,10 +89,15 @@ void LyrielCharacter::Update()
 void LyrielCharacter::onMarkExploited()
 {
     if (m_dash != nullptr)
+    {
         m_dash->recoverCharge();
+    }
 
-    if (m_arrowVolley != nullptr)
-        m_arrowVolley->reduceCooldown(m_volleyCooldownReductionPerExploit);
+    const LyrielConfig* cfg = m_config.get();
+    if (m_specialAbility != nullptr && cfg != nullptr)
+    {
+        m_specialAbility->reduceCooldown(cfg->m_volleyCooldownReductionPerExploit);
+    }
 }
 
 IMPLEMENT_SCRIPT(LyrielCharacter)

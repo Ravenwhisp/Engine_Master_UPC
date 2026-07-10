@@ -3,42 +3,42 @@
 
 #include "HealthPickup.h"
 
-#include <cmath>
-#include <cstdlib>
 
-GameObject* HealthDropSpawner::drop(const char* prefabPath, const Vector3& originPosition, float healAmount, float dropRadius, float dropHeight
+GameObject* HealthDropSpawner::drop(const AssetReference& prefabRef, const Vector3& originPosition, float healAmount, float dropRadius, float dropHeight
 )
 {
-    if (prefabPath == nullptr || prefabPath[0] == '\0')
+    if (!prefabRef.isValid())
     {
-        Debug::warn("[HealthDropSpawner] Cannot drop health pickup. Prefab path is empty.");
+        Debug::warn("[HealthDropSpawner] Cannot drop health pickup. Prefab ref is invalid.");
         return nullptr;
     }
 
-    const float angle = (static_cast<float>(rand()) / RAND_MAX) * 6.283185f;
-    const float distance = (static_cast<float>(rand()) / RAND_MAX) * dropRadius;
+    Vector3 landingPosition = originPosition;
 
-    Vector3 offset;
-    offset.x = std::cos(angle) * distance;
-    offset.y = 0.0f;
-    offset.z = std::sin(angle) * distance;
+    Vector3 sampled;
+    const Vector3 searchExtents(2.0f, 2.0f, 2.0f);
+    const int kMaxAttempts = 8;
 
-    const Vector3 landingPosition = originPosition + offset;
+    if (NavigationAPI::findRandomReachablePointAround(
+            originPosition, dropRadius, sampled, searchExtents, kMaxAttempts))
+    {
+        landingPosition = Vector3(sampled.x, originPosition.y, sampled.z);
+    }
 
     const Vector3 arcOrigin = Vector3(originPosition.x, originPosition.y + dropHeight, originPosition.z);
 
-    GameObject* pickup = GameObjectAPI::instantiatePrefab(prefabPath, arcOrigin, Vector3::Zero);
+    GameObject* pickup = GameObjectAPI::instantiatePrefab(prefabRef, arcOrigin, Vector3::Zero);
 
     if (pickup == nullptr)
     {
-        Debug::warn("[HealthDropSpawner] Failed to instantiate prefab '%s'.", prefabPath);
+        Debug::warn("[HealthDropSpawner] Failed to instantiate prefab.");
         return nullptr;
     }
 
     Script* script = GameObjectAPI::getScript(pickup, "HealthPickup");
     if (script == nullptr)
     {
-        Debug::warn("[HealthDropSpawner] Spawned prefab '%s' but it has no HealthPickup script.", prefabPath);
+        Debug::warn("[HealthDropSpawner] Spawned prefab but it has no HealthPickup script.");
 
         return pickup;
     }

@@ -8,15 +8,16 @@
 #include "MeshRenderer.h"
 #include "LightComponent.h"
 #include "CameraComponent.h"
-#include "NavigationAgentComponent.h"
 #include "NavModifierVolumeComponent.h"
-#include "WaypointPathComponent.h"
+#include "NavRuntimeBlockerComponent.h"
 #include "ScriptComponent.h"
 #include "AnimationComponent.h"
 #include "TriggerComponent.h"
 #include "ParticleSystemComponent.h"
+#include "TrailComponent.h"
 #include "ComponentSoundListener.h"
 #include "ComponentSoundSource.h"
+#include "PlayerRenderBufferComponent.h"
 
 // Prefab
 #include "PrefabInstanceComponent.h"
@@ -66,15 +67,12 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::UIBUTTON:
         return std::make_unique<UIButton>(id, owner);
-
-    case ComponentType::NAVIGATION_AGENT:
-        return std::make_unique<NavigationAgentComponent>(id, owner);
     
-    case ComponentType::NAVMODIFIER_VOLUME:
+    case ComponentType::NAV_MODIFIER_VOLUME:
         return std::make_unique<NavModifierVolumeComponent>(id, owner);
 
-    case ComponentType::WAYPOINT_PATH:
-        return std::make_unique<WaypointPathComponent>(id, owner);
+    case ComponentType::NAV_RUNTIME_BLOCKER:
+        return std::make_unique<NavRuntimeBlockerComponent>(id, owner);
 
     case ComponentType::ANIMATION:
         return std::make_unique<AnimationComponent>(id, owner);
@@ -91,6 +89,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
     case ComponentType::PARTICLE_SYSTEM:
         return std::make_unique<ParticleSystemComponent>(id, owner);
 
+    case ComponentType::TRAIL:
+        return std::make_unique<TrailComponent>(id, owner);
+
     case ComponentType::SOUND_LISTENER:
         return std::make_unique<ComponentSoundListener>(id, owner);
 
@@ -99,6 +100,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::PREFAB_INSTANCE:
         return std::make_unique<PrefabInstanceComponent>(id, owner);
+
+    case ComponentType::PLAYER_RENDER_BUFFER:
+        return std::make_unique<PlayerRenderBufferComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

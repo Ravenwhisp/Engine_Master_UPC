@@ -27,6 +27,44 @@ namespace
             outerAngleDegrees = std::min(SPOT_MAX_ANGLE_DEGREES, innerAngleDegrees + SPOT_MIN_ANGLE_DELTA_DEGREES);
         }
     }
+
+    static uint32_t sanitizeShadowMapSize(uint32_t size)
+    {
+        if (size <= 1024)
+        {
+            return 1024;
+        }
+
+        if (size <= 2048)
+        {
+            return 2048;
+        }
+
+        if (size <= 4096)
+        {
+            return 4096;
+        }
+
+        return 8192;
+    }
+
+    static void sanitizeShadowSettings(LightShadowSettings& shadow)
+    {
+        shadow.shadowMapSize = sanitizeShadowMapSize(shadow.shadowMapSize);
+
+        shadow.pcfRadius = std::clamp(
+            shadow.pcfRadius,
+            1u,
+            2u);
+
+        shadow.shadowBias = std::max(0.0f, shadow.shadowBias);
+
+        shadow.shadowStrength = std::clamp(
+            shadow.shadowStrength,
+            0.0f,
+            1.0f);
+    }
+
 }
 
 LightComponent::LightComponent(UID id, GameObject* owner)
@@ -67,6 +105,7 @@ void LightComponent::setTypeSpot(float radius, float innerAngleDegrees, float ou
 void LightComponent::sanitize()
 {
     m_data.common.intensity = std::max(0.0f, m_data.common.intensity);
+    sanitizeShadowSettings(m_data.shadow);
 
     if (m_data.type == LightType::POINT)
     {
@@ -167,7 +206,88 @@ void LightComponent::drawUi()
         break;
     }
 
-    if (lightChanged) {
+    ImGui::Separator();
+
+    if (ImGui::CollapsingHeader("Shadow Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (ImGui::Checkbox("Cast Shadows", &m_data.shadow.castShadows))
+        {
+            lightChanged = true;
+        }
+
+        static const char* SHADOW_SIZE_NAMES[] =
+        {
+            "1024",
+            "2048",
+            "4096",
+            "8192"
+        };
+
+        static constexpr uint32_t SHADOW_SIZES[] =
+        {
+            1024u,
+            2048u,
+            4096u,
+            8192u
+        };
+
+        int shadowSizeIndex = 2; // Default 4096
+
+        for (int i = 0; i < IM_ARRAYSIZE(SHADOW_SIZES); ++i)
+        {
+            if (m_data.shadow.shadowMapSize == SHADOW_SIZES[i])
+            {
+                shadowSizeIndex = i;
+                break;
+            }
+        }
+
+        if (ImGui::Combo("Shadow Map Size", &shadowSizeIndex, SHADOW_SIZE_NAMES, IM_ARRAYSIZE(SHADOW_SIZE_NAMES)))
+        {
+            m_data.shadow.shadowMapSize = SHADOW_SIZES[shadowSizeIndex];
+            lightChanged = true;
+        }
+
+        if (ImGui::Checkbox("PCF Enabled", &m_data.shadow.pcfEnabled))
+        {
+            lightChanged = true;
+        }
+
+        if (m_data.shadow.pcfEnabled)
+        {
+            static const char* PCF_KERNEL_NAMES[] =
+            {
+                "3x3",
+                "5x5"
+            };
+
+            int pcfKernelIndex = m_data.shadow.pcfRadius == 2 ? 1 : 0;
+
+            if (ImGui::Combo("PCF Kernel", &pcfKernelIndex, PCF_KERNEL_NAMES, IM_ARRAYSIZE(PCF_KERNEL_NAMES)))
+            {
+                m_data.shadow.pcfRadius = pcfKernelIndex == 0 ? 1u : 2u;
+                lightChanged = true;
+            }
+        }
+
+        if (ImGui::DragFloat("Shadow Bias", &m_data.shadow.shadowBias, 0.0001f, 0.0f, 0.02f, "%.6f"))
+        {
+            lightChanged = true;
+        }
+
+        if (ImGui::DragFloat("Shadow Strength", &m_data.shadow.shadowStrength, 0.01f, 0.0f, 1.0f))
+        {
+            lightChanged = true;
+        }
+
+        if (m_data.type != LightType::DIRECTIONAL)
+        {
+            ImGui::TextDisabled("Shadow rendering for this light type is not implemented yet.");
+        }
+    }
+
+    if (lightChanged) 
+    {
         sanitize();
     }
 }
@@ -184,6 +304,23 @@ void LightComponent::serialize(IArchive& archive)
     archive.serialize(m_data.common.color, "Color");
     archive.serialize(m_data.common.intensity, "Intensity");
 
+    archive.serialize(m_data.shadow.castShadows, "CastShadows");
+
+    uint32_t shadowMapSize = static_cast<uint32_t>(m_data.shadow.shadowMapSize);
+    archive.serialize(shadowMapSize, "ShadowMapSize");
+    if (archive.mode() == ArchiveMode::Input)
+        m_data.shadow.shadowMapSize = shadowMapSize;
+
+    archive.serialize(m_data.shadow.pcfEnabled, "ShadowPcfEnabled");
+
+    uint32_t shadowPcfRadius = static_cast<uint32_t>(m_data.shadow.pcfRadius);
+    archive.serialize(shadowPcfRadius, "ShadowPcfRadius");
+    if (archive.mode() == ArchiveMode::Input)
+        m_data.shadow.pcfRadius = shadowPcfRadius;
+
+    archive.serialize(m_data.shadow.shadowBias, "ShadowBias");
+    archive.serialize(m_data.shadow.shadowStrength, "ShadowStrength");
+
     float radius = 0.0f;
     float innerAngle = 0.0f;
     float outerAngle = 0.0f;
@@ -195,11 +332,13 @@ void LightComponent::serialize(IArchive& archive)
         case LightType::POINT:
             radius = m_data.parameters.point.radius;
             break;
+
         case LightType::SPOT:
             radius = m_data.parameters.spot.radius;
             innerAngle = m_data.parameters.spot.innerAngleDegrees;
             outerAngle = m_data.parameters.spot.outerAngleDegrees;
             break;
+
         default:
             break;
         }
@@ -216,17 +355,19 @@ void LightComponent::serialize(IArchive& archive)
         case LightType::DIRECTIONAL:
             setTypeDirectional();
             break;
+
         case LightType::POINT:
             setTypePoint(radius);
             break;
+
         case LightType::SPOT:
             setTypeSpot(radius, innerAngle, outerAngle);
             break;
         }
+
         sanitize();
     }
 }
-
 void LightComponent::debugDraw()
 {
     if ( !isActive() || !m_owner->GetActive())

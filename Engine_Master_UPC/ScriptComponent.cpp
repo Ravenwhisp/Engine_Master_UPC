@@ -3,8 +3,8 @@
 #include "Script.h"
 #include "GenericTypeFactory.h"
 #include "SceneReferenceResolver.h"
-#include "FieldUtils.h"
 #include "JsonArchive.h"
+#include <FieldUtils.h>
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -116,7 +116,6 @@ void ScriptComponent::drawScriptFieldsUi(Script& script)
 {
     FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
 }
-
 
 void ScriptComponent::serialize(IArchive& archive)
 {

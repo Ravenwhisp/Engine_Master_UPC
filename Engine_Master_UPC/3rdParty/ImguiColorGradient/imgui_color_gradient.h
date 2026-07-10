@@ -14,7 +14,7 @@
  ::BUTTON::
  if(ImGui::GradientButton(&gradient))
  {
-    //set show editor flag to true/false
+ //set show editor flag to true/false
  }
  
  ::EDITOR::
@@ -28,12 +28,12 @@
  gradient.getColorAt(0.3f, color); //position from 0 to 1
  
  ::MODIFY GRADIENT WITH CODE::
- gradient.getMarks().clear();
+ gradient.clearMarks();
  gradient.addMark(0.0f, ImColor(0.2f, 0.1f, 0.0f));
  gradient.addMark(0.7f, ImColor(120, 200, 255));
  
  ::WOOD BROWNS PRESET::
- gradient.getMarks().clear();
+ gradient.clearMarks();
  gradient.addMark(0.0f, ImColor(0xA0, 0x79, 0x3D));
  gradient.addMark(0.2f, ImColor(0xAA, 0x83, 0x47));
  gradient.addMark(0.3f, ImColor(0xB4, 0x8D, 0x51));
@@ -53,8 +53,9 @@
 
 struct ImGradientMark
 {
-    float color[4];
-    float position; //0 to 1
+    float color[3] = {0.0f, 0.0f, 0.0f};
+    float position = 0.0f; //0 to 1
+    bool alpha     = false;
 };
 
 class ImGradient
@@ -62,16 +63,27 @@ class ImGradient
 public:
     ImGradient();
     ~ImGradient();
+
+    ImGradient(const ImGradient& other);
+    ImGradient& operator=(const ImGradient& other);
     
     void getColorAt(float position, float* color) const;
-    void addMark(float position, ImColor const color);
+    ImGradientMark* addMark(float position, ImColor const color);
+    ImGradientMark* addAlphaMark(float position, float alpha);
     void removeMark(ImGradientMark* mark);
+    void clearMarks();
     void refreshCache();
     std::list<ImGradientMark*> & getMarks(){ return m_marks; }
-private:
+	const std::list<ImGradientMark*> & getMarks() const { return m_marks; }
+
     void computeColorAt(float position, float* color) const;
+    void setEditAlpha(bool edit) { edit_alpha = edit;  }
+    bool getEditAlpha() const { return edit_alpha;  }
+private:
+
     std::list<ImGradientMark*> m_marks;
-    float m_cachedValues[256 * 3];
+    float m_cachedValues[256 * 4];
+    bool edit_alpha = true;
 };
 
 namespace ImGui

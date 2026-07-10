@@ -27,7 +27,7 @@ public:
     float m_heightOffset = 0.15f;
 
 private:
-    ArthurAttackConfig* m_attackConfig = nullptr;
+    AssetRef<ArthurAttackConfig> m_attackConfig;
 
 private:
     void drawHeavySwipeCone() const;

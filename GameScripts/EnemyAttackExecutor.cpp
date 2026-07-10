@@ -51,18 +51,20 @@ void EnemyAttackExecutor::applyDamageAndStunInRadius(const Vector3& center, floa
     tryDamageAndStunTargetInRadius(deathTransform, center, radius, damage, stunDuration, sourceName);
 }
 
-void EnemyAttackExecutor::applyDamageInCone(const Vector3& center, const Vector3& direction, float range, float halfAngleDegrees, float damage, const char* sourceName)
+int EnemyAttackExecutor::applyDamageInCone(const Vector3& center, const Vector3& direction, float range, float halfAngleDegrees, float damage, const char* sourceName)
 {
     if (!m_enemyDetectionAggro)
     {
-        return;
+        return 0;
     }
 
     Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
     Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
 
-    tryDamageTargetInCone(lyrielTransform, center, direction, range, halfAngleDegrees, damage, sourceName);
-    tryDamageTargetInCone(deathTransform, center, direction, range, halfAngleDegrees, damage, sourceName);
+    int hits = 0;
+    if (tryDamageTargetInCone(lyrielTransform, center, direction, range, halfAngleDegrees, damage, sourceName)) ++hits;
+    if (tryDamageTargetInCone(deathTransform, center, direction, range, halfAngleDegrees, damage, sourceName)) ++hits;
+    return hits;
 }
 
 bool EnemyAttackExecutor::tryDamageTargetInRadius(Transform* targetTransform, const Vector3& center, float radius, float damage, const char* sourceName)
@@ -168,6 +170,26 @@ bool EnemyAttackExecutor::tryDamageTargetInCone(Transform* targetTransform, cons
     }
 
     return applyDamageToTarget(targetTransform, damage, sourceName);
+}
+
+void EnemyAttackExecutor::tryDamageAndStunSingleTargetInCone(Transform* targetTransform, const Vector3& center, const Vector3& direction, float range, float halfAngleDegrees, float damage, float stunDuration, const char* sourceName)
+{
+    const bool damaged = tryDamageTargetInCone(
+        targetTransform,
+        center,
+        direction,
+        range,
+        halfAngleDegrees,
+        damage,
+        sourceName
+    );
+
+    if (!damaged)
+    {
+        return;
+    }
+
+    applyStunToTarget(targetTransform, stunDuration, sourceName);
 }
 
 bool EnemyAttackExecutor::applyDamageToTarget(Transform* targetTransform, float damage, const char* sourceName)

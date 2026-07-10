@@ -1,0 +1,13 @@
+{
+    "uid": 13456066299877887602,
+    "contentHash": "9ee363c49b5c792c7fb0d4150dc80319",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_PROP_spiderweb_dungeon_BC.png",
+    "sourceFileSize": 577909,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

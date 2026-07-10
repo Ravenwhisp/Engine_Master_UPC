@@ -2,6 +2,9 @@
 
 #include "DeathAbilityBase.h"
 
+class DeathUI;
+class DeathParticles;
+
 class DeathBasicAttack : public DeathAbilityBase
 {
     DECLARE_SCRIPT(DeathBasicAttack)
@@ -9,11 +12,11 @@ class DeathBasicAttack : public DeathAbilityBase
 public:
     explicit DeathBasicAttack(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void Start()      override;
     void Update()     override;
     void drawGizmo()  override;
-
-    FieldList getExposedFields() const override;
 
 protected:
     void onAttackWindowUpdate()   override;
@@ -21,26 +24,20 @@ protected:
 
 	bool canStartSpecificAbility() const override;
 
+    float getCooldown() const override;
+
 private:
     void startAbility() override;
     void snapFaceTarget(GameObject* target);
     void faceTarget(GameObject* target);
 	void dealDamageToTarget(GameObject* target) const;
 
-    GameObject* m_attackFacingTarget    = nullptr;
-
-public:
-    float m_basicAttackDamage = 20.0f;
-    float m_basicAttackRange = 1.5f;
-    float m_basicAttackHitAngle = 50.0f;
-
-    float m_attackLockDuration = 0.35f;
-    float m_finalHitLockDuration = 0.7f;
+    void updateUI() override;
 
 private:
-	Transform* m_deathSlashUITransform = nullptr;
-    UISlider* m_deathSlashUISlider = nullptr;
+    DeathUI* m_deathUI = nullptr;
 
-    void setupUI();
-    void updateUI() override;
+    GameObject* m_attackFacingTarget = nullptr;
+
+    DeathParticles* m_particles = nullptr;
 };

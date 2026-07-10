@@ -1,0 +1,348 @@
+{
+ "SoundBanksInfo": {
+  "Platform": "Windows",
+  "BasePlatform": "Windows",
+  "SchemaVersion": "16",
+  "SoundBankVersion": "172",
+  "SoundBanks": [
+   {
+    "Id": "1355168291",
+    "Type": "User",
+    "GUID": "{701ECBBD-9C7B-4030-8CDB-749EE5D1C7B9}",
+    "Language": "SFX",
+    "Hash": "{688BE10B-454A-C48F-ADA6-EA4CCEF2F8F1}",
+    "ObjectPath": "Init",
+    "ShortName": "Init",
+    "Path": "Init.bnk",
+    "Plugins": {
+     "ShareSets": [
+      {
+       "Id": "3546444380",
+       "Name": "Big_Garage1",
+       "ObjectPath": "\\Effects\\Factory Effects\\Matrix Reverb\\Big_Garage1",
+       "GUID": "{172402A8-22F4-40FC-BE1D-5269594CB633}",
+       "LibName": "Wwise Matrix Reverb",
+       "LibId": "7536643"
+      }
+     ],
+     "AudioDevices": [
+      {
+       "Id": "2317455096",
+       "Name": "No_Output",
+       "ObjectPath": "\\Devices\\Default Work Unit\\No_Output",
+       "GUID": "{37E5E52F-EBC6-4F12-97A9-F8567EAE9AEA}",
+       "LibName": "No Output",
+       "LibId": "11862023"
+      },
+      {
+       "Id": "3859886410",
+       "Name": "System",
+       "ObjectPath": "\\Devices\\Default Work Unit\\System",
+       "GUID": "{4B731E8B-224D-4485-A2FF-4A577DE4AA7E}",
+       "LibName": "System",
+       "LibId": "11403271"
+      }
+     ]
+    },
+    "Busses": [
+     {
+      "Id": "2886307548",
+      "Name": "MusicBus",
+      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\MusicBus",
+      "GUID": "{B021CE0A-CA39-440D-895F-FD6225998299}"
+     },
+     {
+      "Id": "3744218805",
+      "Name": "ReverbBus",
+      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\ReverbBus",
+      "GUID": "{9A4DC574-AB3E-4AF3-A90B-2289676FD30A}",
+      "PluginRefs": {
+       "ShareSets": [
+        {
+         "Id": "3546444380"
+        }
+       ]
+      }
+     },
+     {
+      "Id": "3803692087",
+      "Name": "Master Audio Bus",
+      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus",
+      "GUID": "{1514A4D8-1DA6-412A-A17E-75CA0C2149F3}"
+     }
+    ],
+    "AuxBusses": [
+     {
+      "Id": "4122393694",
+      "Name": "Cave",
+      "ObjectPath": "\\Busses\\Default Work Unit\\Master Audio Bus\\ReverbBus\\Cave",
+      "GUID": "{2D5A5EB5-D272-4153-9008-EBD4785E1FD0}"
+     }
+    ],
+    "GameParameters": [
+     {
+      "Id": "207908541",
+      "Name": "Time_of_Day",
+      "ObjectPath": "\\Game Parameters\\Default Work Unit\\Time_of_Day",
+      "GUID": "{A8433043-3A66-4192-AA05-3A19D3057B81}"
+     },
+     {
+      "Id": "1333239961",
+      "Name": "MenuSlider_Master_Volume",
+      "ObjectPath": "\\Game Parameters\\Default Work Unit\\MenuSlider_Master_Volume",
+      "GUID": "{624A2EA0-E384-47FC-A1BE-E88872E45291}"
+     },
+     {
+      "Id": "2471758783",
+      "Name": "Player_MovementSpeed",
+      "ObjectPath": "\\Game Parameters\\Default Work Unit\\Player_MovementSpeed",
+      "GUID": "{6B9B7B10-2C66-469A-8F74-1C90E6F76F9D}"
+     },
+     {
+      "Id": "2642438544",
+      "Name": "MenuSlider_Music_Volume",
+      "ObjectPath": "\\Game Parameters\\Default Work Unit\\MenuSlider_Music_Volume",
+      "GUID": "{2425FD1B-A213-4F61-B2DC-6E7F4559FE42}"
+     },
+     {
+      "Id": "3717892141",
+      "Name": "CombatLevel",
+      "ObjectPath": "\\Game Parameters\\Default Work Unit\\CombatLevel",
+      "GUID": "{F136A093-6BB5-43FC-A9CF-ED2AEC314311}"
+     }
+    ],
+    "StateGroups": [
+     {
+      "Id": "1021618141",
+      "Name": "MusicState",
+      "ObjectPath": "\\States\\Default Work Unit\\MusicState",
+      "GUID": "{A3070809-61E2-4EC2-A2BD-9C725FFBC1B7}",
+      "States": [
+       {
+        "Id": "441421484",
+        "Name": "Level2_Upper",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level2_Upper",
+        "GUID": "{E5FE2097-76B9-401C-9DAC-7D5F784DC441}"
+       },
+       {
+        "Id": "748895195",
+        "Name": "None",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\None",
+        "GUID": "{AF7D6232-6D6E-432C-8BB9-B379BB5A6679}"
+       },
+       {
+        "Id": "975124050",
+        "Name": "Level1_Boss",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level1_Boss",
+        "GUID": "{42ADADDD-9121-43D5-8634-459CA4D76BC5}"
+       },
+       {
+        "Id": "2147352708",
+        "Name": "FinalBoss",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\FinalBoss",
+        "GUID": "{BABF10D5-E023-41B4-B3B4-7C6A964A4C6B}"
+       },
+       {
+        "Id": "2425108878",
+        "Name": "Level2_Elevator",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level2_Elevator",
+        "GUID": "{75B8CED4-30A3-4D7A-A931-1A9736F334F9}"
+       },
+       {
+        "Id": "3377093860",
+        "Name": "Level1_Chapel",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level1_Chapel",
+        "GUID": "{6C366108-6075-4476-BF6F-1B99BDFE11B2}"
+       },
+       {
+        "Id": "3400764851",
+        "Name": "Level1_Upper",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\Level1_Upper",
+        "GUID": "{0211EB35-5B61-4149-A815-8A9BB138BA9D}"
+       },
+       {
+        "Id": "3604647259",
+        "Name": "MainMenu",
+        "ObjectPath": "\\States\\Default Work Unit\\MusicState\\MainMenu",
+        "GUID": "{C19F55FD-4BCA-459D-9D87-356DA15819B2}"
+       }
+      ]
+     }
+    ],
+    "SwitchGroups": [
+     {
+      "Id": "2471758783",
+      "Name": "Player_MovementSpeed",
+      "ObjectPath": "\\Switches\\Default Work Unit\\Player_MovementSpeed",
+      "GUID": "{5B9FB263-1981-4967-9C56-5EB6D9515A02}",
+      "GameParameterRef": {
+       "Id": "2471758783"
+      },
+      "Switches": [
+       {
+        "Id": "712161704",
+        "Name": "run",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Player_MovementSpeed\\run",
+        "GUID": "{5B73F4CC-4BBB-47E9-B5E7-28D341EE21AF}"
+       },
+       {
+        "Id": "2108779966",
+        "Name": "walk",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Player_MovementSpeed\\walk",
+        "GUID": "{E512CF1A-F49F-4CFA-9F45-B8894F11279B}"
+       }
+      ]
+     },
+     {
+      "Id": "3251833556",
+      "Name": "Player_Weapon_Type",
+      "ObjectPath": "\\Switches\\Default Work Unit\\Player_Weapon_Type",
+      "GUID": "{AB0C0842-6047-41DF-88B6-D9FF905BA619}",
+      "Switches": [
+       {
+        "Id": "490825222",
+        "Name": "PickAxe",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Player_Weapon_Type\\PickAxe",
+        "GUID": "{F356AF50-4A91-4076-9905-C736E9B74B70}"
+       },
+       {
+        "Id": "703486095",
+        "Name": "Hammer",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Player_Weapon_Type\\Hammer",
+        "GUID": "{5C633458-F1CC-4D63-92AD-211C7E67E983}"
+       },
+       {
+        "Id": "765201635",
+        "Name": "Axe",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Player_Weapon_Type\\Axe",
+        "GUID": "{39B47B8C-55F2-4846-A281-F76600C57B65}"
+       },
+       {
+        "Id": "2454616260",
+        "Name": "Sword",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Player_Weapon_Type\\Sword",
+        "GUID": "{E6421E76-CD51-4819-B231-0D05737023C9}"
+       },
+       {
+        "Id": "3732162827",
+        "Name": "Dagger",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Player_Weapon_Type\\Dagger",
+        "GUID": "{22D8332A-4661-49BE-ABB0-EA555FA209DF}"
+       }
+      ]
+     },
+     {
+      "Id": "3717892141",
+      "Name": "COMBATLEVEL",
+      "ObjectPath": "\\Switches\\Default Work Unit\\COMBATLEVEL",
+      "GUID": "{28D5A9D3-9E48-4024-A66D-C1C0E30FC35B}",
+      "GameParameterRef": {
+       "Id": "3717892141"
+      },
+      "Switches": [
+       {
+        "Id": "2504034592",
+        "Name": "NotCombat",
+        "ObjectPath": "\\Switches\\Default Work Unit\\COMBATLEVEL\\NotCombat",
+        "GUID": "{F1FCB677-A1E8-4024-B62E-8EAB25691B9F}"
+       },
+       {
+        "Id": "2764240573",
+        "Name": "COMBAT",
+        "ObjectPath": "\\Switches\\Default Work Unit\\COMBATLEVEL\\COMBAT",
+        "GUID": "{E7BA54FB-DAC2-4B41-B491-73CDB1761897}"
+       }
+      ]
+     },
+     {
+      "Id": "4064446173",
+      "Name": "Surface_Type",
+      "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type",
+      "GUID": "{DF9EED6A-4A8A-4A02-AF3F-06C154B74B42}",
+      "Switches": [
+       {
+        "Id": "442447909",
+        "Name": "Barrel",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Barrel",
+        "GUID": "{AFAA19B0-A6B8-49DA-B270-10864EF1674B}"
+       },
+       {
+        "Id": "582824249",
+        "Name": "Leaves",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Leaves",
+        "GUID": "{27F60602-B09C-40C2-8578-4EF94C25B089}"
+       },
+       {
+        "Id": "803837735",
+        "Name": "Sand",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Sand",
+        "GUID": "{668B7597-B05A-4815-9B9C-D220F1B10071}"
+       },
+       {
+        "Id": "1216965916",
+        "Name": "Stone",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Stone",
+        "GUID": "{EF6F4E33-2FC5-42D9-ACE3-F3A6E236ED22}"
+       },
+       {
+        "Id": "1647104456",
+        "Name": "Enemy_EvilCrawler",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Enemy_EvilCrawler",
+        "GUID": "{F9BD30A0-C228-4C7C-9DC0-C2F760803B60}"
+       },
+       {
+        "Id": "2058049674",
+        "Name": "Wood",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Wood",
+        "GUID": "{E082EEFA-7764-466A-AF66-1641EB369E4A}"
+       },
+       {
+        "Id": "2195636714",
+        "Name": "Dirt",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Dirt",
+        "GUID": "{946EC2F8-68BD-4C86-8630-E52855D1A4EC}"
+       },
+       {
+        "Id": "2473969246",
+        "Name": "Metal",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Metal",
+        "GUID": "{5F62F9F0-2AFA-4584-BE63-52135645AE12}"
+       },
+       {
+        "Id": "2654748154",
+        "Name": "Water",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Water",
+        "GUID": "{B1ADDD56-A1C7-4BBE-BC3C-38DEC765E701}"
+       },
+       {
+        "Id": "3065846598",
+        "Name": "Enemy_EvilHead",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Enemy_EvilHead",
+        "GUID": "{5AED5474-F440-4DE9-ADA7-AE52C2029230}"
+       },
+       {
+        "Id": "3098439042",
+        "Name": "Crate",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Crate",
+        "GUID": "{E2D64D92-23D1-42C5-A015-95407F64A17D}"
+       },
+       {
+        "Id": "3276966729",
+        "Name": "Enemy_EvilSpitPlant",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Enemy_EvilSpitPlant",
+        "GUID": "{3A288F40-18AD-4874-85D6-9F6FA56E353B}"
+       },
+       {
+        "Id": "4248645337",
+        "Name": "Grass",
+        "ObjectPath": "\\Switches\\Default Work Unit\\Surface_Type\\Grass",
+        "GUID": "{51245F00-A4DB-4970-9FEE-93C170CC0DC7}"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "FileHash": "{6222E5EB-791E-F19D-ACC9-B00528BBD5F6}"
+ }
+}

@@ -1,0 +1,13 @@
+{
+    "uid": 5157535742338286027,
+    "contentHash": "c50a65cf219e18cfefcb4f12901f8859",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_PROP_frames_interior_BC.jpg",
+    "sourceFileSize": 247172,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

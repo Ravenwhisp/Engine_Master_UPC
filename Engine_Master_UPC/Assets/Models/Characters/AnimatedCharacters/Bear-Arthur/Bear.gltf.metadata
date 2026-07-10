@@ -1,0 +1,73 @@
+{
+    "uid": 14369780791206178784,
+    "contentHash": "ea75ecfeb8f258967c6ed697aa2b3d30",
+    "type": 5,
+    "sourcePath": "Assets\\Models\\Characters\\AnimatedCharacters\\Bear-Arthur\\Bear.gltf",
+    "sourceFileSize": 170119,
+    "dependencies": [
+        {
+            "uid": 6174052325598143155,
+            "contentHash": "974e8939929d9eaa0ee916c6318715d7",
+            "type": 2,
+            "displayName": "lambert20"
+        },
+        {
+            "uid": 12584446851543204723,
+            "contentHash": "3bb569087fcf26529557004787d63264",
+            "type": 3,
+            "displayName": "Bear"
+        },
+        {
+            "uid": 12950460726583917666,
+            "contentHash": "329da2c93abc651e986516be757ed07c",
+            "type": 6,
+            "displayName": "Bear_stand"
+        },
+        {
+            "uid": 13408700155962206730,
+            "contentHash": "ba4547440c12dfb2800e5818ceebc9b8",
+            "type": 6,
+            "displayName": "Bear_idle"
+        },
+        {
+            "uid": 14973854340516438937,
+            "contentHash": "aa3b68eb5806829a1b0d050578e385cd",
+            "type": 6,
+            "displayName": "Bear_attack"
+        },
+        {
+            "uid": 10449942996158667634,
+            "contentHash": "d9e02ed6685aa3531a6cf58794468f47",
+            "type": 6,
+            "displayName": "Bear_walk"
+        },
+        {
+            "uid": 12872365504509799009,
+            "contentHash": "475456e3fdb836c384eb7f5cb1a3e523",
+            "type": 6,
+            "displayName": "Bear_death"
+        },
+        {
+            "uid": 11968390018694115058,
+            "contentHash": "02bd7d246fd40f85b3f65236c0fb34ac",
+            "type": 6,
+            "displayName": "Bear_hit"
+        },
+        {
+            "uid": 1025501592641869981,
+            "contentHash": "58cdd76bd3b0b0dc3c1ccf40e1e3ff07",
+            "type": 6,
+            "displayName": "Bear_Tpose"
+        },
+        {
+            "uid": 17182993310209300617,
+            "contentHash": "fd9720516e3721b8c22b174ee7077653",
+            "type": 7
+        },
+        {
+            "uid": 9427543877831103661,
+            "contentHash": "78a10e917546c073067aad87b75b7801",
+            "type": 7
+        }
+    ]
+}

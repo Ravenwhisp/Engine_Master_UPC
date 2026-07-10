@@ -1,0 +1,13 @@
+{
+    "uid": 6741659769945040628,
+    "contentHash": "b1c90538cf2064ab0229d2d16568d859",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_heavy_rightclaw.png",
+    "sourceFileSize": 20774,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

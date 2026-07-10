@@ -1,13 +1,14 @@
 #include "pch.h"
 #include "HealthPickup.h"
 #include "PlayerDamageable.h"
+#include "CooperativeSound.h"
 
 #include <cmath>
 
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(HealthPickup, Pickup,
     SERIALIZED_FLOAT(m_healAmount, "Heal Amount",         0.0f, 100.0f, 1.0f),
-    SERIALIZED_STRING(m_collectParticlePrefabPath, "Collect Particle Prefab Path"),
+    SERIALIZED_ASSET_REF(m_collectParticlePrefab, "Collect Particle Prefab", AssetType::PREFAB),
     SERIALIZED_FLOAT(m_spawnHeight, "Spawn Height",        0.0f,   5.0f, 0.1f),
     SERIALIZED_FLOAT(m_fallGravity, "Fall Gravity",        0.0f,  20.0f, 0.5f),
     SERIALIZED_FLOAT(m_idleSpeed, "Idle Speed",          0.0f,  10.0f, 0.05f),
@@ -43,6 +44,12 @@ void HealthPickup::Start()
 
     m_isFalling    = true;
     m_fallVelocity = 0.0f;
+
+    const auto coopGOs = SceneAPI::findAllGameObjectsWithScript<CooperativeSound>();
+    if (!coopGOs.empty())
+    {
+        m_cooperativeSound = GameObjectAPI::findScript<CooperativeSound>(coopGOs.front());
+    }
 }
 
 void HealthPickup::Update()
@@ -91,11 +98,16 @@ void HealthPickup::OnTriggerEnter(GameObject* player)
 
     damageable->heal(m_healAmount);
 
-    if (!m_collectParticlePrefabPath.empty())
+    if (m_cooperativeSound != nullptr)
+    {
+        m_cooperativeSound->playHealthOrb();
+    }
+
+    if (m_collectParticlePrefab.m_ref.isValid())
     {
         Transform* t = GameObjectAPI::getTransform(getOwner());
         Vector3 spawnPosition = t != nullptr ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
-        GameObjectAPI::instantiatePrefab(m_collectParticlePrefabPath.c_str(), spawnPosition, Vector3::Zero, nullptr);
+        GameObjectAPI::instantiatePrefab(m_collectParticlePrefab.m_ref, spawnPosition, Vector3::Zero, nullptr);
     }
 
     Pickup::OnTriggerEnter(player);
@@ -127,7 +139,7 @@ void HealthPickup::fallAnimation()
         m_fallVelocity = 0.0f;
     }
 
-    TransformAPI::setPosition(t, pos);
+    TransformAPI::setGlobalPosition(t, pos);
 }
 
 void HealthPickup::idleAnimation()
@@ -139,9 +151,9 @@ void HealthPickup::idleAnimation()
     Vector3 position = m_startPosition;
 
     position.z += std::sin(t) * m_horizontalAmplitude;
-    position.y += std::sin(t * 2.0f) * m_verticalAmplitude;
+    position.y = m_startPosition.y + std::abs(std::sin(t * 2.0f)) * m_verticalAmplitude;
 
-    TransformAPI::setPosition(GameObjectAPI::getTransform(getOwner()), position);
+    TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(getOwner()), position);
 }
 
 

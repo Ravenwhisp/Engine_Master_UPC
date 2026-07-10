@@ -3,6 +3,7 @@
 #include "AbilityBase.h"
 
 class LyrielCharacter;
+class LyrielConfig;
 
 class LyrielAbilityBase : public AbilityBase
 {
@@ -17,4 +18,5 @@ protected:
 
 protected:
     LyrielCharacter* m_lyrielCharacter = nullptr;
+    AssetRef<LyrielConfig> m_config;
 };

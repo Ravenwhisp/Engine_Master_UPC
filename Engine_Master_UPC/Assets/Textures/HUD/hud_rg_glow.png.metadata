@@ -1,0 +1,13 @@
+{
+    "uid": 13849709241318515636,
+    "contentHash": "068741a0832536d21e5b0274450c113d",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_rg_glow.png",
+    "sourceFileSize": 26063,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

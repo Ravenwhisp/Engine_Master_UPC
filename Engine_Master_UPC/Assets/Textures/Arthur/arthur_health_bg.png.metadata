@@ -1,0 +1,13 @@
+{
+    "uid": 593940522257763597,
+    "contentHash": "b3614077da3f21dd12db18aaf9af75f4",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_health_bg.png",
+    "sourceFileSize": 117809,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

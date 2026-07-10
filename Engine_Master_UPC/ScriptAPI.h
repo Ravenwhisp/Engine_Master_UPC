@@ -9,7 +9,7 @@
 #include "FieldMacros.h"
 
 #include "ComponentRef.h"
-#include "DataContainerRef.h"
+#include <AssetRef.h>
 
 #define DECLARE_SCRIPT(ScriptType)
 

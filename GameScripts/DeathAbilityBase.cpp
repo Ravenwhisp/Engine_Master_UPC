@@ -3,6 +3,7 @@
 
 #include "DeathCharacter.h"
 #include "PlayerState.h"
+#include "DeathConfig.h"
 
 DeathAbilityBase::DeathAbilityBase(GameObject* owner)
     : AbilityBase(owner)

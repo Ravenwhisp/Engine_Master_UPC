@@ -1,0 +1,13 @@
+{
+    "uid": 688739548470580515,
+    "contentHash": "c0a7bb0b78d733703bea59db5a4f1fcb",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_PROP_gold_dungeon_N.png",
+    "sourceFileSize": 19711520,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

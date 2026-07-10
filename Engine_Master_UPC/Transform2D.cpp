@@ -73,6 +73,7 @@ Rect2D Transform2D::getRect(const Rect2D& parent, const Vector2& inheritedScale)
 
     float baseAspectRatio = (baseSize.y > 0.0f) ? (baseSize.x / baseSize.y) : 1.0f;
     const Vector2 effectiveScale = { scale.x * inheritedScale.x, scale.y * inheritedScale.y };
+    const Vector2 scaledPosition = { position.x * inheritedScale.x, position.y * inheritedScale.y };
     
     if (stretchMode == StretchMode::NONE)
     {
@@ -86,19 +87,19 @@ Rect2D Transform2D::getRect(const Rect2D& parent, const Vector2& inheritedScale)
             rect.w = baseSize.x * effectiveScale.x;
             rect.h = baseSize.y * effectiveScale.y;
         }
-        referenceX = anchorMinPixelX + position.x;
-        referenceY = anchorMinPixelY + position.y;
+        referenceX = anchorMinPixelX + scaledPosition.x;
+        referenceY = anchorMinPixelY + scaledPosition.y;
     }
     else if (stretchMode == StretchMode::BOTH)
     {
-        rect.w = std::max(0.0f, stretchW * effectiveScale.x);
-        rect.h = std::max(0.0f, stretchH * effectiveScale.y);
+        rect.w = std::max(0.0f, stretchW * scale.x);
+        rect.h = std::max(0.0f, stretchH * scale.y);
 
         float centerX = (anchorMinPixelX + anchorMaxPixelX) * 0.5f;
         float centerY = (anchorMinPixelY + anchorMaxPixelY) * 0.5f;
 
-        referenceX = centerX + position.x;
-        referenceY = centerY + position.y;
+        referenceX = centerX + scaledPosition.x;
+        referenceY = centerY + scaledPosition.y;
     }
     else if (stretchMode == StretchMode::HORIZONTAL)
     {
@@ -112,8 +113,8 @@ Rect2D Transform2D::getRect(const Rect2D& parent, const Vector2& inheritedScale)
 
         float centerX = (anchorMinPixelX + anchorMaxPixelX) * 0.5f;
 
-        referenceX = centerX + position.x;
-        referenceY = anchorMinPixelY + position.y;
+        referenceX = centerX + scaledPosition.x;
+        referenceY = anchorMinPixelY + scaledPosition.y;
     }
     else if (stretchMode == StretchMode::VERTICAL)
     {
@@ -127,8 +128,8 @@ Rect2D Transform2D::getRect(const Rect2D& parent, const Vector2& inheritedScale)
 
         float centerY = (anchorMinPixelY + anchorMaxPixelY) * 0.5f;
 
-        referenceX = anchorMinPixelX + position.x;
-        referenceY = centerY + position.y;
+        referenceX = anchorMinPixelX + scaledPosition.x;
+        referenceY = centerY + scaledPosition.y;
     }
 
     rect.x = referenceX - pivot.x * rect.w;

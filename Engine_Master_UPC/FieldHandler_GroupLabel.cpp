@@ -1,8 +1,9 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
-#include "IFieldContainer.h"
 #include "IArchive.h"
+#include "IFieldContainer.h"
+
 namespace
 {
     void drawGroupLabelUi(const FieldInfo& field, void*, IFieldContainer&)
@@ -11,11 +12,11 @@ namespace
         ImGui::SeparatorText(field.name);
     }
 
-    void serializeGroupLabel(const FieldInfo&, void*, IArchive& archive)
+    void serializeGroupLabel(const FieldInfo&, void*, IArchive&)
     {
     }
 
-    void deserializeGroupLabel(const FieldInfo&, void*, const rapidjson::Value&)
+    void deserializeGroupLabel(const FieldInfo&, void*, IArchive&)
     {
     }
 

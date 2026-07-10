@@ -2,23 +2,34 @@
 #include "Asset.h"
 #include "IFieldContainer.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4251)
+
+#include <rapidjson/document.h>
 #include <typeinfo>
 #include <cstring>
-#include <string>
+
+class ImporterDataContainer;
 
 class ENGINE_API DataContainer : public Asset, public IFieldContainer
 {
 public:
+	friend class ImporterDataContainer;
+
 	DataContainer() = default;
 	explicit DataContainer(AssetReference& id)
 		: Asset(id, AssetType::DATA_CONTAINER)
 	{
+		m_data.SetObject();
 	}
 
-	void serialize(IArchive& archive) override;
+	virtual void syncFromData() {}
 	void drawUI() override;
 
-	const std::string& getStoredTypeName() const { return m_typeName; }
+	void serialize(IArchive& archive) override;
+
+	const rapidjson::Document& getData() const { return m_data; }
+	rapidjson::Document& getDataMutable() { return m_data; }
 
 	virtual const char* getTypeName() const
 	{
@@ -36,5 +47,7 @@ public:
 	}
 
 protected:
-	std::string m_typeName;
+	rapidjson::Document m_data;
 };
+
+#pragma warning(pop)

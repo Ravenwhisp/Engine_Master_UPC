@@ -1,11 +1,13 @@
 #include "pch.h"
 #include "EnemyAttackState.h"
 
-#include "RangedEnemyController.h"
-#include "ArcherAttackConfig.h"
+#include "EnemyBaseController.h"
+#include "EnemyBaseAttackConfig.h"
+#include "EnemySound.h"
 
 #include "Damageable.h"
 #include "PlayerState.h"
+#include "PaladinVFX.h"
 
 EnemyAttackState::EnemyAttackState(GameObject* owner)
     : StateMachineScript(owner)
@@ -14,23 +16,17 @@ EnemyAttackState::EnemyAttackState(GameObject* owner)
 
 void EnemyAttackState::OnStateEnter()
 {
-    m_archerController = GameObjectAPI::findScript<RangedEnemyController>(getOwner());
-    m_attackConfig = GameObjectAPI::findScript<ArcherAttackConfig>(getOwner());
+    m_controller = GameObjectAPI::findScript<EnemyBaseController>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
+    m_paladinVFX = GameObjectAPI::findScript<PaladinVFX>(getOwner());
 
     m_stateTimer = 0.0f;
     m_hasAppliedDamage = false;
     m_committedTarget = nullptr;
 
-    if (!m_archerController)
+    if (!m_controller)
     {
-        Debug::error("[EnemyAttackState] RangedEnemyController not found.");
-        return;
-    }
-
-    if (!m_attackConfig)
-    {
-        Debug::error("[EnemyAttackState] ArcherAttackConfig not found.");
+        Debug::error("[EnemyAttackState] EnemyController not found.");
         return;
     }
 
@@ -40,40 +36,66 @@ void EnemyAttackState::OnStateEnter()
         return;
     }
 
-    m_archerController->clearPath();
-    m_archerController->updateCurrentTarget();
-    m_committedTarget = m_archerController->getTarget();
+    m_controller->clearPath();
+    m_controller->resetRepathTimer();
+
+    m_controller->updateCurrentTarget();
+    m_committedTarget = m_controller->getCurrentTarget();
+
+    m_enemySound = GameObjectAPI::findScript<EnemySound>(getOwner());
+    if (m_enemySound)
+    {
+        m_enemySound->playBasicTelegraph();   // Paladin swing / Archer bow release
+    }
 
     Debug::log("[EnemyAttackState] ENTER");
 }
 
 void EnemyAttackState::OnStateUpdate()
 {
-    if (!m_archerController || !m_attackConfig || !m_animation)
+    if (!m_controller || !m_animation)
     {
         return;
     }
 
-    if (m_archerController->trySendDeathTrigger(m_animation))
+    if (m_controller->trySendDeathTrigger(m_animation))
     {
         return;
     }
 
-    m_archerController->faceTarget();
+    if (m_controller->trySendStunTrigger(m_animation))
+    {
+        return;
+    }
+
+    m_controller->faceCurrentTarget();
 
     m_stateTimer += Time::getDeltaTime();
 
-    if (!m_hasAppliedDamage && m_stateTimer >= m_attackConfig->m_basicAttackWindupTime)
+    const EnemyBaseAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
+        return;
+    }
+
+    if (!m_hasAppliedDamage && m_stateTimer >= cfg->m_basicAttackWindupTime)
+    {
+        playBasicAttackEffect();
         tryDamageTarget(m_committedTarget);
+
+        if (m_enemySound)
+        {
+            m_enemySound->playBasicImpact();   // contact frame
+        }
+
         m_hasAppliedDamage = true;
     }
 
-    if (m_stateTimer >= m_attackConfig->m_basicAttackTotalDuration)
+    if (m_stateTimer >= cfg->m_basicAttackTotalDuration)
     {
-        m_archerController->updateCurrentTarget();
+        m_controller->updateCurrentTarget();
 
-        if (!m_archerController->hasTarget())
+        if (!m_controller->hasValidTarget())
         {
             AnimationAPI::sendTrigger(m_animation, "ToIdle");
             Debug::log("[EnemyAttackState] Attack finished, Idle trigger sent");
@@ -95,7 +117,8 @@ void EnemyAttackState::OnStateExit()
 
 void EnemyAttackState::tryDamageTarget(Transform* targetTransform)
 {
-    if (!m_attackConfig)
+    const EnemyBaseAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return;
     }
@@ -123,9 +146,19 @@ void EnemyAttackState::tryDamageTarget(Transform* targetTransform)
         return;
     }
 
-    damageable->takeDamage(m_attackConfig->m_basicAttackDamage);
+    damageable->takeDamage(cfg->m_basicAttackDamage);
 
-    Debug::log("[EnemyAttackState] Damaged '%s' for %.2f.", GameObjectAPI::getName(targetObject), m_attackConfig->m_basicAttackDamage);
+    Debug::log("[EnemyAttackState] Damaged '%s' for %.2f.", GameObjectAPI::getName(targetObject), cfg->m_basicAttackDamage);
 }
 
-IMPLEMENT_SCRIPT(EnemyAttackState)
+void EnemyAttackState::playBasicAttackEffect()
+{
+    if (m_paladinVFX)
+    {
+        m_paladinVFX->playBasicAttackEffect();
+    }
+}
+
+IMPLEMENT_SCRIPT_FIELDS(EnemyAttackState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

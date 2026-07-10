@@ -466,7 +466,7 @@ private:
     ComPtr<ID3D12CommandAllocator>    uploadCommandAllocator;
     ComPtr<ID3D12Fence1>              uploadFence;
     HANDLE                            uploadEvent = NULL;
-    uint32_t                          uploadFenceValue = 0;
+    uint64_t                          uploadFenceValue = 0;
     D3D12_CPU_DESCRIPTOR_HANDLE       cpuTextHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE       gpuTextHandle;
 
@@ -664,9 +664,6 @@ void DebugDrawPass::rebuildDrawableCache()
                 break;
             case ComponentType::CAMERA:
                 m_cameraDrawables.push_back(drawable);
-                break;
-            case ComponentType::NAVIGATION_AGENT:
-                m_navDrawables.push_back(drawable);
                 break;
             case ComponentType::SCRIPT:
                 m_scriptDrawables.push_back(drawable);

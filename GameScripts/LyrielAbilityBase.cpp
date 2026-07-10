@@ -5,6 +5,7 @@
 #include "PlayerRotation.h"
 #include "PlayerState.h"
 #include "PlayerAnimationController.h"
+#include "LyrielConfig.h"
 
 LyrielAbilityBase::LyrielAbilityBase(GameObject* owner)
     : AbilityBase(owner)

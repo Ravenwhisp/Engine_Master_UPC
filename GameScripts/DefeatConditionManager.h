@@ -5,6 +5,7 @@
 class Transform;
 class PlayerState;
 class PlayerDownState;
+class CooperativeSound;
 
 class DefeatConditionManager : public Script
 {
@@ -35,6 +36,8 @@ private:
 
     PlayerDownState* m_player1DownState = nullptr;
     PlayerDownState* m_player2DownState = nullptr;
+
+    CooperativeSound* m_cooperativeSound = nullptr;
 
     bool m_hasTriggeredDefeat = false;
 

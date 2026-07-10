@@ -1,0 +1,183 @@
+{
+  "SourcePath": "Assets\\Prefabs\\GameManager.prefab",
+  "Name": "GameManager",
+  "Version": 2,
+  "PrefabUID": 3358145166536837174,
+  "GameObject": {
+    "Name": "GameManager",
+    "Active": true,
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 13017832257584332513,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "Bound",
+          "ScriptFields": {
+            "Player 1 Transform": 13674988855065321213,
+            "Player 2 Transform": 14758983170395956352,
+            "Bound UI": 15667340701092795211,
+            "Min Distance": 6.0,
+            "Damage Distance": 7.0,
+            "InstaKill Distance": 12.0,
+            "Radius Threshold": 2.0,
+            "Base Damage": 2.0,
+            "Max Damage": 6.0
+          }
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 14291017553272696243,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "DefeatConditionManager",
+          "ScriptFields": {
+            "Player 1 Transform": 13674988855065321213,
+            "Player 2 Transform": 14758983170395956352
+          }
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 18228041571655463361,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "LevelCheats",
+          "ScriptFields": {}
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "Bound",
+        "Active": true,
+        "Transform": {
+          "position": [
+            12.12794303894043,
+            1.1911035776138306,
+            31.4147891998291
+          ],
+          "rotation": [
+            0.7071068286895752,
+            0.0,
+            -0.0,
+            0.7071067690849304
+          ],
+          "scale": [
+            12.0,
+            12.0,
+            12.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 6,
+            "Data": {
+              "UID": 12891930666176603126,
+              "ComponentType": 6,
+              "Active": true,
+              "RenderMode": 1,
+              "ZTest": true
+            }
+          }
+        ],
+        "Children": [
+          {
+            "Name": "Sprite",
+            "Active": true,
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 15285322583018041563,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.5,
+                    0.5
+                  ],
+                  "AnchorMin": [
+                    0.0,
+                    0.0
+                  ],
+                  "AnchorMax": [
+                    0.0,
+                    0.0
+                  ],
+                  "BaseSize": [
+                    100.0,
+                    100.0
+                  ],
+                  "StretchMode": 0,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 11351533207125182038,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": "9915895d1eebde74b5a15a3303042dca",
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      }
+    ]
+  }
+}

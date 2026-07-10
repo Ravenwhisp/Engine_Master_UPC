@@ -30,29 +30,60 @@
 ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
 {
-    m_shadowMap.reset(app->getModuleResources()->createShadowMap(SHADOW_MAP_SIZE));
+    createShadowMap(DEFAULT_SHADOW_MAP_SIZE);
 
+    createRootSignature();
+    createPipelineState();
+}
+
+void ShadowMapPass::createShadowMap(uint32_t size)
+{
+    m_currentShadowMapSize = size;
+
+    m_shadowMap.reset(app->getModuleResources()->createShadowMap(size));
+
+    updateShadowViewportAndScissor(size);
+
+    if (m_shadowMap != nullptr)
+    {
+        m_shadowMapState = m_shadowMap->getDesc().initialState;
+    }
+    else
+    {
+        m_shadowMapState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    }
+}
+
+void ShadowMapPass::resizeShadowMapIfNeeded(uint32_t size)
+{
+    if (size == 0)
+    {
+        size = DEFAULT_SHADOW_MAP_SIZE;
+    }
+
+    if (size == m_currentShadowMapSize && m_shadowMap != nullptr)
+    {
+        return;
+    }
+
+    createShadowMap(size);
+}
+
+void ShadowMapPass::updateShadowViewportAndScissor(uint32_t size)
+{
     m_viewport = {};
     m_viewport.TopLeftX = 0.0f;
     m_viewport.TopLeftY = 0.0f;
-    m_viewport.Width = static_cast<float>(SHADOW_MAP_SIZE);
-    m_viewport.Height = static_cast<float>(SHADOW_MAP_SIZE);
+    m_viewport.Width = static_cast<float>(size);
+    m_viewport.Height = static_cast<float>(size);
     m_viewport.MinDepth = 0.0f;
     m_viewport.MaxDepth = 1.0f;
 
     m_scissorRect = {};
     m_scissorRect.left = 0;
     m_scissorRect.top = 0;
-    m_scissorRect.right = static_cast<LONG>(SHADOW_MAP_SIZE);
-    m_scissorRect.bottom = static_cast<LONG>(SHADOW_MAP_SIZE);
-
-    if (m_shadowMap != nullptr)
-    {
-        m_shadowMapState = m_shadowMap->getDesc().initialState;
-    }
-
-    createRootSignature();
-    createPipelineState();
+    m_scissorRect.right = static_cast<LONG>(size);
+    m_scissorRect.bottom = static_cast<LONG>(size);
 }
 
 void ShadowMapPass::createRootSignature()
@@ -127,7 +158,7 @@ void ShadowMapPass::createPipelineState()
         IID_PPV_ARGS(&m_pipelineState)));
 }
 
-const LightComponent* ShadowMapPass::findMainDirectionalLight() const
+const LightComponent* ShadowMapPass::findMainShadowCastingDirectionalLight() const
 {
     const std::vector<LightComponent*>& lights = app->getModuleScene()->getLightComponents();
 
@@ -150,7 +181,13 @@ const LightComponent* ShadowMapPass::findMainDirectionalLight() const
         }
 
         const LightData& data = light->getData();
+
         if (data.type != LightType::DIRECTIONAL)
+        {
+            continue;
+        }
+
+        if (!data.shadow.castShadows)
         {
             continue;
         }
@@ -176,6 +213,11 @@ void ShadowMapPass::prepareDisabledShadowData(const RenderContext& ctx)
     shadowCB.shadowBias = SHADOW_BIAS;
     shadowCB.shadowStrength = SHADOW_STRENGTH;
     shadowCB.shadowsEnabled = 0;
+    shadowCB.shadowMapTexelSize = Vector2(
+        1.0f / static_cast<float>(m_currentShadowMapSize),
+        1.0f / static_cast<float>(m_currentShadowMapSize));
+    shadowCB.pcfEnabled = 0;
+    shadowCB.pcfRadius = 1;
 
     if (ctx.ringBuffer != nullptr)
     {
@@ -190,6 +232,10 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
 {
     m_frameData = {};
     m_frameData.enabled = true;
+
+    const LightShadowSettings& shadowSettings = light.getData().shadow;
+
+    resizeShadowMapIfNeeded(shadowSettings.shadowMapSize);
 
     if (m_shadowMap != nullptr && m_shadowMap->hasSRV())
     {
@@ -244,9 +290,14 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
 
     ShadowDataCB shadowCB{};
     shadowCB.lightViewProjection = m_frameData.lightViewProjection.Transpose();
-    shadowCB.shadowBias = SHADOW_BIAS;
-    shadowCB.shadowStrength = SHADOW_STRENGTH;
+    shadowCB.shadowBias = shadowSettings.shadowBias;
+    shadowCB.shadowStrength = shadowSettings.shadowStrength;
     shadowCB.shadowsEnabled = 1;
+    shadowCB.shadowMapTexelSize = Vector2(
+        1.0f / static_cast<float>(m_currentShadowMapSize),
+        1.0f / static_cast<float>(m_currentShadowMapSize));
+    shadowCB.pcfEnabled = shadowSettings.pcfEnabled ? 1u : 0u;
+    shadowCB.pcfRadius = shadowSettings.pcfEnabled ? shadowSettings.pcfRadius : 0u;
 
     if (ctx.ringBuffer != nullptr)
     {
@@ -256,6 +307,7 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
             app->getModuleD3D12()->getCurrentFrame());
     }
 }
+
 
 bool ShadowMapPass::computeVisibleWorldBounds(Vector3& outMin, Vector3& outMax) const
 {
@@ -546,13 +598,6 @@ void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList,
         return;
     }
 
-    OutputDebugStringA(
-        ("[ShadowMapPass] transitionShadowMap: " +
-            std::to_string(m_shadowMapState) +
-            " -> " +
-            std::to_string(newState) +
-            "\n").c_str());
-
     ComPtr<ID3D12Resource> shadowResource = m_shadowMap->getD3D12Resource();
 
     if (shadowResource == nullptr)
@@ -560,11 +605,7 @@ void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList,
         return;
     }
 
-    CD3DX12_RESOURCE_BARRIER barrier =
-        CD3DX12_RESOURCE_BARRIER::Transition(
-            shadowResource.Get(),
-            m_shadowMapState,
-            newState);
+    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(shadowResource.Get(), m_shadowMapState, newState);
 
     commandList->ResourceBarrier(1, &barrier);
 
@@ -573,9 +614,9 @@ void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList,
 
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
-    m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
+    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
 
-    const LightComponent* mainDirectionalLight = findMainDirectionalLight();
+    const LightComponent* mainDirectionalLight = findMainShadowCastingDirectionalLight();
 
     if (mainDirectionalLight == nullptr)
     {
@@ -588,19 +629,24 @@ void ShadowMapPass::prepare(const RenderContext& ctx)
 
 void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    BEGIN_EVENT(commandList, "ShadowMapPass");
+
     if (commandList == nullptr)
     {
+        END_EVENT(commandList);
         return;
     }
 
     if (m_shadowMap == nullptr || !m_shadowMap->hasDSV())
     {
+        END_EVENT(commandList);
         return;
     }
 
     if (!m_frameData.enabled)
     {
         transitionShadowMap(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        END_EVENT(commandList);
         return;
     }
 
@@ -633,4 +679,6 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
     renderCasters(commandList);
 
     transitionShadowMap(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    END_EVENT(commandList);
 }

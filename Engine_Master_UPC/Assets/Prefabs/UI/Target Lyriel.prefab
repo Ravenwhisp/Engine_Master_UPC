@@ -1,0 +1,179 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Target Lyriel.prefab",
+  "Name": "Target Lyriel",
+  "Version": 2,
+  "GameObject": {
+    "Name": "Target Lyriel",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "PrefabLink": {
+      "SourcePath": "Assets\\Prefabs\\Target Lyriel.prefab",
+      "AssetUID": 7216879068800334832
+    },
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 16122253086427283611,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "TargetIndicatorUI",
+          "ScriptFields": {
+            "Player Transform": 743245849143440901,
+            "Indicator Visual Transform": 12530601722236867097,
+            "Position Offset": [
+              0.0,
+              0.05000000074505806,
+              0.0
+            ],
+            "Follow Sharpness": 20.0
+          }
+        }
+      }
+    ],
+    "Children": [
+      {
+        "Name": "Canvas",
+        "Active": true,
+        "Tag": "DEFAULT",
+        "Layer": "DEFAULT",
+        "Transform": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.7071068286895752,
+            0.0,
+            -0.0,
+            0.7071067690849304
+          ],
+          "scale": [
+            2.0,
+            2.0,
+            1.0
+          ]
+        },
+        "Components": [
+          {
+            "Type": 6,
+            "Data": {
+              "UID": 435143551658391499,
+              "ComponentType": 6,
+              "Active": true,
+              "RenderMode": 1,
+              "ZTest": true
+            }
+          }
+        ],
+        "Children": [
+          {
+            "Name": "Sprite",
+            "Active": true,
+            "Tag": "DEFAULT",
+            "Layer": "DEFAULT",
+            "Transform": {
+              "position": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "rotation": [
+                -0.0,
+                0.0,
+                -0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "Components": [
+              {
+                "Type": 5,
+                "Data": {
+                  "UID": 12810671220250498921,
+                  "ComponentType": 5,
+                  "Active": true,
+                  "Position": [
+                    0.0,
+                    0.0
+                  ],
+                  "Scale": [
+                    1.0,
+                    1.0
+                  ],
+                  "Pivot": [
+                    0.5,
+                    0.5
+                  ],
+                  "AnchorMin": [
+                    0.0,
+                    0.0
+                  ],
+                  "AnchorMax": [
+                    0.0,
+                    0.0
+                  ],
+                  "BaseSize": [
+                    100.0,
+                    100.0
+                  ],
+                  "StretchMode": 0,
+                  "SizingMode": 0,
+                  "AspectRatio": 1.0,
+                  "Alpha": 1.0
+                }
+              },
+              {
+                "Type": 7,
+                "Data": {
+                  "UID": 12303448441816559885,
+                  "ComponentType": 7,
+                  "Active": true,
+                  "TextureAssetId": {
+                    "uid": 12389831469080700967,
+                    "libId": "3cc9e614e4bba29057a76feae53168e0"
+                  },
+                  "FillAmount": 1.0,
+                  "FillMethod": 0,
+                  "FillOrigin": 0,
+                  "SheetColumns": 1,
+                  "SheetRows": 1,
+                  "SheetOffset": [
+                    0.0,
+                    0.0
+                  ],
+                  "StretchDrawMode": 0
+                }
+              }
+            ],
+            "Children": []
+          }
+        ]
+      }
+    ]
+  }
+}

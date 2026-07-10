@@ -1,0 +1,13 @@
+{
+    "uid": 5939761859928442959,
+    "contentHash": "b15bc36a400eb60ddce0f3a939da4649",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_heavy_bg.png",
+    "sourceFileSize": 80517,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

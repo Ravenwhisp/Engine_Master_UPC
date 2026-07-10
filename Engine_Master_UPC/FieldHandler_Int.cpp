@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 
 namespace
@@ -17,11 +18,14 @@ namespace
 
     void serializeIntField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        int* value = reinterpret_cast<int*>(data);
-        uint32_t temp = static_cast<uint32_t>(*value);
-        archive.serialize(temp, field.name);
-        if (archive.mode() == ArchiveMode::Input)
-            *value = static_cast<int>(temp);
+        uint32_t value = static_cast<uint32_t>(*reinterpret_cast<const int*>(data));
+        archive.serialize(value, field.name);
+    }
+
+    void deserializeIntField(const FieldInfo& field, void* data, IArchive& archive)
+    {
+        uint32_t raw = *reinterpret_cast<uint32_t*>(data);
+        archive.serialize(raw, field.name);
     }
 
     void cloneIntField(const FieldInfo&, const void* sourceData, void* targetData)
@@ -33,7 +37,7 @@ namespace
     {
     }
 
-    const FieldHandler intFieldHandler = { &drawIntFieldUi, &serializeIntField, &cloneIntField, &fixReferencesIntField};
+    const FieldHandler intFieldHandler = {&drawIntFieldUi, &serializeIntField, &cloneIntField, &fixReferencesIntField};
 }
 
 const FieldHandler* getIntFieldHandler()

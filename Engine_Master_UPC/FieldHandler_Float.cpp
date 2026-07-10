@@ -3,6 +3,7 @@
 #include "FieldInfo.h"
 #include "FieldHandler.h"
 #include "FieldHandlerRegistry.h"
+#include "IArchive.h"
 #include "IFieldContainer.h"
 #include "SceneReferenceResolver.h"
 
@@ -20,8 +21,13 @@ namespace
 
     void serializeFloatField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        float* value = reinterpret_cast<float*>(data);
-        archive.serialize(*value, field.name);
+        float value = *reinterpret_cast<const float*>(data);
+        archive.serialize(value, field.name);
+    }
+
+    void deserializeFloatField(const FieldInfo& field, void* data, IArchive& archive)
+    {
+        archive.serialize(*reinterpret_cast<float*>(data), field.name);
     }
 
     void cloneFloatField(const FieldInfo&, const void* sourceData, void* targetData)

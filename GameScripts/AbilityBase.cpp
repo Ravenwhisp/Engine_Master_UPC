@@ -4,12 +4,20 @@
 #include "CharacterBase.h"
 #include "PlayerState.h"
 #include "PlayerAnimationController.h"
-#include "UISlider.h"
+#include "CharacterUI.h"
+
+static const char* abilityUISlotNames[] =
+{
+    "Basic Attack",
+    "Charged Attack",
+    "Ability",
+    "Dash"
+};
+
+constexpr int abilityUISlotCount = 4;
 
 IMPLEMENT_SCRIPT_FIELDS(AbilityBase,
-    SERIALIZED_FLOAT(m_cooldown, "Cooldown", 0.0f, 10.0f, 0.01f),
-    SERIALIZED_COMPONENT_REF(m_cdUI, "CD UI", ComponentType::TRANSFORM),
-    SERIALIZED_COMPONENT_REF(m_cdBar, "CD Slider", ComponentType::UISLIDER)
+    SERIALIZED_ENUM_INT(m_uiSlot, "UI Slot", abilityUISlotNames, abilityUISlotCount)
 )
 
 AbilityBase::AbilityBase(GameObject* owner)
@@ -25,11 +33,12 @@ void AbilityBase::Start()
     {
         Debug::warn("[AbilityBase] CharacterBase not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
-    
-    m_cdBarSlider = m_cdBar.getReferencedComponent();
-    if (m_cdUI.getReferencedComponent())
+
+    m_characterUI = GameObjectAPI::findScript<CharacterUI>(getOwner());
+
+    if (m_characterUI == nullptr)
     {
-        m_cdGO = m_cdUI.getReferencedComponent()->getOwner();
+        Debug::warn("[AbilityBase] CharacterUI not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
 }
 
@@ -60,57 +69,72 @@ void AbilityBase::updateCooldown(float dt)
     }
 
     m_cooldownTimer -= dt;
+
+    if (m_cooldownTimer < 0.0f)
+    {
+        m_cooldownTimer = 0.0f;
+
+        const AbilityUISlot slot = static_cast<AbilityUISlot>(m_uiSlot);
+        m_characterUI->hideAbilityCooldown(slot);
+    }
 }
 
 void AbilityBase::updateUI()
 {
-    if (m_cooldownTimer <= 0.0f)
+    if (!m_characterUI)
     {
-        if (m_cdGO)
-        {
-            GameObjectAPI::setActive(m_cdGO, false);
-        }
         return;
     }
-    if (m_cdBarSlider)
+
+    const float cooldown = getCooldown();
+
+    if (m_cooldownTimer <= 0.0f || cooldown <= 0.0001f)
     {
-        SliderAPI::setFillAmount(m_cdBarSlider, (m_cooldownTimer / m_cooldown));
+        return;
     }
+
+    const AbilityUISlot slot = static_cast<AbilityUISlot>(m_uiSlot);
+    m_characterUI->updateAbilityCooldown(slot, m_cooldownTimer / cooldown);
 }
 
 void AbilityBase::reduceCooldown(float fraction)
 {
-    if (m_cooldownTimer <= 0.0f || fraction <= 0.0f || m_cooldown <= 0.0f)
-        return;
+    const float cooldown = getCooldown();
 
-    m_cooldownTimer -= fraction * m_cooldown;
+    if (m_cooldownTimer <= 0.0f || fraction <= 0.0f || cooldown <= 0.0f)
+    {
+        return;
+    }
+
+    m_cooldownTimer -= fraction * cooldown;
 
     if (m_cooldownTimer <= 0.0f)
     {
         m_cooldownTimer = 0.0f;
-        Transform* cdUITransform = m_cdUI.getReferencedComponent();
-        if (cdUITransform)
+
+        if (m_characterUI)
         {
-            GameObject* cdUIObject = cdUITransform->getOwner();
-            if (cdUIObject)
-            {
-                GameObjectAPI::setActive(cdUIObject, false);
-            }
+            m_characterUI->hideAbilityCooldown(static_cast<AbilityUISlot>(m_uiSlot));
         }
+
         return;
     }
 
-    SliderAPI::setFillAmount(m_cdBar.getReferencedComponent(), (m_cooldownTimer / m_cooldown));
+    if (m_characterUI)
+    {
+        m_characterUI->updateAbilityCooldown(static_cast<AbilityUISlot>(m_uiSlot), m_cooldownTimer / cooldown);
+    }
 }
 
 void AbilityBase::startCooldown()
 {
-    m_cooldownTimer = m_cooldown;
+    m_cooldownTimer = getCooldown();
 
-    if (m_cdGO)
+    if (m_characterUI)
     {
-        GameObjectAPI::setActive(m_cdGO, true);
-	}
+        m_characterUI->showAbilityCooldown(static_cast<AbilityUISlot>(m_uiSlot));
+        m_characterUI->updateAbilityCooldown(static_cast<AbilityUISlot>(m_uiSlot), 1.0f);
+    }
 }
 
 void AbilityBase::updateAttackWindow(float dt)
@@ -127,6 +151,11 @@ void AbilityBase::updateAttackWindow(float dt)
     {
         finishAttackWindow();
     }
+}
+
+void AbilityBase::notifyAbilitySuccessfullyStarted()
+{
+    ++m_successfulUseCount;
 }
 
 bool AbilityBase::canStartAbility() const

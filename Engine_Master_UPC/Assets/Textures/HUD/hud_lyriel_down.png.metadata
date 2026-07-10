@@ -1,0 +1,13 @@
+{
+    "uid": 16625189270706252859,
+    "contentHash": "97575f2371d813a92c799df3f32c242d",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\HUD\\hud_lyriel_down.png",
+    "sourceFileSize": 27682,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

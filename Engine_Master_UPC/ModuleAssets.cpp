@@ -6,8 +6,10 @@
 #include "ImporterGltf.h"
 #include "MD5.h"
 
+#ifndef GAME_RELEASE
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
+#endif
 #include "PrefabManager.h"
 
 
@@ -20,13 +22,12 @@
 #include "Asset.h"
 #include "AnimationStateMachineAsset.h"
 #include "JsonArchive.h"
-#include "DataContainer.h"
 #include "Metadata.h"
 #include "UID.h"
+#include "DataContainer.h"
 
 #include <filesystem>
 #include <FileIO.h>
-
 
 namespace fs = std::filesystem;
 
@@ -45,17 +46,23 @@ ModuleAssets::~ModuleAssets() = default;
 
 bool ModuleAssets::init()
 {
+#ifndef GAME_RELEASE
     m_scanner = std::make_unique<AssetScanner>();
     m_contentRegistry = std::make_unique<ContentRegistry>();
+#endif
     m_prefabManager = std::make_unique<PrefabManager>(this);
 
+#ifndef GAME_RELEASE
     refresh();
+#endif
     return true;
 }
 
 void ModuleAssets::postRender()
 {
+#ifndef GAME_RELEASE
     m_dialog.flush(*this);
+#endif
 }
 
 bool ModuleAssets::cleanUp()
@@ -128,7 +135,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
     if (reference.m_type == AssetType::DATA_CONTAINER)
     {
         DataContainer* baseDc = static_cast<DataContainer*>(asset.release());
-        DataContainer* derivedDc = resolveDataContainerType(baseDc, sourcePath);
+        DataContainer* derivedDc = resolveDataContainerType(baseDc);
         if (derivedDc)
         {
             delete baseDc;
@@ -161,7 +168,9 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
 
     if (targetPath.empty())
     {
+#ifndef GAME_RELEASE
         m_dialog.requestSave(asset);
+#endif
         return false;
     }
 
@@ -180,7 +189,13 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
 
     const UID uid = isValidUID(asset.getUID()) ? asset.getUID() : GenerateUID();
     AssetReference ref(uid, INVALID_ASSET_ID, asset.getType());
-    return persistAsset(&asset, importer, ref, targetPath);
+    if (persistAsset(&asset, importer, ref, targetPath))
+    {
+        asset.setUID(ref.m_uid);
+        asset.setLibId(ref.m_libId);
+        return true;
+    }
+    return false;
 }
 
 bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference& reference,
@@ -240,13 +255,16 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
 
     reference.m_libId = meta.contentHash;
 
+#ifndef GAME_RELEASE
     m_contentRegistry->registerAsset(sourcePath, &m_index);
+#endif
 
     return true;
 }
 
 void ModuleAssets::refresh()
 {
+#ifndef GAME_RELEASE
     std::string rootStr = ASSETS_FOLDER;
     if (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\'))
     {
@@ -291,13 +309,16 @@ void ModuleAssets::refresh()
     m_contentRegistry->rebuild(root, &m_index);
     tCollect1 = std::chrono::high_resolution_clock::now();
     DEBUG_ASSETS("[ModuleAssets] Metadata rebuild took %.3f ms", elapsedMs(tCollect0, tCollect1));
+#endif
 }
 
 void ModuleAssets::unregisterAsset(const fs::path& sourcePath)
 {
     const fs::path normPath = sourcePath.lexically_normal();
     m_index.unregisterByPath(normPath);
+#ifndef GAME_RELEASE
     m_contentRegistry->unregisterAsset(normPath);
+#endif
 }
 
 bool ModuleAssets::isLoaded(const AssetReference& ref)
@@ -414,7 +435,11 @@ bool ModuleAssets::createStateMachineFromGltf(const std::filesystem::path& gltfP
 
 ContentRegistry* ModuleAssets::getContentRegistry() const
 {
+#ifndef GAME_RELEASE
     return m_contentRegistry.get();
+#else
+    return nullptr;
+#endif
 }
 
 PrefabManager* ModuleAssets::getPrefabManager() const
@@ -422,44 +447,30 @@ PrefabManager* ModuleAssets::getPrefabManager() const
     return m_prefabManager.get();
 }
 
-DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContainer, const std::filesystem::path& sourcePath) const
+DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContainer) const
 {
-	if (!baseContainer)
-	{
-		return nullptr;
-	}
+    if (!baseContainer)
+    {
+        return nullptr;
+    }
 
-	const std::string& typeName = baseContainer->getStoredTypeName();
-	if (typeName.empty())
-	{
-		return nullptr;
-	}
+    const rapidjson::Document& data = baseContainer->getData();
+    if (!data.HasMember("_typeName") || !data["_typeName"].IsString())
+    {
+        return nullptr;
+    }
 
-	AssetReference ref = baseContainer->getReference();
-	auto derived = DataContainerFactory::create(typeName.c_str(), ref);
-	if (!derived)
-	{
-		return nullptr;
-	}
+    const char* typeName = data["_typeName"].GetString();
+    AssetReference ref = baseContainer->getReference();
 
-	JsonArchive archive(ArchiveMode::Input);
-	if (archive.loadFile(sourcePath))
-	{
-		derived->serialize(archive);
-	}
+    auto derived = DataContainerFactory::create(typeName, ref);
+    if (!derived)
+    {
+        return nullptr;
+    }
 
-	return derived.release();
-}
-
-std::shared_ptr<Asset> ModuleAssets::resolveAfterBinaryLoad(std::shared_ptr<Asset> asset) const
-{
-	auto dc = std::dynamic_pointer_cast<DataContainer>(asset);
-	if (!dc) return asset;
-	if (!dc->getExposedFields().fields.empty()) return asset;
-
-	const AssetIndexEntry* entry = m_index.findEntry(dc->getUID());
-	if (!entry || entry->sourcePath.empty()) return asset;
-
-	DataContainer* resolved = resolveDataContainerType(dc.get(), entry->sourcePath);
-	return resolved ? std::shared_ptr<Asset>(resolved) : asset;
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(data);
+    derived->serialize(archive);
+    return derived.release();
 }

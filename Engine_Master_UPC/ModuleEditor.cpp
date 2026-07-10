@@ -362,6 +362,7 @@ void ModuleEditor::mainMenuBar()
     if (ImGui::BeginMenu("Window"))
     {
         // ---- New Window submenu – spawn additional instances ----
+        // ---- New Window submenu � spawn additional instances ----
         if (!m_windowFactories.empty())
         {
             ImGui::Separator();
@@ -735,7 +736,16 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     Scene* mainScene = app->getModuleScene()->getScene();
     m_prefabSession.m_isolatedScene = mainScene;
 
-    GameObject* loaded = app->getModuleAssets()->getPrefabManager()->spawnPrefab(sourcePath, mainScene);
+    const UID uid = app->getModuleAssets()->getIndex().findUID(sourcePath);
+    AssetReference* ref = app->getModuleAssets()->findReference(uid);
+    if (!ref)
+    {
+        m_prefabSession.clear();
+        return;
+    }
+
+    GameObject* loaded = app->getModuleAssets()->getPrefabManager()->spawnPrefab(*ref, mainScene);
+    delete ref;
 
     if (!loaded)
     {

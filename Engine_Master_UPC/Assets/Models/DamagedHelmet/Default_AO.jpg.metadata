@@ -1,0 +1,13 @@
+{
+    "uid": 5149136822929750954,
+    "contentHash": "609356e5861cd5eee9a3af2b98bc8c30",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\DamagedHelmet\\Default_AO.jpg",
+    "sourceFileSize": 361678,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -67,7 +67,17 @@ void WindowDataContainerManager::ensureLoaded(int i)
     Entry& e = m_entries[i];
     if (e.asset)
         return;
-    e.asset = app->getModuleAssets()->loadAtPath<DataContainer>(e.path);
+
+    ModuleAssets* ma = app->getModuleAssets();
+    const UID uid = ma->getIndex().findUID(e.path);
+    if (!isValidUID(uid))
+        return;
+
+    AssetReference* ref = ma->findReference(uid);
+    if (!ref)
+        return;
+
+    e.asset = ma->load<DataContainer>(*ref);
 }
 
 void WindowDataContainerManager::drawList()

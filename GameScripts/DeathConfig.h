@@ -13,7 +13,6 @@ public:
 	{
 	}
 
-public:
 	// Combo
 	float m_comboWindow = 1.0f;
 	float m_comboWindowR2 = 2.0f;
@@ -44,6 +43,7 @@ public:
 	float m_tauntDuration = 3.0f;
 	float m_tauntRange = 2.5f;
 	float m_tauntHalfAngleDegrees = 35.0f;
+	float m_tauntLockDuration = 0.4f;
 	float m_tauntCooldown = 0.0f;
 
 	// Dash
@@ -87,6 +87,7 @@ public:
 			SERIALIZED_FLOAT(m_tauntDuration, "Taunt Duration", 1.0f, 10.0f, 0.05f),
 			SERIALIZED_FLOAT(m_tauntRange, "Cone Range", 1.0f, 10.0f, 0.1f),
 			SERIALIZED_FLOAT(m_tauntHalfAngleDegrees, "Cone Angle", 1.0f, 180.0f, 1.0f),
+			SERIALIZED_FLOAT(m_tauntLockDuration, "Taunt Lock Duration", 0.05f, 2.0f, 0.05f),
 			SERIALIZED_FLOAT(m_tauntCooldown, "Taunt Cooldown", 0.0f, 10.0f, 0.01f)
 		),
 
@@ -99,4 +100,3 @@ public:
 		)
 	)
 };
-

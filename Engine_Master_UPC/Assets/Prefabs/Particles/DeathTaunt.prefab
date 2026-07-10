@@ -1,0 +1,98 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Particles\\DeathTaunt.prefab",
+  "Name": "DeathTaunt",
+  "Version": 2,
+  "GameObject": {
+    "Name": "DeathTaunt",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "Transform": {
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "rotation": [
+        0.7071068286895752,
+        0.0,
+        0.0,
+        0.7071067690849304
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 17,
+        "Data": {
+          "UID": 13943439239437098536,
+          "ComponentType": 17,
+          "Active": true,
+          "TextureAssetId": {
+            "uid": 17427793376948693573,
+            "libId": "6eaf6e601878bab14a649a5599054651"
+          },
+          "ParticleEmitters": [
+            {
+              "Modules": [
+                {
+                  "ModuleType": 2,
+                  "Looping": false,
+                  "Duration": 1.0,
+                  "RateOverTime": 4.0,
+                  "RateOverDistance": 0.0
+                },
+                {
+                  "ModuleType": 4,
+                  "StartLifeTime": 1.0
+                },
+                {
+                  "ModuleType": 1,
+                  "ShapeType": 1,
+                  "Radius": 0.5,
+                  "RadiusThickness": 0.0,
+                  "RadiusScale": 1.0
+                },
+                {
+                  "ModuleType": 3,
+                  "StartColor": [
+                    0.41153234243392944,
+                    0.7185073494911194,
+                    0.9961389899253844,
+                    1.0
+                  ],
+                  "EndColor": [
+                    0.06288350373506546,
+                    0.20125271379947665,
+                    0.5529412031173706,
+                    0.0
+                  ]
+                },
+                {
+                  "ModuleType": 5,
+                  "InitialVelocity": 5.0
+                },
+                {
+                  "ModuleType": 6,
+                  "StartScale": [
+                    2.0,
+                    2.0
+                  ],
+                  "EndScale": [
+                    1.0,
+                    1.0
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "Children": []
+  }
+}

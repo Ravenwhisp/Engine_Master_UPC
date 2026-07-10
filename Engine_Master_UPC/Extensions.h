@@ -6,6 +6,7 @@ constexpr const char* MATERIAL_EXTENSION = ".material";
 constexpr const char* ANIMATION_EXTENSION = ".anim";
 constexpr const char* ANIMATION_STATE_MACHINE_EXTENSION = ".statemachine";
 constexpr const char* SCENE_EXTENSION = ".scene";
+constexpr const char* NAVMESH_EXTENSION = ".navmesh";
 constexpr const char* DATA_CONTAINER_EXTENSION = ".datacontainer";
 
 constexpr const char* PNG_EXTENSION = ".png";
@@ -17,3 +18,7 @@ constexpr const char* DDS_EXTENSION = ".dds";
 constexpr const char* HDR_EXTENSION = ".hdr";
 
 constexpr const char* GLTF_EXTENSION = ".gltf";
+
+constexpr const char* CPP_EXTENSION = ".cpp";
+constexpr const char* H_EXTENSION = ".h";
+constexpr const char* BNK_EXTENSION = ".bnk";
