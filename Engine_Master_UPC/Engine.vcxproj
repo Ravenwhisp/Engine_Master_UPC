@@ -154,10 +154,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <AdditionalIncludeDirectories>3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;.</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ProjectDir)3rdParty\imgui-node-editor-master;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)3rdParty\imgui-node-editor-master;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -231,7 +232,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;
 $(SolutionDir)3rdParty\RecastNavigation\Recast\Include;
 $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
 %(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;%(AdditionalIncludeDirectories);3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;%(AdditionalIncludeDirectories);3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -258,7 +259,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PreprocessorDefinitions>GAME_RELEASE;AK_OPTIMIZED;_WINDOWS;ENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -276,6 +277,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h" />
     <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h" />
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h" />
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h" />
@@ -447,6 +449,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="TriggerDebugDrawMode.h" />
     <ClInclude Include="TriggerShape.h" />
     <ClInclude Include="UIFill.h" />
+    <ClInclude Include="UILayoutUtils.h" />
     <ClInclude Include="UINavigation.h" />
     <ClInclude Include="UISheet.h" />
     <ClInclude Include="UISlider.h" />
@@ -851,6 +854,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="SceneSnapshot.cpp" />
     <ClCompile Include="StaticTexturesPass.cpp" />
     <ClCompile Include="TriggerComponent.cpp" />
+    <ClCompile Include="UILayoutUtils.cpp" />
     <ClCompile Include="UINavigation.cpp" />
     <ClCompile Include="UISheet.cpp" />
     <ClCompile Include="UISlider.cpp" />

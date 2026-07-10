@@ -15,6 +15,7 @@
     X(SCENE)                   \
     X(NAVMESH)                 \
     X(SOUND_BANK)              \
+    X(SCRIPT)                  \
     X(DATA_CONTAINER) 			\
     X(UNKNOWN)
 

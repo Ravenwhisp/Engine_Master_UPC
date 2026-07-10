@@ -403,7 +403,7 @@ void GameObject::drawUI()
                 {
                     s_pendingLayer = m_layer;
                     s_pendingLayerTarget = this;
-                    m_layer = previousLayer; // revert until user decides
+                    m_layer = previousLayer;
                     ImGui::OpenPopup("##LayerChildrenPopup");
                 }
 
@@ -475,7 +475,7 @@ void GameObject::drawUI()
 
         ImGui::PushID(static_cast<int>(component->getID()));
 
-        std::string header = std::string(ComponentTypeToString(component->getType())); // + " | UUID: " + std::to_string(component->getID());
+        std::string header = std::string(ComponentTypeToString(component->getType()));
 
         if (component->getType() == ComponentType::SCRIPT)
         {
@@ -525,7 +525,6 @@ void GameObject::drawUI()
             const float dropZoneHeight = 5.0f;
             const float fullWidth = headerMax.x - headerMin.x;
 
-            // TOP DROP ZONE
             ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMin.y));
             ImGui::InvisibleButton("##drop_above", ImVec2(fullWidth, dropZoneHeight));
 
@@ -546,7 +545,6 @@ void GameObject::drawUI()
                 ImGui::EndDragDropTarget();
             }
 
-            // BOTTOM DROP ZONE
             ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMax.y - dropZoneHeight));
             ImGui::InvisibleButton("##drop_below", ImVec2(fullWidth, dropZoneHeight));
 
@@ -612,6 +610,26 @@ void GameObject::drawUI()
     if (pendingMoveFrom != -1 && pendingMoveTo != -1)
     {
         moveComponent(static_cast<size_t>(pendingMoveFrom), static_cast<size_t>(pendingMoveTo));
+    }
+
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    ImVec2 windowSize = ImGui::GetWindowSize();
+    ImRect bb(windowPos, ImVec2(windowPos.x + windowSize.x, windowPos.y + windowSize.y));
+
+    if (ImGui::BeginDragDropTargetCustom(bb, ImGui::GetID("##InspectorDropZone")))
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCRIPT_ASSET"))
+        {
+            const std::string scriptName(static_cast<const char*>(payload->Data));
+
+            Component* component = AddComponentWithUID(ComponentType::SCRIPT, GenerateUID());
+            if (ScriptComponent* scriptComponent = static_cast<ScriptComponent*>(component))
+            {
+                scriptComponent->setScriptName(scriptName);
+                scriptComponent->createScriptInstance();
+            }
+        }
+        ImGui::EndDragDropTarget();
     }
 
     ImGui::Separator();

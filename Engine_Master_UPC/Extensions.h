@@ -18,4 +18,7 @@ constexpr const char* DDS_EXTENSION = ".dds";
 constexpr const char* HDR_EXTENSION = ".hdr";
 
 constexpr const char* GLTF_EXTENSION = ".gltf";
+
+constexpr const char* CPP_EXTENSION = ".cpp";
+constexpr const char* H_EXTENSION = ".h";
 constexpr const char* BNK_EXTENSION = ".bnk";

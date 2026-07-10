@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <ClCompile Include="Quadtree.cpp">
@@ -26,7 +26,7 @@
     <ClCompile Include="UID.cpp">
       <Filter>Persistence\UID</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_List.cpp">
+    <ClCompile Include="ScriptFieldHandler_List.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystemComponent.cpp">
@@ -128,7 +128,7 @@
     <ClCompile Include="PdbPatcher.cpp">
       <Filter>Core\Scripting\HotReloading\Pdb</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_GroupLabel.cpp">
+    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClCompile>
     <ClCompile Include="EmitterRender.cpp">
@@ -283,8 +283,6 @@
     </ClCompile>
     <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
       <Filter>Editor\imgui\NodeEditor</Filter>
-    <ClCompile Include="ImporterGltf.cpp">
-      <Filter>Persistence\Importers\External\Gltf</Filter>
     </ClCompile>
     <ClCompile Include="WindowSceneEditor.cpp">
       <Filter>Editor\Views</Filter>
@@ -295,40 +293,34 @@
     <ClCompile Include="ScriptFactory.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_Bool.cpp">
+    <ClCompile Include="ScriptFieldHandler_Bool.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_ComponentRef.cpp">
+    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_ComponentRefList.cpp">
+    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_EnumInt.cpp">
+    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_Float.cpp">
+    <ClCompile Include="ScriptFieldHandler_Float.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_Int.cpp">
+    <ClCompile Include="ScriptFieldHandler_Int.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_String.cpp">
+    <ClCompile Include="ScriptFieldHandler_String.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FieldHandler_Vec3.cpp">
-      <Filter>Core\Scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="FieldHandler_AssetRef.cpp">
+    <ClCompile Include="ScriptFieldHandler_Vec3.cpp">
       <Filter>Core\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="Asset.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
     <ClCompile Include="AssetDialogFilter.cpp">
-      <Filter>Persistence\Assets</Filter>
-    </ClCompile>
-    <ClCompile Include="AssetReference.cpp">
       <Filter>Persistence\Assets</Filter>
     </ClCompile>
     <ClCompile Include="AssetScanner.cpp">
@@ -385,8 +377,6 @@
     <ClCompile Include="GeometryPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
-    <ClCompile Include="AnimationComponent.cpp">
-      <Filter>Animations</Filter>
     <ClCompile Include="ContentRegistry.cpp">
       <Filter>Persistence\ToChange</Filter>
     </ClCompile>
@@ -407,8 +397,6 @@
     </ClCompile>
     <ClCompile Include="ImGuiPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
-    <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
-      <Filter>Core\Commands</Filter>
     </ClCompile>
     <ClCompile Include="Keyboard.cpp">
       <Filter>Inputs\Keyboard</Filter>
@@ -484,23 +472,24 @@
     </ClCompile>
     <ClCompile Include="WindowInspector.cpp">
       <Filter>Editor\Views</Filter>
+    </ClCompile>
     <ClCompile Include="ModuleResources.cpp">
       <Filter>D3D12\Resources</Filter>
     </ClCompile>
     <ClCompile Include="ModuleUI.cpp">
       <Filter>Persistence\Importers\External\UI</Filter>
+    </ClCompile>
     <ClCompile Include="ModuleEventSystem.cpp">
       <Filter>Persistence\Importers\External\UI\Events</Filter>
     </ClCompile>
     <ClCompile Include="ModuleNavigation.cpp">
       <Filter>NavMesh</Filter>
+    </ClCompile>
     <ClCompile Include="ModuleScene.cpp">
       <Filter>GameEntity</Filter>
     </ClCompile>
     <ClCompile Include="ModuleGameView.cpp">
       <Filter>GameEntity</Filter>
-    <ClCompile Include="FieldUtils.cpp">
-      <Filter>Core\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="ModuleD3D12.cpp">
       <Filter>D3D12</Filter>
@@ -529,8 +518,6 @@
     <ClCompile Include="UIImagePass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleSystemComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
     <ClCompile Include="PrefabUI.cpp">
       <Filter>Prefabs</Filter>
     </ClCompile>
@@ -578,9 +565,6 @@
     </ClCompile>
     <ClCompile Include="ModuleCamera.cpp">
       <Filter>D3D12\Rendering</Filter>
-    <ClCompile Include="PrefabUI.cpp">
-      <Filter>Prefabs</Filter>
-      <Filter>Prefabs</Filter>
     </ClCompile>
     <ClCompile Include="RenderSurface.cpp">
       <Filter>D3D12\Wrappers</Filter>
@@ -629,22 +613,28 @@
     </ClCompile>
     <ClCompile Include="ImportSettings.cpp">
       <Filter>Persistence\Importers</Filter>
+    </ClCompile>
     <ClCompile Include="MeshRenderer.cpp">
       <Filter>GameEntity\Components</Filter>
-    <ClCompile Include="TextureImportSettings.cpp" />
-    <ClCompile Include="ImportSettings.cpp" />
-    <ClCompile Include="DataContainerExporter.cpp" />
-    <ClCompile Include="CommandCreateDataContainer.cpp" />
-    <ClCompile Include="DataContainer.cpp" />
-    <ClCompile Include="JsonArchive.cpp" />
-    <ClCompile Include="WindowDataContainerManager.cpp" />
+    </ClCompile>
     <ClCompile Include="NavMeshGeometryExtractor.cpp">
       <Filter>NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="UINavigation.cpp">
       <Filter>Persistence\Importers\External\UI\Events</Filter>
     </ClCompile>
+    <ClCompile Include="ForwardPrepass.cpp" />
+    <ClCompile Include="PlayerPass.cpp" />
+    <ClCompile Include="PlayerRenderBufferComponent.cpp" />
+    <ClCompile Include="UILayoutUtils.cpp">
+      <Filter>Persistence\Importers\External\UI</Filter>
     </ClCompile>
+    <ClCompile Include="ImporterNavMesh.cpp" />
+    <ClCompile Include="ImporterSoundBank.cpp" />
+    <ClCompile Include="NavMeshAsset.cpp" />
+    <ClCompile Include="NavMeshBuildSettings.cpp" />
+    <ClCompile Include="SoundBankAsset.cpp" />
+    <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
@@ -860,16 +850,22 @@
     <ClInclude Include="ScriptAPI.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentRef.h">
+    <ClInclude Include="ScriptAutoRegister.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="FieldHandler.h">
+    <ClInclude Include="ScriptComponentRef.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptFieldHandler.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
-    <ClInclude Include="FieldHandlerRegistry.h">
+    <ClInclude Include="ScriptFieldHandlerRegistry.h">
       <Filter>Core\Scripting\FieldTypeHandler</Filter>
     </ClInclude>
-    <ClInclude Include="FieldInfo.h">
+    <ClInclude Include="ScriptFieldInfo.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptCreator.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="SceneDataCB.h">
@@ -881,7 +877,7 @@
     <ClInclude Include="SceneReferenceResolver.h">
       <Filter>GameEntity\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="FieldMacros.h">
+    <ClInclude Include="ScriptFieldMacros.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="ScriptMethodInfo.h">
@@ -1142,6 +1138,9 @@
     <ClInclude Include="Script.h">
       <Filter>Core\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptFactory.h">
+      <Filter>Core\Scripting</Filter>
+    </ClInclude>
     <ClInclude Include="ComponentFactory.h">
       <Filter>GameEntity\Components</Filter>
     </ClInclude>
@@ -1168,47 +1167,27 @@
     </ClInclude>
     <ClInclude Include="KeyCode.h">
       <Filter>Inputs\Keyboard</Filter>
-    <ClInclude Include="DataContainer.h">
-      <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="DataContainerAPI.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="DataContainerExporter.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptFactory.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="FieldInfo.h">
-      <Filter>Core\Scripting</Filter>
     <ClInclude Include="PlayerBinding.h">
       <Filter>Inputs</Filter>
-      <Filter>Core\Scripting</Filter>
-    <ClInclude Include="IFieldContainer.h">
-      <Filter>Core\Scripting</Filter>
+    </ClInclude>
     <ClInclude Include="MD5Fwd.h">
       <Filter>Maths</Filter>
-      <Filter>Core\Scripting</Filter>
-    <ClInclude Include="ComponentRef.h">
-      <Filter>Core\Scripting</Filter>
+    </ClInclude>
     <ClInclude Include="CanvasRenderMode.h">
       <Filter>Persistence\Importers\External\UI</Filter>
-      <Filter>Core\Scripting</Filter>
+    </ClInclude>
     <ClInclude Include="ParticleSystemComponent.h">
       <Filter>GameEntity\Components</Filter>
-      <Filter>Core\Scripting</Filter>
     </ClInclude>
     <ClInclude Include="ParticleCommands.h">
       <Filter>ParticleSystem</Filter>
-    <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
-      <Filter>Editor\imgui\NodeEditor</Filter>
+    </ClInclude>
     <ClInclude Include="ParticlesPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="ParticleEmitter.h">
       <Filter>ParticleSystem</Filter>
-      <Filter>Editor\imgui\NodeEditor</Filter>
     </ClInclude>
     <ClInclude Include="ModuleParticleSystem.h">
       <Filter>ParticleSystem</Filter>
@@ -1224,18 +1203,12 @@
     </ClInclude>
     <ClInclude Include="ParticleModule.h">
       <Filter>ParticleSystem</Filter>
-    <ClInclude Include="DeviceType.h" />
-    <ClInclude Include="ICommand.h" />
-    <ClInclude Include="KeyCode.h" />
-    <ClInclude Include="PlayerBinding.h" />
-    <ClInclude Include="AnimationComponent.h">
-      <Filter>Animations</Filter>
+    </ClInclude>
     <ClInclude Include="EmitterColor.h">
       <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
     <ClInclude Include="EmitterVelocity.h">
       <Filter>ParticleSystem\Properties</Filter>
-      <Filter>Animations</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>GameEntity\Components</Filter>
@@ -1254,8 +1227,7 @@
     </ClInclude>
     <ClInclude Include="PrefabEditSession.h">
       <Filter>Prefabs</Filter>
-    <ClInclude Include="CommandAddChildToPrefabRoot.h">
-      <Filter>Core\Commands</Filter>
+    </ClInclude>
     <ClInclude Include="PrefabUI.h">
       <Filter>Prefabs</Filter>
     </ClInclude>
@@ -1264,21 +1236,15 @@
     </ClInclude>
     <ClInclude Include="WwiseEvent.h">
       <Filter>MusicSystem\Wwise</Filter>
-      <Filter>Core\Commands</Filter>
     </ClInclude>
     <ClInclude Include="SoundReference.h">
       <Filter>MusicSystem</Filter>
     </ClInclude>
     <ClInclude Include="ModuleMusic.h">
       <Filter>MusicSystem</Filter>
-    <ClInclude Include="CommandCreateDataContainer.h">
-      <Filter>Core\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="CommandCutItem.h">
-      <Filter>Core\Commands</Filter>
     <ClInclude Include="WwiseManager.h">
       <Filter>MusicSystem\Wwise</Filter>
-      <Filter>Core\Commands</Filter>
     </ClInclude>
     <ClInclude Include="WwiseBank.h">
       <Filter>MusicSystem\Wwise</Filter>
@@ -1333,14 +1299,9 @@
     </ClInclude>
     <ClInclude Include="SSAOGeometryPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
-    <ClInclude Include="WindowDataContainerManager.h">
-      <Filter>Editor\Views</Filter>
     </ClInclude>
-    <ClInclude Include="OptickProfiler.h">
-      <Filter>Editor\Views\Debugging</Filter>
     <ClInclude Include="SSAOPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
-      <Filter>Editor\Views\Debugging</Filter>
     </ClInclude>
     <ClInclude Include="SSAOSettings.h">
       <Filter>D3D12\Rendering\Pass</Filter>
@@ -1359,27 +1320,13 @@
     </ClInclude>
     <ClInclude Include="UISheet.h">
       <Filter>Persistence\Importers\External\UI</Filter>
-    <ClInclude Include="CanvasRenderMode.h" />
-    <ClInclude Include="FieldMacros.h">
-      <Filter>Core\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="FieldTypeTraits.h">
-      <Filter>Core\Scripting</Filter>
-    </ClInclude>
-    <ClInclude Include="FieldUtils.h">
-      <Filter>Core\Scripting</Filter>
     <ClInclude Include="TextureImportSettings.h">
       <Filter>Persistence\Importers\External</Filter>
-      <Filter>Core\Scripting</Filter>
-    <ClInclude Include="GenericTypeFactory.h">
-      <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="TriggerComponent.h">
-      <Filter>GameEntity\Components</Filter>
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Application.h">
       <Filter>Core\Application</Filter>
-      <Filter>GameEntity\Components</Filter>
     </ClInclude>
     <ClInclude Include="CommandCreateGameObject.h">
       <Filter>Core\Commands</Filter>
@@ -1428,31 +1375,9 @@
     </ClInclude>
     <ClInclude Include="TrailComponent.h">
       <Filter>GameEntity\Components</Filter>
-    <ClInclude Include="EmitterArea.h">
-      <Filter>ParticleSystem\Properties</Filter>
     </ClInclude>
-    <ClInclude Include="3rdParty\ImguiColorGradient\imgui_color_gradient.h" />
-    <ClInclude Include="3rdParty\ImGuiBezier\imgui_bezier.h" />
-    <ClInclude Include="EmitterSpawn.h">
-      <Filter>ParticleSystem\Properties</Filter>
-    </ClInclude>
-    <ClInclude Include="FieldHandler.h">
-      <Filter>Core\Scripting\FieldTypeHandler</Filter>
-    </ClInclude>
-    <ClInclude Include="FieldHandlerRegistry.h">
-      <Filter>Core\Scripting\FieldTypeHandler</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleHaptics.h">
-      <Filter>Haptics</Filter>
-    </ClInclude>
-    <ClInclude Include="HapticEffectDefinition.h">
-      <Filter>Haptics</Filter>
-    </ClInclude>
-    <ClInclude Include="HapticEffectLibrary.h">
-      <Filter>Haptics</Filter>
     <ClInclude Include="GamePad.h">
       <Filter>Inputs\GamePad</Filter>
-      <Filter>Haptics</Filter>
     </ClInclude>
     <ClInclude Include="GeometryPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
@@ -1465,14 +1390,12 @@
     </ClInclude>
     <ClInclude Include="LightingPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
-    <ClInclude Include="AssetReference.h">
-      <Filter>Persistence\Assets</Filter>
+    </ClInclude>
     <ClInclude Include="3rdParty\ImGuizmo\ImGuizmo.h">
       <Filter>Editor\imgui</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\imgui.h">
       <Filter>Editor\imgui</Filter>
-      <Filter>Persistence\Assets</Filter>
     </ClInclude>
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h">
       <Filter>Editor\imgui</Filter>
@@ -1561,6 +1484,20 @@
     <ClInclude Include="PlatformHelpers.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="ForwardPrepass.h" />
+    <ClInclude Include="PlayerPass.h" />
+    <ClInclude Include="PlayerRenderBufferComponent.h" />
+    <ClInclude Include="UILayoutUtils.h">
+      <Filter>Persistence\Importers\External\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
+      <Filter>Editor\Fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetRef.h" />
+    <ClInclude Include="ImporterSoundBank.h" />
+    <ClInclude Include="SoundBankAsset.h" />
+    <ClInclude Include="ImporterNavMesh.h" />
+    <ClInclude Include="NavMeshAsset.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1650,6 +1587,9 @@
     <FxCompile Include="TrailVertexShader.hlsl">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="ForwardPrepassVertexShader.hlsl" />
+    <FxCompile Include="PlayerPixelShader.hlsl" />
+    <FxCompile Include="PlayerVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeSpriteFont.exe" />
@@ -1680,6 +1620,8 @@
     <None Include="PBRGeneral.hlsli">
       <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </None>
+    <None Include="ForwardCommon.hlsli" />
+    <None Include="General.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">
@@ -1907,6 +1849,9 @@
     </Filter>
     <Filter Include="D3D12\Rendering\RenderData">
       <UniqueIdentifier>{A859F71B-E36E-53D9-8C4D-D592C1F9C7D4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Fonts">
+      <UniqueIdentifier>{e6bd4f60-7273-4dbe-b942-af53a62134c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
