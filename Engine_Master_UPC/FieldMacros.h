@@ -38,10 +38,21 @@
         return FieldList(ownFields, FIELD_COUNT(ownFields));                  \
     }
 
+#define IMPLEMENT_FIELDS_INLINE_INHERITED(TypeName, BaseType, ...)            \
+    FieldList getExposedFields() const override                               \
+    {                                                                         \
+        using ThisType = TypeName;                                            \
+        FieldList fields = BaseType::getExposedFields();                      \
+        static const FieldInfo ownFields[] = { __VA_ARGS__ };                \
+        fields.append(ownFields, FIELD_COUNT(ownFields));                     \
+        return fields;                                                        \
+    }
+
 // Backward compatibility aliases
 #define IMPLEMENT_SCRIPT_FIELDS IMPLEMENT_FIELDS
 #define IMPLEMENT_SCRIPT_FIELDS_INHERITED IMPLEMENT_FIELDS_INHERITED
 #define IMPLEMENT_DATACONTAINER_FIELDS IMPLEMENT_FIELDS_INLINE
+#define IMPLEMENT_DATACONTAINER_FIELDS_INHERITED IMPLEMENT_FIELDS_INLINE_INHERITED
 #define SCRIPT_FIELD_COUNT FIELD_COUNT
 
 // Field helper macros

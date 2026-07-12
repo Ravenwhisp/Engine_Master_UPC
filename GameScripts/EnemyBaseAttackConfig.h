@@ -1,15 +1,15 @@
 #pragma once
 
-#include "DataContainerAPI.h"
+#include "EnemyBaseDataConfig.h"
 
-class EnemyBaseAttackConfig : public DataContainer
+class EnemyBaseAttackConfig : public EnemyBaseDataConfig
 {
     DECLARE_DATACONTAINER(EnemyBaseAttackConfig)
 
 public:
     EnemyBaseAttackConfig() = default;
     explicit EnemyBaseAttackConfig(AssetReference& id)
-        : DataContainer(id)
+        : EnemyBaseDataConfig(id)
     {
     }
 
@@ -19,7 +19,7 @@ public:
     float m_basicAttackTotalDuration = 0.8f;
     float m_basicAttackCooldown = 1.2f;
 
-    IMPLEMENT_DATACONTAINER_FIELDS(EnemyBaseAttackConfig,
+    IMPLEMENT_DATACONTAINER_FIELDS_INHERITED(EnemyBaseAttackConfig, EnemyBaseDataConfig,
         FIELD_GROUP_COLLAPSE("Basic Attack",
             SERIALIZED_FLOAT(m_basicAttackRange, "Basic Attack Range", 0.0f, 100.0f, 0.1f),
             SERIALIZED_FLOAT(m_basicAttackDamage, "Basic Attack Damage", 0.0f, 9999.0f, 1.0f),

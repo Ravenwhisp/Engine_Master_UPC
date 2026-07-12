@@ -1,24 +1,17 @@
 #pragma once
 
-#include "DataContainerAPI.h"
+#include "EnemyBaseAttackConfig.h"
 
-class SkeletonAttackConfig : public DataContainer
+class SkeletonAttackConfig : public EnemyBaseAttackConfig
 {
     DECLARE_DATACONTAINER(SkeletonAttackConfig)
 
 public:
     SkeletonAttackConfig() = default;
     explicit SkeletonAttackConfig(AssetReference& id)
-        : DataContainer(id)
+        : EnemyBaseAttackConfig(id)
     {
     }
-
-    // Basic Attack (from EnemyBaseAttackConfig)
-    float m_basicAttackRange = 4.0f;
-    float m_basicAttackDamage = 10.0f;
-    float m_basicAttackWindupTime = 0.35f;
-    float m_basicAttackTotalDuration = 0.8f;
-    float m_basicAttackCooldown = 1.2f;
 
     // --- Scimitar Strike --- //
     float m_scimitarStartRange = 4.5f;
@@ -48,14 +41,7 @@ public:
     float m_reviveDuration = 4.0f;
     float m_downedHP = 40.0f;
 
-    IMPLEMENT_DATACONTAINER_FIELDS(SkeletonAttackConfig,
-        FIELD_GROUP_COLLAPSE("Basic Attack",
-            SERIALIZED_FLOAT(m_basicAttackRange, "Basic Attack Range", 0.0f, 100.0f, 0.1f),
-            SERIALIZED_FLOAT(m_basicAttackDamage, "Basic Attack Damage", 0.0f, 9999.0f, 1.0f),
-            SERIALIZED_FLOAT(m_basicAttackWindupTime, "Basic Attack Windup Time", 0.0f, 10.0f, 0.05f),
-            SERIALIZED_FLOAT(m_basicAttackTotalDuration, "Basic Attack Total Duration", 0.1f, 10.0f, 0.05f),
-            SERIALIZED_FLOAT(m_basicAttackCooldown, "Basic Attack Cooldown", 0.0f, 10.0f, 0.05f)
-        ),
+    IMPLEMENT_DATACONTAINER_FIELDS_INHERITED(SkeletonAttackConfig, EnemyBaseAttackConfig,
         FIELD_GROUP_COLLAPSE("Scimitar Strike",
             SERIALIZED_FLOAT(m_scimitarStartRange, "Scimitar Start Range", 0.0f, 20.0f, 0.1f),
             SERIALIZED_FLOAT(m_scimitarDashStopRange, "Scimitar Dash Stop Range", 0.0f, 20.0f, 0.1f),

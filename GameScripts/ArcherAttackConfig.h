@@ -1,24 +1,17 @@
 #pragma once
 
-#include "DataContainerAPI.h"
+#include "EnemyBaseAttackConfig.h"
 
-class ArcherAttackConfig : public DataContainer
+class ArcherAttackConfig : public EnemyBaseAttackConfig
 {
     DECLARE_DATACONTAINER(ArcherAttackConfig)
 
 public:
     ArcherAttackConfig() = default;
     explicit ArcherAttackConfig(AssetReference& id)
-        : DataContainer(id)
+        : EnemyBaseAttackConfig(id)
     {
     }
-
-    // Basic Attack (from EnemyBaseAttackConfig)
-    float m_basicAttackRange = 4.0f;
-    float m_basicAttackDamage = 10.0f;
-    float m_basicAttackWindupTime = 0.35f;
-    float m_basicAttackTotalDuration = 0.8f;
-    float m_basicAttackCooldown = 1.2f;
 
     // Arrow Barrage
     float m_arrowBarrageRange = 7.0f;
@@ -35,14 +28,7 @@ public:
     float m_somersaultDuration = 0.35f;
     float m_somersaultCooldown = 9.0f;
 
-    IMPLEMENT_DATACONTAINER_FIELDS(ArcherAttackConfig,
-        FIELD_GROUP_COLLAPSE("Basic Attack",
-            SERIALIZED_FLOAT(m_basicAttackRange, "Basic Attack Range", 0.0f, 100.0f, 0.1f),
-            SERIALIZED_FLOAT(m_basicAttackDamage, "Basic Attack Damage", 0.0f, 9999.0f, 1.0f),
-            SERIALIZED_FLOAT(m_basicAttackWindupTime, "Basic Attack Windup Time", 0.0f, 10.0f, 0.05f),
-            SERIALIZED_FLOAT(m_basicAttackTotalDuration, "Basic Attack Total Duration", 0.1f, 10.0f, 0.05f),
-            SERIALIZED_FLOAT(m_basicAttackCooldown, "Basic Attack Cooldown", 0.0f, 10.0f, 0.05f)
-        ),
+    IMPLEMENT_DATACONTAINER_FIELDS_INHERITED(ArcherAttackConfig, EnemyBaseAttackConfig,
         FIELD_GROUP_COLLAPSE("Arrow Barrage",
             SERIALIZED_FLOAT(m_arrowBarrageRange, "Arrow Barrage Range", 0.0f, 9999.0f, 1.0f),
             SERIALIZED_FLOAT(m_arrowBarrageDamage, "Arrow Barrage Damage", 0.0f, 9999.0f, 1.0f),
