@@ -4,6 +4,7 @@
 #include "ParticleCommands.h"
 
 class VertexBuffer;
+class RenderSurface;
 
 class ParticlesPass : public IRenderPass
 {
@@ -38,6 +39,8 @@ private:
     ComPtr<ID3D12PipelineState> m_pipelineState;
 
     std::unique_ptr<VertexBuffer> m_quadVertexBuffer;
+
+    RenderSurface* m_gbufferSurface = nullptr; // to check depth buffer
 
     // TEMPORARY
     

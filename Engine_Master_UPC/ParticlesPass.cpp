@@ -22,22 +22,32 @@
 ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[7] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange;
     CD3DX12_DESCRIPTOR_RANGE samplerRange;
+    CD3DX12_DESCRIPTOR_RANGE srvDepthRange;
+    CD3DX12_DESCRIPTOR_RANGE samplerDepthRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
+    srvDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);           // depth buffer
+    samplerDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 1, 0);   // stuff
+
+
     rootParameters[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
     rootParameters[1].InitAsConstants(sizeof(Vector2) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b1 <- emitter u, v scaling (for tile animation)
     
-    rootParameters[2].InitAsShaderResourceView(1); // t1 <- particle data (could we join it with the srvRange?)
+    rootParameters[2].InitAsShaderResourceView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // t1 <- particle data (could we join it with the srvRange?)
     rootParameters[3].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
     rootParameters[4].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL); // s0
 
+    rootParameters[5].InitAsDescriptorTable(1, &srvDepthRange, D3D12_SHADER_VISIBILITY_PIXEL); // t2 (again, I think that we should unify instead of this, or not use ranges if we can)
+    rootParameters[6].InitAsDescriptorTable(1, &samplerDepthRange, D3D12_SHADER_VISIBILITY_PIXEL); // s1
+
+
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init(5, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(7, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -83,6 +93,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     psoDesc.SampleDesc = { 1, 0 };
 
+    //HRESULT res = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
     /*
@@ -137,6 +148,8 @@ void ParticlesPass::prepare(const RenderContext& ctx)
     m_view = &ctx.view;
     m_projection = &ctx.projection;
     m_cameraPosition = &ctx.cameraPosition;
+
+    m_gbufferSurface = &ctx.renderSurface;
 }
 
 void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -151,6 +164,10 @@ void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     commandList->SetGraphicsRootDescriptorTable(4, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+    
+    // depth buffer parameters
+    commandList->SetGraphicsRootDescriptorTable(6, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::POINT_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable(5, m_gbufferSurface->getTexture(RenderSurface::SSAO_DEPTH)->getSRV().gpu); // TEMPORARY (we can not trust SSAO geometry pass, since we might reduce things for optimization)
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
