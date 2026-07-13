@@ -84,7 +84,7 @@ void MeshRenderer::drawUi()
         ImGui::Text("Mesh: None");
     }
 
-    static const char* RENDER_TYPES[(int)RenderMode::COUNT] = { "Default", "Player" };
+    static const char* RENDER_TYPES[(int)RenderMode::COUNT] = { "Default", "Player", "Enemy"};
     int typeIndex = static_cast<int>(m_renderMode);
     if (ImGui::Combo("Render Mode", &typeIndex, RENDER_TYPES, (int)RenderMode::COUNT))
     {

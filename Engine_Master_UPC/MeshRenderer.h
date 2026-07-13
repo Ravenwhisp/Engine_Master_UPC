@@ -25,7 +25,8 @@ enum class RenderMode : UINT
 {
 	DEFAULT = 0,
 	PLAYER = 1,
-	COUNT = 2
+	ENEMY = 2,
+	COUNT = 3
 };
 
 

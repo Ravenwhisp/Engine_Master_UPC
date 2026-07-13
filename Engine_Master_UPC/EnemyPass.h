@@ -11,11 +11,13 @@ class MeshRenderer;
 class RenderSurface;
 struct SceneLightingSettings;
 
-class PlayerPass : public IRenderPass
+
+
+class EnemyPass : public IRenderPass
 {
 public:
-	PlayerPass(ComPtr<ID3D12Device4> device);
-	
+	EnemyPass(ComPtr<ID3D12Device4> device);
+
 
 	virtual void prepare(const RenderContext& ctx) override;
 	void apply(ID3D12GraphicsCommandList4* commandList) override;
@@ -55,3 +57,4 @@ private:
 
 	RenderSurface* m_renderSurface = nullptr;
 };
+
