@@ -15,7 +15,7 @@ public:
 
 	void Start() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	void takeDamage(const HitContext& ctx) override;
 	
@@ -44,7 +44,7 @@ private:
 
 private:
 	SkeletonEnemyController* m_skeletonController = nullptr;
-	SkeletonAttackConfig* m_attackConfig = nullptr;
+    AssetRef<SkeletonAttackConfig> m_attackConfig;
 
 	Transform2D* m_healthBarBackgroundTransform2D = nullptr;
 	Vector2 m_originalHealthBarScale = Vector2(1.0f, 1.0f);

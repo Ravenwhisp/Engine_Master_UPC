@@ -5,7 +5,6 @@
 #include "ModuleScene.h"
 #include "Scene.h"
 #include "ScriptComponent.h"
-#include "ScriptFactory.h"
 #include "AnimationComponent.h"
 #include "GameObject.h"
 #include "Extensions.h"
@@ -434,7 +433,7 @@ std::vector<ScriptSourceInfo> ModuleScripting::getAvailableScripts() const
 
         const std::string scriptName = entry.path().stem().string();
 
-        if (!ScriptFactory::isScriptRegistered(scriptName))
+        if (!ScriptFactory::isRegistered(scriptName))
         {
             continue;
         }

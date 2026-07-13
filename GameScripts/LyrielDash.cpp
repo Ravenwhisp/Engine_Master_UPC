@@ -8,6 +8,10 @@
 #include "LyrielParticles.h"
 #include "PlayerMovement.h"
 
+IMPLEMENT_SCRIPT_FIELDS(LyrielDash,
+    SERIALIZED_ASSET_REF(m_config, "Lyriel Config", AssetType::DATA_CONTAINER)
+)
+
 LyrielDash::LyrielDash(GameObject* owner)
     : AbilityDash(owner)
 {
@@ -25,9 +29,9 @@ void LyrielDash::Start()
         return;
     }
 
-    m_config = GameObjectAPI::findScript<LyrielConfig>(getOwner());
+    const LyrielConfig* cfg = m_config.get();
 
-    m_currentCharges = m_config->m_dashMaxCharges;
+    m_currentCharges = cfg->m_dashMaxCharges;
 
     m_lyrielUI = GameObjectAPI::findScript<LyrielUI>(getOwner());
 
@@ -37,7 +41,7 @@ void LyrielDash::Start()
     }
     else
     {
-        m_lyrielUI->setupDashCharges(m_config->m_dashMaxCharges);
+        m_lyrielUI->setupDashCharges(cfg->m_dashMaxCharges);
     }
 
     m_sound = GameObjectAPI::findScript<LyrielSound>(getOwner());
@@ -53,11 +57,14 @@ void LyrielDash::Start()
 
 void LyrielDash::recoverCharge()
 {
-    if (m_currentCharges < m_config->m_dashMaxCharges)
+    const LyrielConfig* cfg = m_config.get();
+    if (!cfg) return;
+
+    if (m_currentCharges < cfg->m_dashMaxCharges)
     {
         ++m_currentCharges;
 
-        if (m_currentCharges == m_config->m_dashMaxCharges)
+        if (m_currentCharges == cfg->m_dashMaxCharges)
         {
             m_chargeRecoveryTimer = 0.0f;
         }
@@ -66,17 +73,20 @@ void LyrielDash::recoverCharge()
 
 float LyrielDash::getCooldown() const
 {
-    return m_config->m_dashCooldown;
+    const LyrielConfig* cfg = m_config.get();
+    return cfg ? cfg->m_dashCooldown : 0.0f;
 }
 
 float LyrielDash::getDashDuration() const
 {
-    return m_config->m_dashDuration;
+    const LyrielConfig* cfg = m_config.get();
+    return cfg ? cfg->m_dashDuration : 0.0f;
 }
 
 float LyrielDash::getDashDistance() const
 {
-    return m_config->m_dashDistance;
+    const LyrielConfig* cfg = m_config.get();
+    return cfg ? cfg->m_dashDistance : 0.0f;
 }
 
 bool LyrielDash::canDash() const
@@ -106,26 +116,29 @@ void LyrielDash::onDashStarted()
 
 void LyrielDash::onDashUpdate(float dt)
 {
-    if (m_currentCharges < m_config->m_dashMaxCharges)
+    const LyrielConfig* cfg = m_config.get();
+    if (!cfg) return;
+
+    if (m_currentCharges < cfg->m_dashMaxCharges)
     {
         m_chargeRecoveryTimer += dt;
 
-        while (m_chargeRecoveryTimer >= m_config->m_dashRechargeTime && m_currentCharges < m_config->m_dashMaxCharges)
+        while (m_chargeRecoveryTimer >= cfg->m_dashRechargeTime && m_currentCharges < cfg->m_dashMaxCharges)
         {
             ++m_currentCharges;
-            m_chargeRecoveryTimer -= m_config->m_dashRechargeTime;
+            m_chargeRecoveryTimer -= cfg->m_dashRechargeTime;
         }
 
-        if (m_currentCharges >= m_config->m_dashMaxCharges)
+        if (m_currentCharges >= cfg->m_dashMaxCharges)
         {
-            m_currentCharges = m_config->m_dashMaxCharges;
+            m_currentCharges = cfg->m_dashMaxCharges;
             m_chargeRecoveryTimer = 0.0f;
         }
     }
 
     if (m_lyrielUI)
     {
-        m_lyrielUI->updateDashChargesUI(m_currentCharges, m_config->m_dashMaxCharges, dt);
+        m_lyrielUI->updateDashChargesUI(m_currentCharges, cfg->m_dashMaxCharges, dt);
     }
 }
 

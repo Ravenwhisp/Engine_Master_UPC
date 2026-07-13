@@ -11,6 +11,10 @@
 #include "LyrielArrowProjectile.h"
 #include "LyrielConfig.h"
 
+IMPLEMENT_SCRIPT_FIELDS(LyrielBasicAttack,
+    SERIALIZED_ASSET_REF(m_config, "Lyriel Config", AssetType::DATA_CONTAINER)
+)
+
 LyrielBasicAttack::LyrielBasicAttack(GameObject* owner)
     : LyrielAbilityBase(owner)
 {
@@ -76,7 +80,11 @@ void LyrielBasicAttack::startAbility()
 
     beginAttackPresentation();
 
-    beginAttackWindow(m_config->m_basicAttackLockDuration);
+    const LyrielConfig* cfg = m_config.get();
+    if (cfg)
+    {
+        beginAttackWindow(cfg->m_basicAttackLockDuration);
+    }
     startCooldown();
 
     Debug::log("[LyrielBasicAttack] Shot arrow to target '%s'.", GameObjectAPI::getName(target));
@@ -126,8 +134,11 @@ bool LyrielBasicAttack::spawnArrowToTarget(GameObject* target)
         direction.Normalize();
     }
 
-    const float arrowLifetime = distance / m_config->m_basicArrowSpeed;
-    arrow->launch(startPosition, direction, m_config->m_basicArrowSpeed, arrowLifetime, target, m_config->m_basicAttackDamage);
+    const LyrielConfig* cfg = m_config.get();
+    if (!cfg) return false;
+
+    const float arrowLifetime = distance / cfg->m_basicArrowSpeed;
+    arrow->launch(startPosition, direction, cfg->m_basicArrowSpeed, arrowLifetime, target, cfg->m_basicAttackDamage);
 
     return true;
 }
@@ -170,7 +181,8 @@ void LyrielBasicAttack::faceTarget(GameObject* target)
 
 float LyrielBasicAttack::getCooldown() const
 {
-    return m_config->m_basicCooldown;
+    const LyrielConfig* cfg = m_config.get();
+    return cfg ? cfg->m_basicCooldown : 0.0f;
 }
 
 IMPLEMENT_SCRIPT(LyrielBasicAttack)

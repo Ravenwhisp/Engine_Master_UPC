@@ -12,7 +12,7 @@ public:
 
 	void Start() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	void setupArrowBarrageUI(float radius);
@@ -20,9 +20,9 @@ public:
 	void hideArrowBarrageUI();
 
 private:
-	ScriptComponentRef<Transform> m_arrowBarrageUICanvas;
-	ScriptComponentRef<Transform2D> m_arrowBarrageUIContainer;
-	ScriptComponentRef<Transform2D> m_arrowBarrageUIGlow;
+	ComponentRef<Transform> m_arrowBarrageUICanvas;
+	ComponentRef<Transform2D> m_arrowBarrageUIContainer;
+	ComponentRef<Transform2D> m_arrowBarrageUIGlow;
 
 	Transform* m_arrowBarrageUICanvasTransform = nullptr;
 	Transform2D* m_arrowBarrageUIContainerTransform2D = nullptr;

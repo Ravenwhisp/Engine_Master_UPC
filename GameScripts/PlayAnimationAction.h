@@ -15,7 +15,7 @@ public:
 
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 private:
     void executeAction(CameraTransitionController* controller, CameraTransitionStep* step) override;
@@ -24,7 +24,7 @@ private:
     AnimationComponent* findAnimationComponent() const;
 
 public:
-    ScriptComponentRef<Transform> m_animationTarget;
+    ComponentRef<Transform> m_animationTarget;
 
     std::string m_clipName = "";
     bool m_loop = false;

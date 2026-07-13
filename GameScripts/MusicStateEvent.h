@@ -23,7 +23,7 @@ public:
     void executeEvent(GameplayEventTrigger* trigger) override;
     void stopEvent(GameplayEventTrigger* trigger) override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     // Índices en kMusicStateNames (mismo dropdown que el MusicManager).
     int  m_stateOnEnter = 0;

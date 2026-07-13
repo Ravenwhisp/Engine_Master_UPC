@@ -18,7 +18,7 @@ public:
 
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 private:
     void executeAction(CameraTransitionController* controller, CameraTransitionStep* step) override;
@@ -40,8 +40,8 @@ private:
     void clearOverrideClip(float transitionTimeSeconds);
 
 public:
-    ScriptComponentRef<Transform> m_objectToMove;
-    ScriptComponentRef<Transform> m_pathRoot;
+    ComponentRef<Transform> m_objectToMove;
+    ComponentRef<Transform> m_pathRoot;
 
     float m_moveDuration = 3.0f;
     bool m_faceMovementDirection = true;

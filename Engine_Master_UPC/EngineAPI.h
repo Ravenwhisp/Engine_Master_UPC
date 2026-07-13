@@ -6,8 +6,8 @@
 #define ENGINE_API __declspec(dllimport)
 #endif
 
+#include "GenericTypeFactory.h"
 #include "AssetReference.h"
-#include "ScriptCreator.h"
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
@@ -17,6 +17,7 @@
 
 using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector2;
+using DirectX::SimpleMath::Matrix;
 
 class GameObject;
 class Transform;
@@ -42,7 +43,8 @@ enum class QuadtreeTarget : uint8_t
     Both = Dynamic | Static
 };
 
-ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
+ENGINE_API void registerScript(const char* scriptName, ScriptFactory::Creator creator);
+ENGINE_API void registerDataContainer(const char* name, const char* displayName, DataContainerFactory::Creator creator);
 
 namespace GameObjectAPI 
 {

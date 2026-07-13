@@ -38,6 +38,7 @@ private:
     ComPtr<ID3D12PipelineState> m_pipelineState;
 
     std::unique_ptr<VertexBuffer> m_quadVertexBuffer;
+    std::vector<shaderParticleData> m_particleDataBuffer;
 
     // TEMPORARY
     

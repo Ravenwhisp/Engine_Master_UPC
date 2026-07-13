@@ -62,7 +62,8 @@ void DeathChargedAttack::Update()
             }
         }
 
-        const bool maxReached = m_chargeTime >= m_config->m_chargedMaxChargeTime;
+        const DeathConfig* cfg = m_config.get();
+        const bool maxReached = (cfg != nullptr) && (m_chargeTime >= cfg->m_chargedMaxChargeTime);
         const bool released = Input::isRightTriggerReleased(getPlayerIndex());
 
         if (maxReached || released)
@@ -114,31 +115,34 @@ void DeathChargedAttack::startCharging()
 
 void DeathChargedAttack::fireAttack()
 {
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return;
+
     // Snap to the aim direction sampled during the hold, then deal damage in that direction
     snapFaceAimDirection();
 
     const int   comboStep   = m_deathCharacter->getComboStep();
-    const bool  isMaxCharge = (m_chargeTime >= m_config->m_chargedMaxChargeTime);
+    const bool  isMaxCharge = (m_chargeTime >= cfg->m_chargedMaxChargeTime);
 
     // Charged-mode shot: only valid as combo starter (step 0), needs min charge time
-    const bool isChargedShot = (m_chargeTime >= m_config->m_chargedMinChargeTime) && (comboStep == 0);
+    const bool isChargedShot = (m_chargeTime >= cfg->m_chargedMinChargeTime) && (comboStep == 0);
 
     float damage;
     if (isChargedShot)
     {
-        const float rawRatio    = m_chargeTime / m_config->m_chargedMaxChargeTime;
+        const float rawRatio    = m_chargeTime / cfg->m_chargedMaxChargeTime;
         const float chargeRatio = rawRatio > 1.0f ? 1.0f : rawRatio;
-        damage = m_config->m_chargedAttackDamage * (1.0f + chargeRatio);
+        damage = cfg->m_chargedAttackDamage * (1.0f + chargeRatio);
 
         if (isMaxCharge)
             Debug::log("[COMBO] R2 CARGA MAXIMA  step %d/3  dmg=%.1f", comboStep + 1, damage);
         else
             Debug::log("[COMBO] R2 CARGADO  step %d/3  ratio=%.0f%%  dmg=%.1f",
-                comboStep + 1, (m_chargeTime / m_config->m_chargedMaxChargeTime) * 100.0f, damage);
+                comboStep + 1, (m_chargeTime / cfg->m_chargedMaxChargeTime) * 100.0f, damage);
     }
     else
     {
-        damage = m_config->m_chargedAttackDamage;
+        damage = cfg->m_chargedAttackDamage;
         Debug::log("[COMBO] R2  step %d/3  dmg=%.1f", comboStep + 1, damage);
     }
 
@@ -158,8 +162,8 @@ void DeathChargedAttack::fireAttack()
         }
     }
 
-    const float range = isChargedShot ? m_config->m_chargedShotArcRange : m_config->m_chargedArcRange;
-    const float angle = isChargedShot ? m_config->m_chargedShotArcAngle : m_config->m_chargedArcAngle;
+    const float range = isChargedShot ? cfg->m_chargedShotArcRange : cfg->m_chargedArcRange;
+    const float angle = isChargedShot ? cfg->m_chargedShotArcAngle : cfg->m_chargedArcAngle;
 
     dealDamageInArc(damage, range, angle, isChargedShot, isMaxCharge);
     notifyAbilitySuccessfullyStarted();
@@ -177,7 +181,7 @@ void DeathChargedAttack::fireAttack()
     m_chargeTime = 0.0f;
     m_isCharging = false;
 
-    const float lockDuration = (comboStep >= 2) ? m_config->m_chargedFinalHitLockDuration : m_config->m_chargedAttackLockDuration;
+    const float lockDuration = (comboStep >= 2) ? cfg->m_chargedFinalHitLockDuration : cfg->m_chargedAttackLockDuration;
 
     // Trigger attack animation and start the post-fire movement lock window
     beginAttackPresentation();
@@ -372,7 +376,9 @@ void DeathChargedAttack::onAttackWindowFinished()
 
 float DeathChargedAttack::getCooldown() const
 {
-    return m_config->m_chargedCooldown;
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return 0.0f;
+    return cfg->m_chargedCooldown;
 }
 
 void DeathChargedAttack::drawGizmo()
@@ -384,8 +390,11 @@ void DeathChargedAttack::drawGizmo()
     if (t == nullptr)
         return;
 
+    const DeathConfig* cfg = m_config.get();
+    if (!cfg) return;
+
     const Vector3 pos   = TransformAPI::getGlobalPosition(t);
-    const float   range = m_config->m_chargedArcRange;
+    const float   range = cfg->m_chargedArcRange;
 
     // While charging with stick input, show arc in aim direction; otherwise use character forward
     Vector3 fwd;
@@ -398,7 +407,7 @@ void DeathChargedAttack::drawGizmo()
     {
         fwd = TransformAPI::getForward(t);
     }
-    const float   angle   = m_config->m_chargedArcAngle;
+    const float   angle   = cfg->m_chargedArcAngle;
     const Vector3 posFlat = { pos.x, pos.y, pos.z };
 
     constexpr float k_degToRad = 3.14159265f / 180.0f;
@@ -432,9 +441,9 @@ void DeathChargedAttack::drawGizmo()
     }
 
     // Charge fill: yellow overlay that grows with charge ratio
-    if (m_isCharging && m_config->m_chargedMaxChargeTime > 0.0f)
+    if (m_isCharging && cfg->m_chargedMaxChargeTime > 0.0f)
     {
-        const float ratio   = m_chargeTime / m_config->m_chargedMaxChargeTime;
+        const float ratio   = m_chargeTime / cfg->m_chargedMaxChargeTime;
         const float clamped = ratio > 1.0f ? 1.0f : ratio;
         const int   fillEnd = static_cast<int>(clamped * static_cast<float>(arcSegs));
 
@@ -454,8 +463,14 @@ void DeathChargedAttack::updateUI()
 
     if (m_deathUI)
     {
-        m_deathUI->updateChargedSlashUI(m_attackStateTimer, m_config->m_chargedAttackLockDuration);
+        const DeathConfig* cfg = m_config.get();
+        if (!cfg) return;
+        m_deathUI->updateChargedSlashUI(m_attackStateTimer, cfg->m_chargedAttackLockDuration);
     }
 }
+
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathChargedAttack, DeathAbilityBase,
+    SERIALIZED_ASSET_REF(m_config, "Death Config", AssetType::DATA_CONTAINER)
+)
 
 IMPLEMENT_SCRIPT(DeathChargedAttack)

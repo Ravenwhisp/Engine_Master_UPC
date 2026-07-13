@@ -1,5 +1,8 @@
 #pragma once
 #include <cstring>
+#include "SimpleMath.h"
+
+using DirectX::SimpleMath::Vector3;
 
 enum class NavAreaType
 {

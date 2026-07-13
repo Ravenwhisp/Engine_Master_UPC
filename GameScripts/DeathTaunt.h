@@ -13,6 +13,8 @@ class DeathTaunt : public DeathAbilityBase
 public:
     explicit DeathTaunt(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void Start()  override;
     void Update() override;
 

@@ -21,7 +21,7 @@ public:
 
     void Start() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     CameraStepMoveMode getMoveMode() const { return static_cast<CameraStepMoveMode>(m_moveMode); }
 

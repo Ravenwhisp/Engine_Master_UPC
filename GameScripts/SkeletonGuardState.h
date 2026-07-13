@@ -14,6 +14,7 @@ class SkeletonGuardState : public StateMachineScript
 
 public:
 	explicit SkeletonGuardState(GameObject* owner);
+	FieldList getExposedFields() const override;
 
 	void OnStateEnter() override;
 	void OnStateUpdate() override;
@@ -21,7 +22,7 @@ public:
 
 private:
 	SkeletonEnemyController* m_skeletonController = nullptr;
-	SkeletonAttackConfig* m_attackConfig = nullptr;
+    AssetRef<SkeletonAttackConfig> m_attackConfig;
 	SkeletonDamageable* m_damageable = nullptr;
 	AnimationComponent* m_animation = nullptr;
 

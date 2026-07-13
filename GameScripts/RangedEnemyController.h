@@ -12,6 +12,7 @@ class RangedEnemyController : public EnemyBaseController
 
 public:
     explicit RangedEnemyController(GameObject* owner);
+    FieldList getExposedFields() const override;
 
     void Start() override;
     void Update() override;
@@ -40,7 +41,7 @@ protected:
 
 private:
     EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    ArcherAttackConfig* m_attackConfig = nullptr;
+    AssetRef<ArcherAttackConfig> m_attackConfig;
 
     float m_somersaultCooldownTimer = 0.0f;
     float m_arrowBarrageCooldownTimer = 0.0f;

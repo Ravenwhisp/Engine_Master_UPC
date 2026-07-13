@@ -24,7 +24,7 @@
 #include "ModuleMusic.h"
 #include "ModuleScripting.h"
 
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 
 #include "Settings.h"
 #include "ThreadPool.h"
@@ -46,12 +46,13 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_moduleResources = new ModuleResources(m_moduleD3d12M->getDevice(), m_moduleD3d12M->getCommandQueue()));
 
     //Needed to create the LOGs
-    modules.push_back(m_moduleEditor = new ModuleEditor());
     modules.push_back(m_moduleHaptics = new ModuleHaptics());
 
     modules.push_back(m_moduleScripting = new ModuleScripting());
 
     modules.push_back(m_moduleAssets = new ModuleAssets());
+
+    modules.push_back(m_moduleEditor = new ModuleEditor());
     modules.push_back(m_eventSystemModule = new ModuleEventSystem());
 
     modules.push_back(m_moduleUI = new ModuleUI());

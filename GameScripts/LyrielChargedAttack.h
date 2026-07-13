@@ -12,6 +12,8 @@ class LyrielChargedAttack : public LyrielAbilityBase
 public:
     explicit LyrielChargedAttack(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void Start() override;
     void Update() override;
     void drawGizmo() override;

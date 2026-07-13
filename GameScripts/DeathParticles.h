@@ -11,8 +11,8 @@ public:
 
 	void Update() override;
 
-	ScriptComponentRef<Transform> m_dashTrail;
-	ScriptComponentRef<Transform> m_scytheTrail;
+	ComponentRef<Transform> m_dashTrail;
+	ComponentRef<Transform> m_scytheTrail;
 	PrefabRef m_tauntParticle;
 
 	GameObject* m_activeTauntParticle = nullptr;
@@ -21,7 +21,7 @@ public:
 	Transform* m_dashTrailController = nullptr;
 	Transform* m_scytheTrailController = nullptr;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	void SetDashActive();
 	void SetDashInactive();
@@ -34,6 +34,6 @@ public:
 
 private:
 
-	Transform* getTransform(ScriptComponentRef<Transform> controller);
+	Transform* getTransform(ComponentRef<Transform> controller);
 };
 

@@ -16,6 +16,8 @@ class PaladinChargeState : public StateMachineScript
 public:
 	explicit PaladinChargeState(GameObject* owner);
 
+	FieldList getExposedFields() const override;
+
 	void OnStateEnter() override;
 	void OnStateUpdate() override;
 	void OnStateExit() override;
@@ -28,7 +30,7 @@ private:
 
 private:
 	MeleeEnemyController* m_paladinController = nullptr;
-	PaladinAttackConfig* m_attackConfig = nullptr;
+    AssetRef<PaladinAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 	PaladinSound* m_paladinSound = nullptr;
 	PaladinVFX* m_paladinVFX = nullptr;

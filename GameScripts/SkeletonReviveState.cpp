@@ -12,10 +12,9 @@ SkeletonReviveState::SkeletonReviveState(GameObject* owner)
 
 void SkeletonReviveState::OnStateEnter()
 {
-	m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
-	m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SkeletonAttackConfig>(getOwner());
-	m_animation = AnimationAPI::getAnimationComponent(getOwner());
+    m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
+    m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
+    m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	if (!m_controller)
 	{
@@ -23,19 +22,13 @@ void SkeletonReviveState::OnStateEnter()
 		return;
 	}
 
-	if (!m_damageable)
-	{
-		Debug::error("[SkeletonReviveState] SkeletonDamageable not found.");
-		return;
-	}
+    if (!m_damageable)
+    {
+        Debug::error("[SkeletonReviveState] SkeletonDamageable not found.");
+        return;
+    }
 
-	if (!m_attackConfig)
-	{
-		Debug::error("[SkeletonReviveState] SkeletonAttackConfig not found.");
-		return;
-	}
-
-	if (!m_animation)
+    if (!m_animation)
 	{
 		Debug::error("[SkeletonReviveState] AnimationComponent not found.");
 		return;
@@ -54,7 +47,7 @@ void SkeletonReviveState::OnStateEnter()
 
 void SkeletonReviveState::OnStateUpdate()
 {
-	if (!m_controller || !m_damageable || !m_attackConfig || !m_animation)
+    if (!m_controller || !m_damageable || !m_animation)
 	{
 		return;
 	}
@@ -139,7 +132,13 @@ void SkeletonReviveState::updateReviveStart()
 
 void SkeletonReviveState::updateReviveIdle()
 {
-	if (m_phaseTimer >= m_attackConfig->m_reviveDuration)
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    if (m_phaseTimer >= cfg->m_reviveDuration)
 	{
 		changePhase(Phase::ReviveEnd);
 		return;
@@ -178,4 +177,6 @@ void SkeletonReviveState::goToChase()
 	AnimationAPI::sendTrigger(m_animation, "ToChase");
 }
 
-IMPLEMENT_SCRIPT(SkeletonReviveState)
+IMPLEMENT_SCRIPT_FIELDS(SkeletonReviveState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

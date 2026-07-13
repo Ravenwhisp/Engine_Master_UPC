@@ -24,8 +24,9 @@ ModuleDescriptors::~ModuleDescriptors()
         delete pair.second;
         pair.second = nullptr;
     }
-    delete m_stagingSRVHeap;
+	delete m_stagingSRVHeap;
     m_defferedDescriptors.clear();
+    m_defferedBlocks.clear();
 }
 
 bool ModuleDescriptors::init()
@@ -36,7 +37,7 @@ bool ModuleDescriptors::init()
 
 void ModuleDescriptors::preRender()
 {
-	UINT lastCompletedFrame = (UINT)app->getModuleD3D12()->getLastCompletedFrame();
+    UINT lastCompletedFrame = (UINT)app->getModuleD3D12()->getLastCompletedFrame();
     for (size_t i = 0; i < m_defferedDescriptors.size();) {
 
         if (lastCompletedFrame >= m_defferedDescriptors[i].frame)

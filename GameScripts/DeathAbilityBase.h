@@ -17,7 +17,7 @@ protected:
 
 protected:
     DeathCharacter* m_deathCharacter = nullptr;
-    DeathConfig* m_config = nullptr;
+    AssetRef<DeathConfig> m_config;
 
     bool m_movementLockedForCombo = false;
 };

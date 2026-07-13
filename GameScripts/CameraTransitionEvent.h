@@ -25,7 +25,7 @@ public:
     void executeEvent(GameplayEventTrigger* trigger) override;
     void stopEvent(GameplayEventTrigger* trigger) override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     const std::vector<Transform*>& getTargetPoints() const { return m_targetPoints; }
     Transform* getTargetPoint(int index) const;

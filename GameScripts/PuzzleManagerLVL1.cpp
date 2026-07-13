@@ -7,7 +7,7 @@ namespace
     constexpr const char* k_openDoor = "Play_Environment_Open_Door";
 
     // Plays the door-open SFX from the door's own GameObject (positional 3D).
-    void playDoorOpen(const ScriptComponentRef<Transform>& doorRef)
+    void playDoorOpen(const ComponentRef<Transform>& doorRef)
     {
         Transform* doorTransform = doorRef.getReferencedComponent();
         if (doorTransform != nullptr)

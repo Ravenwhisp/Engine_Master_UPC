@@ -17,7 +17,6 @@ EnemyAttackState::EnemyAttackState(GameObject* owner)
 void EnemyAttackState::OnStateEnter()
 {
     m_controller = GameObjectAPI::findScript<EnemyBaseController>(getOwner());
-    m_attackConfig = GameObjectAPI::findScript<EnemyBaseAttackConfig>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_paladinVFX = GameObjectAPI::findScript<PaladinVFX>(getOwner());
 
@@ -28,12 +27,6 @@ void EnemyAttackState::OnStateEnter()
     if (!m_controller)
     {
         Debug::error("[EnemyAttackState] EnemyController not found.");
-        return;
-    }
-
-    if (!m_attackConfig)
-    {
-        Debug::error("[EnemyAttackState] AttackConfig not found.");
         return;
     }
 
@@ -60,7 +53,7 @@ void EnemyAttackState::OnStateEnter()
 
 void EnemyAttackState::OnStateUpdate()
 {
-    if (!m_controller || !m_attackConfig || !m_animation)
+    if (!m_controller || !m_animation)
     {
         return;
     }
@@ -79,7 +72,13 @@ void EnemyAttackState::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
-    if (!m_hasAppliedDamage && m_stateTimer >= m_attackConfig->m_basicAttackWindupTime)
+    const EnemyBaseAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    if (!m_hasAppliedDamage && m_stateTimer >= cfg->m_basicAttackWindupTime)
     {
         playBasicAttackEffect();
         tryDamageTarget(m_committedTarget);
@@ -92,7 +91,7 @@ void EnemyAttackState::OnStateUpdate()
         m_hasAppliedDamage = true;
     }
 
-    if (m_stateTimer >= m_attackConfig->m_basicAttackTotalDuration)
+    if (m_stateTimer >= cfg->m_basicAttackTotalDuration)
     {
         m_controller->updateCurrentTarget();
 
@@ -118,7 +117,8 @@ void EnemyAttackState::OnStateExit()
 
 void EnemyAttackState::tryDamageTarget(Transform* targetTransform)
 {
-    if (!m_attackConfig)
+    const EnemyBaseAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return;
     }
@@ -146,9 +146,9 @@ void EnemyAttackState::tryDamageTarget(Transform* targetTransform)
         return;
     }
 
-    damageable->takeDamage(m_attackConfig->m_basicAttackDamage);
+    damageable->takeDamage(cfg->m_basicAttackDamage);
 
-    Debug::log("[EnemyAttackState] Damaged '%s' for %.2f.", GameObjectAPI::getName(targetObject), m_attackConfig->m_basicAttackDamage);
+    Debug::log("[EnemyAttackState] Damaged '%s' for %.2f.", GameObjectAPI::getName(targetObject), cfg->m_basicAttackDamage);
 }
 
 void EnemyAttackState::playBasicAttackEffect()
@@ -159,4 +159,6 @@ void EnemyAttackState::playBasicAttackEffect()
     }
 }
 
-IMPLEMENT_SCRIPT(EnemyAttackState)
+IMPLEMENT_SCRIPT_FIELDS(EnemyAttackState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

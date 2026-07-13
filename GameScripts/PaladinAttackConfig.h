@@ -4,17 +4,27 @@
 
 class PaladinAttackConfig : public EnemyBaseAttackConfig
 {
-	DECLARE_SCRIPT(PaladinAttackConfig)
+    DECLARE_DATACONTAINER(PaladinAttackConfig)
 
 public:
-	explicit PaladinAttackConfig(GameObject* owner);
+    PaladinAttackConfig() = default;
+    explicit PaladinAttackConfig(AssetReference& id)
+        : EnemyBaseAttackConfig(id)
+    {
+    }
 
-	ScriptFieldList getExposedFields() const override;
+    // Charge
+    float m_chargeRange = 5.0f;
+    float m_chargeDuration = 0.5f;
+    float m_chargeSpeed = 10.0f;
+    float m_chargeCooldown = 3.0f;
 
-public:
-	// Charge
-	float m_chargeRange = 5.0f;
-	float m_chargeDuration = 0.5f;
-	float m_chargeSpeed = 10.0f;
-	float m_chargeCooldown = 3.0f;
+    IMPLEMENT_DATACONTAINER_FIELDS_INHERITED(PaladinAttackConfig, EnemyBaseAttackConfig,
+        FIELD_GROUP_COLLAPSE("Charge",
+            SERIALIZED_FLOAT(m_chargeRange, "Charge Range", 0.0f, 20.0f, 0.1f),
+            SERIALIZED_FLOAT(m_chargeDuration, "Charge Duration", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_chargeSpeed, "Charge Speed", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_chargeCooldown, "Charge Cooldown", 0.0f, 10.0f, 0.05f)
+        )
+    )
 };

@@ -17,7 +17,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void setGameplayInputLocked(bool locked) { m_gameplayInputLocked = locked; }
     bool isGameplayInputLocked() const { return m_gameplayInputLocked; }

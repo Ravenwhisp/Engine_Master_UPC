@@ -1,6 +1,7 @@
 #pragma once
 #include "ScriptAPI.h"
 
+
 class ArcherAttackConfig;
 class RangedEnemyController;
 class AnimationComponent;
@@ -13,12 +14,12 @@ public:
     explicit ArcherArrowShooter(GameObject* owner);
     void Start()  override;
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     PrefabRef m_arrowPrefab;
 
 private:
-    ArcherAttackConfig*    m_config     = nullptr;
+    AssetRef<ArcherAttackConfig>    m_config;
     RangedEnemyController* m_controller = nullptr;
     AnimationComponent*    m_animation  = nullptr;
     ArcherGuardParticles*  m_particles  = nullptr;

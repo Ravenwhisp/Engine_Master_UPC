@@ -13,11 +13,12 @@ class DeathCharacter : public CharacterBase
 public:
     explicit DeathCharacter(GameObject* owner);
 
+    FieldList getExposedFields() const override;
+
     void Start()  override;
     void Update() override;
 
     DeathSound* getSound() const { return m_sound; }
-    DeathConfig* getConfig() const { return m_config; }
 
     float getComboWindowR2() const;
     float getComboWindowMaxCharge() const;
@@ -48,5 +49,5 @@ private:
 
     DeathSound*     m_sound     = nullptr;
     PlayerMovement* m_movement  = nullptr;
-    DeathConfig* m_config       = nullptr;
+    AssetRef<DeathConfig> m_config;
 };

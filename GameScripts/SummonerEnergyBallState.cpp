@@ -13,9 +13,8 @@ SummonerEnergyBallState::SummonerEnergyBallState(GameObject* owner)
 
 void SummonerEnergyBallState::OnStateEnter()
 {
-	m_controller = GameObjectAPI::findScript<SummonerEnemyController>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SummonerAttackConfig>(getOwner());
-	m_animation = AnimationAPI::getAnimationComponent(getOwner());
+    m_controller = GameObjectAPI::findScript<SummonerEnemyController>(getOwner());
+    m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	m_stateTimer = 0.0f;
 	m_hasFiredEnergyBall = false;
@@ -26,13 +25,7 @@ void SummonerEnergyBallState::OnStateEnter()
 		return;
 	}
 
-	if (!m_attackConfig)
-	{
-		Debug::error("[SummonerEnergyBallState] AttackConfig not found.");
-		return;
-	}
-
-	if (!m_animation)
+    if (!m_animation)
 	{
 		Debug::error("[SummonerEnergyBallState] AnimationComponent not found.");
 		return;
@@ -46,28 +39,34 @@ void SummonerEnergyBallState::OnStateEnter()
 
 void SummonerEnergyBallState::OnStateUpdate()
 {
-	if (!m_controller || !m_attackConfig || !m_animation)
-	{
-		return;
-	}
+    if (!m_controller || !m_animation)
+    {
+        return;
+    }
 
-	if (m_controller->trySendDeathTrigger(m_animation))
-	{
-		return;
-	}
+    if (m_controller->trySendDeathTrigger(m_animation))
+    {
+        return;
+    }
 
-	m_controller->faceCurrentTarget();
+    const SummonerAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
 
-	m_stateTimer += Time::getDeltaTime();
+    m_controller->faceCurrentTarget();
 
-	if (!m_hasFiredEnergyBall && m_stateTimer >= m_attackConfig->m_basicAttackWindupTime)
+    m_stateTimer += Time::getDeltaTime();
+
+    if (!m_hasFiredEnergyBall && m_stateTimer >= cfg->m_basicAttackWindupTime)
 	{
 		spawnEnergyBall();
 		m_controller->consumeAttackCooldown();
 		m_hasFiredEnergyBall = true;
 	}
 
-	if (m_stateTimer >= m_attackConfig->m_basicAttackTotalDuration)
+    if (m_stateTimer >= cfg->m_basicAttackTotalDuration)
 	{
 		AnimationAPI::sendTrigger(m_animation, "ToIdle");
 		return;
@@ -84,12 +83,18 @@ void SummonerEnergyBallState::OnStateExit()
 
 void SummonerEnergyBallState::spawnEnergyBall()
 {
-	if (!m_controller || !m_attackConfig)
-	{
-		return;
-	}
+    if (!m_controller)
+    {
+        return;
+    }
 
-	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+    const SummonerAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 	Transform* targetTransform = m_controller->getCurrentTarget();
 
 	if (!ownerTransform || !targetTransform)
@@ -130,14 +135,16 @@ void SummonerEnergyBallState::spawnEnergyBall()
 
 	GameObject* targetObject = targetTransform->getOwner();
 
-	projectile->launch(
-		spawnPosition,
-		direction,
-		m_attackConfig->m_energyBallSpeed,
-		m_attackConfig->m_energyBallLifetime,
-		targetObject,
-		m_attackConfig->m_basicAttackDamage
-	);
+    projectile->launch(
+        spawnPosition,
+        direction,
+        cfg->m_energyBallSpeed,
+        cfg->m_energyBallLifetime,
+        targetObject,
+        cfg->m_basicAttackDamage
+    );
 }
 
-IMPLEMENT_SCRIPT(SummonerEnergyBallState)
+IMPLEMENT_SCRIPT_FIELDS(SummonerEnergyBallState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

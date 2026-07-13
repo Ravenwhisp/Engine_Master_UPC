@@ -26,7 +26,7 @@ public:
 
     void Start() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     // --- Único punto que arranca / para la música ---
     void PlayMusic();

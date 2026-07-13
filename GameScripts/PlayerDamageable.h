@@ -17,7 +17,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     float m_heartbeatThreshold = 0.5f;
 
@@ -34,7 +34,7 @@ private:
     LyrielSound* m_lyrielSound = nullptr;
     PlayerRenderBufferComponent* m_playerRenderBuffer = nullptr;
 
-    ScriptComponentRef<Transform> m_renderer;
+    ComponentRef<Transform> m_renderer;
 
     bool  m_damageHighlightActive = false;
     float m_damageHighlightTimer = 0.0f;

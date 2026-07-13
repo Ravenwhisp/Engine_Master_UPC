@@ -90,7 +90,11 @@ ImGuiPass::ImGuiPass(ID3D12Device4* device, HWND hWnd, D3D12_CPU_DESCRIPTOR_HAND
 
 ImGuiPass::~ImGuiPass()
 {
-    heap = nullptr;
+    if (m_fontDescriptor.IsValid())
+    {
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).free(m_fontDescriptor.handle);
+        m_fontDescriptor = {};
+    }
 
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();

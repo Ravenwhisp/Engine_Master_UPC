@@ -24,6 +24,7 @@
 #include "JsonArchive.h"
 #include "Metadata.h"
 #include "UID.h"
+#include "DataContainer.h"
 
 #include <filesystem>
 #include <FileIO.h>
@@ -129,6 +130,21 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
         if (!isReimport) reference = AssetReference();
         return;
+    }
+
+    if (reference.m_type == AssetType::DATA_CONTAINER)
+    {
+        DataContainer* baseDc = static_cast<DataContainer*>(asset.release());
+        DataContainer* derivedDc = resolveDataContainerType(baseDc);
+        if (derivedDc)
+        {
+            delete baseDc;
+            asset.reset(derivedDc);
+        }
+        else
+        {
+            asset.reset(baseDc);
+        }
     }
 
     if (!persistAsset(asset.get(), importer, reference, sourcePath))
@@ -429,4 +445,32 @@ ContentRegistry* ModuleAssets::getContentRegistry() const
 PrefabManager* ModuleAssets::getPrefabManager() const
 {
     return m_prefabManager.get();
+}
+
+DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContainer) const
+{
+    if (!baseContainer)
+    {
+        return nullptr;
+    }
+
+    const rapidjson::Document& data = baseContainer->getData();
+    if (!data.HasMember("_typeName") || !data["_typeName"].IsString())
+    {
+        return nullptr;
+    }
+
+    const char* typeName = data["_typeName"].GetString();
+    AssetReference ref = baseContainer->getReference();
+
+    auto derived = DataContainerFactory::create(typeName, ref);
+    if (!derived)
+    {
+        return nullptr;
+    }
+
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(data);
+    derived->serialize(archive);
+    return derived.release();
 }

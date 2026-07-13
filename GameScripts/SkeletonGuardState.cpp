@@ -12,24 +12,17 @@ SkeletonGuardState::SkeletonGuardState(GameObject* owner)
 
 void SkeletonGuardState::OnStateEnter()
 {
-	m_skeletonController = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SkeletonAttackConfig>(getOwner());
-	m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
+    m_skeletonController = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
+    m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
 	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
-	if (!m_skeletonController)
-	{
-		Debug::error("[SkeletonGuardState] SkeletonEnemyController not found.");
-		return;
-	}
+    if (!m_skeletonController)
+    {
+        Debug::error("[SkeletonGuardState] SkeletonEnemyController not found.");
+        return;
+    }
 
-	if (!m_attackConfig)
-	{
-		Debug::error("[SkeletonGuardState] SkeletonAttackConfig not found.");
-		return;
-	}
-
-	if (!m_damageable)
+    if (!m_damageable)
 	{
 		Debug::error("[SkeletonGuardState] SkeletonDamageable not found.");
 		return;
@@ -52,32 +45,38 @@ void SkeletonGuardState::OnStateEnter()
 
 void SkeletonGuardState::OnStateUpdate()
 {
-	if (!m_skeletonController || !m_attackConfig || !m_damageable || !m_animation)
-	{
-		return;
-	}
+    if (!m_skeletonController || !m_damageable || !m_animation)
+    {
+        return;
+    }
 
-	// Go into Revive State
-	if (m_skeletonController->trySendReviveTrigger(m_animation))
-	{
-		return;
-	}
+    // Go into Revive State
+    if (m_skeletonController->trySendReviveTrigger(m_animation))
+    {
+        return;
+    }
 
-	m_skeletonController->faceCurrentTarget();
+    const SkeletonAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
 
-	const float dt = Time::getDeltaTime();
+    m_skeletonController->faceCurrentTarget();
 
-	m_stateTimer += dt;
+    const float dt = Time::getDeltaTime();
 
-	// Heal over time
-	if (m_damageable->getCurrentHp() < m_damageable->getMaxHp())
-	{
-		const float healAmount = m_attackConfig->m_guardHealPerSecond * dt;
-		m_damageable->heal(healAmount);
-	}
+    m_stateTimer += dt;
 
-	// End GuardState
-	if (m_stateTimer >= m_attackConfig->m_guardDuration)
+    // Heal over time
+    if (m_damageable->getCurrentHp() < m_damageable->getMaxHp())
+    {
+        const float healAmount = cfg->m_guardHealPerSecond * dt;
+        m_damageable->heal(healAmount);
+    }
+
+    // End GuardState
+    if (m_stateTimer >= cfg->m_guardDuration)
 	{
 		m_skeletonController->consumeGuardCooldown();
 		AnimationAPI::sendTrigger(m_animation, "ToChase");
@@ -97,4 +96,6 @@ void SkeletonGuardState::OnStateExit()
 	Debug::log("[SkeletonGuardState] EXIT");
 }
 
-IMPLEMENT_SCRIPT(SkeletonGuardState)
+IMPLEMENT_SCRIPT_FIELDS(SkeletonGuardState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

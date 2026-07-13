@@ -6,6 +6,7 @@ class Transform;
 class Damageable;
 class HeartbeatHaptic;
 class CooperativeSound;
+class BoundConfig;
 
 class Bound : public Script
 {
@@ -19,13 +20,15 @@ public:
 
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
-    ScriptComponentRef<Transform> m_firstTarget;
-    ScriptComponentRef<Transform> m_secondTarget;
+    ComponentRef<Transform> m_firstTarget;
+    ComponentRef<Transform> m_secondTarget;
 
-    ScriptComponentRef<Transform> m_BoundUI;
+    ComponentRef<Transform> m_BoundUI;
+
+    AssetRef<BoundConfig> m_config;
 
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;
