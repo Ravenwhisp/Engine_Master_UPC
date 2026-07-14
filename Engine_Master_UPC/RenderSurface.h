@@ -39,6 +39,7 @@ public:
 	void             resize(Vector2 size);
     void             resize(uint32_t width, uint32_t height);
 
+	void setSize(uint32_t width, uint32_t height);
 	Vector2 getSize() const;
 
     uint32_t         getWidth() const;
