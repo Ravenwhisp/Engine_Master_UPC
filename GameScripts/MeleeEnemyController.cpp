@@ -171,3 +171,5 @@ Vector3 MeleeEnemyController::getChargeDirection() const
 IMPLEMENT_SCRIPT_FIELDS(MeleeEnemyController,
     SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
 )
+
+IMPLEMENT_SCRIPT(MeleeEnemyController)

@@ -184,3 +184,5 @@ void PaladinChargeState::stopChargeAttackEffect()
 IMPLEMENT_SCRIPT_FIELDS(PaladinChargeState,
     SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
 )
+
+IMPLEMENT_SCRIPT(PaladinChargeState)
