@@ -842,10 +842,13 @@ void Scene::serialize(IArchive& archive)
         uint32_t bankCount = static_cast<uint32_t>(m_loadedBankRefs.size());
         archive.beginObject("SoundBanks");
         archive.beginArray(bankCount, "banks");
-        m_loadedBankRefs.resize(bankCount);
+        if (archive.mode() == ArchiveMode::Input)
+            m_loadedBankRefs.resize(bankCount);
         for (uint32_t i = 0; i < bankCount; ++i)
         {
+            archive.beginObject();
             m_loadedBankRefs[i].serialize(archive);
+            archive.endObject();
         }
         archive.endArray();
         archive.endObject();
