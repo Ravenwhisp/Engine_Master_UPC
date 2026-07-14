@@ -7,6 +7,7 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
+#include "PostProcessSettings.h"
 #include "SceneReferenceResolver.h"
 #include "AssetReference.h"
 #include "UID.h"
@@ -34,6 +35,7 @@ private:
     SceneLightingSettings m_lighting;
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
+    PostProcessSettings m_postProcess;
     AssetReference m_navMesh;
     SSAOSettings m_ssao;
 
@@ -105,6 +107,8 @@ public:
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
     SSAOSettings& getSSAOSettings() { return m_ssao; }
     const SSAOSettings& getSSAOSettings() const { return m_ssao; }
+    PostProcessSettings& getPostProcessSettings() { return m_postProcess; }
+    const PostProcessSettings& getPostProcessSettings() const { return m_postProcess; }
 
     AssetReference& getNavMesh() { return m_navMesh; }
     const AssetReference& getNavMesh() const { return m_navMesh; }

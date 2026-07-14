@@ -63,7 +63,7 @@ SwapChain::SwapChain(HWND hWnd, ComPtr<ID3D12Device4> device, CommandQueue* queu
 
     // HDR scene target used by the post-process pipeline (resolved into the backbuffer).
     auto* hdrTexture = app->getModuleResources()->createHDRRenderTexture(float(m_windowWidth), float(m_windowHeight));
-    m_renderSurface.attachTexture( RenderSurface::COLOR_1, std::shared_ptr<Texture>(hdrTexture));
+    m_renderSurface.attachTexture( RenderSurface::SCENE_HDR, std::shared_ptr<Texture>(hdrTexture));
 }
 
 SwapChain::~SwapChain()

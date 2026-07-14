@@ -838,6 +838,10 @@ void Scene::serialize(IArchive& archive)
     m_ssao.serialize(archive);
     archive.endObject();
 
+    archive.beginObject("PostProcess");
+    m_postProcess.serialize(archive);
+    archive.endObject();
+
     {
         uint32_t bankCount = static_cast<uint32_t>(m_loadedBankRefs.size());
         archive.beginObject("SoundBanks");
