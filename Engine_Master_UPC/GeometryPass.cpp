@@ -24,6 +24,7 @@
 #include "Texture.h"
 #include "BasicMesh.h"
 #include "SkyBox.h"
+#include "DamageHighlightComponent.h"
 
 #include "SimpleMath.h"
 #include <d3dcompiler.h>
@@ -41,7 +42,7 @@ GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void GeometryPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER   rootParams[5] = {};
+    CD3DX12_ROOT_PARAMETER   rootParams[6] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
@@ -49,9 +50,10 @@ void GeometryPass::createRootSignature()
 
     rootParams[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParams[3].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[4].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL); //Model data
+    rootParams[3].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Damage Highlight Data
+    rootParams[4].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[5].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
@@ -185,28 +187,37 @@ void GeometryPass::setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
-    commandList->SetGraphicsRootDescriptorTable(4, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 }
 
 void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
 {
-    //PERF_RENDER("MeshRendererPass::renderMesh");
-
-    // DEBUG_LOG("Se va a pintar la malla %d", i);
+    GameObject* owner = renderer->getOwner();
+    if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
     {
-        //PERF_RENDER("MeshRendererPass::renderMesh::RendererValidation");
-
-        GameObject* owner = renderer->getOwner();
-        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
-        {
-            return;
-        }
-
-        if (!renderer->isActive())
-        {
-            return;
-        }
+        return;
     }
+
+    if (!renderer->isActive())
+    {
+        return;
+    }
+
+
+
+    DamageHighlightDataCB damageHighlightDataCB{};
+    
+    Component* damageHighlightComponent = owner->GetComponent(ComponentType::DAMAGE_HIGHLIGHT_EFFECT);
+    if (damageHighlightComponent != nullptr)
+    {
+        damageHighlightDataCB.hasDamageHighlightComponent = 1;
+        damageHighlightDataCB.damageHighlightData = static_cast<DamageHighlightComponent*>(damageHighlightComponent)->getDamageHighlightData();
+    }
+
+    commandList->SetGraphicsRootConstantBufferView(3, app->getModuleRender()->allocateInRingBuffer(&damageHighlightDataCB, sizeof(DamageHighlightDataCB)));
+
+
+
 
     Transform* transform = renderer->getTransform();
 
@@ -266,7 +277,7 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
 
                 {
                     //PERF_RENDER("MeshRendererPass::renderMesh::BindMaterial");
-                    commandList->SetGraphicsRootDescriptorTable(3, material->getTableGPUHandle());
+                    commandList->SetGraphicsRootDescriptorTable(4, material->getTableGPUHandle());
 
                     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

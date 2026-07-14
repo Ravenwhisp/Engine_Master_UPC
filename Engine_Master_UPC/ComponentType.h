@@ -22,7 +22,8 @@
     X(SOUND_LISTENER)       \
     X(SOUND_SOURCE)         \
     X(PREFAB_INSTANCE)      \
-    X(PLAYER_RENDER_BUFFER)
+    X(PLAYER_RENDER_BUFFER) \
+    X(DAMAGE_HIGHLIGHT_EFFECT)
 
 #define COMP_ENUM(name) name,
 #define COMP_SWITCH(name) case ComponentType::name: return #name;
