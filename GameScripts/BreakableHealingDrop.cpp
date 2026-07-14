@@ -2,9 +2,10 @@
 #include "BreakableHealingDrop.h"
 
 #include "HealthDropSpawner.h"
+#include "EnvironmentSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(BreakableHealingDrop, BreakableObject,
-    SERIALIZED_STRING(m_healthPickupPrefabPath, "Health Pickup Prefab Path"),
+    SERIALIZED_ASSET_REF(m_healthPickupPrefab, "Health Pickup Prefab", AssetType::PREFAB),
     SERIALIZED_FLOAT(m_healthDropAmount, "Health Drop Amount", 0.0f, 100.0f, 1.0f),
     SERIALIZED_FLOAT(m_dropRadius, "Drop Radius", 0.0f, 5.0f, 0.1f),
     SERIALIZED_FLOAT(m_dropHeight, "Drop Height", 0.0f, 5.0f, 0.1f),
@@ -27,7 +28,7 @@ void BreakableHealingDrop::Update()
 
 void BreakableHealingDrop::onBreak()
 {
-    if (m_healthPickupPrefabPath.empty())
+    if (!m_healthPickupPrefab.m_ref.isValid())
     {
 		Debug::warn("[BreakableHealingDrop] '%s' has no health pickup prefab path set.", GameObjectAPI::getName(getOwner()));
         return;
@@ -38,8 +39,11 @@ void BreakableHealingDrop::onBreak()
 
     for (int i = 0; i < m_healthDropQuantity; ++i)
     {
-        HealthDropSpawner::drop(m_healthPickupPrefabPath.c_str(), breakablePosition, m_healthDropAmount, m_dropRadius, m_dropHeight);
+        HealthDropSpawner::drop(m_healthPickupPrefab.m_ref, breakablePosition, m_healthDropAmount, m_dropRadius, m_dropHeight);
     }
+
+    // It's still a barrel/crate breaking → same break SFX.
+    EnvironmentSound::play(getOwner(), "Play_Environment_Barrel_Break");
 
     BreakableObject::breakObject();
 }

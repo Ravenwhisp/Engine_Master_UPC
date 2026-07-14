@@ -13,7 +13,7 @@ public:
 
 	void Start() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	// Charged Attack
@@ -31,7 +31,6 @@ public:
 	void updateDashChargesUI(int currentCharges, int maxCharges, float dt);
 
 private:
-	float moveTowards(float current, float target, float maxDelta);
 	void updateChargeVisual(Transform2D* transform, float& currentScale, float targetScale, float dt);
 
 public:
@@ -41,17 +40,17 @@ public:
 
 private:
 	// Charged Attack
-	ScriptComponentRef<Transform> m_chargedAttackUI;
+	ComponentRef<Transform> m_chargedAttackUI;
 	Transform* m_chargedAttackUITransform = nullptr;
 
 	// Arrow Volley
-	ScriptComponentRef<Transform> m_arrowVolleyUI;
+	ComponentRef<Transform> m_arrowVolleyUI;
 	Transform* m_arrowVolleyUITransform = nullptr;
 
 	// Dash Charges
-	ScriptComponentRef<Transform2D> m_charge1UI;
-	ScriptComponentRef<Transform2D> m_charge2UI;
-	ScriptComponentRef<Transform2D> m_charge3UI;
+	ComponentRef<Transform2D> m_charge1UI;
+	ComponentRef<Transform2D> m_charge2UI;
+	ComponentRef<Transform2D> m_charge3UI;
 
 	Transform2D* m_charge1Transform2D = nullptr;
 	Transform2D* m_charge2Transform2D = nullptr;

@@ -27,6 +27,7 @@ private:
     void drawFrustumCullingSettings();
     void drawScriptsSettings();
     void drawScriptReloadModal();
+    void drawBuildSettings();
 
 private:
     Settings* m_settings = nullptr;

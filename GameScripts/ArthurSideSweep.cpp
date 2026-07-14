@@ -5,8 +5,10 @@
 #include "ArthurAttackConfig.h"
 #include "EnemyAttackExecutor.h"
 #include "ArthurUI.h"
+#include "ArthurSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ArthurSideSweep,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Arthur Attack Config", AssetType::DATA_CONTAINER),
     SERIALIZED_INT(m_sweepSide, "Sweep Side")
 )
 
@@ -18,10 +20,10 @@ ArthurSideSweep::ArthurSideSweep(GameObject* owner)
 void ArthurSideSweep::OnStateEnter()
 {
     m_arthurController = GameObjectAPI::findScript<ArthurBossController>(getOwner());
-    m_attackConfig = GameObjectAPI::findScript<ArthurAttackConfig>(getOwner());
     m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
+    m_arthurSound = GameObjectAPI::findScript<ArthurSound>(getOwner());
 
     m_stateTimer = 0.0f;
     m_hasAppliedHit = false;
@@ -29,12 +31,6 @@ void ArthurSideSweep::OnStateEnter()
     if (!m_arthurController)
     {
         Debug::error("[ArthurSideSweep] ArthurBossController not found.");
-        return;
-    }
-
-    if (!m_attackConfig)
-    {
-        Debug::error("[ArthurSideSweep] ArthurAttackConfig not found.");
         return;
     }
 
@@ -61,12 +57,23 @@ void ArthurSideSweep::OnStateEnter()
 
     m_arthurUI->setupSideSweepUI(m_sweepSide);
 
+    if (m_arthurSound)
+    {
+        m_arthurSound->playSideSweep();
+    }
+
     Debug::log("[ArthurSideSweep] ENTER");
 }
 
 void ArthurSideSweep::OnStateUpdate()
 {
-    if (!m_arthurController || !m_attackConfig || !m_attackExecutor || !m_animation)
+    if (!m_arthurController || !m_attackExecutor || !m_animation)
+    {
+        return;
+    }
+
+    const ArthurAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return;
     }
@@ -78,13 +85,13 @@ void ArthurSideSweep::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
-    float hitTime = m_attackConfig->m_sideSweepHitTime;
-    float totalDuration = m_attackConfig->m_sideSweepTotalDuration;
+    float hitTime = cfg->m_sideSweepHitTime;
+    float totalDuration = cfg->m_sideSweepTotalDuration;
 
     if (m_arthurController->isPhase2())
     {
-        hitTime = m_attackConfig->m_sideSweepPhase2HitTime;
-        totalDuration = m_attackConfig->m_sideSweepPhase2TotalDuration;
+        hitTime = cfg->m_sideSweepPhase2HitTime;
+        totalDuration = cfg->m_sideSweepPhase2TotalDuration;
     }
 
     if (m_arthurUI)
@@ -117,7 +124,13 @@ void ArthurSideSweep::OnStateExit()
 
 void ArthurSideSweep::applyHit()
 {
-    if (!m_arthurController || !m_attackConfig || !m_attackExecutor)
+    if (!m_arthurController || !m_attackExecutor)
+    {
+        return;
+    }
+
+    const ArthurAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return;
     }
@@ -131,25 +144,36 @@ void ArthurSideSweep::applyHit()
     Vector3 center = TransformAPI::getGlobalPosition(ownerTransform);
     Vector3 sweepDirection = m_arthurController->getSideSweepDirection(m_sweepSide);
 
-    m_attackExecutor->applyDamageInCone(center, sweepDirection, m_attackConfig->m_sideSweepRange, m_attackConfig->m_sideSweepHalfAngleDegrees, m_attackConfig->m_sideSweepDamage, "SideSweep");
+    m_attackExecutor->applyDamageInCone(center, sweepDirection, cfg->m_sideSweepRange, cfg->m_sideSweepHalfAngleDegrees, cfg->m_sideSweepDamage, "SideSweep");
+
+    if (m_arthurSound)
+    {
+        m_arthurSound->playSideImpact();
+    }
 
     Debug::log("[ArthurSideSweep] Hit applied. Side: %d", m_sweepSide);
 }
 
 void ArthurSideSweep::goToRecover()
 {
-    if (!m_attackConfig || !m_animation)
+    if (!m_animation)
+    {
+        return;
+    }
+
+    const ArthurAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
     {
         return;
     }
 
     if (m_arthurController)
     {
-        float recoveryDuration = m_attackConfig->m_sideSweepRecoveryDuration;
+        float recoveryDuration = cfg->m_sideSweepRecoveryDuration;
 
         if (m_arthurController->isPhase2())
         {
-            recoveryDuration = m_attackConfig->m_sideSweepPhase2RecoveryDuration;
+            recoveryDuration = cfg->m_sideSweepPhase2RecoveryDuration;
         }
 
         m_arthurController->setRecoveryDuration(recoveryDuration);

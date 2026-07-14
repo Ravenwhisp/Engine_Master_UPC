@@ -18,3 +18,4 @@ struct NavMeshTileHeader
     dtTileRef tileRef;
     int dataSize;
 };
+

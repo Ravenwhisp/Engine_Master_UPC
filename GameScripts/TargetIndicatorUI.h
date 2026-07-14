@@ -15,7 +15,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 protected:
     virtual void onStart() {}
@@ -40,8 +40,8 @@ protected:
     float getDirectionAngleDegrees(const Vector3& direction, float rotationOffsetDegrees) const;
 
 protected:
-    ScriptComponentRef<Transform> m_playerTransform;
-    ScriptComponentRef<Transform> m_targetIndicatorTransform;
+    ComponentRef<Transform> m_playerTransform;
+    ComponentRef<Transform> m_targetIndicatorTransform;
 
     Vector3 m_positionOffset = Vector3(0.0f, 0.05f, 0.0f);
     float m_followSharpness = 20.0f;

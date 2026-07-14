@@ -1,0 +1,117 @@
+{
+    "name": "Archer_StateMachine",
+    "defaultState": "IDLE",
+    "clips": [
+        {
+            "name": "Archer_Idle",
+            "animationUID": "d98a3ab8edd6e20a3da4df54338bfe25",
+            "loop": true
+        },
+        {
+            "name": "Archer_Idle_long",
+            "animationUID": "b2e57ffd6c7afce6883d22ae36c12969",
+            "loop": true
+        },
+        {
+            "name": "Archer_Attack_1",
+            "animationUID": "75dcb9e90d18e7fd9b3159863b9f638e",
+            "loop": true
+        },
+        {
+            "name": "Archer_Damage",
+            "animationUID": "f64130312687e19fd8af76a79e0edba7",
+            "loop": true
+        },
+        {
+            "name": "Archer_Walk",
+            "animationUID": "561fd92d7d64078d0f9363d2d00170c9",
+            "loop": true
+        },
+        {
+            "name": "Archer_Death",
+            "animationUID": "7a18f0364c723fdfc5401947acd40c5c",
+            "loop": true
+        },
+        {
+            "name": "Archer_Attack_2",
+            "animationUID": "cb53b0eae2ff3be108d2761c11d16af9",
+            "loop": true
+        }
+    ],
+    "states": [
+        {
+            "name": "IDLE",
+            "clipName": "Archer_Idle",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyIdleState",
+            "behaviourFieldsJson": "",
+            "overrideLoop": true,
+            "loop": true
+        },
+        {
+            "name": "ATTACK",
+            "clipName": "Archer_Attack_1",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyAttackState",
+            "behaviourFieldsJson": "",
+            "overrideLoop": true,
+            "loop": true
+        },
+        {
+            "name": "CHASE",
+            "clipName": "Archer_Walk",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyChaseState",
+            "behaviourFieldsJson": "",
+            "overrideLoop": true,
+            "loop": true
+        },
+        {
+            "name": "DEATH",
+            "clipName": "Archer_Death",
+            "speed": 1.0,
+            "behaviourScriptName": "EnemyDeathState",
+            "behaviourFieldsJson": "",
+            "overrideLoop": true,
+            "loop": false
+        }
+    ],
+    "transitions": [
+        {
+            "sourceStateName": "IDLE",
+            "targetStateName": "CHASE",
+            "triggerName": "Chase",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "CHASE",
+            "targetStateName": "ATTACK",
+            "triggerName": "Attack",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "ATTACK",
+            "targetStateName": "CHASE",
+            "triggerName": "Chase",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "CHASE",
+            "targetStateName": "DEATH",
+            "triggerName": "Die",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "IDLE",
+            "targetStateName": "DEATH",
+            "triggerName": "Die",
+            "blendTimeSeconds": 0.25
+        },
+        {
+            "sourceStateName": "ATTACK",
+            "targetStateName": "DEATH",
+            "triggerName": "Die",
+            "blendTimeSeconds": 0.25
+        }
+    ]
+}

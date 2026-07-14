@@ -614,7 +614,7 @@ void ShadowMapPass::transitionShadowMap(ID3D12GraphicsCommandList4* commandList,
 
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
-    m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
+    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
 
     const LightComponent* mainDirectionalLight = findMainShadowCastingDirectionalLight();
 
@@ -629,19 +629,24 @@ void ShadowMapPass::prepare(const RenderContext& ctx)
 
 void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    BEGIN_EVENT(commandList, "ShadowMapPass");
+
     if (commandList == nullptr)
     {
+        END_EVENT(commandList);
         return;
     }
 
     if (m_shadowMap == nullptr || !m_shadowMap->hasDSV())
     {
+        END_EVENT(commandList);
         return;
     }
 
     if (!m_frameData.enabled)
     {
         transitionShadowMap(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        END_EVENT(commandList);
         return;
     }
 
@@ -674,4 +679,6 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
     renderCasters(commandList);
 
     transitionShadowMap(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    END_EVENT(commandList);
 }

@@ -1,0 +1,13 @@
+{
+    "uid": 1296547237165870528,
+    "contentHash": "4d5322a4e60a77268860c370bce0d5c0",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P1V1\\T_PROP_items_interior_01_BC.jpg",
+    "sourceFileSize": 212027,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

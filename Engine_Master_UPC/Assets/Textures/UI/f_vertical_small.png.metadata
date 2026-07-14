@@ -1,0 +1,13 @@
+{
+    "uid": 6910571515419891679,
+    "contentHash": "4b5b5348dd376924d01508b278d00b89",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\UI\\f_vertical_small.png",
+    "sourceFileSize": 340,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

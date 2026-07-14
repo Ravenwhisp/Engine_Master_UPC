@@ -22,6 +22,8 @@
 #include <WindowSceneEditor.h>
 #include "Delegates.h"
 
+#include "UILayoutUtils.h"
+
 unsigned int DelegateHandle::CURRENT_ID = 0;
 
 #pragma region Statics
@@ -216,23 +218,36 @@ GameObject* ModuleEventSystem::raycast(const Vector2& screenPos)
         if (!root || !root->GetActive()) continue;
 
         Canvas* canvas = root->GetComponentAs<Canvas>(ComponentType::CANVAS);
-        if (!canvas || !canvas->isActive()) continue;
+        if (!canvas || !canvas->isActive())
+        {
+            continue;
+        }
 
-        raycastAll(root, screenPos, screenRect, best, bestDepth, 0);
+        Vector2 uiScale(1.0f, 1.0f);
+
+        if (canvas->renderMode == CanvasRenderMode::SCREEN_SPACE)
+        {
+            uiScale = UILayoutUtils::CalculateScreenSpaceScale(size.x, size.y);
+        }
+
+        raycastAll(root, screenPos, screenRect, best, bestDepth, 0, uiScale);
     }
     return best;
 }
 
-void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth)
+void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth, const Vector2& inheritedScale)
 {
     if (!go || !go->GetActive()) return;
 
     Rect2D myRect = parentRect;
+    Vector2 childScale = inheritedScale;
 
     Transform2D* t2d = go->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
     if (t2d && t2d->isActive())
     {
-        myRect = t2d->getRect(parentRect, { 1.0f, 1.0f });
+        myRect = t2d->getRect(parentRect, inheritedScale);
+
+        childScale = { t2d->scale.x * inheritedScale.x, t2d->scale.y * inheritedScale.y };
 
         if (myRect.contains(screenPos))
         {
@@ -246,7 +261,7 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
 
     for (GameObject* child : go->GetTransform()->getAllChildren())
     {
-        raycastAll(child, screenPos, myRect, best, bestDepth, depth + 1);
+        raycastAll(child, screenPos, myRect, best, bestDepth, depth + 1, childScale);
     }
 }
 

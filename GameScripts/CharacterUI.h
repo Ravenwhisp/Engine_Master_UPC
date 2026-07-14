@@ -2,6 +2,7 @@
 
 #include "ScriptAPI.h"
 #include "Transform.h"
+#include "Transform2D.h"
 #include "UISlider.h"
 
 enum class AbilityUISlot
@@ -13,39 +14,47 @@ enum class AbilityUISlot
 	Count
 };
 
+struct CooldownData
+{
+    Transform2D* container = nullptr;
+    Transform2D* background = nullptr;
+    Transform2D* frame = nullptr;
+	GameObject* disabled = nullptr;
+    UISlider* slider = nullptr;
+    Transform2D* glow = nullptr;
+
+	float remainingTime = 0.0f;
+};
+
 class CharacterUI : public Script
 {
-	DECLARE_SCRIPT(CharacterUI)
+    DECLARE_SCRIPT(CharacterUI)
 
 public:
-	explicit CharacterUI(GameObject* owner);
-	virtual ~CharacterUI() = default;
+    explicit CharacterUI(GameObject* owner);
+    virtual ~CharacterUI() = default;
 
-	void Start() override;
+    void Start() override;
+    void Update() override;
 
-	ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
-	void showAbilityCooldown(AbilityUISlot slot);
-	void hideAbilityCooldown(AbilityUISlot slot);
-	void updateAbilityCooldown(AbilityUISlot slot, float ratio);
+    void showAbilityCooldown(AbilityUISlot slot);
+    void hideAbilityCooldown(AbilityUISlot slot);
+    void updateAbilityCooldown(AbilityUISlot slot, float ratio);
 
 private:
-	int getSlotIndex(AbilityUISlot slot) const;
+    void setReferences(AbilityUISlot slot, Transform* transform);
+    int getSlotIndex(AbilityUISlot slot) const;
 
 private:
-	ScriptComponentRef<Transform> m_basicAttackCooldownUI;
-	ScriptComponentRef<UISlider> m_basicAttackCooldownSlider;
+    ComponentRef<Transform> m_basicAttackCooldownUI;
+    ComponentRef<Transform> m_chargedAttackCooldownUI;
+    ComponentRef<Transform> m_abilityCooldownUI;
+    ComponentRef<Transform> m_dashCooldownUI;
 
-	ScriptComponentRef<Transform> m_chargedAttackCooldownUI;
-	ScriptComponentRef<UISlider> m_chargedAttackCooldownSlider;
+    float m_cooldownEndTime = 1.0f;
 
-	ScriptComponentRef<Transform> m_abilityCooldownUI;
-	ScriptComponentRef<UISlider> m_abilityCooldownSlider;
-
-	ScriptComponentRef<Transform> m_dashCooldownUI;
-	ScriptComponentRef<UISlider> m_dashCooldownSlider;
-
-	GameObject* m_cooldownObjects[static_cast<int>(AbilityUISlot::Count)] = {};
-	UISlider* m_cooldownSliders[static_cast<int>(AbilityUISlot::Count)] = {};
+    CooldownData m_cooldowns[static_cast<int>(AbilityUISlot::Count)];
 };

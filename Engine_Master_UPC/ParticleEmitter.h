@@ -14,8 +14,6 @@ class ParticleEmitter
 {
 public:
 
-	bool deserializeJSON(const rapidjson::Value& emitterInfo);
-
 	ParticleEmitter();
 	ParticleEmitter(const ParticleEmitter& particleEmitter);
 

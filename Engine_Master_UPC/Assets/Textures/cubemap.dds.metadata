@@ -1,0 +1,13 @@
+{
+    "uid": 11970188361064272780,
+    "contentHash": "51513e627d3296012beac59084735eaa",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\cubemap.dds",
+    "sourceFileSize": 100663424,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

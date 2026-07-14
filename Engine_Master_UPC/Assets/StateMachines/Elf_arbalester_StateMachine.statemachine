@@ -1,0 +1,121 @@
+{
+    "name": "Elf_arbalester_StateMachine",
+    "defaultState": "Elf_arbalester_Idle",
+    "clips": [
+        {
+            "name": "Elf_arbalester_Tpose",
+            "animationUID": "022e0891c769b43b7ee5c864fcc7e3bd",
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Idle",
+            "animationUID": "10e294350b2befdcd34363e3682510d5",
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Idle_long",
+            "animationUID": "ecfc46c50e520946a9fe0972a7f11ae9",
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Run",
+            "animationUID": "a889ccaa19302e71b680b11e199ffb9d",
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Shot",
+            "animationUID": "573a681400e5a549cb5cb8ed5a8491bf",
+            "loop": false
+        },
+        {
+            "name": "Elf_arbalester_Damage",
+            "animationUID": "884055b069c4b3862ef516e95d8d62b6",
+            "loop": false
+        },
+        {
+            "name": "Elf_arbalester_Death",
+            "animationUID": "3e2c9670d614b968f673e697e53597bb",
+            "loop": false
+        },
+        {
+            "name": "Elf_arbalester_Attack",
+            "animationUID": "50ca75741573200a0ca84ca0eeddf9b9",
+            "loop": false
+        }
+    ],
+    "states": [
+        {
+            "name": "Elf_arbalester_Tpose",
+            "clipName": "Elf_arbalester_Tpose",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Idle",
+            "clipName": "Elf_arbalester_Idle",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Idle_long",
+            "clipName": "Elf_arbalester_Idle_long",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Run",
+            "clipName": "Elf_arbalester_Run",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Shot",
+            "clipName": "Elf_arbalester_Shot",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Damage",
+            "clipName": "Elf_arbalester_Damage",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Death",
+            "clipName": "Elf_arbalester_Death",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        },
+        {
+            "name": "Elf_arbalester_Attack",
+            "clipName": "Elf_arbalester_Attack",
+            "speed": 1.0,
+            "behaviourScriptName": "",
+            "behaviourFieldsJson": "",
+            "overrideLoop": false,
+            "loop": true
+        }
+    ],
+    "transitions": []
+}

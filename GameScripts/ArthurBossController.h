@@ -5,6 +5,8 @@
 class ArthurDetectionAggro;
 class ArthurAttackConfig;
 class ArthurUI;
+class Damageable;
+class ArthurSound;
 
 enum class ArthurBossPhase
 {
@@ -23,7 +25,7 @@ public:
 	void drawGizmo() override;
 	void Update() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	// Phase helpers
 	void setPhase(ArthurBossPhase phase);
@@ -69,12 +71,17 @@ public:
 
 private:
 	ArthurDetectionAggro* m_arthurDetectionAggro = nullptr;
-	ArthurAttackConfig* m_attackConfig = nullptr;
+	AssetRef<ArthurAttackConfig> m_attackConfig;
 	ArthurUI* m_arthurUI = nullptr;
 
 	ArthurBossPhase m_phase = ArthurBossPhase::Phase1;
 
 	bool m_hasStartedEncounter = false;
+
+	// Música: al morir Arthur se vuelve a Level1_Chapel (una sola vez).
+	bool m_bossDefeated = false;
+	Damageable* m_damageable = nullptr;
+	ArthurSound* m_arthurSound = nullptr;
 
 	const float RADIANS_TO_DEGREES = 180.0f / 3.14159265f;
 

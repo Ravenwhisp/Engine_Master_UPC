@@ -30,9 +30,9 @@ public:
     void clear();
 
     std::shared_ptr<Asset> get(const UID& uid);
+    void insert(const UID& uid, std::shared_ptr<Asset> asset);
 
 private:
-    void insert(const UID& uid, std::shared_ptr<Asset> asset);
 
     WeakCache<UID, Asset> m_cache;
 };

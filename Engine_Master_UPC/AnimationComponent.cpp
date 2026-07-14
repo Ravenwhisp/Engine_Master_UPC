@@ -13,9 +13,10 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "StateMachineScript.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 #include "Script.h"
-#include "ScriptComponentRef.h"
+#include "ComponentRef.h"
+#include "FieldUtils.h"
 #include "ModuleScene.h"
 #include "Scene.h"
 
@@ -129,6 +130,29 @@ void AnimationComponent::update()
     }
 
     updateFadingPlaybackRecursive(m_previousPlayback.get(), deltaTimeSeconds);
+
+    if (m_hasOverrideClip)
+    {
+        m_overrideController.Update(deltaTimeSeconds);
+
+        if (m_overrideTransitionTime > 0.0f)
+        {
+            m_overrideFadeTime = std::min(m_overrideFadeTime + deltaTimeSeconds, m_overrideTransitionTime);
+
+            if (m_isClearingOverrideClip && m_overrideFadeTime >= m_overrideTransitionTime)
+            {
+                m_overrideController.Stop();
+                m_overrideController.SetAnimation(std::shared_ptr<AnimationAsset>{});
+                m_overrideAnimationAsset.reset();
+
+                m_overrideFadeTime = 0.0f;
+                m_overrideTransitionTime = 0.0f;
+
+                m_hasOverrideClip = false;
+                m_isClearingOverrideClip = false;
+            }
+        }
+    }
 
     if (m_currentTransitionTime > 0.0f &&
         m_previousPlayback &&
@@ -339,7 +363,7 @@ void AnimationComponent::updateFadingPlaybackRecursive(FadingPlayback* playback,
     }
 }
 
-bool AnimationComponent::samplePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const
+bool AnimationComponent::sampleBasePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const
 {
     AnimationSample currentSample;
     const bool hasCurrent = m_controller.GetTransform(channelName, currentSample);
@@ -372,6 +396,64 @@ bool AnimationComponent::samplePlaybackRecursive(const std::string& channelName,
 
     const float weight = std::clamp(m_currentFadeTime / m_currentTransitionTime, 0.0f, 1.0f);
     blendSamples(previousSample, currentSample, weight, outSample);
+    return true;
+}
+
+bool AnimationComponent::samplePlaybackRecursive(const std::string& channelName, AnimationSample& outSample) const
+{
+    AnimationSample baseSample;
+    const bool hasBaseSample = sampleBasePlaybackRecursive(channelName, baseSample);
+
+    if (!m_hasOverrideClip)
+    {
+        if (hasBaseSample)
+        {
+            outSample = baseSample;
+            return true;
+        }
+
+        return false;
+    }
+
+    AnimationSample overrideSample;
+    const bool hasOverrideSample = m_overrideController.GetTransform(channelName, overrideSample);
+
+    if (!hasOverrideSample)
+    {
+        if (hasBaseSample)
+        {
+            outSample = baseSample;
+            return true;
+        }
+
+        return false;
+    }
+
+    if (!hasBaseSample)
+    {
+        outSample = overrideSample;
+        return true;
+    }
+
+    if (m_overrideTransitionTime <= 0.0f)
+    {
+        if (m_isClearingOverrideClip)
+        {
+            outSample = baseSample;
+        }
+        else
+        {
+            outSample = overrideSample;
+        }
+
+        return true;
+    }
+
+    const float transitionAlpha = std::clamp(m_overrideFadeTime / m_overrideTransitionTime, 0.0f, 1.0f);
+
+    const float overrideWeight = m_isClearingOverrideClip ? 1.0f - transitionAlpha : transitionAlpha;
+
+    blendSamples(baseSample, overrideSample, overrideWeight, outSample);
     return true;
 }
 
@@ -792,163 +874,8 @@ void AnimationComponent::drawStateBehaviourFieldsUi(AnimationStateMachineState& 
 
 void AnimationComponent::drawScriptFieldsUi(Script& script)
 {
-    ScriptFieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
-
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        void* data = base + field.offset;
-        bool changed = false;
-
-        switch (field.type)
-        {
-        case ScriptFieldType::Float:
-        {
-            float* value = reinterpret_cast<float*>(data);
-            changed = ImGui::DragFloat(field.name, value, field.floatInfo.dragSpeed, field.floatInfo.min, field.floatInfo.max);
-            break;
-        }
-
-        case ScriptFieldType::Int:
-        {
-            int* value = reinterpret_cast<int*>(data);
-            changed = ImGui::DragInt(field.name, value);
-            break;
-        }
-
-        case ScriptFieldType::Bool:
-        {
-            bool* value = reinterpret_cast<bool*>(data);
-            changed = ImGui::Checkbox(field.name, value);
-            break;
-        }
-
-        case ScriptFieldType::Vec3:
-        {
-            Vector3* value = reinterpret_cast<Vector3*>(data);
-            changed = ImGui::DragFloat3(field.name, &value->x, 0.1f);
-            break;
-        }
-
-        case ScriptFieldType::EnumInt:
-        {
-            int* value = reinterpret_cast<int*>(data);
-
-            const char* preview = "";
-            if (*value >= 0 && *value < field.enumInfo.count)
-            {
-                preview = field.enumInfo.names[*value];
-            }
-
-            if (ImGui::BeginCombo(field.name, preview))
-            {
-                for (int enumIndex = 0; enumIndex < field.enumInfo.count; ++enumIndex)
-                {
-                    bool selected = (*value == enumIndex);
-                    if (ImGui::Selectable(field.enumInfo.names[enumIndex], selected))
-                    {
-                        *value = enumIndex;
-                        changed = true;
-                    }
-
-                    if (selected)
-                    {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-
-                ImGui::EndCombo();
-            }
-            break;
-        }
-
-        case ScriptFieldType::String:
-        {
-            std::string* value = reinterpret_cast<std::string*>(data);
-
-            char buffer[256];
-            std::strncpy(buffer, value->c_str(), sizeof(buffer));
-            buffer[sizeof(buffer) - 1] = '\0';
-
-            if (ImGui::InputText(field.name, buffer, sizeof(buffer)))
-            {
-                *value = buffer;
-                changed = true;
-            }
-            break;
-        }
-
-        case ScriptFieldType::ComponentRef:
-        {
-            ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
-
-            Component* component = componentReference->component;
-
-            ImGui::Text("%s", field.name);
-            ImGui::SameLine();
-
-            if (component != nullptr)
-            {
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", component->getOwner()->GetName().c_str());
-            }
-            else
-            {
-                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
-            }
-
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
-                {
-                    GameObject* droppedObject = *(GameObject**)payload->Data;
-                    GameObject* sceneObject = app->getModuleScene()->getScene()->findGameObjectByUID(droppedObject->GetID());
-
-                    if (sceneObject != nullptr)
-                    {
-                        Component* candidate = nullptr;
-
-                        if (field.componentRefInfo.componentType == ComponentType::TRANSFORM)
-                        {
-                            candidate = sceneObject->GetTransform();
-                        }
-                        else
-                        {
-                            candidate = sceneObject->GetComponent(field.componentRefInfo.componentType);
-                        }
-
-                        if (candidate != nullptr)
-                        {
-                            componentReference->uid = candidate->getID();
-                            componentReference->component = candidate;
-                            script.onFieldEdited(field);
-                            changed = true;
-                        }
-                    }
-                }
-
-                ImGui::EndDragDropTarget();
-            }
-
-            ImGui::SameLine();
-
-            std::string clearLabel = std::string("Clear###") + field.name;
-            if (ImGui::Button(clearLabel.c_str()))
-            {
-                componentReference->uid = 0;
-                componentReference->component = nullptr;
-                script.onFieldEdited(field);
-                changed = true;
-            }
-            break;
-        }
-        }
-
-        if (changed)
-        {
-            script.onFieldEdited(field);
-            m_stateMachineDirty = true;
-        }
-    }
+    FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
+    m_stateMachineDirty = true;
 }
 void AnimationComponent::debugDrawRecursive(GameObject* go)
 {
@@ -1387,6 +1314,98 @@ void AnimationComponent::setSpeedMultiplier(float speedMultiplier)
     {
         applyActiveStatePlaybackSpeed();
     }
+
+    if (m_hasOverrideClip)
+    {
+        m_overrideController.SetSpeed(m_runtimeSpeedMultiplier);
+    }
+}
+
+bool AnimationComponent::playOverrideClip(const std::string& clipName, float transitionTimeSeconds, bool loop)
+{
+    if (clipName.empty())
+    {
+        return false;
+    }
+
+    if (!ensureStateMachineLoaded())
+    {
+        return false;
+    }
+
+    const AnimationStateMachineClip* clip = findClipByName(clipName);
+    if (!clip)
+    {
+        DEBUG_WARN("[AnimationComponent] Override clip '%s' not found.", clipName.c_str());
+        return false;
+    }
+
+    if (!clip->animationUID.isValid())
+    {
+        DEBUG_WARN("[AnimationComponent] Override clip '%s' has invalid animation UID.", clip->name.c_str());
+        return false;
+    }
+
+    ModuleAssets* moduleAssets = app ? app->getModuleAssets() : nullptr;
+    if (!moduleAssets)
+    {
+        return false;
+    }
+
+    auto clipRef = clip->animationUID;
+    std::shared_ptr<AnimationAsset> animation = moduleAssets->load<AnimationAsset>(clipRef);
+    if (!animation)
+    {
+        DEBUG_WARN("[AnimationComponent] Could not load override clip animation '%s'.", std::to_string(clip->animationUID.m_uid).c_str());
+        return false;
+    }
+
+    m_overrideAnimationAsset = animation;
+
+    m_overrideController.Stop();
+    m_overrideController.SetAnimation(m_overrideAnimationAsset);
+    m_overrideController.SetLoop(loop);
+    m_overrideController.SetSpeed(std::max(0.0f, m_runtimeSpeedMultiplier));
+    m_overrideController.Play(loop);
+
+    m_overrideFadeTime = 0.0f;
+    m_overrideTransitionTime = std::max(0.0f, transitionTimeSeconds);
+
+    m_hasOverrideClip = true;
+    m_isClearingOverrideClip = false;
+
+    return true;
+}
+
+void AnimationComponent::clearOverrideClip(float transitionTimeSeconds)
+{
+    if (!m_hasOverrideClip)
+    {
+        return;
+    }
+
+    if (transitionTimeSeconds <= 0.0f)
+    {
+        m_overrideController.Stop();
+        m_overrideController.SetAnimation(std::shared_ptr<AnimationAsset>{});
+        m_overrideAnimationAsset.reset();
+
+        m_overrideFadeTime = 0.0f;
+        m_overrideTransitionTime = 0.0f;
+
+        m_hasOverrideClip = false;
+        m_isClearingOverrideClip = false;
+        return;
+    }
+
+    m_overrideFadeTime = 0.0f;
+    m_overrideTransitionTime = transitionTimeSeconds;
+    m_isClearingOverrideClip = true;
+}
+
+bool AnimationComponent::hasOverrideClip() const
+{
+    return m_hasOverrideClip;
 }
 
 void AnimationComponent::clearStateBehaviours()
@@ -1451,6 +1470,16 @@ void AnimationComponent::resetRuntime()
     m_previousPlayback.reset();
     m_stateBehaviours.clear();
     m_hasStartedPlayback = false;
+
+    m_overrideController.Stop();
+    m_overrideController.SetAnimation(std::shared_ptr<AnimationAsset>{});
+    m_overrideAnimationAsset.reset();
+
+    m_overrideFadeTime = 0.0f;
+    m_overrideTransitionTime = 0.0f;
+
+    m_hasOverrideClip = false;
+    m_isClearingOverrideClip = false;
 }
 
 bool AnimationComponent::saveStateMachineAsset()
@@ -1506,7 +1535,7 @@ StateMachineScript* AnimationComponent::createStateBehaviourIfNeeded(const Anima
         return existing;
     }
 
-    std::unique_ptr<Script> newScript = ScriptFactory::createScript(state.behaviourScriptName, getOwner());
+    std::unique_ptr<Script> newScript = ScriptFactory::create(state.behaviourScriptName, getOwner());
     if (!newScript)
     {
         return nullptr;
@@ -1624,64 +1653,16 @@ void AnimationComponent::invalidateAllStateBehaviours()
 
 std::string AnimationComponent::serializeScriptFields(const Script& script) const
 {
-    rapidjson::Document document;
-    document.SetObject();
-    rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+    JsonArchive archive(ArchiveMode::Output);
+    FieldUtils::serialize(script, reinterpret_cast<const char*>(&script), archive);
 
-    ScriptFieldList fieldList = script.getExposedFields();
-    const char* base = reinterpret_cast<const char*>(&script);
-
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        const void* data = base + field.offset;
-
-        rapidjson::Value key(field.name, allocator);
-
-        switch (field.type)
-        {
-        case ScriptFieldType::Float:
-            document.AddMember(key, *reinterpret_cast<const float*>(data), allocator);
-            break;
-
-        case ScriptFieldType::Int:
-        case ScriptFieldType::EnumInt:
-            document.AddMember(key, *reinterpret_cast<const int*>(data), allocator);
-            break;
-
-        case ScriptFieldType::Bool:
-            document.AddMember(key, *reinterpret_cast<const bool*>(data), allocator);
-            break;
-
-        case ScriptFieldType::Vec3:
-        {
-            const Vector3* value = reinterpret_cast<const Vector3*>(data);
-            rapidjson::Value array(rapidjson::kArrayType);
-            array.PushBack(value->x, allocator);
-            array.PushBack(value->y, allocator);
-            array.PushBack(value->z, allocator);
-            document.AddMember(key, array, allocator);
-            break;
-        }
-
-        case ScriptFieldType::String:
-        {
-            const std::string* value = reinterpret_cast<const std::string*>(data);
-            document.AddMember(key, rapidjson::Value(value->c_str(), allocator), allocator);
-            break;
-        }
-
-        case ScriptFieldType::ComponentRef:
-        {
-            const ScriptComponentRef<Component>* componentReference = reinterpret_cast<const ScriptComponentRef<Component>*>(data);
-            document.AddMember(key, static_cast<uint64_t>(componentReference->uid), allocator);
-            break;
-        }
-        }
-    }
+    rapidjson::Document doc;
+    rapidjson::Value value = archive.extractValue(doc.GetAllocator());
+    doc.Swap(value);
 
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    document.Accept(writer);
+    doc.Accept(writer);
 
     return buffer.GetString();
 }
@@ -1701,71 +1682,9 @@ void AnimationComponent::deserializeScriptFields(Script& script, const std::stri
         return;
     }
 
-    ScriptFieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
-
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        if (!document.HasMember(field.name))
-        {
-            continue;
-        }
-
-        void* data = base + field.offset;
-        const rapidjson::Value& valueJson = document[field.name];
-
-        switch (field.type)
-        {
-        case ScriptFieldType::Float:
-            if (valueJson.IsNumber())
-            {
-                *reinterpret_cast<float*>(data) = valueJson.GetFloat();
-            }
-            break;
-
-        case ScriptFieldType::Int:
-        case ScriptFieldType::EnumInt:
-            if (valueJson.IsInt())
-            {
-                *reinterpret_cast<int*>(data) = valueJson.GetInt();
-            }
-            break;
-
-        case ScriptFieldType::Bool:
-            if (valueJson.IsBool())
-            {
-                *reinterpret_cast<bool*>(data) = valueJson.GetBool();
-            }
-            break;
-
-        case ScriptFieldType::Vec3:
-            if (valueJson.IsArray() && valueJson.Size() == 3)
-            {
-                Vector3* vector = reinterpret_cast<Vector3*>(data);
-                vector->x = valueJson[0].GetFloat();
-                vector->y = valueJson[1].GetFloat();
-                vector->z = valueJson[2].GetFloat();
-            }
-            break;
-
-        case ScriptFieldType::String:
-            if (valueJson.IsString())
-            {
-                *reinterpret_cast<std::string*>(data) = valueJson.GetString();
-            }
-            break;
-
-        case ScriptFieldType::ComponentRef:
-            if (valueJson.IsUint64())
-            {
-                ScriptComponentRef<Component>* componentReference = reinterpret_cast<ScriptComponentRef<Component>*>(data);
-                componentReference->uid = static_cast<UID>(valueJson.GetUint64());
-                componentReference->component = nullptr;
-            }
-            break;
-        }
-    }
-
+    JsonArchive archive(ArchiveMode::Input);
+    archive.setValue(document);
+    FieldUtils::deserialize(script, reinterpret_cast<char*>(&script), archive);
     script.onAfterDeserialize();
 }
 

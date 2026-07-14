@@ -154,10 +154,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <AdditionalIncludeDirectories>3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;.</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ProjectDir)3rdParty\imgui-node-editor-master;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)3rdParty\imgui-node-editor-master;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -231,7 +232,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;
 $(SolutionDir)3rdParty\RecastNavigation\Recast\Include;
 $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
 %(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;%(AdditionalIncludeDirectories);3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;%(AdditionalIncludeDirectories);3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -258,7 +259,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PreprocessorDefinitions>GAME_RELEASE;AK_OPTIMIZED;_WINDOWS;ENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -276,6 +277,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h" />
     <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h" />
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h" />
     <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h" />
@@ -296,33 +298,50 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AnimationStateMachineAsset.h" />
     <ClInclude Include="AssetDialogFilter.h" />
     <ClInclude Include="AssetReference.h" />
+    <ClInclude Include="AssetRef.h" />
     <ClInclude Include="CanvasRenderMode.h" />
     <ClInclude Include="CommandAddChildToPrefabRoot.h" />
     <ClInclude Include="CommandAddGameObject.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="ImporterSoundBank.h" />
+    <ClInclude Include="ForwardPrepass.h" />
     <ClInclude Include="EmitterAnimation.h" />
     <ClInclude Include="EmitterRender.h" />
     <ClInclude Include="ImportSettings.h" />
     <ClInclude Include="NavMeshBuildSettings.h" />
     <ClInclude Include="NavRuntimeBlockerComponent.h" />
     <ClInclude Include="PdbPatcher.h" />
+    <ClInclude Include="PlayerPass.h" />
+    <ClInclude Include="PlayerRenderBufferComponent.h" />
     <ClInclude Include="ScriptBuildSystem.h" />
     <ClInclude Include="ScriptLibraryLoader.h" />
     <ClInclude Include="ShadowMapPass.h" />
     <ClInclude Include="ShadowTypes.h" />
+    <ClInclude Include="SoundBankAsset.h" />
+    <ClInclude Include="SSAOBlurPass.h" />
+    <ClInclude Include="SSAOGeometryPass.h" />
+    <ClInclude Include="SSAOPass.h" />
+    <ClInclude Include="SSAOSettings.h" />
+    <ClInclude Include="SSAOTypes.h" />
     <ClInclude Include="TextureImportSettings.h" />
     <ClInclude Include="AssetScanner.h" />
     <ClInclude Include="AssetsDictionary.h" />
     <ClInclude Include="AssetType.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="Channel.h" />
+    <ClInclude Include="CommandCreateGameObject.h" />
     <ClInclude Include="ComponentFactory.h" />
     <ClInclude Include="ComponentSoundListener.h" />
     <ClInclude Include="ComponentSoundSource.h" />
     <ClInclude Include="ContentRegistry.h" />
     <ClInclude Include="CommandCreateFolder.h" />
+    <ClInclude Include="CommandCreateDataContainer.h" />
     <ClInclude Include="CommandCutItem.h" />
+    <ClInclude Include="DataContainer.h" />
+    <ClInclude Include="DataContainerExporter.h" />
+    <ClInclude Include="GenericTypeFactory.h" />
+    <ClInclude Include="DataContainerAPI.h" />
     <ClInclude Include="Delegates.h" />
     <ClInclude Include="DescriptorHeapBlock.h" />
     <ClInclude Include="DescriptorHandle.h" />
@@ -344,6 +363,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="FileDialogClipboard.h" />
     <ClInclude Include="FileDialogRequest.h" />
     <ClInclude Include="FontAsset.h" />
+    <ClInclude Include="GeometryPass.h" />
     <ClInclude Include="Handle.h" />
     <ClInclude Include="HapticEffectDefinition.h" />
     <ClInclude Include="HapticEffectLibrary.h" />
@@ -355,9 +375,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImporterFont.h" />
     <ClInclude Include="ImporterGltf.h" />
     <ClInclude Include="ImporterNative.h" />
+    <ClInclude Include="ImporterNavMesh.h" />
     <ClInclude Include="ImporterPrefab.h" />
     <ClInclude Include="KeyCode.h" />
     <ClInclude Include="CommandInstantiatePrefab.h" />
+    <ClInclude Include="LightingPass.h" />
     <ClInclude Include="MaterialAsset.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MD5Fwd.h" />
@@ -372,6 +394,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="PrefabManager.h" />
     <ClInclude Include="SoundReference.h" />
     <ClInclude Include="ThreadPool.h" />
+    <ClInclude Include="TrailComponent.h" />
+    <ClInclude Include="TrailPass.h" />
     <ClInclude Include="TriggerSystem.h" />
     <ClInclude Include="NavMeshTypes.h" />
     <ClInclude Include="NavModifierVolumeComponent.h" />
@@ -388,7 +412,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandPasteFile.h" />
     <ClInclude Include="CommandRemoveGameObject.h" />
     <ClInclude Include="CommandRenameGameObject.h" />
-
     <ClInclude Include="RenderContext.h" />
     <ClInclude Include="RenderSurface.h" />
     <ClInclude Include="CommandReparent.h" />
@@ -397,19 +420,19 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ScenePicking.h" />
     <ClInclude Include="ScriptAPI.h" />
-    <ClInclude Include="ScriptAutoRegister.h" />
-    <ClInclude Include="ScriptComponentRef.h" />
-    <ClInclude Include="ScriptFieldHandler.h" />
-    <ClInclude Include="ScriptFieldHandlerRegistry.h" />
-    <ClInclude Include="ScriptFieldInfo.h" />
-    <ClInclude Include="ScriptCreator.h" />
+    <ClInclude Include="ComponentRef.h" />
+    <ClInclude Include="FieldHandler.h" />
+    <ClInclude Include="FieldHandlerRegistry.h" />
+    <ClInclude Include="FieldInfo.h" />
+    <ClInclude Include="IFieldContainer.h" />
     <ClInclude Include="SceneDataCB.h" />
     <ClInclude Include="SceneLightingSettings.h" />
     <ClInclude Include="SceneReferenceResolver.h" />
-    <ClInclude Include="ScriptFieldMacros.h" />
+    <ClInclude Include="FieldMacros.h" />
+    <ClInclude Include="FieldTypeTraits.h" />
+    <ClInclude Include="FieldUtils.h" />
     <ClInclude Include="ScriptMethodInfo.h" />
     <ClInclude Include="ScriptMethodList.h" />
-    <ClInclude Include="ScriptRegistry.h" />
     <ClInclude Include="Skin.h" />
     <ClInclude Include="SkinAsset.h" />
     <ClInclude Include="SkinningComputePass.h" />
@@ -431,6 +454,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="TriggerDebugDrawMode.h" />
     <ClInclude Include="TriggerShape.h" />
     <ClInclude Include="UIFill.h" />
+    <ClInclude Include="UILayoutUtils.h" />
     <ClInclude Include="UINavigation.h" />
     <ClInclude Include="UISheet.h" />
     <ClInclude Include="UISlider.h" />
@@ -497,8 +521,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="NavMeshAsset.h" />
     <ClInclude Include="MeshRenderer.h" />
-    <ClInclude Include="MeshRendererPass.h" />
+    <ClInclude Include="DeferredShadingPass.h" />
     <ClInclude Include="PlayToolbar.h" />
     <ClInclude Include="PointerEventData.h" />
     <ClInclude Include="PrefabEditSession.h" />
@@ -529,8 +554,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="WindowMusicDebug.h" />
+    <ClInclude Include="WindowDataContainerManager.h" />
     <ClInclude Include="WindowSceneEditor.h" />
-
     <ClInclude Include="SceneSnapshot.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptComponent.h" />
@@ -726,19 +751,21 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="AnimationController.cpp" />
     <ClCompile Include="Asset.cpp" />
     <ClCompile Include="AssetDialogFilter.cpp" />
-    <ClCompile Include="AssetReference.cpp" />
     <ClCompile Include="CommandAddChildToPrefabRoot.cpp" />
     <ClCompile Include="CommandAddGameObject.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetScanner.cpp" />
     <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="CommandCreateGameObject.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentSoundListener.cpp" />
     <ClCompile Include="ComponentSoundSource.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
+    <ClCompile Include="DataContainerExporter.cpp" />
     <ClCompile Include="DescriptorHeapBlock.cpp" />
     <ClCompile Include="CommandCreateFolder.cpp" />
+    <ClCompile Include="CommandCreateDataContainer.cpp" />
     <ClCompile Include="CommandCutItem.cpp" />
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
@@ -754,16 +781,22 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="EmitterVelocity.cpp" />
     <ClCompile Include="EngineAPI.cpp" />
     <ClCompile Include="EquirectangularPass.cpp" />
+    <ClCompile Include="ForwardPrepass.cpp" />
+    <ClCompile Include="GeometryPass.cpp" />
     <ClCompile Include="HapticEffectDefinition.cpp" />
     <ClCompile Include="HapticEffectLibrary.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="HierarchyTreeRenderer.cpp" />
     <ClCompile Include="HierarchyUtils.cpp" />
     <ClCompile Include="CommandImportAsset.cpp" />
+    <ClCompile Include="DataContainer.cpp" />
     <ClCompile Include="ImporterFont.cpp" />
     <ClCompile Include="ImporterGltf.cpp" />
+    <ClCompile Include="ImporterNavMesh.cpp" />
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
+    <ClCompile Include="ImporterSoundBank.cpp" />
+    <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />
     <ClCompile Include="ModuleGameView.cpp" />
@@ -771,29 +804,41 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="ModuleScripting.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
+    <ClCompile Include="NavMeshAsset.cpp" />
+    <ClCompile Include="NavMeshBuildSettings.cpp" />
     <ClCompile Include="NavRuntimeBlockerComponent.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />
+    <ClCompile Include="PlayerPass.cpp" />
+    <ClCompile Include="PlayerRenderBufferComponent.cpp" />
     <ClCompile Include="PrefabManager.cpp" />
+    <ClCompile Include="FieldHandler_GroupLabel.cpp" />
     <ClCompile Include="ScriptBuildSystem.cpp" />
-    <ClCompile Include="ScriptFieldHandler_GroupLabel.cpp" />
     <ClCompile Include="ScriptLibraryLoader.cpp" />
     <ClCompile Include="ShadowMapPass.cpp" />
+    <ClCompile Include="SoundBankAsset.cpp" />
+    <ClCompile Include="SSAOBlurPass.cpp" />
+    <ClCompile Include="SSAOGeometryPass.cpp" />
+    <ClCompile Include="SSAOPass.cpp" />
     <ClCompile Include="TextureAsset.cpp" />
     <ClCompile Include="TextureImportSettings.cpp" />
     <ClCompile Include="ImportSettings.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
+    <ClCompile Include="TrailComponent.cpp" />
+    <ClCompile Include="TrailPass.cpp" />
     <ClCompile Include="TriggerSystem.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Bool.cpp" />
-    <ClCompile Include="ScriptFieldHandler_ComponentRef.cpp" />
-    <ClCompile Include="ScriptFieldHandler_ComponentRefList.cpp" />
-    <ClCompile Include="ScriptFieldHandler_EnumInt.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Float.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Int.cpp" />
-    <ClCompile Include="ScriptFieldHandler_List.cpp" />
-    <ClCompile Include="ScriptFieldHandler_String.cpp" />
-    <ClCompile Include="ScriptFieldHandler_Vec3.cpp" />
+    <ClCompile Include="FieldHandler_Bool.cpp" />
+    <ClCompile Include="FieldHandler_ComponentRef.cpp" />
+    <ClCompile Include="FieldHandler_ComponentRefList.cpp" />
+    <ClCompile Include="FieldHandler_EnumInt.cpp" />
+    <ClCompile Include="FieldHandler_Float.cpp" />
+    <ClCompile Include="FieldHandler_Int.cpp" />
+    <ClCompile Include="FieldHandler_List.cpp" />
+    <ClCompile Include="FieldHandler_String.cpp" />
+    <ClCompile Include="FieldHandler_Vec3.cpp" />
+    <ClCompile Include="FieldUtils.cpp" />
+    <ClCompile Include="FieldHandler_AssetRef.cpp" />
     <ClCompile Include="Skin.cpp" />
     <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="ParticleModule.cpp" />
@@ -806,7 +851,6 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandPasteFile.cpp" />
     <ClCompile Include="CommandRemoveGameObject.cpp" />
     <ClCompile Include="CommandRenameGameObject.cpp" />
-
     <ClCompile Include="RenderSurface.cpp" />
     <ClCompile Include="CommandReparent.cpp" />
     <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp" />
@@ -819,6 +863,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CubeLut.cpp" />
     <ClCompile Include="BloomPass.cpp" />
     <ClCompile Include="TriggerComponent.cpp" />
+    <ClCompile Include="UILayoutUtils.cpp" />
     <ClCompile Include="UINavigation.cpp" />
     <ClCompile Include="UISheet.cpp" />
     <ClCompile Include="UISlider.cpp" />
@@ -867,7 +912,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="NavMeshBuilder.cpp" />
     <ClCompile Include="NavMeshGeometryExtractor.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
-    <ClCompile Include="MeshRendererPass.cpp" />
+    <ClCompile Include="DeferredShadingPass.cpp" />
     <ClCompile Include="PlayToolbar.cpp" />
     <ClCompile Include="PrefabUI.cpp" />
     <ClCompile Include="QuadNode.cpp" />
@@ -906,9 +951,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
     <ClCompile Include="WindowMusicDebug.cpp" />
+    <ClCompile Include="WindowDataContainerManager.cpp" />
     <ClCompile Include="WindowSceneEditor.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
-    <ClCompile Include="ScriptFactory.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -949,12 +994,41 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl" />
+    <None Include="ForwardCommon.hlsli" />
+    <None Include="GBufferCommon.hlsli" />
+    <None Include="General.hlsli" />
+    <None Include="LightingCBuffers.hlsli" />
     <None Include="EngineAPI.inl" />
     <None Include="MakeSpriteFont.exe" />
-    <None Include="NewCBuffers.hlsli" />
+    <None Include="PBRGeneral.hlsli" />
+    <None Include="GeometryCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="ForwardPrepassVertexShader.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GBufferPS.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GBufferVS.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="BRDFPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
@@ -986,6 +1060,18 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="FullscreenTriangleVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="LightPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
@@ -1054,6 +1140,22 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-Qembed_debug %(AdditionalOptions)</AdditionalOptions>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="PlayerPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="PlayerVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="ShadowMapVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -1135,6 +1237,62 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="TrailPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="TrailVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="SSAO.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="SSAOBlur.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="SSAONormalPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="SSAONormalVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="UIPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>

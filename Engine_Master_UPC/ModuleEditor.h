@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 #include <filesystem>
+#include "mutex"
 
 class ModuleGameView;
 class WindowSceneEditor;
@@ -185,4 +186,10 @@ private:
     // Prefab editing
     PrefabEditSession m_prefabSession;
     bool              m_pendingExitPrefab = false;
+
+    // Async file dialog for DataContainer export/import
+    std::atomic<bool>      m_dcDialogRunning = false;
+    std::mutex             m_dcDialogMutex;
+    std::optional<std::filesystem::path> m_dcDialogResult;
+    int                    m_dcDialogMode = 0; // 1=export, 2=import
 };

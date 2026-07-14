@@ -7,11 +7,13 @@
 #include "ScriptComponent.h"
 #include "AnimationComponent.h"
 #include "GameObject.h"
+#include "Extensions.h"
 
 #include <fstream>
 #include <vector>
 #include <chrono>
 #include <future>
+#include <filesystem>
 
 // Used to clean whitespace when parsing the script build settings .ini.
 namespace
@@ -398,6 +400,48 @@ void ModuleScripting::restoreSceneScriptReloadInfo(std::vector<ScriptReloadInfo>
 
         info.component->deserializeScriptFieldsForReload(info.fields);
     }
+}
+
+std::vector<ScriptSourceInfo> ModuleScripting::getAvailableScripts() const
+{
+    std::vector<ScriptSourceInfo> availableScripts;
+
+    if (m_buildSettings.projectPath.empty())
+    {
+        return availableScripts;
+    }
+
+    const std::filesystem::path scriptsFolder = std::filesystem::path(m_buildSettings.projectPath).parent_path();
+
+    std::error_code ec;
+    if (!std::filesystem::is_directory(scriptsFolder, ec))
+    {
+        return availableScripts;
+    }
+
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(scriptsFolder, ec))
+    {
+        if (ec)
+        {
+            break;
+        }
+
+        if (!entry.is_regular_file() || entry.path().extension() != H_EXTENSION)
+        {
+            continue;
+        }
+
+        const std::string scriptName = entry.path().stem().string();
+
+        if (!ScriptFactory::isRegistered(scriptName))
+        {
+            continue;
+        }
+
+        availableScripts.push_back({ scriptName, entry.path() });
+    }
+
+    return availableScripts;
 }
 
 void ModuleScripting::destroySceneStateMachineBehaviours()

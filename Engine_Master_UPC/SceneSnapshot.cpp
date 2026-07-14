@@ -37,8 +37,15 @@ void SceneSnapshot::init(const Scene& scene)
     CameraComponent* oldCameraComponent = scene.getDefaultCamera();
     if (oldCameraComponent)
     {
-        m_defaultCamera = (CameraComponent *)m_resolver.getClonedComponent(oldCameraComponent->getID());
+        m_defaultCamera = (CameraComponent*)m_resolver.getClonedComponent(oldCameraComponent->getID());
     }
+
+    m_navMesh = scene.m_navMesh;
+    m_loadedBankRefs = scene.m_loadedBankRefs;
+    m_loadedBankNameCache = scene.m_loadedBankNameCache;
+    m_lighting = scene.m_lighting;
+    m_skybox = scene.m_skybox;
+    m_ssao = scene.m_ssao;
 }
 
 std::unique_ptr<GameObject> SceneSnapshot::cloneRecursive(GameObject* original)
@@ -105,6 +112,12 @@ void SceneSnapshot::applyTo(Scene& scene)
     scene.m_allObjects = std::move(m_allObjects);
     scene.m_rootObjects = std::move(m_rootObjects);
     scene.setDefaultCamera(m_defaultCamera);
+    scene.m_navMesh = m_navMesh;
+    scene.m_loadedBankRefs = m_loadedBankRefs;
+    scene.m_loadedBankNameCache = m_loadedBankNameCache;
+    scene.m_lighting = m_lighting;
+    scene.m_skybox = m_skybox;
+    scene.m_ssao = m_ssao;
 
     for (size_t i = 0; i < scene.m_allObjects.size(); ++i)
         scene.m_objectIndexMap[scene.m_allObjects[i].get()] = i;

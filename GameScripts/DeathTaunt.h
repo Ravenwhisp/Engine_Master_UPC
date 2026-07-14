@@ -4,6 +4,7 @@
 class EnemyDetectionAggro;
 class PlayerRotation;
 class DeathUI;
+class DeathParticles;
 
 class DeathTaunt : public DeathAbilityBase
 {
@@ -11,6 +12,8 @@ class DeathTaunt : public DeathAbilityBase
 
 public:
     explicit DeathTaunt(GameObject* owner);
+
+    FieldList getExposedFields() const override;
 
     void Start()  override;
     void Update() override;
@@ -21,6 +24,7 @@ protected:
 	void startAbility() override;
 
 	bool canStartSpecificAbility() const override;
+    void onAttackWindowFinished() override;
 
     float getCooldown() const override;
 
@@ -39,6 +43,7 @@ private:
 private:
     PlayerRotation* m_playerRotation = nullptr;
     DeathUI* m_deathUI = nullptr;
+    DeathParticles* m_deathParticles = nullptr;
 
     float m_debugConeTimer = 0.0f;
     bool m_isAiming = false;

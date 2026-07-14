@@ -1,0 +1,13 @@
+{
+    "uid": 7539375355097750775,
+    "contentHash": "98c0a2502e339e07eed6e03df7ccb7b5",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\LVL1P2\\T_PROP_stone_deco_dungeon_MTSM.jpg",
+    "sourceFileSize": 141511,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

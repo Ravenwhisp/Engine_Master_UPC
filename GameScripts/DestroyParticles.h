@@ -12,7 +12,7 @@ public:
     void Start()  override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
     float m_lifetime = 2.0f;

@@ -1,19 +1,15 @@
 ﻿#include "pch.h"
 #include "Bound.h"
+#include "BoundConfig.h"
 #include "Damageable.h"
 #include "HeartbeatHaptic.h"
+#include "CooperativeSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_secondTarget, "Player 2 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_BoundUI, "Bound UI", ComponentType::TRANSFORM),
-    SERIALIZED_FLOAT(m_minDistance, "Min Distance", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_distanceDamage, "Damage Distance", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_distanceInstaKill, "InstaKill Distance", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_radiusThreshold, "Radius Threshold", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(baseDamage, "Base Damage", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(maxDamage, "Max Damage", 0.0f, 0.0f, 0.1f),
-    SERIALIZED_FLOAT(m_separationHapticHpGate, "Separation Haptic HP Gate", 0.5f, 0.25f, 0.01f)
+    SERIALIZED_ASSET_REF(m_config, "Bound Config", AssetType::DATA_CONTAINER)
 )
 
 Bound::Bound(GameObject* owner) : Script(owner)
@@ -23,6 +19,18 @@ Bound::Bound(GameObject* owner) : Script(owner)
 
 void Bound::Start()
 {
+    if (m_config.get())
+    {
+        const BoundConfig* cfg = m_config.get();
+        m_minDistance = cfg->m_minDistance;
+        m_distanceDamage = cfg->m_distanceDamage;
+        m_distanceInstaKill = cfg->m_distanceInstaKill;
+        baseDamage = cfg->m_baseDamage;
+        maxDamage = cfg->m_maxDamage;
+        m_radiusThreshold = cfg->m_radiusThreshold;
+        m_separationHapticHpGate = cfg->m_separationHapticHpGate;
+    }
+
     GameObject* player1 = ComponentAPI::getOwner(m_firstTarget.getReferencedComponent());
     GameObject* player2 = ComponentAPI::getOwner(m_secondTarget.getReferencedComponent());
 
@@ -42,6 +50,12 @@ void Bound::Start()
     {
         m_haptic->m_variant = HapticEffectDefinition::HeartbeatVariant::Separation;
     }
+
+    const auto coopGOs = SceneAPI::findAllGameObjectsWithScript<CooperativeSound>();
+    if (!coopGOs.empty())
+    {
+        m_coopSound = GameObjectAPI::findScript<CooperativeSound>(coopGOs.front());
+    }
 }
 
 void Bound::Update()
@@ -50,14 +64,14 @@ void Bound::Update()
         !m_firstDamageable || !m_secondDamageable)
         return;
 
-    const Vector3 p1 = TransformAPI::getPosition(m_firstTarget.getReferencedComponent());
-    const Vector3 p2 = TransformAPI::getPosition(m_secondTarget.getReferencedComponent());
+    const Vector3 p1 = TransformAPI::getGlobalPosition(m_firstTarget.getReferencedComponent());
+    const Vector3 p2 = TransformAPI::getGlobalPosition(m_secondTarget.getReferencedComponent());
 
     // Midpoint
     m_center = (p1 + p2) * 0.5f;
     if (m_BoundUI.getReferencedComponent())
     {
-        TransformAPI::setPosition(m_BoundUI.getReferencedComponent(), m_center);
+        TransformAPI::setGlobalPosition(m_BoundUI.getReferencedComponent(), m_center);
     }
 
     const float distance = Vector3::Distance(p1, p2);
@@ -67,6 +81,7 @@ void Bound::Update()
 
     if (m_previousDistance < m_distanceInstaKill && distance >= m_distanceInstaKill)
     {
+        if (m_coopSound) m_coopSound->stopBoundDamageLoop();
         m_firstDamageable->takeDamage(m_firstDamageable->getCurrentHp());
         m_secondDamageable->takeDamage(m_secondDamageable->getCurrentHp());
         return;
@@ -75,6 +90,9 @@ void Bound::Update()
 
     if (distance > m_distanceDamage && distance < m_distanceInstaKill)
     {
+        // Separation damage band: the cooperative loop replaces the per-hit hurt grunt.
+        if (m_coopSound) m_coopSound->startBoundDamageLoop();
+
         const float range = m_distanceInstaKill - m_minDistance;
 
         // Manual clamp
@@ -89,8 +107,10 @@ void Bound::Update()
 
         const float damage = damagePerSecond * Time::getDeltaTime();
 
-        m_firstDamageable->takeDamage(damage);
-        m_secondDamageable->takeDamage(damage);
+        // Continuous flag: suppresses the per-hit hurt grunt (the Bound-Damage loop
+        // above conveys the separation); the escalating heartbeat handles the tension.
+        m_firstDamageable->takeDamage(HitContext{ damage, /*continuous=*/true });
+        m_secondDamageable->takeDamage(HitContext{ damage, /*continuous=*/true });
 
         const bool p1LowHp = m_firstDamageable->getHpPercent() < m_separationHapticHpGate;
         const bool p2LowHp = m_secondDamageable->getHpPercent() < m_separationHapticHpGate;
@@ -105,6 +125,7 @@ void Bound::Update()
     }
     else
     {
+        if (m_coopSound) m_coopSound->stopBoundDamageLoop();
         if (m_haptic) m_haptic->stop();
     }
 
@@ -116,8 +137,8 @@ void Bound::drawGizmo()
     if (!m_firstTarget.getReferencedComponent() || !m_secondTarget.getReferencedComponent())
         return;
 
-    const Vector3 p1 = TransformAPI::getPosition(m_firstTarget.getReferencedComponent());
-    const Vector3 p2 = TransformAPI::getPosition(m_secondTarget.getReferencedComponent());
+    const Vector3 p1 = TransformAPI::getGlobalPosition(m_firstTarget.getReferencedComponent());
+    const Vector3 p2 = TransformAPI::getGlobalPosition(m_secondTarget.getReferencedComponent());
 
     const Vector3 center = (p1 + p2) * 0.5f;
     const float distance = Vector3::Distance(p1, p2);

@@ -22,7 +22,6 @@ public:
 
 	bool drawUi() override;
 	void serialize(IArchive& archive) override;
-	bool deserializeJSON(const rapidjson::Value& moduleInfo) override;
 private:
 
 	ParameterType m_startScaleType = ParameterType::CONSTANT;

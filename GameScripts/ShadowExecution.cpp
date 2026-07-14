@@ -8,12 +8,14 @@
 #include "PlayerState.h"
 #include "PlayerAnimationController.h"
 #include "EnemyDamageable.h"
+#include "Bound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ShadowExecution,
     SERIALIZED_FLOAT(m_timeWindow,         "Co-op Window (s)",      0.1f, 10.0f, 0.1f),
     SERIALIZED_FLOAT(m_executionDuration,  "Execution Duration (s)", 0.1f, 10.0f, 0.1f),
     SERIALIZED_FLOAT(m_instaKillThreshold, "Insta Kill HP %",        0.0f,  1.0f, 0.01f),
     SERIALIZED_FLOAT(m_standardDamage,     "Standard Damage (max HP %)", 0.0f, 1.0f, 0.01f),
+    SERIALIZED_ASSET_REF(m_particlePrefab, "Particle Prefab", AssetType::PREFAB),
     SERIALIZED_COMPONENT_REF(m_reaperGaugeBar, "Reaper Gauge UI", ComponentType::UISLIDER),
     SERIALIZED_COMPONENT_REF(m_executionCanvas, "Execution Canvas", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_executionSprite, "Execution Sprite", ComponentType::TRANSFORM2D),
@@ -42,6 +44,17 @@ void ShadowExecution::Start()
 
     m_sound = GameObjectAPI::findScript<CooperativeSound>(getOwner());
 
+	Bound* bound = GameObjectAPI::findScript<Bound>(getOwner());
+
+    if(!bound)
+    {
+        Debug::warn("[ShadowExecution] Bound not found on GameController. Add it as a sibling script.");
+    }
+    else
+    {
+        m_maxRadius = bound->m_distanceDamage * 0.5f;
+	}
+
     cachePlayers();
 }
 
@@ -49,36 +62,89 @@ void ShadowExecution::Update()
 {
     const float dt = Time::getDeltaTime();
 
+    // Actualizar y eliminar los prefabs de partículas cuando pase 1 segundo
+    for (auto it = m_temporaryPrefabs.begin(); it != m_temporaryPrefabs.end(); )
+    {
+        it->lifetimeRemaining -= dt;
+        if (it->lifetimeRemaining <= 0.0f)
+        {
+            if (it->gameObject != nullptr)
+            {
+                GameObjectAPI::removeGameObject(it->gameObject);
+            }
+            it = m_temporaryPrefabs.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
     if (m_isActive)
     {
         updateExecution(dt);
-        updateUI();
         return;
     }
 
-    const bool p0WasOpen = m_p0Timer > 0.0f;
-    const bool p1WasOpen = m_p1Timer > 0.0f;
+    if (m_p0WindowTimer > 0.0f)
+    {
+        if (m_reaperGauge->isFull())
+        {
+            m_p0WindowTimer -= dt;
+        }
+        else
+        {
+            m_p0WindowTimer = 0.0f;
+		}
+    }
+    if (m_p1WindowTimer > 0.0f)
+    {
+        if (m_reaperGauge->isFull())
+        {
+            m_p1WindowTimer -= dt;
+        }
+        else
+        {
+            m_p1WindowTimer = 0.0f;
+        }
+    }
 
-    if (m_p0Timer > 0.0f) m_p0Timer -= dt;
-    if (m_p1Timer > 0.0f) m_p1Timer -= dt;
+    const bool p0IsOpen = m_p0WindowTimer > 0.0f;
+    const bool p1IsOpen = m_p1WindowTimer > 0.0f;
 
-    if (p0WasOpen && m_p0Timer <= 0.0f)
+    if (p0IsOpen && m_p0WindowTimer <= 0.0f)
         Debug::log("[ShadowExecution] Player 0 window expired.");
-    if (p1WasOpen && m_p1Timer <= 0.0f)
+    if (p1IsOpen && m_p1WindowTimer <= 0.0f)
         Debug::log("[ShadowExecution] Player 1 window expired.");
+
 
     if (Input::isFaceButtonTopJustPressed(0))
     {
-        m_p0Timer = m_timeWindow;
-        Debug::log("[ShadowExecution] Player 0 pressed Triangle. Window open for %.1fs.", m_timeWindow);
+        if (m_reaperGauge->isFull())
+        {
+            m_p0WindowTimer = m_timeWindow;
+            Debug::log("[ShadowExecution] Player 0 pressed Triangle. Window open for %.1fs.", m_timeWindow);
+        }
+        else
+        {
+            Debug::log("[ShadowExecution] Player 0 pressed Triangle but gauge not full (%.0f%%). Keep exploiting marks!",
+				m_reaperGauge->getGaugePercent() * 100.0f);
+        }
     }
     if (Input::isFaceButtonTopJustPressed(1))
     {
-        m_p1Timer = m_timeWindow;
-        Debug::log("[ShadowExecution] Player 1 pressed Triangle. Window open for %.1fs.", m_timeWindow);
+        if (m_reaperGauge->isFull())
+        {
+            m_p1WindowTimer = m_timeWindow;
+            Debug::log("[ShadowExecution] Player 1 pressed Triangle. Window open for %.1fs.", m_timeWindow);
+        }
+        else
+        {
+            Debug::log("[ShadowExecution] Player 1 pressed Triangle but gauge not full (%.0f%%). Keep exploiting marks!",
+                m_reaperGauge->getGaugePercent() * 100.0f);
+        }
     }
-
-    if (m_p0Timer > 0.0f && m_p1Timer > 0.0f)
+    if (m_p0WindowTimer > 0.0f && m_p1WindowTimer > 0.0f && m_reaperGauge->isFull())
         tryTrigger();
 }
 
@@ -101,19 +167,6 @@ void ShadowExecution::cachePlayers()
 
 void ShadowExecution::tryTrigger()
 {
-    if (m_reaperGauge == nullptr)
-    {
-        Debug::warn("[ShadowExecution] Cannot trigger: ReaperGauge is null.");
-        return;
-    }
-
-    if (!m_reaperGauge->isFull())
-    {
-        Debug::log("[ShadowExecution] Both players ready but gauge not full (%.0f%%). Keep exploiting marks!",
-            m_reaperGauge->getGaugePercent() * 100.0f);
-        return;
-    }
-
     cachePlayers();
 
     if (m_deathCharacter == nullptr || m_lyrielCharacter == nullptr)
@@ -132,15 +185,14 @@ void ShadowExecution::beginExecution()
     if (deathTransform == nullptr || lyrielTransform == nullptr)
         return;
 
-    const Vector3 deathPos  = TransformAPI::getPosition(deathTransform);
-    const Vector3 lyrielPos = TransformAPI::getPosition(lyrielTransform);
+    const Vector3 deathPos  = TransformAPI::getGlobalPosition(deathTransform);
+    const Vector3 lyrielPos = TransformAPI::getGlobalPosition(lyrielTransform);
 
     m_center         = (deathPos + lyrielPos) * 0.5f;
-    m_maxRadius      = Vector3::Distance(deathPos, lyrielPos) * 0.5f;
     m_currentRadius  = 0.0f;
     m_executionTimer = 0.0f;
-    m_p0Timer        = 0.0f;
-    m_p1Timer        = 0.0f;
+    m_p0WindowTimer  = 0.0f;
+    m_p1WindowTimer  = 0.0f;
     m_hitEnemies.clear();
 
     m_reaperGauge->consume();
@@ -148,6 +200,12 @@ void ShadowExecution::beginExecution()
     if (m_sound != nullptr)
     {
         m_sound->playShadowExecution();
+    }
+
+    GameObject* fxCenter = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_ref, m_center, Vector3::Zero);
+    if (fxCenter)
+    {
+        m_temporaryPrefabs.push_back({ fxCenter, 1.0f });
     }
 
     lockPlayers(true);
@@ -175,7 +233,13 @@ void ShadowExecution::updateExecution(float dt)
     applyAoEDamage();
 
     if (m_executionTimer >= m_executionDuration)
+    {
         endExecution();
+    }
+    else
+    {
+        updateUI();
+    }
 }
 
 void ShadowExecution::applyAoEDamage()
@@ -202,7 +266,7 @@ void ShadowExecution::applyAoEDamage()
         if (enemyTransform == nullptr)
             continue;
 
-        const Vector3 enemyPos = TransformAPI::getPosition(enemyTransform);
+        const Vector3 enemyPos = TransformAPI::getGlobalPosition(enemyTransform);
         const float   distance = Vector3::Distance(m_center, enemyPos);
         if (distance > m_currentRadius)
             continue;
@@ -217,31 +281,25 @@ void ShadowExecution::applyAoEDamage()
         const float maxHp     = damageable->getMaxHp();
         const float hpPercent = damageable->getHpPercent();
 
+        EnemyHitContext ctx;
         if (hpPercent <= m_instaKillThreshold)
         {
-            {
-                EnemyHitContext ctx;
-                ctx.damage = damageable->getCurrentHp();
-                ctx.attacker = nullptr;
-                ctx.attackType = EnemyAttackType::ShadowExecution;
-                damageable->takeDamage(ctx);
-            }
+            ctx.damage = damageable->getCurrentHp();
+
             Debug::log("[ShadowExecution] Enemy '%s' below %.0f%% HP -> instant kill.",
-                GameObjectAPI::getName(enemy), m_instaKillThreshold * 100.0f);
+            GameObjectAPI::getName(enemy), m_instaKillThreshold * 100.0f);
         }
         else
         {
-            const float damage = maxHp * m_standardDamage;
-            {
-                EnemyHitContext ctx;
-                ctx.damage = damage;
-                ctx.attacker = nullptr;
-                ctx.attackType = EnemyAttackType::ShadowExecution;
-                damageable->takeDamage(ctx);
-            }
+            ctx.damage = maxHp * m_standardDamage;
+
             Debug::log("[ShadowExecution] Enemy '%s' took %.1f damage (%.0f%% of max HP).",
-                GameObjectAPI::getName(enemy), damage, m_standardDamage * 100.0f);
+            GameObjectAPI::getName(enemy), ctx.damage, m_standardDamage * 100.0f);
         }
+
+        ctx.attacker = nullptr;
+        ctx.attackType = EnemyAttackType::ShadowExecution;
+        damageable->takeDamage(ctx);
 
         m_hitEnemies.push_back(enemy);
     }
@@ -255,6 +313,9 @@ void ShadowExecution::endExecution()
     m_executionTimer = 0.0f;
     m_currentRadius  = 0.0f;
     m_hitEnemies.clear();
+
+    Transform2DAPI::setAlpha(m_executionTransform2D, 0);
+    Transform2DAPI::setScale(m_executionTransform2D, Vector2(0.0f, 0.0f));
 
     if (m_executionTransform)
     {

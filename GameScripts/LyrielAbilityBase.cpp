@@ -17,12 +17,6 @@ void LyrielAbilityBase::Start()
     AbilityBase::Start();
 
     m_lyrielCharacter = dynamic_cast<LyrielCharacter*>(m_character);
-    m_config = GameObjectAPI::findScript<LyrielConfig>(getOwner());
-
-    if (!m_config)
-    {
-        Debug::error("[LyrielAbilityBase] LyrielConfig not found. This character requires LyrielConfig.");
-    }
 }
 
 Transform* LyrielAbilityBase::findArrowSpawnTransform() const

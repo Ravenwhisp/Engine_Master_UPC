@@ -5,6 +5,8 @@
 #include "ArcherAttackConfig.h"
 #include "EnemyAttackExecutor.h"
 #include "ArcherUI.h"
+#include "ArcherSound.h"
+#include "ArcherGuardParticles.h"
 
 ArcherArrowBarrageState::ArcherArrowBarrageState(GameObject* owner)
     : StateMachineScript(owner)
@@ -14,10 +16,11 @@ ArcherArrowBarrageState::ArcherArrowBarrageState(GameObject* owner)
 void ArcherArrowBarrageState::OnStateEnter()
 {
     m_archerController = GameObjectAPI::findScript<RangedEnemyController>(getOwner());
-    m_attackConfig = GameObjectAPI::findScript<ArcherAttackConfig>(getOwner());
     m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
-    m_archerUI = GameObjectAPI::findScript<ArcherUI>(getOwner());
+    m_archerUI  = GameObjectAPI::findScript<ArcherUI>(getOwner());
+    m_particles = GameObjectAPI::findScript<ArcherGuardParticles>(getOwner());
+    m_archerSound = GameObjectAPI::findScript<ArcherSound>(getOwner());
 
     m_stateTimer = 0.0f;
     m_impactPosition = Vector3(0.0f, 0.0f, 0.0f);
@@ -28,12 +31,6 @@ void ArcherArrowBarrageState::OnStateEnter()
     if (!m_archerController)
     {
         Debug::error("[ArcherArrowBarrageState] RangedEnemyController not found.");
-        return;
-    }
-
-    if (!m_attackConfig)
-    {
-        Debug::error("[ArcherArrowBarrageState] ArcherAttackConfig not found.");
         return;
     }
 
@@ -60,14 +57,21 @@ void ArcherArrowBarrageState::OnStateEnter()
 
     m_archerController->updateCurrentTarget();
 
-    m_archerUI->setupArrowBarrageUI(m_attackConfig->m_arrowBarrageRadius);
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        Debug::error("[ArcherArrowBarrageState] ArcherAttackConfig not found.");
+        return;
+    }
+
+    m_archerUI->setupArrowBarrageUI(cfg->m_arrowBarrageRadius);
 
     Debug::log("[ArcherArrowBarrageState] ENTER");
 }
 
 void ArcherArrowBarrageState::OnStateUpdate()
 {
-    if (!m_archerController || !m_attackConfig || !m_attackExecutor || !m_animation)
+    if (!m_archerController || !m_attackExecutor || !m_animation)
     {
         return;
     }
@@ -82,28 +86,46 @@ void ArcherArrowBarrageState::OnStateUpdate()
         return;
     }
 
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
     m_stateTimer += Time::getDeltaTime();
 
-    if (!m_hasLockedImpactPosition && m_stateTimer >= m_attackConfig->m_arrowBarrageThrowTime)
+    if (!m_hasLockedImpactPosition && m_stateTimer >= cfg->m_arrowBarrageThrowTime)
     {
         lockImpactPosition();
+
+        if (m_archerSound)
+        {
+            m_archerSound->playBarrageReleaseVolley();   // 4 staggered bow releases
+        }
+
         m_hasLockedImpactPosition = true;
     }
 
-    const float impactTime = m_attackConfig->m_arrowBarrageThrowTime + m_attackConfig->m_arrowBarrageLandDelay;
+    const float impactTime = cfg->m_arrowBarrageThrowTime + cfg->m_arrowBarrageLandDelay;
 
     if (m_hasLockedImpactPosition && !m_hasAppliedImpact && m_stateTimer >= impactTime)
     {
         applyImpact();
+
+        if (m_archerSound)
+        {
+            m_archerSound->playBarrageImpactVolley();   // 4 staggered arrow impacts
+        }
+
         m_hasAppliedImpact = true;
     }
 
     if (m_archerUI)
     {
-        m_archerUI->updateArrowBarrageUI(m_stateTimer, m_impactPosition, m_attackConfig->m_arrowBarrageThrowTime, m_attackConfig->m_arrowBarrageLandDelay, m_attackConfig->m_arrowBarrageTotalDuration);
+        m_archerUI->updateArrowBarrageUI(m_stateTimer, m_impactPosition, cfg->m_arrowBarrageThrowTime, cfg->m_arrowBarrageLandDelay, cfg->m_arrowBarrageTotalDuration);
     }
 
-    if (m_stateTimer >= m_attackConfig->m_arrowBarrageTotalDuration)
+    if (m_stateTimer >= cfg->m_arrowBarrageTotalDuration)
     {
         finishArrowBarrage();
         return;
@@ -113,9 +135,10 @@ void ArcherArrowBarrageState::OnStateUpdate()
 void ArcherArrowBarrageState::OnStateExit()
 {
     if (m_archerUI)
-    {
         m_archerUI->hideArrowBarrageUI();
-    }
+
+    if (m_particles)
+        m_particles->stopBarrageArrows();
 
     Debug::log("[ArcherArrowBarrageState] EXIT");
 }
@@ -138,12 +161,30 @@ void ArcherArrowBarrageState::lockImpactPosition()
 
     m_impactPosition = TransformAPI::getGlobalPosition(targetTransform);
 
+    if (m_particles)
+    {
+        const ArcherAttackConfig* cfg = m_attackConfig.get();
+        if (cfg)
+        {
+            m_particles->spawnBarrageArrows(m_impactPosition, cfg->m_arrowBarrageLandDelay);
+        }
+    }
+
     Debug::log("[ArcherArrowBarrageState] Impact position locked: %.2f %.2f %.2f", m_impactPosition.x, m_impactPosition.y, m_impactPosition.z);
 }
 
 void ArcherArrowBarrageState::applyImpact()
 {
-    m_attackExecutor->applyDamageInRadius(m_impactPosition, m_attackConfig->m_arrowBarrageRadius, m_attackConfig->m_arrowBarrageDamage,"ArrowBarrage");
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return;
+    }
+
+    m_attackExecutor->applyDamageInRadius(m_impactPosition, cfg->m_arrowBarrageRadius, cfg->m_arrowBarrageDamage, "ArrowBarrage");
+
+    if (m_particles)
+        m_particles->spawnImpactParticle(m_impactPosition);
 
     Debug::log("[ArcherArrowBarrageState] Impact applied.");
 }
@@ -162,4 +203,6 @@ void ArcherArrowBarrageState::finishArrowBarrage()
     Debug::log("[ArcherArrowBarrageState] Finished, Chase trigger sent");
 }
 
-IMPLEMENT_SCRIPT(ArcherArrowBarrageState)
+IMPLEMENT_SCRIPT_FIELDS(ArcherArrowBarrageState,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)

@@ -5,6 +5,7 @@
 class DeathSound;
 class DeathCharacter;
 class DeathConfig;
+class DeathParticles;
 
 class DeathDash : public AbilityDash
 {
@@ -12,6 +13,8 @@ class DeathDash : public AbilityDash
 
 public:
     explicit DeathDash(GameObject* owner);
+
+    FieldList getExposedFields() const override;
 
     void Start() override;
 
@@ -30,8 +33,9 @@ protected:
 
 private:
     DeathCharacter* m_deathCharacter = nullptr;
-    DeathConfig* m_config = nullptr;
+    AssetRef<DeathConfig> m_config;
     DeathSound* m_sound = nullptr;
+    DeathParticles* m_particles = nullptr;
 
     Vector3 m_dashStartPosition = Vector3::Zero;
     bool    m_dashDamageDealt = false;        // guard: damage fires only once per dash

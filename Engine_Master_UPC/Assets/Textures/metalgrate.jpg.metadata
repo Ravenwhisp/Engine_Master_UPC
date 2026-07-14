@@ -1,0 +1,13 @@
+{
+    "uid": 1545023678669313173,
+    "contentHash": "af2d9bbf6ed2d7f33dc1613f7da7d816",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\metalgrate.jpg",
+    "sourceFileSize": 301365,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

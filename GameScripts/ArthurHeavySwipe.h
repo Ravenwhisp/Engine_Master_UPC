@@ -8,6 +8,7 @@ class ArthurAttackConfig;
 class EnemyAttackExecutor;
 class AnimationComponent;
 class ArthurUI;
+class ArthurSound;
 
 class ArthurHeavySwipe : public StateMachineScript
 {
@@ -26,10 +27,11 @@ private:
 
 private:
     ArthurBossController* m_arthurController = nullptr;
-    ArthurAttackConfig* m_attackConfig = nullptr;
+    AssetRef<ArthurAttackConfig> m_attackConfig;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
     ArthurUI* m_arthurUI = nullptr;
+    ArthurSound* m_arthurSound = nullptr;
 
     float m_stateTimer = 0.0f;
 

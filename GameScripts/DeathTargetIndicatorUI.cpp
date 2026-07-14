@@ -4,6 +4,7 @@
 #include "DeathConfig.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathTargetIndicatorUI, TargetIndicatorUI,
+    SERIALIZED_ASSET_REF(m_deathConfig, "Death Config", AssetType::DATA_CONTAINER),
     FIELD_GROUP_LABEL("Range Indicator"),
     SERIALIZED_COMPONENT_REF(m_rangeIndicatorTransform, "Range Indicator Transform", ComponentType::TRANSFORM),
     SERIALIZED_FLOAT(m_heightOffset, "Height Offset", -1.0f, 1.0f, 0.01f),
@@ -23,15 +24,6 @@ void DeathTargetIndicatorUI::onStart()
     {
         return;
     }
-
-    GameObject* player = ComponentAPI::getOwner(playerTransform);
-
-    m_deathConfig = GameObjectAPI::findScript<DeathConfig>(player);
-
-    if (m_deathConfig == nullptr)
-    {
-        Debug::warn("[DeathTargetIndicatorUI] DeathConfig not found on player '%s'.", GameObjectAPI::getName(player));
-    }
 }
 
 void DeathTargetIndicatorUI::updateDirectionIndicator(GameObject* currentTarget)
@@ -43,7 +35,8 @@ void DeathTargetIndicatorUI::updateDirectionIndicator(GameObject* currentTarget)
         return;
     }
 
-    if (m_deathConfig == nullptr)
+    const DeathConfig* deathCfg = m_deathConfig.get();
+    if (deathCfg == nullptr)
     {
         hideDirectionIndicator();
         return;
@@ -70,7 +63,8 @@ void DeathTargetIndicatorUI::hideDirectionIndicator()
 
 void DeathTargetIndicatorUI::updateRangeIndicatorTransform(Transform* rangeTransform, const Vector3& playerPosition, const Vector3& direction) const
 {
-    if (rangeTransform == nullptr || m_deathConfig == nullptr)
+    const DeathConfig* deathCfg = m_deathConfig.get();
+    if (rangeTransform == nullptr || deathCfg == nullptr)
     {
         return;
     }
@@ -85,7 +79,7 @@ void DeathTargetIndicatorUI::updateRangeIndicatorTransform(Transform* rangeTrans
 
     flatDirection.Normalize();
 
-    const float attackRange = m_deathConfig->m_basicAttackRange;
+    const float attackRange = deathCfg->m_basicAttackRange;
 
     Vector3 rangePosition = playerPosition + flatDirection * (attackRange * 0.5f);
     rangePosition.y = playerPosition.y + m_heightOffset;

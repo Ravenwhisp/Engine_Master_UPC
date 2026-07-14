@@ -11,7 +11,7 @@ class LyrielTargetIndicatorUI : public TargetIndicatorUI
 public:
     explicit LyrielTargetIndicatorUI(GameObject* owner);
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 protected:
     void updateDirectionIndicator(GameObject* currentTarget) override;
@@ -24,7 +24,7 @@ private:
     Transform2D* getDirectionArrowTransform2D() const;
 
 public:
-    ScriptComponentRef<Transform> m_directionArrowTransform;
+    ComponentRef<Transform> m_directionArrowTransform;
 
     float m_forwardOffset = 1.0f;
     float m_heightOffset = 0.05f;

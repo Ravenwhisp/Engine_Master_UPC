@@ -1,0 +1,13 @@
+{
+    "uid": 11063982437117938386,
+    "contentHash": "4530da424515d26fd4e3d9ca4401abcf",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_heavy_border.png",
+    "sourceFileSize": 30272,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

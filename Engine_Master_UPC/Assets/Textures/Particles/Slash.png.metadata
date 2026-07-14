@@ -1,0 +1,13 @@
+{
+    "uid": 6534141620436570049,
+    "contentHash": "3eb6b6c651b2dc283f3281a4960acbd2",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Particles\\Slash.png",
+    "sourceFileSize": 39264,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

@@ -5,6 +5,7 @@
 
 class MeleeEnemyController;
 class AnimationComponent;
+class PaladinVFX;
 
 class PaladinChaseState : public StateMachineScript
 {
@@ -18,6 +19,9 @@ public:
 	void OnStateExit() override;
 
 private:
+	void stopWalkingDust();
+
 	MeleeEnemyController* m_paladinController = nullptr;
 	AnimationComponent* m_animation = nullptr;
+	PaladinVFX* m_paladinVFX = nullptr;
 };

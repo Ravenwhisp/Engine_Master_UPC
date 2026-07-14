@@ -1,9 +1,10 @@
 #include "Globals.h"
 #include "ScriptComponent.h"
 #include "Script.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 #include "SceneReferenceResolver.h"
 #include "JsonArchive.h"
+#include <FieldUtils.h>
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -38,7 +39,7 @@ bool ScriptComponent::createScriptInstance()
         return false;
     }
 
-    std::unique_ptr<Script> newScript = ScriptFactory::createScript(m_scriptName, getOwner());
+    std::unique_ptr<Script> newScript = ScriptFactory::create(m_scriptName, getOwner());
     if (!newScript)
     {
         return false;
@@ -113,37 +114,7 @@ void ScriptComponent::debugDraw()
 
 void ScriptComponent::drawScriptFieldsUi(Script& script)
 {
-    ScriptFieldList fieldList = script.getExposedFields();
-    char* base = reinterpret_cast<char*>(&script);
-
-    bool currentGroupOpen = true;
-
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        if (field.type == ScriptFieldType::GroupCollapseBegin)
-        {
-            ImGui::Spacing();
-
-            currentGroupOpen = ImGui::CollapsingHeader(field.name, ImGuiTreeNodeFlags_DefaultOpen);
-            continue;
-        }
-
-        if (field.type == ScriptFieldType::GroupCollapseEnd)
-        {
-            currentGroupOpen = true;
-            continue;
-        }
-
-        if (!currentGroupOpen)
-        {
-            continue;
-        }
-
-        void* data = base + field.offset;
-
-        assert(field.handler != nullptr);
-        field.handler->drawUi(field, data, script, *this);
-    }
+    FieldUtils::drawUi(script, reinterpret_cast<char*>(&script));
 }
 
 void ScriptComponent::serialize(IArchive& archive)
@@ -171,10 +142,10 @@ void ScriptComponent::serialize(IArchive& archive)
 
 void ScriptComponent::serializeScriptFields(Script& script, IArchive& archive)
 {
-	ScriptFieldList fieldList = script.getExposedFields();
+	FieldList fieldList = script.getExposedFields();
 	char* base = reinterpret_cast<char*>(&script);
 
-	for (const ScriptFieldInfo& field : fieldList.fields)
+	for (const FieldInfo& field : fieldList.fields)
 	{
 		if (!field.isDataField())
 			continue;
@@ -216,21 +187,7 @@ void ScriptComponent::fixReferences(const SceneReferenceResolver& resolver)
         return;
     }
 
-    ScriptFieldList fieldList = m_script->getExposedFields();
-    char* base = reinterpret_cast<char*>(m_script.get());
-
-    for (const ScriptFieldInfo& field : fieldList.fields)
-    {
-        if (!field.isDataField())
-        {
-            continue;
-        }
-
-        void* data = base + field.offset;
-
-        assert(field.handler != nullptr);
-        field.handler->fixReferences(field, data, resolver);
-    }
+    FieldUtils::fixReferences(*m_script, reinterpret_cast<char*>(m_script.get()), resolver);
 
     m_script->onAfterReferencesFixed();
 }
@@ -256,32 +213,5 @@ std::unique_ptr<Component> ScriptComponent::clone(GameObject* newOwner) const
 
 void ScriptComponent::cloneScriptFields(const Script& source, Script& target)
 {
-    ScriptFieldList sourceFields = source.getExposedFields();
-    ScriptFieldList targetFields = target.getExposedFields();
-
-    const size_t count = std::min(sourceFields.fields.size(), targetFields.fields.size());
-
-    const char* sourceBase = reinterpret_cast<const char*>(&source);
-    char* targetBase = reinterpret_cast<char*>(&target);
-
-    for (size_t i = 0; i < count; ++i)
-    {
-        const ScriptFieldInfo& sourceField = sourceFields.fields[i];
-        const ScriptFieldInfo& targetField = targetFields.fields[i];
-
-        if (!sourceField.isDataField() || !targetField.isDataField())
-        {
-            continue;
-        }
-
-        assert(sourceField.handler == targetField.handler);
-
-        const void* sourceData = sourceBase + sourceField.offset;
-        void* targetData = targetBase + targetField.offset;
-
-        assert(sourceField.handler != nullptr);
-        assert(targetField.handler != nullptr);
-
-        sourceField.handler->clone(sourceField, sourceData, targetData);
-    }
+    FieldUtils::clone(source, reinterpret_cast<const char*>(&source), target, reinterpret_cast<char*>(&target));
 }

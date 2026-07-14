@@ -8,6 +8,7 @@
 #include "ModuleD3D12.h"
 #include "ModuleScene.h"
 #include "ModuleMusic.h"
+#include "ModuleAssets.h"
 
 #include "GameObject.h"
 #include "Component.h"
@@ -18,6 +19,7 @@
 #include "SceneSnapshot.h"
 #include "Transform.h"
 #include "SceneReferenceResolver.h"
+#include "SoundBankAsset.h"
 
 #include "IArchive.h"
 
@@ -28,9 +30,13 @@
 #include <algorithm>
 
 
-Scene::Scene(AssetReference& id): Asset(id, AssetType::SCENE) 
+Scene::Scene(AssetReference& id) : Asset(id, AssetType::SCENE)
 {
     m_triggerSystem = std::make_unique<TriggerSystem>();
+    m_skybox = {};
+    m_skybox.cubemapAssetId.m_uid = 16369577574978536111;
+    m_skybox.cubemapAssetId.m_type = AssetType::TEXTURE;
+    m_skybox.cubemapAssetId.m_libId = "88b330e7e6260491cfb645f0282a1427";
 }
 
 Scene::~Scene() = default;
@@ -614,8 +620,11 @@ void Scene::clearScene()
 
     m_objectIndexMap.clear();
     m_defaultCamera = nullptr;
+    m_navMesh = AssetReference{};
+    m_loadedBankRefs.clear();
+    m_loadedBankNameCache.clear();
     m_isUpdating = false;
-    m_objectsToRemove.clear(); 
+    m_objectsToRemove.clear();
     m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
     markDirty();
@@ -751,32 +760,55 @@ void Scene::unregisterTriggersInGameObject(GameObject* gameObject)
 #pragma endregion
 
 #pragma region MusicBanks
-const std::vector<std::string>& Scene::getLoadedBanks() const
+void Scene::addLoadedBank(const std::string& bankName)
 {
-    return m_loadedBanks;
-}
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
 
-void Scene::addLoadedBank(const std::string& bank)
-{
-    if (std::find(m_loadedBanks.begin(), m_loadedBanks.end(), bank) != m_loadedBanks.end())
+    for (const auto& name : m_loadedBankNameCache)
+        if (name == bankName)
+            return;
+
+    AssetReference ref = app->getModuleMusic()->findBankRef(bankName);
+    if (!ref.isValid())
     {
-        return;
+        UID uid = GenerateUID();
+        ref = AssetReference(uid, INVALID_ASSET_ID, AssetType::SOUND_BANK);
     }
-
-    m_loadedBanks.push_back(bank);
+    m_loadedBankRefs.push_back(ref);
+    m_loadedBankNameCache.push_back(bankName);
 }
 
-void Scene::removeLoadedBank(const std::string& bank)
+void Scene::removeLoadedBank(const std::string& bankName)
 {
-    for (auto it = m_loadedBanks.begin(); it != m_loadedBanks.end(); ++it)
-    {
-        if (*it != bank)
-        {
-            continue;
-        }
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
 
-        m_loadedBanks.erase(it);
-        return;
+    for (size_t i = 0; i < m_loadedBankNameCache.size(); ++i)
+    {
+        if (m_loadedBankNameCache[i] == bankName)
+        {
+            m_loadedBankRefs.erase(m_loadedBankRefs.begin() + i);
+            m_loadedBankNameCache.erase(m_loadedBankNameCache.begin() + i);
+            return;
+        }
+    }
+}
+
+std::vector<std::string> Scene::getLoadedBankNames() const
+{
+    if (m_loadedBankNameCache.size() != m_loadedBankRefs.size())
+        resolveLoadedBankNames();
+    return m_loadedBankNameCache;
+}
+
+void Scene::resolveLoadedBankNames() const
+{
+    m_loadedBankNameCache.clear();
+    for (const auto& ref : m_loadedBankRefs)
+    {
+        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(ref));
+        m_loadedBankNameCache.push_back(asset ? asset->getBankName() : "");
     }
 }
 
@@ -798,19 +830,25 @@ void Scene::serialize(IArchive& archive)
     m_skybox.serialize(archive);
     archive.endObject();
 
-    archive.beginObject("PostProcess");
-    m_postProcess.serialize(archive);
+    archive.beginObject("NavMesh");
+    m_navMesh.serialize(archive);
+    archive.endObject();
+
+    archive.beginObject("SSAO");
+    m_ssao.serialize(archive);
     archive.endObject();
 
     {
-        SoundBanksData soundData;
-        if (archive.mode() == ArchiveMode::Output)
-            soundData.banks = m_loadedBanks;
+        uint32_t bankCount = static_cast<uint32_t>(m_loadedBankRefs.size());
         archive.beginObject("SoundBanks");
-        soundData.serialize(archive);
+        archive.beginArray(bankCount, "banks");
+        m_loadedBankRefs.resize(bankCount);
+        for (uint32_t i = 0; i < bankCount; ++i)
+        {
+            m_loadedBankRefs[i].serialize(archive);
+        }
+        archive.endArray();
         archive.endObject();
-        if (archive.mode() == ArchiveMode::Input)
-            m_loadedBanks = std::move(soundData.banks);
     }
 
     uint64_t defaultCameraUid = 0;
@@ -844,7 +882,7 @@ void Scene::serialize(IArchive& archive)
             GameObject* go = createGameObjectWithUID((UID)uid, (UID)transformUid);
             go->serialize(archive);
 
-            goMeta.push_back({uid, transformUid, parentUid});
+            goMeta.push_back({ uid, transformUid, parentUid });
             gos.push_back(go);
 
             archive.endObject();

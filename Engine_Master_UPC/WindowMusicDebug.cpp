@@ -42,6 +42,36 @@ void WindowMusicDebug::drawInternal()
 		topHeight = availableHeight - minBottomHeight - separatorThickness;
 	}
 
+	ImGui::Text("Global Wwise Testers");
+	ImGui::Separator();
+
+	static char stateGroup[128] = "";
+	static char stateValue[128] = "";
+
+	ImGui::InputText("State Group", stateGroup, IM_ARRAYSIZE(stateGroup));
+	ImGui::InputText("State Value", stateValue, IM_ARRAYSIZE(stateValue));
+
+	if (ImGui::Button("Set State", ImVec2(-1.0f, 0.0f)))
+	{
+		m_moduleMusic->setState(stateGroup, stateValue);
+	}
+
+	ImGui::Spacing();
+
+	static char rtpcName[128] = "";
+	static float rtpcValue = 0.0f;
+
+	ImGui::InputText("RTPC Name", rtpcName, IM_ARRAYSIZE(rtpcName));
+	ImGui::InputFloat("RTPC Value", &rtpcValue);
+
+	if (ImGui::Button("Set RTPC", ImVec2(-1.0f, 0.0f)))
+	{
+		m_moduleMusic->setRTPC(rtpcName, rtpcValue);
+	}
+
+	ImGui::Spacing();
+	ImGui::Separator();
+
 	ImGui::Text("Audio Banks");
 	ImGui::Separator();
 

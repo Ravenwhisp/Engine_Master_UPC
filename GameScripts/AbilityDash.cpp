@@ -71,7 +71,6 @@ void AbilityDash::onDashStarted()
 void AbilityDash::startDash()
 {
     m_dashTimer = 0.0f;
-    m_hasDashTarget = false;
 
     Vector3 moveDirection = m_playerController->getMoveDirection();
 
@@ -98,12 +97,11 @@ void AbilityDash::startDash()
         m_dashDirection.Normalize();
     }
 
-    if (!validateDashTarget())
-        return;
-
-    m_dashStartPosition = TransformAPI::getPosition(getOwner()->GetTransform());
+    m_dashStartPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
 
     m_isDashing = true;
+
+    notifyAbilitySuccessfullyStarted();
 
     setAbilityLocked(true);
     startCooldown();
@@ -144,25 +142,6 @@ void AbilityDash::calculateDashMovement(float dt)
 
     float t = m_dashTimer / dashDuration;
     t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
-
-    if (m_hasDashTarget)
-    {
-        Vector3 currentPosition = TransformAPI::getPosition(getOwner()->GetTransform());
-
-        Vector3 desiredPosition = Vector3::Lerp(
-            m_dashStartPosition,
-            m_dashTargetPosition,
-            t
-        );
-
-        Vector3 delta = desiredPosition - currentPosition;
-
-        if (m_playerMovement)
-        {
-            m_playerMovement->playerDashMovement(getOwner(), delta, true);
-            return;
-        }
-    }
 
     const float curveSpeed = 0.5f * PI * cos(t * PI * 0.5f);
     const float currentSpeed = (dashDistance / dashDuration) * curveSpeed;

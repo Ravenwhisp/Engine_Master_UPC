@@ -57,5 +57,6 @@ public:
     static void drawFileDialogModals(bool& showVariantModal,
         bool& showSavePrefabModal,
         bool& renamingPrefab,
+        bool& renamingAsset,
         FileDialogBuffers& buffers);
 };

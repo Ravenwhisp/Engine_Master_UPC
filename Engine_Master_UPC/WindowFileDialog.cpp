@@ -11,6 +11,7 @@
 #include "Metadata.h"
 #include "ModuleAssets.h"
 #include "ModuleEditor.h"
+#include "ModuleScripting.h"
 
 #include "CommandCreateFolder.h"
 #include "CommandCutItem.h"
@@ -19,8 +20,12 @@
 #include "CommandImportAsset.h"
 #include "CommandPasteFile.h"
 #include "CommandSaveGameObjectAsPrefab.h"
+#include "CommandCreateDataContainer.h"
+
+#include "GenericTypeFactory.h"
 
 #include <algorithm>
+#include <cctype>
 #include <string>
 
 void WindowFileDialog::navigateTo(const std::filesystem::path& path)
@@ -28,6 +33,7 @@ void WindowFileDialog::navigateTo(const std::filesystem::path& path)
     m_currentDirectory = path.lexically_normal();
     m_selectedPath.clear();
     m_selectedAsset = INVALID_UID;
+    m_viewingScripts = false;
 }
 
 void WindowFileDialog::handleAssetClick(const AssetEntry& asset)
@@ -96,6 +102,24 @@ std::filesystem::path WindowFileDialog::getAssetMetaPath(
     return metaPath.lexically_normal();
 }
 
+bool WindowFileDialog::passesSearchFilter(const std::string& name) const
+{
+    if (m_searchBuffer[0] == '\0')
+    {
+        return true;
+    }
+
+    const auto toLower = [](unsigned char c) { return static_cast<char>(std::tolower(c)); };
+
+    std::string lowerName(name.size(), '\0');
+    std::transform(name.begin(), name.end(), lowerName.begin(), toLower);
+
+    std::string lowerFilter(m_searchBuffer);
+    std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(), toLower);
+
+    return lowerName.find(lowerFilter) != std::string::npos;
+}
+
 void WindowFileDialog::drawDirectoryTree(DirectoryEntry* directory)
 {
     if (!directory)
@@ -128,7 +152,7 @@ void WindowFileDialog::drawDirectoryItem(DirectoryEntry* directory)
 
     ImGui::PushID(directory->path.string().c_str());
 
-    ImGui::Button("[DIR]", ImVec2(40, 40));
+    ImGui::Button(ICON_FA_FOLDER, ImVec2(40, 40));
 
     if (ImGui::IsItemClicked())
     {
@@ -203,9 +227,10 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
     const std::filesystem::path sourcePath = getAssetSourcePath(*directory, asset);
     const std::filesystem::path metaPath = getAssetMetaPath(*directory, asset);
 
-    const bool isPrefab =
-        sourcePath.extension() == PREFAB_EXTENSION ||
-        sourcePath.extension() == GLTF_EXTENSION;
+    AssetType type = getAssetType(sourcePath.extension().string());
+    AssetUIProperties uiProps = assetUIData.at(type);
+
+    const bool isPrefabLogic = (type == AssetType::PREFAB || type == AssetType::MODEL);
 
     ImGui::PushID(static_cast<int>(asset.uid));
 
@@ -217,24 +242,30 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
         if (ImGui::ArrowButton("##expand", isExpanded ? ImGuiDir_Down : ImGuiDir_Right))
         {
             if (isExpanded)
+            {
                 m_expandedAssets.erase(asset.uid);
+            }
             else
+            {
                 m_expandedAssets.insert(asset.uid);
+            }
         }
         ImGui::SameLine();
     }
 
-    if (isPrefab)
+    if (isPrefabLogic)
     {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.10f, 0.30f, 0.10f, 1.f));
     }
 
-    ImGui::Button(isPrefab ? "[P]" : "[FILE]", ImVec2(40, 40));
+    // 3. CAMBIO: Generamos el bot�n din�mico basado en la extensi�n (UI Props)
+    ImGui::Button(uiProps.iconGlyph, ImVec2(40, 40));
 
-    if (isPrefab)
+    if (isPrefabLogic)
     {
         ImGui::PopStyleColor();
     }
+
     if (ImGui::IsItemHovered() &&
         ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
         !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
@@ -245,22 +276,24 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
 
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
     {
-        if (isPrefab)
+        // 4. CAMBIO: Mejoramos el texto al arrastrar, pero mantenemos vuestros payloads (PREFAB_ASSET vs ASSET)
+        // para no romper la recepci�n en el viewport o inspector.
+        if (isPrefabLogic)
         {
             const std::string pathStr = sourcePath.string();
             ImGui::SetDragDropPayload("PREFAB_ASSET", pathStr.c_str(), pathStr.size() + 1);
-            ImGui::Text("[Prefab] %s", asset.displayName.c_str());
+            ImGui::Text("%s [Prefab] %s", uiProps.iconGlyph, asset.displayName.c_str());
         }
         else
         {
             ImGui::SetDragDropPayload("ASSET", &asset.uid, sizeof(UID));
-            ImGui::Text("Dragging %s", asset.displayName.c_str());
+            ImGui::Text("%s Dragging %s", uiProps.iconGlyph, asset.displayName.c_str());
         }
 
         ImGui::EndDragDropSource();
     }
 
-    if (isPrefab)
+    if (isPrefabLogic)
     {
         PrefabUI::FileDialogBuffers buffers = buildFileDialogBuffers();
         PrefabUI::drawFileDialogItemContextMenu(
@@ -283,11 +316,18 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
             CommandImportAsset(sourcePath, asset.uid).run();
         }
 
-        const bool isGltf = sourcePath.extension() == GLTF_EXTENSION;
-        if (isGltf && ImGui::MenuItem("Create State Machine"))
+        if (type == AssetType::MODEL && ImGui::MenuItem("Create State Machine"))
         {
             m_pendingStateMachinePath = sourcePath;
             ImGui::CloseCurrentPopup();
+        }
+
+        if (ImGui::MenuItem("Rename..."))
+        {
+            m_renamingAsset = true;
+            const std::string srcStr = sourcePath.string();
+            strncpy_s(m_renameSrcBuf, sizeof(m_renameSrcBuf), srcStr.c_str(), sizeof(m_renameSrcBuf) - 1);
+            strncpy_s(m_renameDstBuf, sizeof(m_renameDstBuf), srcStr.c_str(), sizeof(m_renameDstBuf) - 1);
         }
 
         if (ImGui::MenuItem("Cut", "Ctrl+X"))
@@ -330,7 +370,7 @@ void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
 
     ImGui::PushID(static_cast<int>(subAsset.uid));
 
-    ImGui::Button("[S]", ImVec2(40, 40));
+    ImGui::Button(ICON_FA_PUZZLE_PIECE, ImVec2(40, 40));
 
     if (ImGui::IsItemHovered() &&
         ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
@@ -345,7 +385,7 @@ void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
     {
         ImGui::SetDragDropPayload("ASSET", &subAsset.uid, sizeof(UID));
-        ImGui::Text("Dragging %s", subAsset.displayName.c_str());
+        ImGui::Text("%s Dragging %s", ICON_FA_PUZZLE_PIECE, subAsset.displayName.c_str());
         ImGui::EndDragDropSource();
     }
 
@@ -353,6 +393,69 @@ void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
     ImGui::NextColumn();
 
     ImGui::PopID();
+}
+
+void WindowFileDialog::drawScriptsTreeNode()
+{
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+    if (m_viewingScripts)
+    {
+        flags |= ImGuiTreeNodeFlags_Selected;
+    }
+
+    ImGui::TreeNodeEx(ICON_FA_FILE_CODE " Scripts", flags);
+
+    if (ImGui::IsItemClicked())
+    {
+        m_viewingScripts = true;
+        m_selectedPath.clear();
+        m_selectedAsset = INVALID_UID;
+    }
+}
+
+void WindowFileDialog::drawScriptItem(const ScriptSourceInfo& script)
+{
+    const AssetUIProperties& uiProps = assetUIData.at(AssetType::SCRIPT);
+
+    ImGui::PushID(script.name.c_str());
+
+    ImGui::Button(uiProps.iconGlyph, ImVec2(40, 40));
+
+    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+    {
+        ImGui::SetDragDropPayload(uiProps.payloadID, script.name.c_str(), script.name.size() + 1);
+        ImGui::Text("%s Dragging %s", uiProps.iconGlyph, script.name.c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    ImGui::TextWrapped("%s", script.name.c_str());
+    ImGui::NextColumn();
+
+    ImGui::PopID();
+}
+
+void WindowFileDialog::drawScriptGrid()
+{
+    const std::vector<ScriptSourceInfo> scripts = app->getModuleScripting()->getAvailableScripts();
+
+    const float panelWidth = ImGui::GetContentRegionAvail().x;
+    const float cellSize = 96.0f;
+    const int columnCount = std::max(1, (static_cast<int>(panelWidth / cellSize)));
+
+    ImGui::Columns(columnCount, nullptr, false);
+
+    for (const ScriptSourceInfo& script : scripts)
+    {
+        if (!passesSearchFilter(script.name))
+        {
+            continue;
+        }
+
+        drawScriptItem(script);
+    }
+
+    ImGui::Columns(1);
 }
 
 void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
@@ -376,6 +479,24 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
         if (ImGui::MenuItem("New Folder"))
         {
             CommandCreateFolder(m_currentDirectory).run();
+        }
+
+        const auto& dcRegistry = DataContainerFactory::getAllRegistered();
+        if (!dcRegistry.empty())
+        {
+            ImGui::Spacing();
+            if (ImGui::BeginMenu("New Data Asset"))
+            {
+                for (const auto& entry : dcRegistry)
+                {
+                    if (ImGui::MenuItem(entry.displayName.c_str()))
+                    {
+                        std::string assetName = entry.displayName + "_New";
+                        CommandCreateDataContainer(m_currentDirectory, entry.name, assetName).run();
+                    }
+                }
+                ImGui::EndMenu();
+            }
         }
 
         ImGui::Spacing();
@@ -453,6 +574,11 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
 
     for (const AssetEntry& asset : directory->assets)
     {
+        if (!passesSearchFilter(asset.displayName))
+        {
+            continue;
+        }
+
         drawAssetItem(directory, asset);
         if (!asset.subAssets.empty() && m_expandedAssets.count(asset.uid))
         {
@@ -470,6 +596,7 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
         m_showVariantModal,
         m_showSavePrefabModal,
         m_renamingPrefab,
+        m_renamingAsset,
         buffers
     );
 }
@@ -489,7 +616,16 @@ void WindowFileDialog::drawInternal()
         m_pendingStateMachinePath.clear();
     }
 
+    ImGui::SetNextItemWidth(-1);
+    ImGui::InputTextWithHint(
+        "##FileDialogSearch",
+        ICON_FA_SEARCH " Search...",
+        m_searchBuffer,
+        sizeof(m_searchBuffer)
+    );
+
     ImGui::BeginChild("LeftPanel", ImVec2(250, 0), true);
+    drawScriptsTreeNode();
     drawDirectoryTree(registry->getRoot());
     ImGui::EndChild();
 
@@ -497,7 +633,11 @@ void WindowFileDialog::drawInternal()
 
     ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
 
-    if (DirectoryEntry* directory = registry->getDirectory(m_currentDirectory))
+    if (m_viewingScripts)
+    {
+        drawScriptGrid();
+    }
+    else if (DirectoryEntry* directory = registry->getDirectory(m_currentDirectory))
     {
         drawAssetGrid(directory);
     }

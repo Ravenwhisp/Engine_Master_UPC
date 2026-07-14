@@ -15,6 +15,7 @@
 
 #include "Prefab.h"
 #include "PrefabEditSession.h"
+#include "AssetsDictionary.h"
 #include <FileIO.h>
 
 static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& savePath)
@@ -426,11 +427,16 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         Scene* scene = app->getModuleScene()->getScene();
         if (scene)
         {
-
-            GameObject* go = app->getModuleAssets()->getPrefabManager()->spawnPrefab(realPath, scene);
-            if (go)
+            const UID uid = app->getModuleAssets()->getIndex().findUID(realPath);
+            AssetReference* ref = app->getModuleAssets()->findReference(uid);
+            if (ref)
             {
-                app->getModuleEditor()->setSelectedGameObject(go);
+                GameObject* go = app->getModuleAssets()->getPrefabManager()->spawnPrefab(*ref, scene);
+                delete ref;
+                if (go)
+                {
+                    app->getModuleEditor()->setSelectedGameObject(go);
+                }
             }
         }
     }
@@ -494,6 +500,7 @@ static bool beginModal(const char* id, bool& triggerFlag, const ImVec2& screenCe
 void PrefabUI::drawFileDialogModals(bool& showVariantModal,
     bool& showSavePrefabModal,
     bool& renamingPrefab,
+    bool& renamingAsset,
     FileDialogBuffers& buffers)
 {
     const ImVec2 screenCenter = ImGui::GetMainViewport()->GetCenter();

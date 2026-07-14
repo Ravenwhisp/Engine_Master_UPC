@@ -3,6 +3,7 @@
 #include "DeathAbilityBase.h"
 
 class DeathUI;
+class DeathParticles;
 
 class DeathBasicAttack : public DeathAbilityBase
 {
@@ -10,6 +11,8 @@ class DeathBasicAttack : public DeathAbilityBase
 
 public:
     explicit DeathBasicAttack(GameObject* owner);
+
+    FieldList getExposedFields() const override;
 
     void Start()      override;
     void Update()     override;
@@ -35,4 +38,6 @@ private:
     DeathUI* m_deathUI = nullptr;
 
     GameObject* m_attackFacingTarget = nullptr;
+
+    DeathParticles* m_particles = nullptr;
 };

@@ -16,7 +16,7 @@ public:
     void OnTriggerEnter(GameObject* gameObject) override;
     void OnTriggerExit(GameObject* gameObject) override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 private:
     void findPlayers();
@@ -29,6 +29,8 @@ private:
     void tryActivate();
     void activateEvent();
 
+    void deactivateEvent();
+
 public:
     bool m_triggerOnlyOnce = true;
 
@@ -40,6 +42,7 @@ private:
     bool m_player2Inside = false;
 
     bool m_hasTriggered = false;
+    bool m_isActive = false;
 
     std::vector<GameplayEventAction*> m_eventActions;
 };

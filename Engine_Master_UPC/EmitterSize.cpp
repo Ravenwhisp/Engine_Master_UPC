@@ -25,15 +25,16 @@ void EmitterSize::update(EmitterInstance* particleData)
 
 		// Dealing with already existing particles //
 
-		float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime();
+		//float startLifetime = particleData->getParticleEmitter()->getLifetimeModule()->getStartLifetime(); <- IF WE WANT THIS AGAIN WE WILL HAVE TO DO IT AS A SEPARATE CASE 
 
 		for (auto& aliveParticle : aliveParticles)
 		{
 			unsigned int poolIndex = aliveParticle.second;
-
-			float scale = particlePool[poolIndex].lifeTime / startLifetime;
+			
+			float scale = particlePool[poolIndex].lifeTime / particlePool[poolIndex].startLifeTime;
 
 			particlePool[poolIndex].scale = Vector2::Lerp(particlePool[poolIndex].endScale, particlePool[poolIndex].startScale, scale); // We need to use Bezier curves instead of this
+			//particlePool[poolIndex].scale = particlePool[poolIndex].startScale * scale + particlePool[poolIndex].endScale * (1.f - scale);
 		}
 	}
 
@@ -130,87 +131,6 @@ void EmitterSize::serialize(IArchive& archive)
 			}
 		}
 	}
-}
-
-bool EmitterSize::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartScale"))
-	{
-		const auto& scale = moduleInfo["StartScale"].GetArray();
-		m_startScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-	}
-
-	if (moduleInfo.HasMember("StartScaleType")) // for versions that support choose random between 2 values start scale (curves later)
-	{
-		unsigned int scaleTypeUInt = moduleInfo["StartScaleType"].GetUint();
-		ParameterType scaleType = static_cast<ParameterType>(scaleTypeUInt);
-
-		switch (scaleType) {
-
-		case ParameterType::CONSTANT:
-
-			m_startScaleType = ParameterType::CONSTANT;
-
-			break;
-
-		case ParameterType::RANDOM_BETWEEN_TWO:
-
-			m_startScaleType = ParameterType::RANDOM_BETWEEN_TWO;
-
-			if (moduleInfo.HasMember("StartScale2"))
-			{
-				const auto& scale = moduleInfo["StartScale2"].GetArray();
-				m_startScale2 = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-			}
-
-			break;
-
-			// (We would add curve case here)
-		
-		}
-	}
-
-	if (moduleInfo.HasMember("ChangeSizeOverTime")) 
-	{
-		m_changeSizeOverTime = moduleInfo["ChangeSizeOverTime"].GetBool();
-
-		if (m_changeSizeOverTime && moduleInfo.HasMember("EndScaleType"))
-		{
-			if (moduleInfo.HasMember("EndScale"))
-			{
-				const auto& scale = moduleInfo["EndScale"].GetArray();
-				m_endScale = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-			}
-
-			unsigned int scaleTypeUInt = moduleInfo["EndScaleType"].GetUint();
-			ParameterType scaleType = static_cast<ParameterType>(scaleTypeUInt);
-
-			switch (scaleType) {
-
-			case ParameterType::CONSTANT:
-
-				m_endScaleType = ParameterType::CONSTANT;
-
-				break;
-
-			case ParameterType::RANDOM_BETWEEN_TWO:
-
-				m_endScaleType = ParameterType::RANDOM_BETWEEN_TWO;
-
-				if (moduleInfo.HasMember("EndScale2"))
-				{
-					const auto& scale = moduleInfo["EndScale2"].GetArray();
-					m_endScale2 = Vector2(scale[0].GetFloat(), scale[1].GetFloat());
-				}
-
-				break;
-
-				// (We would add curve case here)
-			}
-		}
-	}
-
-	return true;
 }
 
 bool EmitterSize::drawStartScaleUI()

@@ -1,0 +1,13 @@
+{
+    "uid": 6127956310055668374,
+    "contentHash": "e91185baaad70d4b55730e8e64d4fab5",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Level1P2\\T_ENV_MOD_StoneStack_01_v3_MTSM.jpg",
+    "sourceFileSize": 147149,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

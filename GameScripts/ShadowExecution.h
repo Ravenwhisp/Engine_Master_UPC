@@ -8,6 +8,12 @@ class DeathCharacter;
 class LyrielCharacter;
 class CooperativeSound;
 
+// Estructura para controlar el tiempo de vida de las partículas instanciadas
+struct SpawnedPrefab {
+    GameObject* gameObject;
+    float lifetimeRemaining;
+};
+
 class ShadowExecution : public Script
 {
     DECLARE_SCRIPT(ShadowExecution)
@@ -19,7 +25,7 @@ public:
     void Update()    override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     bool isActive() const { return m_isActive; }
 
@@ -28,6 +34,8 @@ public:
     float m_executionDuration  = 3.0f;
     float m_instaKillThreshold = 0.20f;
     float m_standardDamage     = 0.10f;
+
+    PrefabRef m_particlePrefab;
 
 private:
     void cachePlayers();
@@ -38,13 +46,13 @@ private:
     void applyAoEDamage();
     void lockPlayers(bool locked);
 
-    ReaperGauge*      m_reaperGauge     = nullptr;
-    DeathCharacter*   m_deathCharacter  = nullptr;
-    LyrielCharacter*  m_lyrielCharacter = nullptr;
+    ReaperGauge* m_reaperGauge     = nullptr;
+    DeathCharacter* m_deathCharacter  = nullptr;
+    LyrielCharacter* m_lyrielCharacter = nullptr;
     CooperativeSound* m_sound           = nullptr;
 
-    float m_p0Timer = 0.0f;
-    float m_p1Timer = 0.0f;
+    float m_p0WindowTimer = 0.0f;
+    float m_p1WindowTimer = 0.0f;
 
     bool    m_isActive        = false;
     float   m_executionTimer  = 0.0f;
@@ -53,11 +61,14 @@ private:
     float   m_currentRadius   = 0.0f;
 
     std::vector<GameObject*> m_hitEnemies;
+    
+    // Lista para trackear las partículas que deben morir tras 1 segundo
+    std::vector<SpawnedPrefab> m_temporaryPrefabs;
 
 public:
-    ScriptComponentRef<UISlider> m_reaperGaugeBar;
-    ScriptComponentRef<Transform> m_executionCanvas;
-    ScriptComponentRef<Transform2D> m_executionSprite;
+    ComponentRef<UISlider> m_reaperGaugeBar;
+    ComponentRef<Transform> m_executionCanvas;
+    ComponentRef<Transform2D> m_executionSprite;
 
 private:
     UISlider* m_reaperGaugeSlider = nullptr;

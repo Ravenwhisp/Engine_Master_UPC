@@ -29,7 +29,7 @@ void NavModifierVolumeComponent::drawUi()
 
 	ImGui::DragFloat3("Half Extents", &m_halfExtents.x, 0.1f, 0.01f);
 
-	const char* areaTypes[] = { "Default", "Spectral", "Blocked" };
+	const char* areaTypes[] = { "Default", "Spectral", "Blocked", "DashGap"};
 	int currentArea = static_cast<int>(m_areaType);
 	if (ImGui::Combo("Area Type", &currentArea, areaTypes, IM_ARRAYSIZE(areaTypes)))
 	{
@@ -84,4 +84,7 @@ void NavModifierVolumeComponent::debugDraw()
 
 	if (m_areaType == NavAreaType::Blocked)
 		dd::aabb(&min.x, &max.x, dd::colors::Red);
+
+	if(m_areaType == NavAreaType::DashGap)
+		dd::aabb(&min.x, &max.x, dd::colors::Yellow);
 }

@@ -1,0 +1,13 @@
+{
+    "uid": 5317346296442835318,
+    "contentHash": "325649f76c01667a6847e8e5731a6bb5",
+    "type": 0,
+    "sourcePath": "Assets\\Textures\\Arthur\\arthur_ehammer_inner.png",
+    "sourceFileSize": 349977,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

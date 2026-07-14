@@ -1,6 +1,5 @@
 #include "Globals.h"
 #include "EmitterLifetime.h"
-#include "JsonArchive.h"
 
 #include "Application.h"
 
@@ -47,11 +46,14 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 		if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
 		{
 			float scale = uniform_rand();
-			particlePool[particleIndex].lifeTime = m_startLifeTime + (m_startLifeTime2 - m_startLifeTime) * scale;
+			float lifeTime = m_startLifeTime + (m_startLifeTime2 - m_startLifeTime) * scale;
+			particlePool[particleIndex].lifeTime = lifeTime;
+			particlePool[particleIndex].startLifeTime = lifeTime; // for later
 		}
 		else
 		{
 			particlePool[particleIndex].lifeTime = m_startLifeTime;
+			particlePool[particleIndex].startLifeTime = m_startLifeTime; // for later
 		}
 	}
 }
@@ -91,26 +93,6 @@ void EmitterLifetime::serialize(IArchive& archive)
 	archive.serialize(m_startLifeTime, "StartLifeTime");
 	if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO)
 		archive.serialize(m_startLifeTime2, "StartLifeTime2");
-}
-
-bool EmitterLifetime::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-	if (moduleInfo.HasMember("StartLifeTime")) {
-		m_startLifeTime = moduleInfo["StartLifeTime"].GetFloat();
-	}
-
-	if(moduleInfo.HasMember("LifeTimeType")) {
-		m_lifeTimeType = static_cast<ParameterType>(moduleInfo["LifeTimeType"].GetUint());
-
-		if (m_lifeTimeType == ParameterType::RANDOM_BETWEEN_TWO && moduleInfo.HasMember("StartLifeTime2")) {
-			m_startLifeTime2 = moduleInfo["StartLifeTime2"].GetFloat();
-		}
-	}
-	else {
-		m_lifeTimeType = ParameterType::CONSTANT; // Fallback para versiones anteriores
-	}
-
-	return true;
 }
 
 void EmitterLifetime::eraseBySwap(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index)

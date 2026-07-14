@@ -8,12 +8,14 @@
 #include "ModuleNavigation.h"
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
+#include "ModuleMusic.h"
+
 #include "PrefabManager.h"
 #include "Quadtree.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -29,6 +31,8 @@
 #include "ParticleSystemComponent.h"
 #include "ComponentSoundSource.h"
 #include "NavRuntimeBlockerComponent.h"
+#include "PlayerRenderBufferComponent.h"
+#include "TrailComponent.h"
 
 #include "CameraComponent.h"
 
@@ -43,9 +47,14 @@
 
 #include <DetourNavMeshQuery.h>
 
-void registerScript(const char* scriptName, ScriptCreator creator)
+void registerScript(const char* scriptName, ScriptFactory::Creator creator)
 {
-    ScriptFactory::registerScript(scriptName, creator);
+	ScriptFactory::registerType(scriptName, scriptName, creator);
+}
+
+void registerDataContainer(const char* name, const char* displayName, DataContainerFactory::Creator creator)
+{
+	DataContainerFactory::registerType(name, displayName, creator);
 }
 
 namespace GameObjectAPI
@@ -283,11 +292,11 @@ namespace GameObjectAPI
     }
     */
 
-    ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
+    ENGINE_API GameObject* instantiatePrefab(const AssetReference& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
-        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(path, currentScene);
+        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(prefabRef, currentScene);
 
         if (!prefabInstance) return nullptr;
 
@@ -499,6 +508,62 @@ namespace TransformAPI
     const Transform* TransformAPI::getParent(const Transform* transform)
     {
         return transform->getRoot();
+    }
+
+    int TransformAPI::getChildCount(const Transform* transform)
+    {
+        if (transform == nullptr)
+        {
+            return 0;
+        }
+
+        return static_cast<int>(transform->getAllChildren().size());
+    }
+
+    Transform* TransformAPI::getChild(Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
+    }
+
+    const Transform* TransformAPI::getChild(const Transform* transform, int index)
+    {
+        if (transform == nullptr)
+        {
+            return nullptr;
+        }
+
+        const std::vector<GameObject*>& children = transform->getAllChildren();
+
+        if (index < 0 || index >= static_cast<int>(children.size()))
+        {
+            return nullptr;
+        }
+
+        const GameObject* child = children[index];
+        if (child == nullptr)
+        {
+            return nullptr;
+        }
+
+        return child->GetTransform();
     }
 
     Transform* TransformAPI::findChildByName(Transform* transform, const char* childName)
@@ -716,6 +781,32 @@ namespace AnimationAPI
 
         animation->setSpeedMultiplier(speedMultiplier);
     }
+
+    bool playOverrideClip(AnimationComponent* animation, const char* clipName, float transitionTimeSeconds, bool loop)
+    {
+        if (!animation || !clipName)
+        {
+            return false;
+        }
+
+        return animation->playOverrideClip(clipName, transitionTimeSeconds, loop);
+    }
+
+    void clearOverrideClip(AnimationComponent* animation, float transitionTimeSeconds)
+    {
+        if (!animation)
+        {
+            return;
+        }
+
+        animation->clearOverrideClip(transitionTimeSeconds);
+    }
+
+    bool hasOverrideClip(const AnimationComponent* animation)
+    {
+        return animation ? animation->hasOverrideClip() : false;
+    }
+
 }
 
 namespace ApplicationAPI
@@ -2052,6 +2143,15 @@ namespace MathAPI
     {
         return a + (b - a) * std::clamp(t, 0.0f, 1.0f);
     }
+
+    Vector3 MathAPI::catmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t)
+    {
+        const float t2 = t * t;
+        const float t3 = t2 * t;
+
+        return (p1 * 2.0f + (p2 - p0) * t + (p0 * 2.0f - p1 * 5.0f + p2 * 4.0f - p3) * t2 + (p1 * 3.0f - p0 - p2 * 3.0f + p3) * t3) * 0.5f;
+    }
+
     float smoothStep(float edge0, float edge1, float x)
     {
         x = std::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
@@ -2762,6 +2862,39 @@ ENGINE_API void ParticleSystemAPI::reset(ParticleSystemComponent* particleSystem
     particleSystem->resetParticles();
 }
 
+namespace TrailAPI
+{
+    TrailComponent* getTrailComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
+    }
+
+    const TrailComponent* getTrailComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
+    }
+
+    bool isTrailGenerating(TrailComponent* trailComponent)
+    {
+        return trailComponent->isGenerating();
+    }
+
+    void generateTrail(TrailComponent* trailComponent, bool value)
+    {
+        return trailComponent->generate(value);
+    }
+}
+
 namespace AudioAPI
 {
     ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject)
@@ -2816,81 +2949,92 @@ namespace AudioAPI
             component->resumeEvent(playingID);
         }
     }
+
+    void setState(const char* stateGroup, const char* stateValue)
+    {
+		app->getModuleMusic()->setState(stateGroup, stateValue);
+    }
+
+    void setSwitch(const char* switchGroup, const char* switchValue, ComponentSoundSource* component)
+    {
+        component->setSwitch(switchGroup, switchValue);
+    }
+
+    void setRTPC(const char* rtpcName, float value)
+    {
+		app->getModuleMusic()->setRTPC(rtpcName, value);
+    }
+
+    bool isMusicStarted()
+    {
+		return app->getModuleMusic()->isMusicStarted();
+    }
+
+    void setMusicStarted(bool started)
+    {
+		app->getModuleMusic()->setMusicStarted(started);
+    }
 }
 
-namespace PostProcessAPI
+namespace Shaders
 {
-    static PostProcessSettings* getSettings()
+    PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(GameObject* gameObject)
     {
-        if (!app || !app->getModuleScene() || !app->getModuleScene()->getScene())
+        if (!gameObject)
         {
             return nullptr;
         }
-        return &app->getModuleScene()->getScene()->getPostProcessSettings();
+
+        return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
     }
 
-    void  setExposure(float ev)        { if (auto* pp = getSettings()) pp->exposure = ev; }
-    float getExposure()                { auto* pp = getSettings(); return pp ? pp->exposure : 0.0f; }
-
-    void  setBloomEnabled(bool e)      { if (auto* pp = getSettings()) pp->bloomEnabled = e; }
-    bool  isBloomEnabled()             { auto* pp = getSettings(); return pp ? pp->bloomEnabled : false; }
-    void  setBloomThreshold(float t)   { if (auto* pp = getSettings()) pp->bloomThreshold = t; }
-    float getBloomThreshold()          { auto* pp = getSettings(); return pp ? pp->bloomThreshold : 0.0f; }
-    void  setBloomIntensity(float i)   { if (auto* pp = getSettings()) pp->bloomIntensity = i; }
-    float getBloomIntensity()          { auto* pp = getSettings(); return pp ? pp->bloomIntensity : 0.0f; }
-
-    void  setLutEnabled(bool e)        { if (auto* pp = getSettings()) pp->lutEnabled = e; }
-    bool  isLutEnabled()               { auto* pp = getSettings(); return pp ? pp->lutEnabled : false; }
-    void  setLutPath(const char* path) { if (auto* pp = getSettings()) pp->lutPath = path ? path : ""; }
-    const char* getLutPath()           { auto* pp = getSettings(); return pp ? pp->lutPath.c_str() : ""; }
-
-    void  setChromaticAberrationEnabled(bool e)   { if (auto* pp = getSettings()) pp->chromaticAberrationEnabled = e; }
-    bool  isChromaticAberrationEnabled()          { auto* pp = getSettings(); return pp ? pp->chromaticAberrationEnabled : false; }
-    void  setChromaticAberrationStrength(float s) { if (auto* pp = getSettings()) pp->chromaticAberrationStrength = s; }
-    float getChromaticAberrationStrength()        { auto* pp = getSettings(); return pp ? pp->chromaticAberrationStrength : 0.0f; }
-
-    void  setHeartbeatEnabled(bool e)  { if (auto* pp = getSettings()) pp->heartbeatEnabled = e; }
-    bool  isHeartbeatEnabled()         { auto* pp = getSettings(); return pp ? pp->heartbeatEnabled : false; }
-    void  setHealth(float h)           { if (auto* pp = getSettings()) pp->health = h; }
-    float getHealth()                  { auto* pp = getSettings(); return pp ? pp->health : 1.0f; }
-    void  setSeparation(float s)       { if (auto* pp = getSettings()) pp->separation = s; }
-    float getSeparation()              { auto* pp = getSettings(); return pp ? pp->separation : 0.0f; }
-    void  setHealthThreshold(float t)  { if (auto* pp = getSettings()) pp->healthThreshold = t; }
-    float getHealthThreshold()         { auto* pp = getSettings(); return pp ? pp->healthThreshold : 0.5f; }
-
-    void  setDeathFadeActive(bool a)      { if (auto* pp = getSettings()) pp->deathFadeActive = a; }
-    bool  isDeathFadeActive()             { auto* pp = getSettings(); return pp ? pp->deathFadeActive : false; }
-    void  setDeathGreyDuration(float s)   { if (auto* pp = getSettings()) pp->deathGreyDuration = s; }
-    float getDeathGreyDuration()          { auto* pp = getSettings(); return pp ? pp->deathGreyDuration : 0.0f; }
-    void  setDeathBlackDuration(float s)  { if (auto* pp = getSettings()) pp->deathBlackDuration = s; }
-    float getDeathBlackDuration()         { auto* pp = getSettings(); return pp ? pp->deathBlackDuration : 0.0f; }
-
-    void  setOutlineEnabled(bool e)    { if (auto* pp = getSettings()) pp->outlineEnabled = e; }
-    bool  isOutlineEnabled()           { auto* pp = getSettings(); return pp ? pp->outlineEnabled : false; }
-    void  setOutlineThickness(float t) { if (auto* pp = getSettings()) pp->outlineThickness = t; }
-    float getOutlineThickness()        { auto* pp = getSettings(); return pp ? pp->outlineThickness : 0.0f; }
-    void  setOutlineThreshold(float t) { if (auto* pp = getSettings()) pp->outlineThreshold = t; }
-    float getOutlineThreshold()        { auto* pp = getSettings(); return pp ? pp->outlineThreshold : 0.0f; }
-    void  setOutlineIntensity(float i) { if (auto* pp = getSettings()) pp->outlineIntensity = i; }
-    float getOutlineIntensity()        { auto* pp = getSettings(); return pp ? pp->outlineIntensity : 0.0f; }
-    void  setOutlineColor(const Vector3& rgb)
+    const PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(const GameObject* gameObject)
     {
-        if (auto* pp = getSettings())
+        if (!gameObject)
         {
-            pp->outlineColorR = rgb.x;
-            pp->outlineColorG = rgb.y;
-            pp->outlineColorB = rgb.z;
+            return nullptr;
         }
+
+        return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
     }
-    Vector3 getOutlineColor()
+
+    float Shaders::getDamageHighlightIntensity(PlayerRenderBufferComponent* component)
     {
-        auto* pp = getSettings();
-        return pp ? Vector3(pp->outlineColorR, pp->outlineColorG, pp->outlineColorB) : Vector3::Zero;
+        return component->getDamageHighlightIntensity();
     }
-    void  setOutlineWobble(float w)     { if (auto* pp = getSettings()) pp->outlineWobble = w; }
-    float getOutlineWobble()            { auto* pp = getSettings(); return pp ? pp->outlineWobble : 0.0f; }
-    void  setOutlineNoiseScale(float s) { if (auto* pp = getSettings()) pp->outlineNoiseScale = s; }
-    float getOutlineNoiseScale()        { auto* pp = getSettings(); return pp ? pp->outlineNoiseScale : 0.0f; }
-    void  setOutlineBreakup(float b)    { if (auto* pp = getSettings()) pp->outlineBreakup = b; }
-    float getOutlineBreakup()           { auto* pp = getSettings(); return pp ? pp->outlineBreakup : 0.0f; }
+
+    void setDamageHighlightIntensity(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlightIntensity(value);
+    }
+
+    Vector3 Shaders::getDamageHighlightCenterColor(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightCenterColor();
+    }
+    
+    void Shaders::setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightCenterColor(value);
+    }
+
+    Vector3 Shaders::getDamageHighlightRimColor(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightRimColor();
+    }
+
+    void Shaders::setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightRimColor(value);
+    }
+
+    float Shaders::getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightRimIntensity();
+    }
+
+    void setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlightRimIntensity(value);
+    }
 }

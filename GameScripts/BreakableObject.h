@@ -3,6 +3,7 @@
 #include "ScriptAPI.h"
 
 class Transform;
+class NavRuntimeBlockerComponent;
 
 class BreakableObject : public Script
 {
@@ -13,7 +14,9 @@ public:
 
     void Start() override;
 
-    virtual void onBreak() { breakObject(); }
+    FieldList getExposedFields() const override;
+
+    virtual void onBreak();
     bool isBroken() const { return m_isBroken; }
 
 protected:
@@ -21,7 +24,11 @@ protected:
 	Transform* m_brokenObjectTransform = nullptr;
     void breakObject();
 
+public:
+    PrefabRef m_dustEffectParticle;
+
 private:
     bool m_isBroken = false;
+    NavRuntimeBlockerComponent* m_navBlocker = nullptr;
 
 };

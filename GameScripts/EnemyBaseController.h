@@ -4,6 +4,7 @@
 
 class AnimationComponent;
 class Transform;
+class EnemySound;
 
 class EnemyBaseController : public Script
 {
@@ -11,7 +12,7 @@ public:
     explicit EnemyBaseController(GameObject* owner);
     virtual ~EnemyBaseController() = default;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     // Target helpers
     virtual void updateCurrentTarget();
@@ -54,6 +55,10 @@ private:
 
     bool buildPathToTarget();
     bool followPath();
+
+    // Footstep audio is driven from locomotion: ping the EnemySound each frame we step.
+    EnemySound* m_enemySound = nullptr;
+    bool m_enemySoundResolved = false;
 
 protected:
     //These we will not need if we Refactor DetectionAggro to have a base class

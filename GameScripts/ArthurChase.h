@@ -21,6 +21,6 @@ public:
 
 private:
 	ArthurBossController* m_arthurController = nullptr;
-	ArthurAttackConfig* m_arthurAttackConfig = nullptr;
+	AssetRef<ArthurAttackConfig> m_arthurAttackConfig;
 	AnimationComponent* m_animation = nullptr;
 };

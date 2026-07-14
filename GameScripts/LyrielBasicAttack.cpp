@@ -7,9 +7,13 @@
 #include "PlayerTargetController.h"
 #include "PlayerState.h"
 #include "PlayerRotation.h"
-#include "ArrowPool.h"
+#include "ProjectilePool.h"
 #include "LyrielArrowProjectile.h"
 #include "LyrielConfig.h"
+
+IMPLEMENT_SCRIPT_FIELDS(LyrielBasicAttack,
+    SERIALIZED_ASSET_REF(m_config, "Lyriel Config", AssetType::DATA_CONTAINER)
+)
 
 LyrielBasicAttack::LyrielBasicAttack(GameObject* owner)
     : LyrielAbilityBase(owner)
@@ -66,6 +70,8 @@ void LyrielBasicAttack::startAbility()
         return;
     }
 
+    notifyAbilitySuccessfullyStarted();
+
     LyrielSound* sound = m_lyrielCharacter != nullptr ? m_lyrielCharacter->getSound() : nullptr;
     if (sound != nullptr)
     {
@@ -74,7 +80,11 @@ void LyrielBasicAttack::startAbility()
 
     beginAttackPresentation();
 
-    beginAttackWindow(m_config->m_basicAttackLockDuration);
+    const LyrielConfig* cfg = m_config.get();
+    if (cfg)
+    {
+        beginAttackWindow(cfg->m_basicAttackLockDuration);
+    }
     startCooldown();
 
     Debug::log("[LyrielBasicAttack] Shot arrow to target '%s'.", GameObjectAPI::getName(target));
@@ -87,17 +97,19 @@ bool LyrielBasicAttack::spawnArrowToTarget(GameObject* target)
         return false;
     }
 
-    ArrowPool* arrowPool = m_lyrielCharacter->getArrowPool();
-    if (arrowPool == nullptr)
+    ProjectilePool* projectilePool = m_lyrielCharacter->getArrowPool();
+    if (!projectilePool)
     {
         return false;
     }
 
-    LyrielArrowProjectile* arrow = arrowPool->acquireArrow();
-    if (arrow == nullptr)
+    ProjectileBase* projectile = projectilePool->acquireProjectile();
+    if (!projectile)
     {
         return false;
     }
+
+    LyrielArrowProjectile* arrow = static_cast<LyrielArrowProjectile*>(projectile);
 
     Transform* spawnTransform = findArrowSpawnTransform();
     Transform* targetTransform = GameObjectAPI::getTransform(target);
@@ -122,8 +134,11 @@ bool LyrielBasicAttack::spawnArrowToTarget(GameObject* target)
         direction.Normalize();
     }
 
-    const float arrowLifetime = distance / m_config->m_basicArrowSpeed;
-    arrow->launch(startPosition, direction, m_config->m_basicArrowSpeed, arrowLifetime, target, m_config->m_basicAttackDamage);
+    const LyrielConfig* cfg = m_config.get();
+    if (!cfg) return false;
+
+    const float arrowLifetime = distance / cfg->m_basicArrowSpeed;
+    arrow->launch(startPosition, direction, cfg->m_basicArrowSpeed, arrowLifetime, target, cfg->m_basicAttackDamage);
 
     return true;
 }
@@ -166,7 +181,8 @@ void LyrielBasicAttack::faceTarget(GameObject* target)
 
 float LyrielBasicAttack::getCooldown() const
 {
-    return m_config->m_basicCooldown;
+    const LyrielConfig* cfg = m_config.get();
+    return cfg ? cfg->m_basicCooldown : 0.0f;
 }
 
 IMPLEMENT_SCRIPT(LyrielBasicAttack)

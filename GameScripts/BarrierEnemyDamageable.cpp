@@ -21,8 +21,8 @@ constexpr int barrierAttackTypeCount = 9;
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(BarrierEnemyDamageable, EnemyDamageable,
     SERIALIZED_FLOAT_VECTOR(m_barriersThresholds, "Barrier Thresholds (%)"),
     SERIALIZED_ENUM_INT(m_requiredAttackType, "Barrier Break Attack", barrierAttackTypeNames, barrierAttackTypeCount),
-    SERIALIZED_BOOL(m_shadowExecutionBreaksBarriers, "Shadow Execution Breaks Barriers"),
-    SERIALIZED_STRING(m_barrierPrefabPath, "Barrier UI Prefab Path"),
+    SERIALIZED_BOOL(m_shadowMarkExploitBreaksBarriers, "Shadow Mark Exploit Breaks Barriers"),
+    SERIALIZED_ASSET_REF(m_barrierPrefab, "Barrier UI Prefab", AssetType::PREFAB),
     SERIALIZED_FLOAT(m_minPos, "Barrier Min Pos (0% HP)", -1000.0f, 1000.0f, 1.0f),
     SERIALIZED_FLOAT(m_maxPos, "Barrier Max Pos (100% HP)", -1000.0f, 1000.0f, 1.0f),
     SERIALIZED_FLOAT(m_barrierUIHeight, "Barrier UI Height", -1000.0f, 1000.0f, 1.0f)
@@ -65,7 +65,7 @@ void BarrierEnemyDamageable::instantiateBarrierUIs()
 {
     m_barrierUIs.clear();
 
-    if (m_barrierPrefabPath.empty())
+    if (!m_barrierPrefab.m_ref.isValid())
         return;
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
@@ -81,7 +81,7 @@ void BarrierEnemyDamageable::instantiateBarrierUIs()
     for (const Barrier& barrier : m_barriers)
     {
         GameObject* uiObject = GameObjectAPI::instantiatePrefab(
-            m_barrierPrefabPath.c_str(),
+            m_barrierPrefab.m_ref,
             Vector3::Zero,
             Vector3::Zero,
             healthBarObject);
@@ -143,9 +143,9 @@ void BarrierEnemyDamageable::takeDamage(float amount)
 
 bool BarrierEnemyDamageable::canBreakBarrier(EnemyAttackType attackType) const
 {
-    if (attackType == EnemyAttackType::ShadowExecution)
+    if (attackType == EnemyAttackType::ShadowMarkExploit)
     {
-        return m_shadowExecutionBreaksBarriers;
+        return m_shadowMarkExploitBreaksBarriers;
     }
 
     return attackType == static_cast<EnemyAttackType>(m_requiredAttackType);

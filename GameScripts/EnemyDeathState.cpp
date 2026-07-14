@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "EnemyDeathState.h"
 #include "HealthPickup.h"
-
-#include <cmath>
+#include "HealthDropSpawner.h"
+#include "EnemySound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyDeathState,
 	SERIALIZED_FLOAT(m_destroyDelay, "Destroy Delay", 0.0f, 30.0f, 0.1f),
 	SERIALIZED_BOOL(m_shouldDropHealth, "Should Drop Health"),
-	SERIALIZED_STRING(m_healthPrefabPath, "Health Prefab Path"),
+	SERIALIZED_ASSET_REF(m_healthPrefab, "Health Prefab", AssetType::PREFAB),
 	SERIALIZED_INT(m_healthDropQuantity, "Health Drop Quantity"),
 	SERIALIZED_FLOAT(m_dropHealAmount, "Drop Heal Amount", 0.0f, 100.0f, 1.0f),
 	SERIALIZED_FLOAT(m_dropRadius, "Drop Radius", 0.0f, 5.0f, 0.1f),
@@ -22,6 +22,14 @@ EnemyDeathState::EnemyDeathState(GameObject* owner)
 void EnemyDeathState::OnStateEnter()
 {
 	Debug::log("[EnemyDeathState] ENTER");
+
+	EnemySound* enemySound = GameObjectAPI::findScript<EnemySound>(getOwner());
+	if (enemySound)
+	{
+		enemySound->stopAllLoops();   // kill charge loop / footsteps before the death sting
+		enemySound->playDeath();
+	}
+
 	onDeathStarted();
 
 	if (m_shouldDropHealth)
@@ -34,7 +42,7 @@ void EnemyDeathState::OnStateEnter()
 
 void EnemyDeathState::OnStateUpdate()
 {
-	if (!m_waitingToDestroy || m_deathFinished)
+	if (!m_waitingToDestroy || m_deathFinished || m_deathPaused)
 	{
 		return;
 	}
@@ -79,7 +87,7 @@ void EnemyDeathState::destroyEnemyNow()
 
 void EnemyDeathState::dropRewards()
 {
-    if (m_healthPrefabPath.empty())
+    if (!m_healthPrefab.m_ref.isValid())
     {
         return;
     }
@@ -94,36 +102,40 @@ void EnemyDeathState::dropRewards()
 
     for (int i = 0; i < m_healthDropQuantity; ++i)
     {
-
-        float angle = (static_cast<float>(rand()) / RAND_MAX) * 6.283185f;
-
-
-        float distance = (static_cast<float>(rand()) / RAND_MAX) * m_dropRadius;
-
-
-        Vector3 offset;
-        offset.x = std::cos(angle) * distance;
-        offset.z = std::sin(angle) * distance;
-        offset.y = 0.0f;
-
-        Vector3 finalPos = spawnPosition + offset;
-        Vector3 arcOrigin = Vector3(spawnPosition.x, spawnPosition.y + m_dropHeight, spawnPosition.z);
-
-        // Instantiate at the arc origin (enemy center) so the pickup is never
-        // visible at the floor position before Start() runs.
-        GameObject* pickup = GameObjectAPI::instantiatePrefab(m_healthPrefabPath.c_str(), arcOrigin, Vector3::Zero);
-
-        if (pickup == nullptr)
-        {
-            continue;
-        }
-
-		HealthPickup* healthPickup = GameObjectAPI::findScript<HealthPickup>(pickup);
-		if (healthPickup != nullptr)
-		{
-			healthPickup->setupDrop(m_dropHealAmount, finalPos);
-		}
+        HealthDropSpawner::drop(m_healthPrefab.m_ref,
+                                spawnPosition,
+                                m_dropHealAmount,
+                                m_dropRadius,
+                                m_dropHeight);
     }
+}
+
+void EnemyDeathState::pauseDeathCountdown()
+{
+	m_deathPaused = true;
+}
+
+void EnemyDeathState::resumeDeathCountdown()
+{
+	m_deathPaused = false;
+}
+
+void EnemyDeathState::finalizeDeathNow()
+{
+	m_deathPaused = false;
+	if (m_shouldDropHealth)
+	{
+		dropRewards();
+	}
+	startDestroyCountdown(m_destroyDelay);
+}
+
+void EnemyDeathState::abortDeathForRevival()
+{
+	m_deathPaused = false;
+	m_waitingToDestroy = false;
+	m_deathFinished = false;
+	m_deathTimer = 0.0f;
 }
 
 IMPLEMENT_SCRIPT(EnemyDeathState)

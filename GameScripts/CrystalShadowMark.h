@@ -20,21 +20,29 @@ public:
 
     void updateUI();
 
-    ScriptComponentRef<Transform> m_puzzleManager;
+    ComponentRef<Transform> m_puzzleManager;
 
 	int m_puzzleID = 0;
 
 	float m_activeTime = 5.0f;
 
+    PrefabRef m_crystalSparks;
+
 private:
 
     bool m_activated = false;
+    bool m_activatedLoopStarted = false;   // crystal hum loop: start once, 3D attenuation handles audibility
 
 	float m_activationTimer = 0.0f;
+
+	GameObject* effectObject = nullptr;
+
+	void activeEffect();
+	void deactivateEffect();
 
 	GameObject* managerObject = nullptr;
 	PuzzleManagerLVL1* managerScript = nullptr;
 
-ScriptFieldList getExposedFields() const override;
+FieldList getExposedFields() const override;
 };
 

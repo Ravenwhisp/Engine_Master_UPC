@@ -17,35 +17,38 @@ bool EmitterRender::drawUi()
         }
 
 
-        parameterChanged |= ImGui::DragInt("Render layer##Render", &m_layer, 1.f);
+        {
+            int layer = static_cast<int>(m_layer);
+            if (ImGui::DragInt("Render layer##Render", &layer, 1.f))
+            {
+                m_layer = static_cast<uint32_t>(layer);
+                parameterChanged = true;
+            }
+        }
     }
 
     return parameterChanged;
 }
 
-rapidjson::Value EmitterRender::getJSON(rapidjson::Document& domTree)
+void EmitterRender::serialize(IArchive& archive)
 {
-    rapidjson::Value moduleInfo(rapidjson::kObjectType);
+    ParticleModule::serialize(archive);
 
-    moduleInfo.AddMember("ModuleType", unsigned int(ParticleModuleType::RENDER), domTree.GetAllocator());
+    archive.serializeStringEnum(m_renderMode, "RenderMode", 
+        [](uint32_t v) -> const char* {
+            switch (static_cast<RenderMode>(v)) {
+            case RenderMode::BILLBOARD:  return "BILLBOARD";
+            case RenderMode::HORIZONTAL: return "HORIZONTAL";
+            case RenderMode::VERTICAL:   return "VERTICAL";
+            default: return "BILLBOARD";
+            }
+        },
+        [](const char* s) -> uint32_t {
+            if (std::strcmp(s, "BILLBOARD") == 0)  return 0;
+            if (std::strcmp(s, "HORIZONTAL") == 0) return 1;
+            if (std::strcmp(s, "VERTICAL") == 0)   return 2;
+            return 0;
+        });
 
-    moduleInfo.AddMember("RenderMode", unsigned int(m_renderMode), domTree.GetAllocator());
-
-    moduleInfo.AddMember("RenderLayer", m_layer, domTree.GetAllocator());
-
-    return moduleInfo;
-}
-
-bool EmitterRender::deserializeJSON(const rapidjson::Value& moduleInfo)
-{
-    if (moduleInfo.HasMember("RenderMode"))
-    {
-        m_renderMode = static_cast<RenderMode>(moduleInfo["RenderMode"].GetUint());
-    }
-
-    if (moduleInfo.HasMember("RenderLayer")) {
-        m_layer = moduleInfo["RenderLayer"].GetInt();
-    }
-
-    return true;
+    archive.serialize(m_layer, "RenderLayer");
 }

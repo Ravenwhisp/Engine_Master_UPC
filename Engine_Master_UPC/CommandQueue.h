@@ -2,6 +2,7 @@
 
 #include <d3d12.h>
 #include <wrl.h>
+#include "Globals.h"
 
 #include <cstdint>
 #include <queue>
@@ -23,6 +24,8 @@ class CommandQueue
 public:
     CommandQueue(ComPtr<ID3D12Device4> device, D3D12_COMMAND_LIST_TYPE type);
     virtual ~CommandQueue();
+
+    static constexpr size_t MAX_POOL_SIZE = FRAMES_IN_FLIGHT + 1;
 
     ComPtr<GraphicsCommandList> getCommandList();
     ComPtr<ID3D12CommandQueue>  getD3D12CommandQueue() const;

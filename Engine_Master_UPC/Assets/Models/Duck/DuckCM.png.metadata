@@ -1,0 +1,13 @@
+{
+    "uid": 6950849185125933645,
+    "contentHash": "d68914109658ec1fc4fd09d8a954fe7f",
+    "type": 0,
+    "sourcePath": "Assets\\Models\\Duck\\DuckCM.png",
+    "sourceFileSize": 16302,
+    "importSettings": {
+        "typeName": "TextureImportSettings",
+        "targetFormat": 0,
+        "generateMips": true,
+        "srgb": true
+    }
+}

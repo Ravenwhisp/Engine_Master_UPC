@@ -1,0 +1,83 @@
+{
+  "SourcePath": "Assets\\Prefabs\\Crystals.prefab",
+  "Name": "Crystals",
+  "Version": 2,
+  "GameObject": {
+    "Name": "Crystals",
+    "Active": true,
+    "Tag": "ENEMY",
+    "Layer": "NAVMESH",
+    "Transform": {
+      "position": [
+        -20.243457794189453,
+        -1.3700000047683716,
+        24.367441177368164
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        0.7171599864959717,
+        0.7171599864959717,
+        0.7171599864959717
+      ]
+    },
+    "Components": [
+      {
+        "Type": 1,
+        "Data": {
+          "UID": 1646300235569184422,
+          "ComponentType": 1,
+          "Active": true,
+          "MeshAssetId": {
+            "uid": 14577145496971844621,
+            "libId": "62f9cd4ea5c2e59410ab5b8c39505394"
+          },
+          "SkinAssetId": {
+            "uid": 0,
+            "libId": ""
+          },
+          "MaterialAssetId": [
+            {
+              "uid": 14250986804951915234,
+              "libId": "7f2d6bbc872cecd9016622ff7e939b1c"
+            }
+          ]
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 11806392409957964589,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "EnemyDamageable",
+          "ScriptFields": {
+            "Max HP": 100.0,
+            "Health Slider": 0,
+            "Health Slider 2": 0,
+            "UI Update Time (Slider 2)": 1.0
+          }
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 10623177258545042946,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "CrystalShadowMark",
+          "ScriptFields": {
+            "PuzzleManager": 5103596312343383342,
+            "Puzzle ID": 1,
+            "Active Time": 300.0
+          }
+        }
+      }
+    ],
+    "Children": []
+  }
+}

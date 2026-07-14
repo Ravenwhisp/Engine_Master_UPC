@@ -17,10 +17,12 @@
     X(NAV_MODIFIER_VOLUME)  \
     X(NAV_RUNTIME_BLOCKER)  \
     X(PARTICLE_SYSTEM)      \
+    X(TRAIL)                \
     X(UISHEET)              \
     X(SOUND_LISTENER)       \
-    X(SOUND_SOURCE)          \
-    X(PREFAB_INSTANCE)
+    X(SOUND_SOURCE)         \
+    X(PREFAB_INSTANCE)      \
+    X(PLAYER_RENDER_BUFFER)
 
 #define COMP_ENUM(name) name,
 #define COMP_SWITCH(name) case ComponentType::name: return #name;

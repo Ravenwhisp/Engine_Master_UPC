@@ -10,10 +10,10 @@
 #include <HierarchyUtils.h>
 
 CommandInstantiatePrefab::CommandInstantiatePrefab(Scene* scene,
-    const std::filesystem::path& sourcePath,
+    const AssetReference& ref,
     GameObject* parent)
     : m_scene(scene)
-    , m_source(sourcePath)
+    , m_source(ref)
     , m_parentID(parent ? parent->GetID() : 0)
 {
 }

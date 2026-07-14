@@ -11,7 +11,7 @@ class DeathTargetIndicatorUI : public TargetIndicatorUI
 public:
     explicit DeathTargetIndicatorUI(GameObject* owner);
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 protected:
     void onStart() override;
@@ -22,7 +22,7 @@ private:
     void updateRangeIndicatorTransform(Transform* rangeTransform, const Vector3& playerPosition, const Vector3& direction) const;
 
 public:
-    ScriptComponentRef<Transform> m_rangeIndicatorTransform;
+    ComponentRef<Transform> m_rangeIndicatorTransform;
 
     float m_heightOffset = 0.05f;
     float m_rotationOffsetDegrees = -90.0f;
@@ -30,5 +30,5 @@ public:
     Vector3 m_rangeIndicatorFullScale = Vector3(1.0f, 1.0f, 1.0f);
 
 private:
-    DeathConfig* m_deathConfig = nullptr;
+    AssetRef<DeathConfig> m_deathConfig;
 };

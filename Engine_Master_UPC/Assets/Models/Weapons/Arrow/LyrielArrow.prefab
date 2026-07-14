@@ -1,0 +1,69 @@
+{
+  "SourcePath": "Assets\\Models\\Weapons\\Arrow\\LyrielArrow.prefab",
+  "Name": "LyrielArrow",
+  "Version": 2,
+  "VariantOf": "Assets\\Models\\Weapons\\Arrow\\weapon_arrow_dungeon.gltf",
+  "GameObject": {
+    "Name": "LyrielArrow",
+    "Active": true,
+    "Tag": "DEFAULT",
+    "Layer": "DEFAULT",
+    "PrefabLink": {
+      "SourcePath": "Assets\\Models\\Weapons\\Arrow\\weapon_arrow_dungeon.gltf",
+      "AssetUID": 3583330690663695562
+    },
+    "Transform": {
+      "position": [
+        1.3509068489074707,
+        0.0,
+        1.4901161193847656e-8
+      ],
+      "rotation": [
+        -0.0,
+        0.0,
+        -0.0,
+        1.0
+      ],
+      "scale": [
+        2.0,
+        2.0,
+        1.0
+      ]
+    },
+    "Components": [
+      {
+        "Type": 1,
+        "Data": {
+          "UID": 15264447972881088097,
+          "ComponentType": 1,
+          "Active": true,
+          "MeshAssetId": {
+            "uid": 3818099652335832123,
+            "libId": "4566b749874ada313b34182fb9b34cd5"
+          },
+          "SkinAssetId": {
+            "uid": 0,
+            "libId": ""
+          },
+          "MaterialAssetId": [
+            {
+              "uid": 371651012915832828,
+              "libId": "2b551e2f8b9f3d842ae7273c86ade10d"
+            }
+          ]
+        }
+      },
+      {
+        "Type": 3,
+        "Data": {
+          "UID": 17159487429857226510,
+          "ComponentType": 3,
+          "Active": true,
+          "ScriptName": "LyrielArrowProjectile",
+          "ScriptFields": {}
+        }
+      }
+    ],
+    "Children": []
+  }
+}

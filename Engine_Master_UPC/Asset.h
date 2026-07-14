@@ -5,10 +5,11 @@
 #include "MD5Fwd.h"
 #include "ImportSettings.h"
 #include <memory>
+#include "EngineAPI.h"
 
 class IArchive;
 
-class Asset : public ISerializable
+class ENGINE_API Asset : public ISerializable
 {
 public:
     Asset() = default;
@@ -35,3 +36,5 @@ protected:
     AssetType m_type = AssetType::UNKNOWN;
     std::unique_ptr<ImportSettings> m_importSettings;
 };
+
+#pragma warning(pop)

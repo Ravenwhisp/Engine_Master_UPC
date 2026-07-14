@@ -1,10 +1,9 @@
 #pragma once
 
 #include "ScriptAPI.h"
+#include "ProjectileBase.h"
 
-class ArrowPool;
-
-class LyrielArrowProjectile : public Script
+class LyrielArrowProjectile : public ProjectileBase
 {
     DECLARE_SCRIPT(LyrielArrowProjectile)
 
@@ -12,28 +11,19 @@ public:
     explicit LyrielArrowProjectile(GameObject* owner);
 
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void launch(const Vector3& start_position, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage);
-    void resetProjectile();
-    void returnToPool();
-
-    bool isInUse() const;
-    void setPool(ArrowPool* pool);
-    void setArrowOwnerTransform(Transform* transform);
+    void resetProjectile() override;
 
 private:
     void applyImpactDamage();
     void syncParticleTransform();
 
 public:
-    std::string m_particlePrefabPath = "";
+    PrefabRef m_particlePrefab;
 
 private:
-    ArrowPool* m_pool = nullptr;
-    Transform* m_arrowOwner = nullptr;
-
-    bool m_inUse = false;
     Vector3 m_direction = Vector3::Zero;
     float m_speed = 0.0f;
     float m_currentLifetime = 0.0f;

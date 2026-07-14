@@ -22,15 +22,15 @@ public:
 	void Update() override;
 	void drawGizmo() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 public:
 	float m_detectionRadius = 10.0f;
 	float m_targetLockDuration = 5.0f;
 	bool m_debugEnabled = true;
 
-	ScriptComponentRef<Transform> m_lyrielTransform;
-	ScriptComponentRef<Transform> m_deathTransform;
+	ComponentRef<Transform> m_lyrielTransform;
+	ComponentRef<Transform> m_deathTransform;
 
 public:
 	void notifyPlayerAttackedEnemy(Transform* playerTransform);
