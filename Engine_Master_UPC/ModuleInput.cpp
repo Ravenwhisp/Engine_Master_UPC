@@ -39,6 +39,11 @@ ModuleInput::ModuleInput(HWND hWnd)
     }
 
     SDL_free(gamepads);
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+    }
 }
 
 ModuleInput::~ModuleInput()
@@ -67,7 +72,18 @@ void ModuleInput::update()
 
     if (m_sdlInitialized)
     {
-        SDL_PumpEvents();
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_EVENT_GAMEPAD_ADDED)
+            {
+                handleGamepadAdded(event.gdevice.which);
+            }
+            else if (event.type == SDL_EVENT_GAMEPAD_REMOVED)
+            {
+                handleGamepadRemoved(event.gdevice.which);
+            }
+        }
     }
 
     if (!isLeftMouseHeld() && !isRightMouseHeld())
@@ -270,6 +286,39 @@ bool ModuleInput::isGamePadConnected(int player) const
     }
 
     return m_sdlGamepads[player] != nullptr;
+}
+
+void ModuleInput::handleGamepadAdded(SDL_JoystickID joystickId)
+{
+    for (SDL_Gamepad* gamepad : m_sdlGamepads)
+    {
+        if (gamepad && SDL_GetGamepadID(gamepad) == joystickId)
+        {
+            return;
+        }
+    }
+
+    for (int i = 0; i < MAX_GAMEPADS; ++i)
+    {
+        if (!m_sdlGamepads[i])
+        {
+            m_sdlGamepads[i] = SDL_OpenGamepad(joystickId);
+            return;
+        }
+    }
+}
+
+void ModuleInput::handleGamepadRemoved(SDL_JoystickID joystickId)
+{
+    for (int i = 0; i < MAX_GAMEPADS; ++i)
+    {
+        if (m_sdlGamepads[i] && SDL_GetGamepadID(m_sdlGamepads[i]) == joystickId)
+        {
+            SDL_CloseGamepad(m_sdlGamepads[i]);
+            m_sdlGamepads[i] = nullptr;
+            return;
+        }
+    }
 }
 
 bool ModuleInput::isGamePadButtonDown(int player, SDL_GamepadButton button) const
