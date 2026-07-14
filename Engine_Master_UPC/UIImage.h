@@ -13,18 +13,27 @@ public:
     enum class StretchDrawMode
     {
         Stretch = 0,
-        Tile = 1
+        Tile = 1,
+        Cover = 2
     };
 
     static const char* StretchDrawModeToString(uint32_t v)
     {
-        return v == 0 ? "Stretch" : "Tile";
+        switch (static_cast<StretchDrawMode>(v))
+        {
+        case StretchDrawMode::Stretch: return "Stretch";
+        case StretchDrawMode::Tile:    return "Tile";
+        case StretchDrawMode::Cover:   return "Cover";
+        }
     }
 
     static uint32_t StringToStretchDrawMode(const char* s)
     {
-        return std::strcmp(s, "Tile") == 0 ? 1 : 0;
+        if (std::strcmp(s, "Tile") == 0)  return 1;
+        if (std::strcmp(s, "Cover") == 0) return 2;
+        return 0;
     }
+
     UIImage(UID id, GameObject* owner);
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
