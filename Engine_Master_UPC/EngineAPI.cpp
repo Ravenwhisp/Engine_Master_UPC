@@ -32,6 +32,7 @@
 #include "ComponentSoundSource.h"
 #include "NavRuntimeBlockerComponent.h"
 #include "PlayerRenderBufferComponent.h"
+#include "DamageHighlightComponent.h"
 #include "TrailComponent.h"
 
 #include "CameraComponent.h"
@@ -3012,7 +3013,7 @@ namespace Shaders
     {
         return component->getDamageHighlightCenterColor();
     }
-    
+
     void Shaders::setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value)
     {
         return component->setDamageHighlightCenterColor(value);
@@ -3034,6 +3035,69 @@ namespace Shaders
     }
 
     void setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlightRimIntensity(value);
+    }
+}
+
+namespace ShadersAPI
+{
+    DamageHighlightComponent* getDamageHighlightComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DamageHighlightComponent>(ComponentType::DAMAGE_HIGHLIGHT);
+    }
+
+    const DamageHighlightComponent* getDamageHighlightComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DamageHighlightComponent>(ComponentType::DAMAGE_HIGHLIGHT);
+    }
+
+    float getDamageHighlightIntensity(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightIntensity();
+    }
+
+    void setDamageHighlightIntensity(DamageHighlightComponent* component, float value)
+    {
+        component->setDamageHighlightIntensity(value);
+    }
+
+    Vector3 getDamageHighlightCenterColor(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightCenterColor();
+    }
+
+    void setDamageHighlightCenterColor(DamageHighlightComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightCenterColor(value);
+    }
+
+    Vector3 getDamageHighlightRimColor(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightRimColor();
+    }
+
+    void setDamageHighlightRimColor(DamageHighlightComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightRimColor(value);
+    }
+
+    float getDamageHighlightRimIntensity(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightRimIntensity();
+    }
+
+    void setDamageHighlightRimIntensity(DamageHighlightComponent* component, float value)
     {
         component->setDamageHighlightRimIntensity(value);
     }

@@ -32,6 +32,7 @@ class ComponentSoundSource;
 class CameraComponent;
 class NavRuntimeBlockerComponent;
 class PlayerRenderBufferComponent;
+class DamageHighlightComponent;
 class TrailComponent;
 
 struct HapticEffectDefinition;
@@ -463,6 +464,21 @@ namespace Shaders
     ENGINE_API void    setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value);
     ENGINE_API float   getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component);
     ENGINE_API void    setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value);
+}
+
+namespace ShadersAPI
+{
+    ENGINE_API DamageHighlightComponent* getDamageHighlightComponent(GameObject* gameObject);
+    ENGINE_API const DamageHighlightComponent* getDamageHighlightComponent(const GameObject* gameObject);
+
+    ENGINE_API float   getDamageHighlightIntensity(DamageHighlightComponent* component);
+    ENGINE_API void    setDamageHighlightIntensity(DamageHighlightComponent* component, float value);
+    ENGINE_API Vector3 getDamageHighlightCenterColor(DamageHighlightComponent* component);
+    ENGINE_API void    setDamageHighlightCenterColor(DamageHighlightComponent* component, Vector3 value);
+    ENGINE_API Vector3 getDamageHighlightRimColor(DamageHighlightComponent* component);
+    ENGINE_API void    setDamageHighlightRimColor(DamageHighlightComponent* component, Vector3 value);
+    ENGINE_API float   getDamageHighlightRimIntensity(DamageHighlightComponent* component);
+    ENGINE_API void    setDamageHighlightRimIntensity(DamageHighlightComponent* component, float value);
 }
 
 #include "EngineAPI.inl"

@@ -3,7 +3,7 @@
 
 #include "JsonArchive.h"
 
-DamageHighlightComponent::DamageHighlightComponent(UID id, GameObject* owner) : Component(id, ComponentType::DAMAGE_HIGHLIGHT_EFFECT, owner)
+DamageHighlightComponent::DamageHighlightComponent(UID id, GameObject* owner) : Component(id, ComponentType::DAMAGE_HIGHLIGHT, owner)
 {
 }
 

@@ -207,7 +207,7 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
 
     DamageHighlightDataCB damageHighlightDataCB{};
     
-    Component* damageHighlightComponent = owner->GetComponent(ComponentType::DAMAGE_HIGHLIGHT_EFFECT);
+    Component* damageHighlightComponent = owner->GetComponent(ComponentType::DAMAGE_HIGHLIGHT);
     if (damageHighlightComponent != nullptr)
     {
         damageHighlightDataCB.hasDamageHighlightComponent = 1;
