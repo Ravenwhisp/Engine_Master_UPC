@@ -19,6 +19,7 @@
 #include "ComponentSoundSource.h"
 #include "PlayerRenderBufferComponent.h"
 #include "DamageHighlightComponent.h"
+#include "DissolveComponent.h"
 
 // Prefab
 #include "PrefabInstanceComponent.h"
@@ -107,6 +108,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::DAMAGE_HIGHLIGHT:
         return std::make_unique<DamageHighlightComponent>(id, owner);
+
+    case ComponentType::DISSOLVE:
+        return std::make_unique<DissolveComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

@@ -3,19 +3,41 @@
 
 struct DamageHighlightData
 {
-    float damageHighlight;
+    float  damageHighlight;
     float3 damageHighlightCenterColor;
     float3 damageHighlightRimColor;
-    float damageHighlightRimIntensity;
+    float  damageHighlightRimIntensity;
 };
 
-cbuffer DamageHighlightDataCB : register(b4)
+struct DamageHighlightCB
 {
     uint hasDamageHighlightComponent;
     float3 padding1;
     
     DamageHighlightData damageHighlightData;
+};
+
+struct DissolveData
+{
+    float  dissolveAmount;
+    float3 dissolveColor;
+    float  dissolveThickness;
+};
+
+struct DissolveCB
+{
+    uint hasDissolveComponent;
+    float3 padding1;
+    
+    DissolveData dissolveData;
     float3 padding2;
+};
+
+cbuffer VisualEffectsCB : register(b4)
+{
+    DamageHighlightCB damageHighlightCB;
+    
+    DissolveCB dissolveCB;
 };
 
 
@@ -25,6 +47,8 @@ Texture2D diffuseTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
 Texture2D emissiveTex : register(t3);
+
+Texture2D dissolveNoise : register(t8);
 
 SamplerState linearWrapSample : register(s0);
 SamplerState pointWrapSample : register(s1);
@@ -55,9 +79,9 @@ float3 CalculateDamageHighlight(float3 normalVector, float3 viewDirection, float
 {
     float NdotV = saturate(dot(normalVector, viewDirection));
     
-    float3 fresnelColor = ColoredSchlickFresnel(damageHighlightData.damageHighlightCenterColor * albedo, damageHighlightData.damageHighlightRimColor, NdotV, 25 - damageHighlightData.damageHighlightRimIntensity);
+    float3 fresnelColor = ColoredSchlickFresnel(damageHighlightCB.damageHighlightData.damageHighlightCenterColor * albedo, damageHighlightCB.damageHighlightData.damageHighlightRimColor, NdotV, 25 - damageHighlightCB.damageHighlightData.damageHighlightRimIntensity);
     
-    return fresnelColor * damageHighlightData.damageHighlight;
+    return fresnelColor * damageHighlightCB.damageHighlightData.damageHighlight;
 }
 
 
@@ -74,6 +98,8 @@ PSOutput main(VSOutput IN)
     float3 emissive = 0;
     float3 finalWorldNormal = normalize(IN.normal);
     
+    bool dissolving = false;
+    
     
     
     //Load base color texture
@@ -86,7 +112,20 @@ PSOutput main(VSOutput IN)
         
         albedo *= texSampleD.rgb;
     }
-    OUT.diffuse      = float4(albedo, 1.0f);
+    if (dissolveCB.hasDissolveComponent == 1 && dissolveCB.dissolveData.dissolveAmount > 0)
+    {
+        float4 dissolveNoisSample = dissolveNoise.Sample(linearWrapSample, IN.texCoord);
+        if (dissolveNoisSample.r <= dissolveCB.dissolveData.dissolveAmount)
+        {
+            discard;
+        }
+        else if (dissolveNoisSample.r > dissolveCB.dissolveData.dissolveAmount && dissolveNoisSample.r < dissolveCB.dissolveData.dissolveAmount + (dissolveCB.dissolveData.dissolveThickness / 10))
+        {
+            albedo = dissolveCB.dissolveData.dissolveColor;
+            dissolving = true;
+        }
+    }
+    OUT.diffuse = float4(albedo, 1.0f);
     
     
     
@@ -125,11 +164,15 @@ PSOutput main(VSOutput IN)
         
         emissive = emissiveSample.rgb * gMaterial.emissiveColor;
     }
-    if (hasDamageHighlightComponent == 1)
+    if (damageHighlightCB.hasDamageHighlightComponent == 1)
     {
         emissive += CalculateDamageHighlight(finalWorldNormal, normalize(gViewPos - IN.worldPos), albedo);
     }
-    OUT.emissive     = float4(emissive, 0.0f);
+    if (dissolving)
+    {
+        emissive = dissolveCB.dissolveData.dissolveColor;
+    }
+    OUT.emissive = float4(emissive, 0.0f);
   
     
     

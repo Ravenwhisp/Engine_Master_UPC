@@ -2,8 +2,18 @@
 #include "IRenderPass.h"
 #include "RenderSurface.h"
 
+#include "DamageHighlightComponent.h"
+#include "DissolveComponent.h"
+
 class MeshRenderer;
 struct RenderContext;
+
+struct VisualEffectsCB
+{
+    DamageHighlightDataCB damageHighlightDataCB;
+
+    DissolveCB dissolveDataCB;
+};
 
 class GeometryPass : public IRenderPass {
 public:

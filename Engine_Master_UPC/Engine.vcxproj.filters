@@ -258,6 +258,7 @@
     <ClCompile Include="WwiseBank.cpp" />
     <ClCompile Include="WwiseManager.cpp" />
     <ClCompile Include="DamageHighlightComponent.cpp" />
+    <ClCompile Include="DissolveComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h" />
@@ -560,6 +561,7 @@
     <ClInclude Include="WwiseEvent.h" />
     <ClInclude Include="WwiseManager.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
+    <ClInclude Include="DissolveComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />

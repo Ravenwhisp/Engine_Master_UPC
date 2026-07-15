@@ -305,6 +305,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
+    <ClInclude Include="DissolveComponent.h" />
     <ClInclude Include="ImporterSoundBank.h" />
     <ClInclude Include="ForwardPrepass.h" />
     <ClInclude Include="EmitterAnimation.h" />
@@ -766,6 +767,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandCutItem.cpp" />
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
+    <ClCompile Include="DissolveComponent.cpp" />
     <ClCompile Include="EmitterAnimation.cpp" />
     <ClCompile Include="EmitterArea.cpp" />
     <ClCompile Include="EmitterColor.cpp" />
