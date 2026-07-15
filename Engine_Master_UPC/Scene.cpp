@@ -839,15 +839,44 @@ void Scene::serialize(IArchive& archive)
     archive.endObject();
 
     {
-        uint32_t bankCount = static_cast<uint32_t>(m_loadedBankRefs.size());
         archive.beginObject("SoundBanks");
-        archive.beginArray(bankCount, "banks");
-        m_loadedBankRefs.resize(bankCount);
-        for (uint32_t i = 0; i < bankCount; ++i)
+
+        if (archive.mode() == ArchiveMode::Output)
         {
-            m_loadedBankRefs[i].serialize(archive);
+            uint32_t bankCount = 0;
+            for (const auto& ref : m_loadedBankRefs)
+                if (ref.hasUID()) ++bankCount;
+
+            archive.beginArray(bankCount, "banks");
+            for (const auto& ref : m_loadedBankRefs)
+            {
+                if (!ref.hasUID()) continue;
+                archive.beginObject();
+                const_cast<AssetReference&>(ref).serialize(archive);
+                archive.endObject();
+            }
+            archive.endArray();
         }
-        archive.endArray();
+        else
+        {
+            uint32_t bankCount = 0;
+            archive.beginArray(bankCount, "banks");
+            m_loadedBankRefs.resize(bankCount);
+            for (uint32_t i = 0; i < bankCount; ++i)
+            {
+                archive.beginObject();
+                m_loadedBankRefs[i].serialize(archive);
+                archive.endObject();
+            }
+            archive.endArray();
+
+            m_loadedBankRefs.erase(
+                std::remove_if(m_loadedBankRefs.begin(), m_loadedBankRefs.end(),
+                    [](const AssetReference& r) { return !r.hasUID(); }),
+                m_loadedBankRefs.end());
+            m_loadedBankNameCache.clear();
+        }
+
         archive.endObject();
     }
 
