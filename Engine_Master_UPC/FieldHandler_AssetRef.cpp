@@ -135,14 +135,9 @@ namespace
     void serializeAssetRefField(const FieldInfo& field, void* data, IArchive& archive)
     {
         AssetRef<void>* ref = reinterpret_cast<AssetRef<void>*>(data);
-        uint64_t uid = static_cast<uint64_t>(ref->m_ref.m_uid);
-        archive.serialize(uid, field.name);
-        ref->m_ref.m_uid = static_cast<UID>(uid);
-
-        uint32_t type = static_cast<uint32_t>(ref->m_ref.m_type);
-        std::string typeKey = std::string(field.name) + "_type";
-        archive.serializeStringEnum(type, typeKey.c_str(), AssetTypeToString, StringToAssetType);
-        ref->m_ref.m_type = static_cast<AssetType>(type);
+        archive.beginObject(field.name);
+        ref->m_ref.serialize(archive);
+        archive.endObject();
     }
 
     void cloneAssetRefField(const FieldInfo&, const void* sourceData, void* targetData)
