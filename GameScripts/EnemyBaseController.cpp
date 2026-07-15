@@ -483,7 +483,7 @@ bool EnemyBaseController::followPath()
     if (!NavigationAPI::moveAlongSurface(ownerPosition, desiredStepTarget, nextPosition, m_pathSearchExtents))
     {
         clearPath();
-        Debug::error("Move along surface FAILED");
+        //Debug::error("Move along surface FAILED");
         return false;
     }
 

@@ -1911,12 +1911,14 @@ namespace NavigationAPI
         ModuleNavigation* navigation = app->getModuleNavigation();
         if (!navigation || !navigation->hasNavMesh())
         {
+            Debug::error("[NavigationAPI] no valid NavMesh found.");
             return false;
         }
 
         dtNavMeshQuery* query = navigation->getNavQuery();
         if (!query)
         {
+            Debug::error("[NavigationAPI] getNavQuery failed.");
             return false;
         }
 
@@ -1936,6 +1938,7 @@ namespace NavigationAPI
         const dtStatus nearestStatus = query->findNearestPoly(start, extents, &filter, &startRef, startNearest);
         if (dtStatusFailed(nearestStatus) || !startRef)
         {
+            Debug::error("[NavigationAPI] findNearestPoly failed.");
             return false;
         }
 
@@ -1945,6 +1948,7 @@ namespace NavigationAPI
 
         if (navigation->isSegmentBlockedByRuntimeBlockers(startPosition, targetPosition))
         {
+            Debug::error("[NavigationAPI] Segment is blocked by Runtime Blockers.");
             outResultPosition = startPosition;
             return false;
         }
@@ -1953,18 +1957,30 @@ namespace NavigationAPI
 
         if (dtStatusFailed(moveStatus))
         {
+            Debug::error("[NavigationAPI] moveAlongSurface failed.");
             return false;
         }
 
-        dtPolyRef lastRef = (visitedCount > 0) ? visited[visitedCount - 1] : startRef;
-
-        float height = result[1];
-        if (dtStatusFailed(query->getPolyHeight(lastRef, result, &height)))
+        const dtPolyRef lastRef = visitedCount > 0 ? visited[visitedCount - 1] : startRef;
+        
+        if (!lastRef)
         {
+            Debug::error("[NavigationAPI] Invalid last polygon reference.");
             return false;
         }
 
-        outResultPosition = Vector3(result[0], height, result[2]);
+        float resultOnPoly[3] = {};
+        bool isOverPoly = false;
+
+        const dtStatus closestStatus = query->closestPointOnPoly(lastRef, result, resultOnPoly, &isOverPoly);
+
+        if (dtStatusFailed(closestStatus))
+        {
+            Debug::error("[NavigationAPI] closestPointOnPoly failed.");
+            return false;
+        }        
+
+        outResultPosition = Vector3(resultOnPoly[0], resultOnPoly[1], resultOnPoly[2]);
         return true;
     }
 
