@@ -18,6 +18,7 @@
 #include "ComponentSoundListener.h"
 #include "ComponentSoundSource.h"
 #include "PlayerRenderBufferComponent.h"
+#include "LineRendererComponent.h"
 
 // Prefab
 #include "PrefabInstanceComponent.h"
@@ -103,6 +104,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::PLAYER_RENDER_BUFFER:
         return std::make_unique<PlayerRenderBufferComponent>(id, owner);
+
+    case ComponentType::LINE_RENDERER:
+        return std::make_unique<LineRendererComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

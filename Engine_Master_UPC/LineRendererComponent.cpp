@@ -12,7 +12,7 @@
 #include "ModuleTime.h"
 
 
-LineRendererComponent::LineRendererComponent(UID id, GameObject* owner) : Component(id, ComponentType::TRAIL, owner)
+LineRendererComponent::LineRendererComponent(UID id, GameObject* owner) : Component(id, ComponentType::LINE_RENDERER, owner)
 {
     //Create two points to start
     CreatePoint();
@@ -34,25 +34,141 @@ void LineRendererComponent::drawUi()
     // LINE RENDERER INTERFACE
 
     // point controller //
+    
+    //ImGui::Begin("Render Points");
 
-    //TODO: Edit point list, adding and removing points and editing its values
-    //      Be able to attach gameobjects to each point.
-
-
-    /*ImGui::Button("TargetGraphic reference");
-    if (ImGui::BeginDragDropTarget())
+    ImGui::BeginChild("List", ImVec2(220, 0), true);
+   
+    // Add button
+    if (ImGui::Button("Add"))
     {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
-        {
-            Component* comp = *(Component**)payload->Data;
+        CreatePoint();
+        m_selectedPoint = (int)m_points.size() - 1;
+    }
 
-            if (comp && comp->getType() == ComponentType::TRANSFORM)
+    ImGui::SameLine();
+
+    // Remove button
+    if (ImGui::Button("Remove"))
+    {
+        if (m_selectedPoint >= 0 &&
+            m_selectedPoint < (int)m_points.size())
+        {
+            m_points.erase(m_points.begin() + m_selectedPoint);
+
+            if (m_points.empty())
+                m_selectedPoint = -1;
+            else if (m_selectedPoint >= (int)m_points.size())
+                m_selectedPoint = (int)m_points.size() - 1;
+        }
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::BeginListBox("Points"))
+    {
+        for (int i = 0; i < (int)m_points.size(); i++)
+        {
+            bool selected = (m_selectedPoint == i);
+
+            std::string label = "Point " + std::to_string(i);
+
+            if (ImGui::Selectable(label.c_str(), selected))
+                m_selectedPoint = i;
+
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+
+        ImGui::EndListBox();
+    }
+
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+
+    ImGui::BeginChild("Inspector", ImVec2(0, 0), true);
+
+    if (m_selectedPoint >= 0 && m_selectedPoint < (int)m_points.size())
+    {
+        auto& point = *m_points[m_selectedPoint];
+        bool disableTransform = (point.transformParent != nullptr);
+
+        ImGui::SeparatorText("Transform");
+
+        const char* ParentTransformName = point.transformParent ? point.transformParent->getOwner()->GetName().c_str() : "Drop Transform Here";
+
+        ImGui::BeginGroup();
+
+        ImGui::Text("Parent Transform");
+
+        ImGui::Button(ParentTransformName, ImVec2(200, 0));
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
             {
-                setTargetGraphic(static_cast<UIImage*>(comp));
+                Component* comp = *(Component**)payload->Data;
+
+                if (comp && comp->getType() == ComponentType::TRANSFORM)
+                {
+                    point.transformParent = comp->getTransform();
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        if (point.transformParent)
+        {
+            ImGui::SameLine();
+
+            if (ImGui::SmallButton("X"))
+            {
+                point.transformParent = nullptr;
             }
         }
-        ImGui::EndDragDropTarget();
-    }*/
+
+        ImGui::EndGroup();
+
+        ImGui::BeginDisabled(disableTransform);
+
+        ImGui::DragFloat3("Position", &point.position.x, 0.1f);
+
+        if (disableTransform && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        {
+            ImGui::SetTooltip("Inherited from parent transform.");
+        }
+
+        if (ImGui::DragFloat3("Rotation", &point.editorEuler.x, 1.0f))
+        {
+            point.editorEuler.x = WrapAngle(point.editorEuler.x);
+            point.editorEuler.y = WrapAngle(point.editorEuler.y);
+            point.editorEuler.z = WrapAngle(point.editorEuler.z);
+
+            point.rotation = Quaternion::CreateFromYawPitchRoll(
+                XMConvertToRadians(point.editorEuler.y),
+                XMConvertToRadians(point.editorEuler.x),
+                XMConvertToRadians(point.editorEuler.z)
+            );
+
+            point.rotation.Normalize();
+        }
+
+        if (disableTransform && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        {
+            ImGui::SetTooltip("Inherited from parent transform.");
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::SeparatorText("Shape");
+
+        ImGui::DragFloat( "Width", &point.width, 0.01f, 0.0f);
+        
+    }
+
+    ImGui::EndChild();
+
+    //ImGui::End();
     
 
     // Color gradient editor
@@ -109,6 +225,14 @@ void LineRendererComponent::CreatePoint()
     newPoint->rotation = Quaternion::Identity;
     newPoint->width = 0.0f;
     newPoint->transformParent = nullptr;
+}
+
+float LineRendererComponent::WrapAngle(float angle)
+{
+    angle = std::fmod(angle, 360.0f);
+    if (angle < 0.0f)
+        angle += 360.0f;
+    return angle;
 }
 
 std::unique_ptr<Component> LineRendererComponent::clone(GameObject* newOwner) const

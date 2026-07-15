@@ -15,6 +15,7 @@ public:
 	{
 		Vector3 position;
 		Quaternion rotation;
+		Vector3 editorEuler; //for UI editing
 		float width;
 		Transform* transformParent;
 
@@ -27,6 +28,7 @@ public:
 	void update() override;
 
 	void CreatePoint();
+	float WrapAngle(float angle);
 
 	AssetReference& getTextureAssetReference() { return m_textureAsset; }
 
@@ -49,6 +51,8 @@ private:
 	ImGradient m_color;
 	ImGradientMark* m_draggingMark = nullptr;
 	ImGradientMark* m_selectedMark = nullptr;
+
+	int m_selectedPoint = -1;
 
 };
 
