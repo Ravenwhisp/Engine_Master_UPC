@@ -71,7 +71,7 @@ void NavModifierVolumeComponent::debugDraw()
 	if (!transform)
 		return;
 
-	Vector3 position = transform->getPosition();
+	Vector3 position = transform->getGlobalMatrix().Translation();
 
 	Vector3 min = position - m_halfExtents;
 	Vector3 max = position + m_halfExtents;

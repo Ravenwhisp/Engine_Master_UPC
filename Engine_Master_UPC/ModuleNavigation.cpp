@@ -366,7 +366,20 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
         nearestStart, nearestEnd,
         &filter,
         pathPolys, &pathCount, 128)))
+    {
         return false;
+    }
+
+    if (pathCount <= 0)
+    {
+        return false;
+    }
+
+    if (pathPolys[pathCount - 1] != endRef)
+    {
+        Debug::warn("[Navigation] Partial path - target unreachable.");
+        return false;
+    }
 
     float straight[128 * 3];
     unsigned char flags[128];
@@ -583,7 +596,7 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
                 if (navComp->getEnabled())
                 {
                     NavModifierVolumeData volume;
-                    volume.position = transformComp->getPosition();
+                    volume.position = transformComp->getGlobalMatrix().Translation();
                     volume.halfExtents = navComp->getHalfExtents();
                     volume.areaType = navComp->getAreaType();
                     volume.enabled = navComp->getEnabled();
