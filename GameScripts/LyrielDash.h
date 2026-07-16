@@ -35,7 +35,7 @@ protected:
 
 private:
     LyrielCharacter* m_lyrielCharacter = nullptr;
-    AssetRef<LyrielConfig> m_config;
+    AssetReference<LyrielConfig> m_config;
     LyrielUI* m_lyrielUI = nullptr;
 
     int m_currentCharges = 0;

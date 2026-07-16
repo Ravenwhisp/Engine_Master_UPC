@@ -33,8 +33,8 @@ public:
     void lateUpdate(GameObject* owner, MeshRenderer& renderer);
     void cleanUp();
 
-    void setSkinReference(AssetReference& skinUID);
-    AssetReference& getSkinReference() { return m_skinAsset; }
+    void setSkinReference(AssetId& skinUID);
+    AssetId& getSkinReference() { return m_skinAsset; }
 
     const std::shared_ptr<SkinAsset>& getSkinAsset() const { return m_skin; }
     const std::vector<Transform*>& getJointTransforms() const { return m_jointTransforms; }
@@ -78,7 +78,7 @@ private:
     void invalidateGpuSkinningResources();
 
 private:
-    AssetReference m_skinAsset{};
+    AssetId m_skinAsset{};
 
     std::shared_ptr<SkinAsset> m_skin;
     std::vector<Transform*> m_jointTransforms;
@@ -92,7 +92,7 @@ private:
     std::unique_ptr<VertexBuffer> m_skinnedVertexBuffer;
 
     bool m_enableCpuSkinningFallback = false;
-    AssetReference m_cachedMeshAsset{};
+    AssetId m_cachedMeshAsset{};
 
     std::unique_ptr<VertexBuffer> m_gpuSkinnedVertexBuffers[FRAMES_IN_FLIGHT];
 

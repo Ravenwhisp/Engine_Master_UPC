@@ -67,7 +67,7 @@ public:
 private:
 
     void initSlotManagement();
-    Texture* resolveTexture(AssetReference& textureRef);
+    Texture* resolveTexture(AssetId& textureRef);
 
     //std::vector<std::unique_ptr<ParticleSystem>> m_particleSystems;
     //std::vector<Transform*> m_parents;

@@ -8,7 +8,7 @@
 #include "JsonArchive.h"
 
 template<typename T>
-std::shared_ptr<T> ModuleAssets::load(AssetReference& ref)
+std::shared_ptr<T> ModuleAssets::load(AssetId& ref)
 {
     if (!isValidUID(ref.m_uid))
     {

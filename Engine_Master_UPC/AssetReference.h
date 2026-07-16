@@ -1,40 +1,53 @@
 #pragma once
-#include "UID.h"
-#include <MD5.h>
-#include "AssetType.h"
-#include "IArchive.h"
 
-class ISerializable;
+#include "AssetId.h"
+#include <memory>
 
-struct AssetReference {
+class DataContainer;
 
-    AssetReference() = default;
-    explicit AssetReference(UID uid): m_uid(uid) {}
+template<typename T = void>
+struct AssetReference
+{
+    AssetId m_id;
+    std::shared_ptr<T> m_data;
 
-    AssetReference(UID uid, MD5Hash libId) : m_uid(uid), m_libId(std::move(libId)) {}
+    T* get() const
+    {
+        return m_data.get();
+    }
 
-    AssetReference(UID uid, MD5Hash libId, AssetType type) : m_uid(uid), m_libId(std::move(libId)), m_type(type) {}
+    T* operator->() const
+    {
+        return m_data.get();
+    }
 
+    explicit operator bool() const
+    {
+        return m_data != nullptr;
+    }
 
-    UID m_uid = INVALID_UID;
-    MD5Hash m_libId = INVALID_ASSET_ID;
-    AssetType m_type = AssetType::UNKNOWN;
-
-    bool hasUID()  const { return isValidUID(m_uid); }
-    bool isValid() const { return isValidUID(m_uid) && isValidAsset(m_libId); }
+    bool operator!() const
+    {
+        return !m_data;
+    }
 
     bool operator==(const AssetReference& o) const
     {
-        return m_uid == o.m_uid && m_libId == o.m_libId;
+        return m_id == o.m_id;
     }
 
-    bool operator!=(const AssetReference& o) const { return !(*this == o); }
+    bool operator!=(const AssetReference& o) const
+    {
+        return !(*this == o);
+    }
 
     void serialize(IArchive& archive)
     {
-        archive.serialize(m_uid, "uid");
-        archive.serialize(m_libId, "libId");
-        archive.serializeStringEnum(m_type, "type", AssetTypeToString, StringToAssetType);
+        m_id.serialize(archive);
     }
-
 };
+
+using PrefabRef = AssetReference<struct Prefab>;
+using SceneRef = AssetReference<struct Scene>;
+using MaterialRef = AssetReference<struct BasicMaterial>;
+using DataContainerRef = AssetReference<DataContainer>;

@@ -263,9 +263,9 @@ bool ModuleMusic::loadBank(const std::string& bankName)
 	return false;
 }
 
-bool ModuleMusic::loadBank(const AssetReference& ref)
+bool ModuleMusic::loadBank(const AssetId& ref)
 {
-	AssetReference mutableRef = ref;
+	AssetId mutableRef = ref;
 	auto asset = app->getModuleAssets()->load<SoundBankAsset>(mutableRef);
 	if (!asset)
 	{
@@ -341,7 +341,7 @@ bool ModuleMusic::loadBanksFromLibrary()
 				{
 					if (entry.path().extension() != ".bnk")
 						continue;
-					AssetReference ref;
+					AssetId ref;
 					app->getModuleAssets()->importAsset(entry.path().string(), ref);
 				}
 			}
@@ -357,7 +357,7 @@ bool ModuleMusic::loadBanksFromLibrary()
 		if (entry.type != AssetType::SOUND_BANK)
 			continue;
 
-		AssetReference ref(uid, entry.contentHash, AssetType::SOUND_BANK);
+		AssetId ref(uid, entry.contentHash, AssetType::SOUND_BANK);
 		auto asset = app->getModuleAssets()->load<SoundBankAsset>(ref);
 		if (!asset)
 			continue;
@@ -386,7 +386,7 @@ bool ModuleMusic::loadBanksFromLibrary()
 	return true;
 }
 
-AssetReference ModuleMusic::findBankRef(const std::string& bankName) const
+AssetId ModuleMusic::findBankRef(const std::string& bankName) const
 {
 	if (m_initBnk.getName() == bankName)
 		return m_initBnk.getAssetRef();

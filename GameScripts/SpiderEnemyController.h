@@ -24,5 +24,5 @@ protected:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    AssetRef<EnemyBaseAttackConfig> m_attackConfig;
+    AssetReference<EnemyBaseAttackConfig> m_attackConfig;
 };

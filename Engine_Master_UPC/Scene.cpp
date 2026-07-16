@@ -30,7 +30,7 @@
 #include <algorithm>
 
 
-Scene::Scene(AssetReference& id) : Asset(id, AssetType::SCENE)
+Scene::Scene(AssetId& id) : Asset(id, AssetType::SCENE)
 {
     m_triggerSystem = std::make_unique<TriggerSystem>();
     m_skybox = {};
@@ -620,7 +620,7 @@ void Scene::clearScene()
 
     m_objectIndexMap.clear();
     m_defaultCamera = nullptr;
-    m_navMesh = AssetReference{};
+    m_navMesh = AssetId{};
     m_loadedBankRefs.clear();
     m_loadedBankNameCache.clear();
     m_isUpdating = false;
@@ -769,11 +769,11 @@ void Scene::addLoadedBank(const std::string& bankName)
         if (name == bankName)
             return;
 
-    AssetReference ref = app->getModuleMusic()->findBankRef(bankName);
+    AssetId ref = app->getModuleMusic()->findBankRef(bankName);
     if (!ref.isValid())
     {
         UID uid = GenerateUID();
-        ref = AssetReference(uid, INVALID_ASSET_ID, AssetType::SOUND_BANK);
+        ref = AssetId(uid, INVALID_ASSET_ID, AssetType::SOUND_BANK);
     }
     m_loadedBankRefs.push_back(ref);
     m_loadedBankNameCache.push_back(bankName);
@@ -807,7 +807,7 @@ void Scene::resolveLoadedBankNames() const
     m_loadedBankNameCache.clear();
     for (const auto& ref : m_loadedBankRefs)
     {
-        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(ref));
+        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetId&>(ref));
         m_loadedBankNameCache.push_back(asset ? asset->getBankName() : "");
     }
 }
@@ -852,7 +852,7 @@ void Scene::serialize(IArchive& archive)
             {
                 if (!ref.hasUID()) continue;
                 archive.beginObject();
-                const_cast<AssetReference&>(ref).serialize(archive);
+                const_cast<AssetId&>(ref).serialize(archive);
                 archive.endObject();
             }
             archive.endArray();
@@ -872,7 +872,7 @@ void Scene::serialize(IArchive& archive)
 
             m_loadedBankRefs.erase(
                 std::remove_if(m_loadedBankRefs.begin(), m_loadedBankRefs.end(),
-                    [](const AssetReference& r) { return !r.hasUID(); }),
+                    [](const AssetId& r) { return !r.hasUID(); }),
                 m_loadedBankRefs.end());
             m_loadedBankNameCache.clear();
         }

@@ -35,5 +35,5 @@ private:
     LyrielDash*        m_dash        = nullptr;
     LyrielSound*       m_sound       = nullptr;
     PlayerMovement*    m_movement    = nullptr;
-    AssetRef<LyrielConfig> m_config;
+    AssetReference<LyrielConfig> m_config;
 };

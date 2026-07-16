@@ -37,7 +37,7 @@ protected:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    AssetRef<SkeletonAttackConfig> m_attackConfig;
+    AssetReference<SkeletonAttackConfig> m_attackConfig;
 	SkeletonDamageable* m_damageable = nullptr;
 
 	float m_guardCooldownTimer = 0.0f;

@@ -19,7 +19,7 @@
 #include <vector>
 
 template<typename T>
-std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegistry& importers,
+std::shared_ptr<T> AssetCache::loadFromLibrary(AssetId& ref, ImporterRegistry& importers,
                                                 AssetIndex& index)
 {
     if (ref.m_type == AssetType::UNKNOWN)
@@ -114,7 +114,7 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
 
 
 template<typename T>
-std::shared_ptr<T> AssetCache::load(AssetReference& ref, AssetIndex& index, ImporterRegistry& importers)
+std::shared_ptr<T> AssetCache::load(AssetId& ref, AssetIndex& index, ImporterRegistry& importers)
 {
     if (!isValidUID(ref.m_uid))
     {
@@ -185,7 +185,7 @@ std::shared_ptr<T> AssetCache::loadAtPath(const std::filesystem::path& sourcePat
     {
         meta.serialize(metaArchive);
         index.registerEntry(meta.uid, meta.type, sourcePath);
-        AssetReference ref(meta.uid, meta.contentHash, meta.type);
+        AssetId ref(meta.uid, meta.contentHash, meta.type);
         return load<T>(ref, index, importers);
     }
 

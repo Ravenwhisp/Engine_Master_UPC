@@ -8,7 +8,7 @@ class LyrielConfig : public DataContainer
 
 public:
 	LyrielConfig() = default;
-	explicit LyrielConfig(AssetReference& id)
+	explicit LyrielConfig(AssetId& id)
 		: DataContainer(id)
 	{
 	}

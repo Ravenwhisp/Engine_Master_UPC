@@ -21,7 +21,7 @@ public:
         return path.extension() == BNK_EXTENSION;
     }
 
-    Asset* createAssetInstance(AssetReference& uid) const override
+    Asset* createAssetInstance(AssetId& uid) const override
     {
         return new SoundBankAsset(uid);
     }

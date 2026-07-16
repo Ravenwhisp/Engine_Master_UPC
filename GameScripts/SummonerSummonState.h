@@ -21,7 +21,7 @@ public:
 
 private:
 	SummonerEnemyController* m_controller = nullptr;
-    AssetRef<SummonerAttackConfig> m_attackConfig;
+    AssetReference<SummonerAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 
 	float m_stateTimer = 0.0f;

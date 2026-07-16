@@ -12,7 +12,7 @@ public:
     virtual ~Importer() = default;
 
     virtual bool canImport(const std::filesystem::path& path) const = 0;
-    virtual Asset* createAssetInstance(AssetReference& uid) const = 0;
+    virtual Asset* createAssetInstance(AssetId& uid) const = 0;
     virtual AssetType getAssetType() const = 0;
 
     virtual bool saveNative(const Asset* asset, const std::filesystem::path& path) = 0;

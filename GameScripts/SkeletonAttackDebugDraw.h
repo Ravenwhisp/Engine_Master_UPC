@@ -27,7 +27,7 @@ public:
 	float m_heightOffset = 0.15f;
 
 private:
-    AssetRef<SkeletonAttackConfig> m_attackConfig;
+    AssetReference<SkeletonAttackConfig> m_attackConfig;
 
 private:
 	void drawScimitarAttackCone() const;

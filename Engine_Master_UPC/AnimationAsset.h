@@ -35,7 +35,7 @@ public:
     friend class ImporterGltf;
 
     AnimationAsset() = default;
-    explicit AnimationAsset(AssetReference& id) : Asset(id, AssetType::ANIMATION) {}
+    explicit AnimationAsset(AssetId& id) : Asset(id, AssetType::ANIMATION) {}
 
     const std::string& getName() const { return m_name; }
     float getDurationSeconds() const { return m_durationSeconds; }

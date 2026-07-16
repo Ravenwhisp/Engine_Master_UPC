@@ -8,7 +8,7 @@ class EnemyBaseDataConfig : public DataContainer
 
 public:
     EnemyBaseDataConfig() = default;
-    explicit EnemyBaseDataConfig(AssetReference& id)
+    explicit EnemyBaseDataConfig(AssetId& id)
         : DataContainer(id)
     {
     }

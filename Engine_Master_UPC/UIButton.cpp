@@ -57,7 +57,7 @@ void UIButton::setTargetGraphic(UIImage* img)
 }
 
 #pragma region Events
-void UIButton::applyTargetTexture(const AssetReference& assetId)
+void UIButton::applyTargetTexture(const AssetId& assetId)
 {
 	if (!m_targetGraphic)
 	{
@@ -72,7 +72,7 @@ void UIButton::applyTargetTexture(const AssetReference& assetId)
 	m_targetGraphic->setTextureAssetId(assetId);
 }
 
-const AssetReference& UIButton::getDefaultTextureAssetId()
+const AssetId& UIButton::getDefaultTextureAssetId()
 {
 	if (m_defaultTextureAssetId.isValid())
 	{
@@ -84,13 +84,13 @@ const AssetReference& UIButton::getDefaultTextureAssetId()
 		return m_targetGraphic->getTextureAssetId();
 	}
 
-	static AssetReference s_defaultAsset{};
+	static AssetId s_defaultAsset{};
 	return s_defaultAsset;
 }
 
 void UIButton::applyCurrentStateTexture()
 {
-	const AssetReference* targetAsset = &getDefaultTextureAssetId();
+	const AssetId* targetAsset = &getDefaultTextureAssetId();
 
 	if (m_isPressed && m_isHovered)
 	{
@@ -286,7 +286,7 @@ void UIButton::drawUi()
 		ImGui::SameLine();
 		if (ImGui::Button("Clear##HoverTexture"))
 		{
-			m_hoverTextureAssetId = AssetReference();
+			m_hoverTextureAssetId = AssetId();
 			applyCurrentStateTexture();
 		}
 
@@ -306,7 +306,7 @@ void UIButton::drawUi()
 		ImGui::SameLine();
 		if (ImGui::Button("Clear##PressedTexture"))
 		{
-			m_pressedTextureAssetId = AssetReference();
+			m_pressedTextureAssetId = AssetId();
 			applyCurrentStateTexture();
 		}
 	}

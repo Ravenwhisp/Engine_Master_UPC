@@ -4,7 +4,7 @@
 #include "HealthPickup.h"
 
 
-GameObject* HealthDropSpawner::drop(const AssetReference& prefabRef, const Vector3& originPosition, float healAmount, float dropRadius, float dropHeight
+GameObject* HealthDropSpawner::drop(const AssetId& prefabRef, const Vector3& originPosition, float healAmount, float dropRadius, float dropHeight
 )
 {
     if (!prefabRef.isValid())

@@ -31,7 +31,7 @@ private:
 
 private:
     RangedEnemyController* m_archerController = nullptr;
-    AssetRef<ArcherAttackConfig> m_attackConfig;
+    AssetReference<ArcherAttackConfig> m_attackConfig;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
     ArcherUI* m_archerUI = nullptr;

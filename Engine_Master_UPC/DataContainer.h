@@ -17,7 +17,7 @@ public:
 	friend class ImporterDataContainer;
 
 	DataContainer() = default;
-	explicit DataContainer(AssetReference& id)
+	explicit DataContainer(AssetId& id)
 		: Asset(id, AssetType::DATA_CONTAINER)
 	{
 		m_data.SetObject();

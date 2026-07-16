@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Module.h"
 #include "AssetIndex.h"
 #include "ImporterRegistry.h"
@@ -33,10 +33,10 @@ public:
 
 #pragma region Load
     template<typename T>
-    std::shared_ptr<T> load(AssetReference& ref);
+    std::shared_ptr<T> load(AssetId& ref);
 
-    bool isLoaded(const AssetReference& id);
-    void unload(const AssetReference& id);
+    bool isLoaded(const AssetId& id);
+    void unload(const AssetId& id);
 #pragma endregion
 
 #pragma region Save
@@ -44,7 +44,7 @@ public:
 #pragma endregion
 
 #pragma region Import
-    void importAsset(const std::filesystem::path& sourcePath, AssetReference& reference);
+    void importAsset(const std::filesystem::path& sourcePath, AssetId& reference);
     bool canImport(const std::filesystem::path& sourcePath) const;
     void registerSubAsset(const Metadata& meta, const UID& parentUID, uint8_t* binaryData, size_t binarySize);
 #pragma endregion
@@ -62,12 +62,12 @@ public:
     AssetIndex& getIndex()           { return m_index; }
     ImporterRegistry& getImporters() { return m_importers; }
 
-    AssetReference* findReference(const UID& uid);
+    AssetId* findReference(const UID& uid);
 
     void refresh();
 
 private:
-    bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
+    bool persistAsset(Asset* asset, Importer* importer, AssetId& reference, const std::filesystem::path& sourcePath);
     DataContainer* resolveDataContainerType(DataContainer* baseContainer) const;
 
     AssetIndex                           m_index;
