@@ -164,6 +164,13 @@ namespace
                 delete resolved;
             }
         }
+        else
+        {
+            if (assetRef->m_id.m_type == AssetType::DATA_CONTAINER)
+            {
+                assetRef->m_data = app->getModuleAssets()->load<DataContainer>(assetRef->m_id);
+            }
+        }
     }
 
     const FieldHandler assetRefFieldHandler = {
