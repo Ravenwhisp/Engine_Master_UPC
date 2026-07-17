@@ -9,6 +9,10 @@
 #include "ParticleSystemComponent.h"
 #include "GameObject.h"
 
+#include <cmath>
+
+static const float PI = 3.1415926535897931f; // This is redundant; we should have it centralised somewhere
+
 void EmitterArea::update(EmitterInstance* particleData)
 {
 
@@ -80,7 +84,7 @@ void EmitterArea::debugDraw(Transform* parent)
 	{
 		Vector3 circleNormal = parent->getUp();
 
-		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(m_areaColor*m_thicknessAreaColor), m_radius*m_radiusThickness, 20, 0, depthEnabled);  // thickness radius
+		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(m_areaColor*m_thicknessAreaColor), m_radius*(1.f - m_radiusThickness), 20, 0, depthEnabled);  // thickness radius
 		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(m_areaColor), m_radius, 20, 0, depthEnabled);
 		
 	}
@@ -88,14 +92,14 @@ void EmitterArea::debugDraw(Transform* parent)
 
 	case AreaType::CONE:
 
-		drawCone(parent, m_areaColor * m_thicknessAreaColor, m_radius * m_radiusThickness, depthEnabled); // Thickness area
+		drawCone(parent, m_areaColor * m_thicknessAreaColor, m_radius*(1.f - m_radiusThickness), depthEnabled); // Thickness area
 		drawCone(parent, m_areaColor, m_radius, depthEnabled);
 		
 		break;
 
 	case AreaType::SPHERE:
 
-		dd::sphere(asFloat3(position), asFloat3(m_areaColor*m_thicknessAreaColor), m_radius*m_radiusThickness, 0, depthEnabled); // thickness radius
+		dd::sphere(asFloat3(position), asFloat3(m_areaColor*m_thicknessAreaColor), m_radius*(1.f - m_radiusThickness), 0, depthEnabled); // thickness radius
 		dd::sphere(asFloat3(position), asFloat3(m_areaColor), m_radius, 0, depthEnabled);
 		
 		break;
@@ -106,11 +110,11 @@ void EmitterArea::debugDraw(Transform* parent)
 		Vector3 circleNormal = parent->getUp();
 		Vector3 thicknessColor = m_areaColor * m_thicknessAreaColor;
 
-		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(thicknessColor), m_radius * m_radiusThickness, 20, 0, depthEnabled);  // thickness radius circle
+		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(thicknessColor), m_radius *(1.f - m_radiusThickness), 20, 0, depthEnabled);  // thickness radius circle
 		dd::circle(asFloat3(position), asFloat3(circleNormal), asFloat3(m_areaColor), m_radius, 20, 0, depthEnabled);
 
 		Vector3 hemisphereHeight = circleNormal * m_radius;
-		dd::arrow(asFloat3(position), asFloat3(position + hemisphereHeight * m_radiusThickness), asFloat3(thicknessColor), 0.25f, 0, depthEnabled); // thickness hemisphere height
+		dd::arrow(asFloat3(position), asFloat3(position + hemisphereHeight * (1.f - m_radiusThickness)), asFloat3(thicknessColor), 0.25f, 0, depthEnabled); // thickness hemisphere height
 		dd::arrow(asFloat3(position), asFloat3(position + hemisphereHeight), asFloat3(m_areaColor), 0.25f, 0, depthEnabled); // hemisphere height
 
 	}
@@ -138,9 +142,7 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
 	Vector3 objectPosition = objectTransform->getGlobalMatrix().Translation();
 
-	float realRadius = m_radiusThickness * m_radius;
-
-	if (realRadius == 0.f) // new particles will always appear from center (we only need a direction) 
+	if (m_radius == 0.f) // new particles will always appear from center (we only need a direction) 
 	{
 		for (auto& particleIndex : newParticles)
 		{
@@ -153,39 +155,21 @@ void EmitterArea::setNewParticlesPlacementCircle(EmitterInstance* particleData)
 	}
 	else {
 
+		float radiusLimit = (1.f - m_radiusThickness) * m_radius; // (marks the internal area where we will not spawn particles)
+		float radiusDifference = m_radius - radiusLimit;
+
 		for (auto& particleIndex : newParticles)
 		{
-			// We need to obtain a position to appear within the circle (for now we will assume that this position will mark the movement direction as well, from the center)
+			// We need to obtain a position to appear within the circle area (for now we will assume that this position will mark the movement direction as well, from the center)
 
-			float rightOffset;
-			float forwardOffset;
-			Vector3 spawnPosition;
-			do
-			{
-				rightOffset = uniform_rand() * (realRadius * 2) - realRadius;
-				forwardOffset = uniform_rand() * (realRadius * 2) - realRadius;
+			Vector3 direction = getPointOnCircleEdge(m_radius, objectTransform->getRight(), objectTransform->getForward());
+			Vector3 spawnPosition = objectPosition + direction; // we still need to substract the offset
+			direction.Normalize();
 
-				spawnPosition = objectPosition + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward();
+			spawnPosition -= direction * uniform_rand() * radiusDifference; // the offset
 
-			} while (Vector3::DistanceSquared(spawnPosition, objectPosition) > realRadius * realRadius); // Could be optimized by using Vector2 on x, z?
-
-
-			if (rightOffset == 0.f && forwardOffset == 0.f) // similar case to realRadius == 0.f
-			{
-				Vector3 direction = getCircleDirection(objectPosition, *objectTransform);
-
-				particlePool[particleIndex].position = spawnPosition;
-				particlePool[particleIndex].movementDirection = direction;
-
-			}
-			else {
-
-				Vector3 direction = (spawnPosition - objectPosition);
-				direction.Normalize();
-
-				particlePool[particleIndex].position = spawnPosition;
-				particlePool[particleIndex].movementDirection = direction;
-			}
+			particlePool[particleIndex].position = spawnPosition;
+			particlePool[particleIndex].movementDirection = direction;		
 		}
 	}
 }
@@ -409,6 +393,15 @@ Vector3 EmitterArea::getHemisphereDirection(Vector3 center, const Transform& obj
 	Vector3 direction = (pointToDirection - center);
 	direction.Normalize();
 	return direction;
+}
+
+Vector3 EmitterArea::getPointOnCircleEdge(float radius, const Vector3& rightAxis, const Vector3& upAxis)
+{
+	// Random angle in radians
+	float angle = uniform_rand() * PI * 2.f;
+
+	// Calculate coordinates
+	return radius * (std::cos(angle) * rightAxis + std::sin(angle) * upAxis);
 }
 
 void EmitterArea::drawCone(Transform* parent, const Vector3& color, float radius, bool depthEnabled) const

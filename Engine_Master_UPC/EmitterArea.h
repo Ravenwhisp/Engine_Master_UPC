@@ -70,6 +70,8 @@ private:
 	Vector3 getSphereDirection(Vector3 center, const Transform& objectTransform);
 	Vector3 getHemisphereDirection(Vector3 center, const Transform& objectTransform);
 
+	Vector3 getPointOnCircleEdge(float radius, const Vector3& rightAxis, const Vector3& upAxis);
+
 	// DEBUG DRAW //
 	const Vector3 m_areaColor = Vector3(0.65f, 0.90f, 0.98f);
 	const float m_thicknessAreaColor = 0.65f;
