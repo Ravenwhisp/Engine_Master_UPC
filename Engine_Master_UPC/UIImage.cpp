@@ -12,7 +12,7 @@ UIImage::UIImage(UID id, GameObject* owner): Component(id, ComponentType::UIIMAG
 {
 }
 
-void UIImage::setTextureAssetId(const AssetReference& assetId)
+void UIImage::setTextureAssetId(const AssetId& assetId)
 {
     m_textureAssetId = assetId;
     m_texture = nullptr;
@@ -80,7 +80,7 @@ void UIImage::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             UID* data = static_cast<UID*>(payload->Data);
-            AssetReference* ref = app->getModuleAssets()->findReference(*data);
+            AssetId* ref = app->getModuleAssets()->findReference(*data);
             m_textureAssetId = *ref;
             m_texture = nullptr;
             m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*ref);

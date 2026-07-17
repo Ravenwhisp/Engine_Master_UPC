@@ -292,7 +292,7 @@ namespace GameObjectAPI
     }
     */
 
-    ENGINE_API GameObject* instantiatePrefab(const AssetReference& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
+    ENGINE_API GameObject* instantiatePrefab(const AssetId& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         

@@ -22,7 +22,7 @@ public:
 
 private:
 	SkeletonEnemyController* m_skeletonController = nullptr;
-    AssetRef<SkeletonAttackConfig> m_attackConfig;
+    AssetReference<SkeletonAttackConfig> m_attackConfig;
 	SkeletonDamageable* m_damageable = nullptr;
 	AnimationComponent* m_animation = nullptr;
 

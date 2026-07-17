@@ -43,7 +43,7 @@ private:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    AssetRef<SummonerAttackConfig> m_attackConfig;
+    AssetReference<SummonerAttackConfig> m_attackConfig;
 
 	float m_attackCooldownTimer = 0.0f;
 	float m_teleportCooldownTimer = 0.0f;

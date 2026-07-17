@@ -30,10 +30,10 @@ public:
 
     void serialize(IArchive& archive) override;
 
-    void setStateMachineUID(AssetReference& uid);
-    AssetReference& getStateMachineUID()  { return m_stateMachine; }
-    void setAnimationSourceUID(AssetReference& uid);
-    AssetReference& getAnimationSourceUID() { return m_animationSource; }
+    void setStateMachineUID(AssetId& uid);
+    AssetId& getStateMachineUID()  { return m_stateMachine; }
+    void setAnimationSourceUID(AssetId& uid);
+    AssetId& getAnimationSourceUID() { return m_animationSource; }
 
     bool SendTrigger(const std::string& triggerName);
 
@@ -140,8 +140,8 @@ private:
 
 private:
 
-    AssetReference m_stateMachine = {};
-    AssetReference m_animationSource = {};
+    AssetId m_stateMachine = {};
+    AssetId m_animationSource = {};
 
     std::shared_ptr<AnimationStateMachineAsset> m_stateMachineAsset;
     std::shared_ptr<AnimationAsset> m_currentAnimationAsset;

@@ -44,10 +44,10 @@ public:
     Texture* getTexture() const { return m_texture; }
     void setTexture(Texture* texture) { m_texture = texture; }
 
-    void setTextureAssetId(const AssetReference& assetId);
+    void setTextureAssetId(const AssetId& assetId);
 
     TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
-    const AssetReference& getTextureAssetId() const { return m_textureAssetId; }
+    const AssetId& getTextureAssetId() const { return m_textureAssetId; }
 
     bool containsPoint(const Rect2D& rect, const Vector2& screenPos) const;
 
@@ -83,7 +83,7 @@ public:
     void fixReferences(const SceneReferenceResolver& resolver) override;
 
 private:
-    AssetReference m_textureAssetId{};
+    AssetId m_textureAssetId{};
     Texture* m_texture = nullptr;
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;

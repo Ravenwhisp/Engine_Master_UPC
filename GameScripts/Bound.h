@@ -28,7 +28,7 @@ public:
 
     ComponentRef<Transform> m_BoundUI;
 
-    AssetRef<BoundConfig> m_config;
+    AssetReference<BoundConfig> m_config;
 
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;

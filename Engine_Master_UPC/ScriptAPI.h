@@ -7,9 +7,8 @@
 #include "GenericTypeFactory.h"
 #include "FieldInfo.h"
 #include "FieldMacros.h"
-
 #include "ComponentRef.h"
-#include <AssetRef.h>
+#include "AssetReference.h"
 
 #define DECLARE_SCRIPT(ScriptType)
 
