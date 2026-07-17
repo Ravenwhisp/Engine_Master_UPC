@@ -6,12 +6,9 @@
 #ifndef GAME_RELEASE
 #include "AssetFileDialog.h"
 #endif
-#include "AssetReference.h"
 #include <filesystem>
-#include <memory>
-#include <unordered_map>
-#include <vector>
 
+struct AssetId;
 class AssetScanner;
 class ContentRegistry;
 class PrefabManager;

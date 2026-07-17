@@ -55,6 +55,7 @@ bool ModuleAssets::init()
 #ifndef GAME_RELEASE
     refresh();
 #endif
+
     return true;
 }
 

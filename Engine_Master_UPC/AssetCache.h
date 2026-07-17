@@ -1,5 +1,5 @@
 #pragma once
-#include "AssetReference.h"
+#include "AssetId.h"
 #include "WeakCache.h"
 #include "MD5Fwd.h"
 #include "UID.h"

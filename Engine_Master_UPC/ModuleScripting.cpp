@@ -8,6 +8,7 @@
 #include "AnimationComponent.h"
 #include "GameObject.h"
 #include "Extensions.h"
+#include "GenericTypeFactory.h"
 
 #include <fstream>
 #include <vector>

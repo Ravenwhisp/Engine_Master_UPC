@@ -5,7 +5,6 @@
 #include "MD5Fwd.h"
 #include "ImportSettings.h"
 #include <memory>
-#include "EngineAPI.h"
 
 class IArchive;
 
@@ -36,5 +35,3 @@ protected:
     AssetType m_type = AssetType::UNKNOWN;
     std::unique_ptr<ImportSettings> m_importSettings;
 };
-
-#pragma warning(pop)

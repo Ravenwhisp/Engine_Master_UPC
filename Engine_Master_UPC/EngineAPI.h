@@ -7,7 +7,6 @@
 #endif
 
 #include "GenericTypeFactory.h"
-#include "AssetReference.h"
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
@@ -33,6 +32,7 @@ class CameraComponent;
 class NavRuntimeBlockerComponent;
 class PlayerRenderBufferComponent;
 class TrailComponent;
+struct AssetId;
 
 struct HapticEffectDefinition;
 
@@ -80,7 +80,10 @@ namespace GameObjectAPI
 
     template<typename T>
     const T* findScript(const GameObject* gameObject);
+
 }
+
+
 
 namespace TransformAPI
 {

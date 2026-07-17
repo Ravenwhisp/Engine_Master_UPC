@@ -1,6 +1,6 @@
 #pragma once
 #include <filesystem>
-#include "AssetReference.h"
+#include "AssetId.h"
 #include "AssetType.h"
 #include "Extensions.h"
 

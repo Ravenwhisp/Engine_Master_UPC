@@ -12,15 +12,8 @@
 #include "DataContainer.h"
 #include "GenericTypeFactory.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/filereadstream.h>
-#include <cstdint>
-#include <cstdio>
-#include <vector>
-
 template<typename T>
-std::shared_ptr<T> AssetCache::loadFromLibrary(AssetId& ref, ImporterRegistry& importers,
-                                                AssetIndex& index)
+std::shared_ptr<T> AssetCache::loadFromLibrary(AssetId& ref, ImporterRegistry& importers, AssetIndex& index)
 {
     if (ref.m_type == AssetType::UNKNOWN)
     {
@@ -30,8 +23,6 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetId& ref, ImporterRegistry& i
     Importer* importer = importers.findByType(ref.m_type);
     if (!importer)
     {
-        DEBUG_ERROR("[AssetCache] No importer for type %u (UID '%s').",
-            static_cast<unsigned>(ref.m_type), std::to_string(ref.m_uid).c_str());
         return nullptr;
     }
 
@@ -54,15 +45,12 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetId& ref, ImporterRegistry& i
             const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
             if (entry && !entry->sourcePath.empty())
             {
-                std::string pathStr = entry->sourcePath.string();
-                FILE* fp = std::fopen(pathStr.c_str(), "rb");
-                if (fp)
+                std::vector<uint8_t> buffer = FileIO::read(entry->sourcePath);
+                if (!buffer.empty())
                 {
-                    char buf[65536];
-                    rapidjson::FileReadStream is(fp, buf, sizeof(buf));
+                    rapidjson::MemoryStream ms(reinterpret_cast<const char*>(buffer.data()), buffer.size());
                     rapidjson::Document doc;
-                    doc.ParseStream(is);
-                    std::fclose(fp);
+                    doc.ParseStream(ms);
 
                     if (!doc.HasParseError() && doc.HasMember("_typeName") &&
                         doc["_typeName"].IsString())
@@ -154,8 +142,6 @@ std::shared_ptr<T> AssetCache::load(AssetId& ref, AssetIndex& index, ImporterReg
     const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
     if (!entry || entry->sourcePath.empty())
     {
-        DEBUG_ERROR("[AssetCache] Cannot load UID '%s': no source path available for re-import.",
-            std::to_string(ref.m_uid).c_str());
         return nullptr;
     }
 

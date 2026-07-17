@@ -8,8 +8,9 @@ class DataContainer;
 template<typename T = void>
 struct AssetReference
 {
-    AssetId m_id;
-    std::shared_ptr<T> m_data;
+
+    mutable AssetId m_id;
+    mutable std::shared_ptr<T> m_data;
 
     T* get() const
     {
@@ -47,7 +48,7 @@ struct AssetReference
     }
 };
 
-using PrefabRef = AssetReference<struct Prefab>;
-using SceneRef = AssetReference<struct Scene>;
-using MaterialRef = AssetReference<struct BasicMaterial>;
+using PrefabRef = AssetReference<class Prefab>;
+using SceneRef = AssetReference<class Scene>;
+using MaterialRef = AssetReference<class BasicMaterial>;
 using DataContainerRef = AssetReference<DataContainer>;

@@ -2,10 +2,10 @@
 
 #include "ModuleAssets.h"
 #include "Asset.h"
+#include "AssetCache.h"
 #include "Metadata.h"
 #include "AssetsDictionary.h"
 #include "MD5.h"
-#include "JsonArchive.h"
 
 template<typename T>
 std::shared_ptr<T> ModuleAssets::load(AssetId& ref)

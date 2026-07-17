@@ -833,7 +833,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="FieldHandler_String.cpp" />
     <ClCompile Include="FieldHandler_Vec3.cpp" />
     <ClCompile Include="FieldUtils.cpp" />
-    <ClCompile Include="FieldHandler_AssetRef.cpp" />
+    <ClCompile Include="FieldHandler_AssetReference.cpp" />
     <ClCompile Include="Skin.cpp" />
     <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="ParticleModule.cpp" />
