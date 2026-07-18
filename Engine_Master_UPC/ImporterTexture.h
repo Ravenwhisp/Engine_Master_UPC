@@ -5,7 +5,6 @@
 #include "TextureAsset.h"
 
 
-
 class ImporterTexture : public ImporterSource<DirectX::ScratchImage, TextureAsset, AssetType::TEXTURE>
 {
 public:

@@ -37,39 +37,6 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetId& ref, ImporterRegistry& i
     std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
     importer->load(buffer.data(), asset.get());
 
-    if (ref.m_type == AssetType::DATA_CONTAINER)
-    {
-        DataContainer* dc = dynamic_cast<DataContainer*>(asset.get());
-        if (dc && dc->getExposedFields().fields.empty())
-        {
-            const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
-            if (entry && !entry->sourcePath.empty())
-            {
-                std::vector<uint8_t> buffer = FileIO::read(entry->sourcePath);
-                if (!buffer.empty())
-                {
-                    rapidjson::MemoryStream ms(reinterpret_cast<const char*>(buffer.data()), buffer.size());
-                    rapidjson::Document doc;
-                    doc.ParseStream(ms);
-
-                    if (!doc.HasParseError() && doc.HasMember("_typeName") &&
-                        doc["_typeName"].IsString())
-                    {
-                        const char* typeName = doc["_typeName"].GetString();
-                        auto derived = DataContainerFactory::create(typeName, ref);
-                        if (derived)
-                        {
-                            JsonArchive archive(ArchiveMode::Input);
-                            archive.setValue(doc);
-                            derived->serialize(archive);
-                            asset.reset(derived.release());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
 #ifndef GAME_RELEASE
     const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
     if (entry && !entry->sourcePath.empty())
