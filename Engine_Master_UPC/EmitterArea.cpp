@@ -284,31 +284,33 @@ void EmitterArea::setNewParticlesPlacementCone(EmitterInstance* particleData)
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
 	Vector3 objectPosition = objectTransform->getGlobalMatrix().Translation();
 
-	float realRadius = m_radiusThickness * m_radius;
+	float radiusLimit = (1.f - m_radiusThickness) * m_radius; // (marks the internal area where we will not spawn particles)
+	float radiusDifference = m_radius - radiusLimit;
 
 	for (auto& particleIndex : newParticles)
 	{
-		// We need to obtain a position to appear within the circle
-		float rightOffset;
-		float forwardOffset;
-		Vector3 spawnPosition;
-		do
-		{
-			rightOffset = uniform_rand() * (realRadius * 2) - realRadius;
-			forwardOffset = uniform_rand() * (realRadius * 2) - realRadius;
+		// We need to obtain a position to appear within the base circle area
 
-			spawnPosition = objectPosition + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward();
-
-		} while (Vector3::DistanceSquared(spawnPosition, objectPosition) > realRadius * realRadius); // Could be optimized by using Vector2 on x, z?
-
-		// For now, we will use a scale on the offsets, to define the "upper circle" of the cone, and assume it is on an arbitrary height to get a direction
-
-		Vector3 scaledPosition = objectPosition + m_radiusScale * rightOffset * objectTransform->getRight() + m_radiusScale * forwardOffset * objectTransform->getForward() + objectTransform->getUp();
-		Vector3 direction = (scaledPosition - spawnPosition);
+		Vector3 direction = getPointOnCircleEdge(m_radius, objectTransform->getRight(), objectTransform->getForward());
+		Vector3 spawnPosition = objectPosition + direction; // we still need to substract the offset
 		direction.Normalize();
 
+		spawnPosition -= direction * uniform_rand() * radiusDifference; // the offset
+
+		// Ok, this is what we do in the other cases; but with the cone, the movement direction (for now) is marked by the radius scale; we will define the "upper circle" of the cone (that is the base circle scaled), and assume it is on an arbitrary height to get the direction
+		if (spawnPosition == objectPosition)
+		{
+			particlePool[particleIndex].movementDirection = objectTransform->getUp();
+		}
+		else
+		{
+			direction = (spawnPosition - objectPosition) * m_radiusScale + objectPosition + objectTransform->getUp() - spawnPosition;
+			direction.Normalize();
+
+			particlePool[particleIndex].movementDirection = direction;
+		}
+
 		particlePool[particleIndex].position = spawnPosition;
-		particlePool[particleIndex].movementDirection = direction;
 	}
 }
 
