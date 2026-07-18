@@ -182,9 +182,7 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 	Transform* objectTransform = particleData->getParticleSystemComponent()->getOwner()->GetTransform();
 	Vector3 objectPosition = objectTransform->getGlobalMatrix().Translation();
 
-	float realRadius = m_radiusThickness * m_radius;
-
-	if (realRadius == 0.f) // new particles will always appear from center (we only need a direction) 
+	if (m_radius == 0.f) // new particles will always appear from center (we only need a direction) 
 	{
 		for (auto& particleIndex : newParticles)
 		{
@@ -197,41 +195,21 @@ void EmitterArea::setNewParticlesPlacementSphere(EmitterInstance* particleData)
 	}
 	else {
 
+		float radiusLimit = (1.f - m_radiusThickness) * m_radius; // (marks the internal area where we will not spawn particles)
+		float radiusDifference = m_radius - radiusLimit;
+
 		for (auto& particleIndex : newParticles)
 		{
-			// We need to obtain a position to appear within the sphere (for now we will assume that this position will mark the movement direction as well, from the center)
+			// We need to obtain a position to appear within the sphere area (for now we will assume that this position will mark the movement direction as well, from the center)
 
-			float rightOffset;
-			float forwardOffset;
-			float upOffset;
-			Vector3 spawnPosition;
-			do
-			{
-				rightOffset = uniform_rand() * (realRadius * 2) - realRadius;
-				forwardOffset = uniform_rand() * (realRadius * 2) - realRadius;
-				upOffset = uniform_rand() * (realRadius * 2) - realRadius;
+			Vector3 direction = getPointOnSphereEdge(m_radius);
+			Vector3 spawnPosition = objectPosition + direction; // we still need to substract the offset
+			direction.Normalize();
 
-				spawnPosition = objectPosition + rightOffset * objectTransform->getRight() + forwardOffset * objectTransform->getForward() + upOffset * objectTransform->getUp();
+			spawnPosition -= direction * uniform_rand() * radiusDifference; // the offset
 
-			} while (Vector3::DistanceSquared(spawnPosition, objectPosition) > realRadius * realRadius);
-
-
-			if (rightOffset == 0.f && forwardOffset == 0.f && upOffset == 0.f) // similar case to realRadius == 0.f
-			{
-				Vector3 direction = getSphereDirection(objectPosition, *objectTransform);
-
-				particlePool[particleIndex].position = spawnPosition;
-				particlePool[particleIndex].movementDirection = direction;
-
-			}
-			else {
-
-				Vector3 direction = (spawnPosition - objectPosition);
-				direction.Normalize();
-
-				particlePool[particleIndex].position = spawnPosition;
-				particlePool[particleIndex].movementDirection = direction;
-			}
+			particlePool[particleIndex].position = spawnPosition;
+			particlePool[particleIndex].movementDirection = direction;
 		}
 	}
 }
@@ -402,6 +380,21 @@ Vector3 EmitterArea::getPointOnCircleEdge(float radius, const Vector3& rightAxis
 
 	// Calculate coordinates
 	return radius * (std::cos(angle) * rightAxis + std::sin(angle) * upAxis);
+}
+
+Vector3 EmitterArea::getPointOnSphereEdge(float radius)
+{
+	// Random angles in radians (from spherical coordinates)
+	float phi = uniform_rand() * PI * 2.f;
+	float theta = uniform_rand() * PI;
+
+	// Calculate coordinates
+	float sinPhiPerRadius = radius * std::sin(phi);
+
+	float x = sinPhiPerRadius * std::cos(theta);
+	float y = sinPhiPerRadius * std::sin(theta);
+	float z = radius * std::cos(phi);
+	return Vector3(x, y, z);
 }
 
 void EmitterArea::drawCone(Transform* parent, const Vector3& color, float radius, bool depthEnabled) const
