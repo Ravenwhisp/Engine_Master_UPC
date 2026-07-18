@@ -118,4 +118,6 @@ D3D12_CPU_DESCRIPTOR_HANDLE RenderSurface::getDescriptorTableCPUHandle(uint32_t 
 {
 	assert(m_block && "RenderSurface descriptor table was not built");
 	return m_block->getCPUHandle(slot);
+
+	/// 
 }
