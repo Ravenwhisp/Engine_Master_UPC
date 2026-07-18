@@ -65,7 +65,6 @@ public:
 
 private:
     bool persistAsset(Asset* asset, Importer* importer, AssetId& reference, const std::filesystem::path& sourcePath);
-    DataContainer* resolveDataContainerType(DataContainer* baseContainer) const;
 
     AssetIndex                           m_index;
     ImporterRegistry                     m_importers;

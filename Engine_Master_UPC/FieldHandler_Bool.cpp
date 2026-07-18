@@ -20,6 +20,7 @@ namespace
     {
         bool value = *reinterpret_cast<const bool*>(data);
         archive.serialize(value, field.name);
+        *reinterpret_cast<bool*>(data) = value;
     }
 
     void cloneBoolField(const FieldInfo&, const void* sourceData, void* targetData)
