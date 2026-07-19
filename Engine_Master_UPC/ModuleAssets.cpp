@@ -25,6 +25,7 @@
 #include "Metadata.h"
 #include "UID.h"
 #include "DataContainer.h"
+#include "GenericTypeFactory.h"
 
 #include <filesystem>
 #include <FileIO.h>
@@ -94,7 +95,25 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId&
     reference.m_type = importer->getAssetType();
     reference.m_libId = INVALID_ASSET_ID;
 
-    std::unique_ptr<Asset> asset(importer->createAssetInstance(reference));
+    std::unique_ptr<Asset> asset;
+
+    if (reference.m_type == AssetType::DATA_CONTAINER)
+    {
+        JsonArchive archive(ArchiveMode::Input);
+        if (archive.loadFile(sourcePath))
+        {
+            std::string typeName;
+            if (archive.read("_typeName", typeName) && DataContainerFactory::isRegistered(typeName))
+            {
+                asset = DataContainerFactory::create(typeName, reference);
+            }
+        }
+    }
+
+    if (!asset)
+    {
+        asset.reset(importer->createAssetInstance(reference));
+    }
 
     if (auto cached = m_cache.get(reference.m_uid))
     {

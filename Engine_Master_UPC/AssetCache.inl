@@ -36,8 +36,30 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetId& ref, ImporterRegistry& i
         return nullptr;
     }
 
-    std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
-    importer->load(buffer.data(), asset.get());
+    std::shared_ptr<Asset> asset;
+
+    if (ref.m_type == AssetType::DATA_CONTAINER)
+    {
+        BinaryReader reader(buffer.data());
+        std::string typeName = reader.string();
+
+        if (!DataContainerFactory::isRegistered(typeName))
+            return nullptr;
+
+        std::unique_ptr<DataContainer> created = DataContainerFactory::create(typeName, ref);
+        if (!created)
+            return nullptr;
+
+        asset = std::move(created);
+
+        BinaryArchive archive(buffer.data(), ArchiveMode::Input);
+        asset->serialize(archive);
+    }
+    else
+    {
+        asset.reset(importer->createAssetInstance(ref));
+        importer->load(buffer.data(), asset.get());
+    }
 
 #ifndef GAME_RELEASE
     const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
