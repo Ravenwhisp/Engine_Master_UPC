@@ -4,6 +4,7 @@
 #include "IArchive.h"
 #include "IFieldContainer.h"
 #include "ComponentRef.h"
+#include "AssetReference.h"
 #include "SceneReferenceResolver.h"
 
 #include "Application.h"
@@ -104,6 +105,23 @@ namespace
         element.component = nullptr;
     }
 
+    template<>
+    void elementSerialize<AssetReference<void>>(const AssetReference<void>& element, IArchive& archive)
+    {
+        archive.beginObject();
+        element.m_id.serialize(archive);
+        archive.endObject();
+    }
+
+    template<>
+    void elementDeserialize<AssetReference<void>>(AssetReference<void>& element, IArchive& archive)
+    {
+        archive.beginObject();
+        element.m_id.serialize(archive);
+        archive.endObject();
+        element.m_data = nullptr;
+    }
+
     // --- Generic list handler templates ---
 
     template<typename T>
@@ -172,37 +190,38 @@ namespace
     template<typename T>
     void serializeListField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        const auto* vec = reinterpret_cast<const std::vector<T>*>(data);
-
-        uint32_t count = static_cast<uint32_t>(vec->size());
-        archive.beginArray(count, field.name);
-
-        for (const T& elem : *vec)
+        if (archive.mode() == ArchiveMode::Output)
         {
-            elementSerialize(elem, archive);
+            const auto* vec = reinterpret_cast<const std::vector<T>*>(data);
+
+            uint32_t count = static_cast<uint32_t>(vec->size());
+            archive.beginArray(count, field.name);
+
+            for (const T& elem : *vec)
+            {
+                elementSerialize(elem, archive);
+            }
+
+            archive.endArray();
         }
-
-        archive.endArray();
-    }
-
-    template<typename T>
-    void deserializeListField(const FieldInfo& field, void* data, IArchive& archive)
-    {
-        auto* vec = reinterpret_cast<std::vector<T>*>(data);
-        vec->clear();
-
-        uint32_t count = 0;
-        archive.beginArray(count, field.name);
-        vec->reserve(count);
-
-        for (uint32_t i = 0; i < count; ++i)
+        else
         {
-            T elem{};
-            elementDeserialize(elem, archive);
-            vec->push_back(std::move(elem));
-        }
+            auto* vec = reinterpret_cast<std::vector<T>*>(data);
+            vec->clear();
 
-        archive.endArray();
+            uint32_t count = 0;
+            archive.beginArray(count, field.name);
+            vec->reserve(count);
+
+            for (uint32_t i = 0; i < count; ++i)
+            {
+                T elem{};
+                elementDeserialize(elem, archive);
+                vec->push_back(std::move(elem));
+            }
+
+            archive.endArray();
+        }
     }
 
     template<typename T>
@@ -287,6 +306,13 @@ namespace
         &cloneListField<ComponentRef<Component>>,
         &fixReferencesListField<ComponentRef<Component>>
     };
+
+    const FieldHandler assetRefListHandler = {
+        &drawListFieldUi<AssetReference<void>>,
+        &serializeListField<AssetReference<void>>,
+        &cloneListField<AssetReference<void>>,
+        &fixReferencesListField<AssetReference<void>>
+    };
 }
 
 const FieldHandler* getListFieldHandler(FieldType elementType)
@@ -300,6 +326,7 @@ const FieldHandler* getListFieldHandler(FieldType elementType)
         case FieldType::String:       return &stringListHandler;
         case FieldType::EnumInt:      return &enumIntListHandler;
         case FieldType::ComponentRef: return &componentRefListHandler;
+        case FieldType::AssetRef:     return &assetRefListHandler;
         default:                      return nullptr;
     }
 }
