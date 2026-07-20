@@ -43,7 +43,7 @@ void WindowFileDialog::handleAssetClick(const AssetEntry& asset)
         return;
     }
 
-    AssetReference* ref = app->getModuleAssets()->findReference(asset.uid);
+    AssetId* ref = app->getModuleAssets()->findReference(asset.uid);
     std::shared_ptr<Asset> assetResource = app->getModuleAssets()->load<Asset>(*ref);
 
     app->getModuleEditor()->setSelectedAsset(assetResource);
@@ -376,7 +376,7 @@ void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
         ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
         !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
     {
-        AssetReference ref(subAsset.uid);
+        AssetId ref(subAsset.uid);
         std::shared_ptr<Asset> assetResource = app->getModuleAssets()->load<Asset>(ref);
         app->getModuleEditor()->setSelectedAsset(assetResource);
         m_selectedAsset = subAsset.uid;

@@ -18,8 +18,8 @@ void ArcherGuardParticles::Start() {}
 void ArcherGuardParticles::spawnBasicAttackTrail(const Vector3& pos)
 {
     stopBasicAttackTrail();
-    if (!m_arrowPrefab.m_ref.isValid()) return;
-    m_trailGO = GameObjectAPI::instantiatePrefab(m_trailPrefab.m_ref, pos, Vector3::Zero);
+    if (!m_arrowPrefab.m_id.isValid()) return;
+    m_trailGO = GameObjectAPI::instantiatePrefab(m_trailPrefab.m_id, pos, Vector3::Zero);
 }
 
 void ArcherGuardParticles::syncBasicAttackTrail(const Vector3& pos, const Vector3& eulerDeg)
@@ -53,7 +53,7 @@ static const float k_barrageSpawnHeight = 8.0f;
 void ArcherGuardParticles::spawnBarrageArrows(const Vector3& impactPos, float landDelay)
 {
     stopBarrageArrows();
-    if (!m_arrowPrefab.m_ref.isValid()) return;
+    if (!m_arrowPrefab.m_id.isValid()) return;
 
     const float speed = k_barrageSpawnHeight / (landDelay > 0.0f ? landDelay : 1.0f);
 
@@ -63,7 +63,7 @@ void ArcherGuardParticles::spawnBarrageArrows(const Vector3& impactPos, float la
         Vector3 spawnPos = target;
         spawnPos.y      += k_barrageSpawnHeight;
 
-        GameObject* go = GameObjectAPI::instantiatePrefab(m_arrowPrefab.m_ref, spawnPos, Vector3::Zero);
+        GameObject* go = GameObjectAPI::instantiatePrefab(m_arrowPrefab.m_id, spawnPos, Vector3::Zero);
         if (go)
         {
             ArcherArrowProjectile* arrow = GameObjectAPI::findScript<ArcherArrowProjectile>(go);
@@ -76,8 +76,8 @@ void ArcherGuardParticles::spawnBarrageArrows(const Vector3& impactPos, float la
 void ArcherGuardParticles::spawnImpactParticle(const Vector3& impactPos)
 {
     stopBarrageArrows();
-    if (m_arrowPrefab.m_ref.isValid())
-        GameObjectAPI::instantiatePrefab(m_volleyPrefab.m_ref, impactPos, Vector3::Zero);
+    if (m_arrowPrefab.m_id.isValid())
+        GameObjectAPI::instantiatePrefab(m_volleyPrefab.m_id, impactPos, Vector3::Zero);
 }
 
 void ArcherGuardParticles::stopBarrageArrows()
@@ -92,10 +92,10 @@ void ArcherGuardParticles::stopBarrageArrows()
 void ArcherGuardParticles::startChargeParticle()
 {
     stopChargeParticle();
-    if (!m_arrowPrefab.m_ref.isValid()) return;
+    if (!m_arrowPrefab.m_id.isValid()) return;
     Transform* t = GameObjectAPI::getTransform(getOwner());
     Vector3 pos  = t ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
-    m_chargeParticleGO = GameObjectAPI::instantiatePrefab(m_chargePrefab.m_ref, pos, Vector3::Zero);
+    m_chargeParticleGO = GameObjectAPI::instantiatePrefab(m_chargePrefab.m_id, pos, Vector3::Zero);
 }
 
 void ArcherGuardParticles::updateChargeParticle()

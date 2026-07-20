@@ -22,7 +22,7 @@ void ArcherArrowShooter::Start()
 
 void ArcherArrowShooter::Update()
 {
-    if (!m_animation || !m_arrowPrefab.m_ref.isValid()) return;
+    if (!m_animation || !m_arrowPrefab.m_id.isValid()) return;
 
     const ArcherAttackConfig* cfg = m_config.get();
     if (!cfg) return;
@@ -73,7 +73,7 @@ void ArcherArrowShooter::Update()
             Vector3 dest = targetPos;
             dest.y      += 1.0f;
 
-            m_arrowGO = GameObjectAPI::instantiatePrefab(m_arrowPrefab.m_ref, spawnPos, Vector3::Zero);
+            m_arrowGO = GameObjectAPI::instantiatePrefab(m_arrowPrefab.m_id, spawnPos, Vector3::Zero);
             if (m_arrowGO)
             {
                 ArcherArrowProjectile* arrow = GameObjectAPI::findScript<ArcherArrowProjectile>(m_arrowGO);

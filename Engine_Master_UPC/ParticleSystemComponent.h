@@ -17,8 +17,8 @@ public:
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-    void setTextureAssetReference(AssetReference& assetRef);
-    AssetReference& getTextureAssetReference() { return m_textureAsset; }
+    void setTextureAssetId(AssetId& assetRef);
+    AssetId& getTextureAssetId() { return m_textureAsset; }
 
     const Vector3& getPreviousPosition() const { return m_previousPosition; }
     float getDistance() const;
@@ -44,7 +44,7 @@ private:
 
     ModuleParticleSystem* m_moduleParticleSystem;
 
-    AssetReference m_textureAsset{};
+    AssetId m_textureAsset{};
 
     std::unique_ptr<ParticleSystem> m_particleSystem;
     std::vector<EmitterInstance> m_particlesState;

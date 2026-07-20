@@ -253,7 +253,7 @@ void WindowHierarchy::onPrefabDropOnNode(const std::filesystem::path& sourcePath
     Scene* scene = HierarchyUtils::resolveTargetScene();
 
     const UID uid = app->getModuleAssets()->getIndex().findUID(sourcePath);
-    AssetReference* ref = app->getModuleAssets()->findReference(uid);
+    AssetId* ref = app->getModuleAssets()->findReference(uid);
     if (ref)
     {
         CommandInstantiatePrefab(scene, *ref, parent).run();

@@ -24,7 +24,7 @@ private:
 
 private:
 	SummonerEnemyController* m_controller = nullptr;
-    AssetRef<SummonerAttackConfig> m_attackConfig;
+    AssetReference<SummonerAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 
 	Transform* m_committedTarget = nullptr;

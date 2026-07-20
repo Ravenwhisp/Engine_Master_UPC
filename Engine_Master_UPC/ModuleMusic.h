@@ -66,9 +66,9 @@ public:
 	
 	void unloadAllBanks();
 	bool loadBank(const std::string& bankName);
-	bool loadBank(const AssetReference& ref);
+	bool loadBank(const AssetId& ref);
 	bool unloadBank(const std::string& bankName);
-	AssetReference findBankRef(const std::string& bankName) const;
+	AssetId findBankRef(const std::string& bankName) const;
 #pragma endregion
 
 private:

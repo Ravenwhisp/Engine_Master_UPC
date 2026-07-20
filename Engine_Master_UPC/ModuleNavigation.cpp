@@ -118,7 +118,7 @@ bool ModuleNavigation::loadNavMeshForScene(const char* sceneName)
         return false;
     }
 
-    AssetReference& navRef = scene->getNavMesh();
+    AssetId& navRef = scene->getNavMesh();
     if (!navRef.isValid())
     {
         m_loadedScene.clear();
@@ -249,7 +249,7 @@ bool ModuleNavigation::buildNavMeshForCurrentScene()
         app->getModuleAssets()->save(*navAsset, navPath);
     }
 
-    AssetReference& navRef = scene->getNavMesh();
+    AssetId& navRef = scene->getNavMesh();
     navRef = navAsset->getReference();
     navRef.m_type = AssetType::NAVMESH;
 

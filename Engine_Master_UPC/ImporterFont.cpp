@@ -160,7 +160,7 @@ fs::path ImporterFont::runMakeSpriteFont(const fs::path& ttfPath)
     return outPath;
 }
 
-Asset* ImporterFont::createAssetInstance(AssetReference& uid) const
+Asset* ImporterFont::createAssetInstance(AssetId& uid) const
 {
     return new FontAsset(uid);
 }

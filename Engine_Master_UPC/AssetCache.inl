@@ -12,15 +12,8 @@
 #include "DataContainer.h"
 #include "GenericTypeFactory.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/filereadstream.h>
-#include <cstdint>
-#include <cstdio>
-#include <vector>
-
 template<typename T>
-std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegistry& importers,
-                                                AssetIndex& index)
+std::shared_ptr<T> AssetCache::loadFromLibrary(AssetId& ref, ImporterRegistry& importers, AssetIndex& index)
 {
     if (ref.m_type == AssetType::UNKNOWN)
     {
@@ -30,8 +23,6 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
     Importer* importer = importers.findByType(ref.m_type);
     if (!importer)
     {
-        DEBUG_ERROR("[AssetCache] No importer for type %u (UID '%s').",
-            static_cast<unsigned>(ref.m_type), std::to_string(ref.m_uid).c_str());
         return nullptr;
     }
 
@@ -45,42 +36,6 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
 
     std::shared_ptr<Asset> asset(importer->createAssetInstance(ref));
     importer->load(buffer.data(), asset.get());
-
-    if (ref.m_type == AssetType::DATA_CONTAINER)
-    {
-        DataContainer* dc = dynamic_cast<DataContainer*>(asset.get());
-        if (dc && dc->getExposedFields().fields.empty())
-        {
-            const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
-            if (entry && !entry->sourcePath.empty())
-            {
-                std::string pathStr = entry->sourcePath.string();
-                FILE* fp = std::fopen(pathStr.c_str(), "rb");
-                if (fp)
-                {
-                    char buf[65536];
-                    rapidjson::FileReadStream is(fp, buf, sizeof(buf));
-                    rapidjson::Document doc;
-                    doc.ParseStream(is);
-                    std::fclose(fp);
-
-                    if (!doc.HasParseError() && doc.HasMember("_typeName") &&
-                        doc["_typeName"].IsString())
-                    {
-                        const char* typeName = doc["_typeName"].GetString();
-                        auto derived = DataContainerFactory::create(typeName, ref);
-                        if (derived)
-                        {
-                            JsonArchive archive(ArchiveMode::Input);
-                            archive.setValue(doc);
-                            derived->serialize(archive);
-                            asset.reset(derived.release());
-                        }
-                    }
-                }
-            }
-        }
-    }
 
 #ifndef GAME_RELEASE
     const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
@@ -114,7 +69,7 @@ std::shared_ptr<T> AssetCache::loadFromLibrary(AssetReference& ref, ImporterRegi
 
 
 template<typename T>
-std::shared_ptr<T> AssetCache::load(AssetReference& ref, AssetIndex& index, ImporterRegistry& importers)
+std::shared_ptr<T> AssetCache::load(AssetId& ref, AssetIndex& index, ImporterRegistry& importers)
 {
     if (!isValidUID(ref.m_uid))
     {
@@ -154,8 +109,6 @@ std::shared_ptr<T> AssetCache::load(AssetReference& ref, AssetIndex& index, Impo
     const AssetIndexEntry* entry = index.findEntry(ref.m_uid);
     if (!entry || entry->sourcePath.empty())
     {
-        DEBUG_ERROR("[AssetCache] Cannot load UID '%s': no source path available for re-import.",
-            std::to_string(ref.m_uid).c_str());
         return nullptr;
     }
 
@@ -185,7 +138,7 @@ std::shared_ptr<T> AssetCache::loadAtPath(const std::filesystem::path& sourcePat
     {
         meta.serialize(metaArchive);
         index.registerEntry(meta.uid, meta.type, sourcePath);
-        AssetReference ref(meta.uid, meta.contentHash, meta.type);
+        AssetId ref(meta.uid, meta.contentHash, meta.type);
         return load<T>(ref, index, importers);
     }
 

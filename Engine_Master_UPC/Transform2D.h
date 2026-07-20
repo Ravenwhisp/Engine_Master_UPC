@@ -1,5 +1,7 @@
 #pragma once
 #include "Component.h"
+#include "SimpleMath.h"
+using DirectX::SimpleMath::Vector2;
 #include "UIRect.h"
 #include <cstring>
 

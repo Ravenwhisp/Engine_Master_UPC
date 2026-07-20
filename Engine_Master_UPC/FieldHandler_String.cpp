@@ -26,11 +26,7 @@ namespace
         const std::string* value = reinterpret_cast<const std::string*>(data);
         std::string copy = *value;
         archive.serialize(copy, field.name);
-    }
-
-    void deserializeStringField(const FieldInfo& field, void* data, IArchive& archive)
-    {
-        archive.serialize(*reinterpret_cast<std::string*>(data), field.name);
+        *reinterpret_cast<std::string*>(data) = std::move(copy);
     }
 
     void cloneStringField(const FieldInfo&, const void* sourceData, void* targetData)

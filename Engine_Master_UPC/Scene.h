@@ -9,7 +9,7 @@
 #include "SkyBoxSettings.h"
 #include "PostProcessSettings.h"
 #include "SceneReferenceResolver.h"
-#include "AssetReference.h"
+#include "AssetId.h"
 #include "UID.h"
 
 #include <unordered_map>
@@ -36,7 +36,7 @@ private:
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
     PostProcessSettings m_postProcess;
-    AssetReference m_navMesh;
+    AssetId m_navMesh;
     SSAOSettings m_ssao;
 
     CameraComponent* m_defaultCamera;
@@ -52,7 +52,7 @@ private:
 
     void removePendingGameObjects();
 
-    std::vector<AssetReference> m_loadedBankRefs;
+    std::vector<AssetId> m_loadedBankRefs;
     mutable std::vector<std::string> m_loadedBankNameCache;
 
     //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
@@ -79,7 +79,7 @@ private:
 public:
     friend class ModuleScene;
 
-    Scene(AssetReference& uid);
+    Scene(AssetId& uid);
     ~Scene();
 
     void serialize(IArchive& archive) override;
@@ -110,9 +110,9 @@ public:
     PostProcessSettings& getPostProcessSettings() { return m_postProcess; }
     const PostProcessSettings& getPostProcessSettings() const { return m_postProcess; }
 
-    AssetReference& getNavMesh() { return m_navMesh; }
-    const AssetReference& getNavMesh() const { return m_navMesh; }
-    void setNavMesh(const AssetReference& ref) { m_navMesh = ref; }
+    AssetId& getNavMesh() { return m_navMesh; }
+    const AssetId& getNavMesh() const { return m_navMesh; }
+    void setNavMesh(const AssetId& ref) { m_navMesh = ref; }
 
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
     void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
@@ -161,7 +161,7 @@ public:
 #pragma endregion
 
 #pragma region MusicBanks
-    const std::vector<AssetReference>& getLoadedBankRefs() const { return m_loadedBankRefs; }
+    const std::vector<AssetId>& getLoadedBankRefs() const { return m_loadedBankRefs; }
     void addLoadedBank(const std::string& bankName);
     void removeLoadedBank(const std::string& bankName);
     std::vector<std::string> getLoadedBankNames() const;

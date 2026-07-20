@@ -10,7 +10,7 @@ class SummonerAttackConfig : public EnemyBaseAttackConfig
 
 public:
     SummonerAttackConfig() = default;
-    explicit SummonerAttackConfig(AssetReference& id)
+    explicit SummonerAttackConfig(AssetId& id)
         : EnemyBaseAttackConfig(id)
     {
     }
@@ -25,7 +25,7 @@ public:
     float m_energyBallLifetime = 2.0f;
 
     // Summon
-    AssetRef<Prefab> m_spiderPrefab;
+    AssetReference<Prefab> m_spiderPrefab;
     int m_summonCount = 3;
     float m_summonRadius = 2.0f;
     float m_summonCastTime = 0.5f;

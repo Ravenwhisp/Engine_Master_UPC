@@ -10,7 +10,7 @@ class ArthurAttackConfig : public DataContainer
 
 public:
     ArthurAttackConfig() = default;
-    explicit ArthurAttackConfig(AssetReference& id)
+    explicit ArthurAttackConfig(AssetId& id)
         : DataContainer(id)
     {
     }

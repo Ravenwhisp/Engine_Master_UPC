@@ -10,7 +10,7 @@
 #include <HierarchyUtils.h>
 
 CommandInstantiatePrefab::CommandInstantiatePrefab(Scene* scene,
-    const AssetReference& ref,
+    const AssetId& ref,
     GameObject* parent)
     : m_scene(scene)
     , m_source(ref)

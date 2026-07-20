@@ -10,10 +10,10 @@ public:
     void Start() override;
     FieldList getExposedFields() const override;
 
-    AssetRef<Prefab> m_trailPrefab;
-    AssetRef<Prefab> m_volleyPrefab;
-    AssetRef<Prefab> m_chargePrefab;
-    AssetRef<Prefab> m_arrowPrefab;
+    AssetReference<Prefab> m_trailPrefab;
+    AssetReference<Prefab> m_volleyPrefab;
+    AssetReference<Prefab> m_chargePrefab;
+    AssetReference<Prefab> m_arrowPrefab;
 
     // Basic attack trail — called by ArcherArrowShooter
     void spawnBasicAttackTrail(const Vector3& pos);

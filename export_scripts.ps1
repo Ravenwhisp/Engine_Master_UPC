@@ -41,3 +41,16 @@ cp .\Engine_Master_UPC\MD5Fwd.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\FieldTypeTraits.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\Transform2D.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UIRect.h .\export\EngineDependencies\
+
+cp .\Engine_Master_UPC\Asset.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\AssetId.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\AssetReference.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\AssetType.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\DataContainer.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\DataContainerAPI.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\GenericTypeFactory.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\IArchive.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\IFieldContainer.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\ImportSettings.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\MD5.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\UISheet.h .\export\EngineDependencies\

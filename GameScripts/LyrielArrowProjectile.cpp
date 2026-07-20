@@ -57,9 +57,9 @@ void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3&
         TransformAPI::lookAt(transform, start_position + m_direction);
     }
 
-    if (m_particlePrefab.m_ref.isValid())
+    if (m_particlePrefab.m_id.isValid())
     {
-        m_particleGO = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_ref, start_position, Vector3::Zero, nullptr);
+        m_particleGO = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_id, start_position, Vector3::Zero, nullptr);
         if (m_particleGO != nullptr)
         {
             syncParticleTransform();

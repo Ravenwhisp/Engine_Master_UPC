@@ -25,7 +25,7 @@ public:
 
 	void CreatePoint();
 
-	AssetReference& getTextureAssetReference() { return m_textureAsset; }
+	AssetId& getTextureAssetId() { return m_textureAsset; }
 
 	std::vector<std::shared_ptr<TrailPoint>>& getTrailPoints() { return m_points; }
 
@@ -50,7 +50,7 @@ private:
 	float	m_spawnDistance;
 	float	m_pointLifetime;
 	
-	AssetReference m_textureAsset{};
+	AssetId m_textureAsset{};
 
 	ImGradient m_colorOverTime;
 	ImGradientMark* m_draggingMark = nullptr;
