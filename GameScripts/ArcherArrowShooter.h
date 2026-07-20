@@ -1,6 +1,5 @@
-#pragma once
+﻿#pragma once
 #include "ScriptAPI.h"
-
 
 class ArcherAttackConfig;
 class RangedEnemyController;

@@ -12,10 +12,10 @@ class RangedEnemyController : public EnemyBaseController
 
 public:
     explicit RangedEnemyController(GameObject* owner);
-    FieldList getExposedFields() const override;
 
     void Start() override;
     void Update() override;
+    FieldList getExposedFields() const override;
 
     bool isTargetInAttackRange() const;
 

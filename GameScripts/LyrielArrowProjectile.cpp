@@ -124,7 +124,7 @@ void LyrielArrowProjectile::applyImpactDamage()
         if (mark != nullptr && mark->isExploitable())
         {
             mark->exploit();
-			ctx.attackType = EnemyAttackType::ShadowMarkExploit;
+			ctx.attackType = PlayerAttackType::ShadowMarkExploit;
 
             if (sound != nullptr)
             {
@@ -144,7 +144,7 @@ void LyrielArrowProjectile::applyImpactDamage()
         }
         else
         {
-            ctx.attackType = EnemyAttackType::LyrielArrow;
+            ctx.attackType = PlayerAttackType::LyrielArrow;
         }
 
         damageable->takeDamage(ctx);

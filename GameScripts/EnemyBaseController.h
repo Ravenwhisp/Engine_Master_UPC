@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -33,6 +33,12 @@ public:
     virtual void clearPath();
     virtual void resetRepathTimer();
 
+    // Forced movement helpers
+    void setForcedMovementActive(bool active);
+    bool isForcedMovementActive() const { return m_isForcedMovementActive; }
+    void setForcedMovementBlocked(bool blocked);
+    bool isForcedMovementBlocked() const { return m_isForcedMovementBlocked; }
+
     // Death helpers
     bool isDead() const;
     bool trySendDeathTrigger(AnimationComponent* animation);
@@ -44,7 +50,7 @@ public:
     // Stunned helpers
     void setStunnedDuration(float stunnedDuration);
     float getStunnedDuration() const { return m_stunnedDuration; }
-    void useStun();
+    void useStun(float duration);
     bool trySendStunTrigger(AnimationComponent* animation);
     bool isStunned() const { return m_isStunned; }
     void clearStun();
@@ -85,6 +91,9 @@ protected:
     size_t m_currentPathIndex = 0;
     bool m_hasPath = false;
     float m_repathTimer = 0.0f;
+
+    bool m_isForcedMovementActive = false;
+    bool m_isForcedMovementBlocked = false;
 
     float m_recoveryDuration = 0.75f;
     float m_stunnedDuration = 2.0f;

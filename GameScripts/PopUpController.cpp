@@ -4,6 +4,7 @@
 #include "PopUpEvent.h"
 #include "PlayerController.h"
 #include "Damageable.h"
+#include "HUDFader.h"
 
 PopUpController::PopUpController(GameObject* owner)
     : Script(owner)
@@ -13,6 +14,7 @@ PopUpController::PopUpController(GameObject* owner)
 void PopUpController::Start()
 {
     findPlayerControllers();
+    findHUDFader();
 }
 
 void PopUpController::Update()
@@ -32,7 +34,7 @@ void PopUpController::Update()
     removeFinishedPopUps();
 }
 
-void PopUpController::startPopUp(PopUpEvent* event)
+void PopUpController::startEvent(PopUpEvent* event)
 {
     if (event == nullptr)
     {
@@ -42,30 +44,15 @@ void PopUpController::startPopUp(PopUpEvent* event)
     ActivePopUp popUp;
     popUp.event = event;
     popUp.sourceObject = event->getOwner();
-    popUp.currentImageIndex = 0;
-    popUp.state = PopUpState::Showing;
 
-    popUp.timer = 0.0f;
-    popUp.currentAlpha = 0.0f;
-
-    popUp.player1Confirmed = false;
-    popUp.player2Confirmed = false;
-    popUp.objectiveCompleted = false;
-
+    setUpConfirmationIndicators(popUp);
     hideAllPopUpImages(popUp);
+    startEventEffects(popUp);
 
-    if (!setCurrentPopUpImage(popUp, popUp.currentImageIndex))
+    if (!startPopUp(popUp, 0))
     {
         return;
     }
-
-    if (popUp.event->shouldLockGameplay())
-    {
-        setPlayersGameplayInputLocked(true);
-        setPlayersInvulnerable(true);
-    }
-
-    prepareShowTransition(popUp);
 
     m_activePopUps.push_back(popUp);
 }
@@ -96,6 +83,51 @@ void PopUpController::notifyObjectiveCompleted(GameObject* sourceObject)
 
         popUp.objectiveCompleted = true;
     }
+}
+
+bool PopUpController::startPopUp(ActivePopUp& popUp, int imageIndex)
+{
+    if (popUp.event == nullptr)
+    {
+        return false;
+    }
+
+    popUp.currentImageIndex = imageIndex;
+    popUp.state = PopUpState::Showing;
+
+    popUp.timer = 0.0f;
+    popUp.currentAlpha = 0.0f;
+
+    popUp.player1Confirmed = false;
+    popUp.player2Confirmed = false;
+    popUp.objectiveCompleted = false;
+
+    updateConfirmationIndicators(popUp, 0.0f);
+
+    if (!setCurrentPopUpImage(popUp, popUp.currentImageIndex))
+    {
+        finishEvent(popUp);
+        return false;
+    }
+
+    prepareShowTransition(popUp);
+    return true;
+}
+
+void PopUpController::startEventEffects(ActivePopUp& popUp)
+{
+    if (popUp.event == nullptr)
+    {
+        return;
+    }
+
+    if (popUp.event->shouldLockGameplay())
+    {
+        setPlayersGameplayInputLocked(true);
+        setPlayersInvulnerable(true);
+    }
+
+    fadeHudOut(popUp);
 }
 
 void PopUpController::updatePopUp(ActivePopUp& popUp, float dt)
@@ -164,11 +196,13 @@ void PopUpController::updateWaiting(ActivePopUp& popUp)
         if (Input::isFaceButtonBottomJustPressed(0))
         {
             popUp.player1Confirmed = true;
+            updateConfirmationIndicators(popUp);
         }
 
         if (Input::isFaceButtonBottomJustPressed(1))
         {
             popUp.player2Confirmed = true;
+            updateConfirmationIndicators(popUp);
         }
 
         if (popUp.player1Confirmed && popUp.player2Confirmed)
@@ -195,6 +229,11 @@ void PopUpController::updateWaiting(ActivePopUp& popUp)
 
 void PopUpController::updateHiding(ActivePopUp& popUp, float dt)
 {
+    if (popUp.event == nullptr)
+    {
+        return;
+    }
+
     const float duration = popUp.event->getHideDuration();
 
     popUp.timer += dt;
@@ -204,33 +243,27 @@ void PopUpController::updateHiding(ActivePopUp& popUp, float dt)
 
     updateHideTransition(popUp, alpha);
 
-    if (popUp.timer >= duration)
+    if (popUp.timer < duration)
     {
-        updateHideTransition(popUp, 1.0f);
-
-        const int nextImageIndex = popUp.currentImageIndex + 1;
-
-        if (nextImageIndex < popUp.event->getPopUpImageCount())
-        {
-            popUp.currentImageIndex = nextImageIndex;
-
-            popUp.player1Confirmed = false;
-            popUp.player2Confirmed = false;
-            popUp.objectiveCompleted = false;
-
-            if (setCurrentPopUpImage(popUp, popUp.currentImageIndex))
-            {
-                popUp.state = PopUpState::Showing;
-                popUp.timer = 0.0f;
-                popUp.currentAlpha = 0.0f;
-
-                prepareShowTransition(popUp);
-                return;
-            }
-        }
-
-        finishPopUp(popUp);
+        return;
     }
+
+    updateHideTransition(popUp, 1.0f);
+
+    const int nextImageIndex = popUp.currentImageIndex + 1;
+    const int imageCount = popUp.event->getPopUpImageCount();
+
+    finishPopUp(popUp);
+
+    if (nextImageIndex < imageCount)
+    {
+        if (startPopUp(popUp, nextImageIndex))
+        {
+            return;
+        }
+    }
+
+    finishEvent(popUp);
 }
 
 void PopUpController::prepareShowTransition(ActivePopUp& popUp)
@@ -301,6 +334,7 @@ void PopUpController::updateShowTransition(ActivePopUp& popUp, float alpha)
     case PopUpTransitionType::Fade:
         popUp.currentAlpha = alpha;
         setPopUpAlpha(popUp, popUp.currentAlpha);
+        updateConfirmationIndicators(popUp, alpha);
         break;
 
     case PopUpTransitionType::SlideFromLeft:
@@ -330,6 +364,7 @@ void PopUpController::updateHideTransition(ActivePopUp& popUp, float alpha)
     case PopUpTransitionType::Fade:
         popUp.currentAlpha = MathAPI::lerp(1.0f, 0.0f, alpha);
         setPopUpAlpha(popUp, popUp.currentAlpha);
+        updateConfirmationIndicators(popUp, popUp.currentAlpha);
         break;
 
     case PopUpTransitionType::SlideFromLeft:
@@ -389,24 +424,42 @@ void PopUpController::hideAllPopUpImages(ActivePopUp& popUp)
 
 void PopUpController::finishPopUp(ActivePopUp& popUp)
 {
-    if (popUp.event != nullptr && popUp.event->shouldLockGameplay())
+    if (popUp.currentImage != nullptr)
+    {
+        Transform2DAPI::setAlpha(popUp.currentImage, 0.0f);
+    }
+
+    popUp.currentImage = nullptr;
+}
+
+void PopUpController::finishEvent(ActivePopUp& popUp)
+{
+    finishEventEffects(popUp);
+
+    popUp.event = nullptr;
+    popUp.sourceObject = nullptr;
+    popUp.currentImage = nullptr;
+    popUp.currentImageIndex = 0;
+
+    popUp.state = PopUpState::None;
+}
+
+void PopUpController::finishEventEffects(ActivePopUp& popUp)
+{
+    if (popUp.event == nullptr)
+    {
+        return;
+    }
+
+    if (popUp.event->shouldLockGameplay())
     {
         setPlayersGameplayInputLocked(false);
         setPlayersInvulnerable(false);
     }
 
-    popUp.event = nullptr;
-    popUp.currentImage = nullptr;
-    popUp.currentImageIndex = 0;
+    fadeHudIn(popUp);
 
-    popUp.state = PopUpState::None;
-
-    popUp.player1Confirmed = false;
-    popUp.player2Confirmed = false;
-    popUp.objectiveCompleted = false;
-
-    popUp.timer = 0.0f;
-    popUp.currentAlpha = 0.0f;
+    hideConfirmationIndicators(popUp);
 }
 
 void PopUpController::findPlayerControllers()
@@ -466,6 +519,59 @@ void PopUpController::setPlayersInvulnerable(bool invulnerable)
     }
 }
 
+void PopUpController::findHUDFader()
+{
+    const std::vector<GameObject*> hudFaderObjects = SceneAPI::findAllGameObjectsWithScript<HUDFader>();
+
+    if (hudFaderObjects.empty())
+    {
+        Debug::warn("PopUpController could not find any GameObject with HUDFader.");
+        return;
+    }
+
+    m_hudFader = GameObjectAPI::findScript<HUDFader>(hudFaderObjects[0]);
+}
+
+void PopUpController::fadeHudOut(const ActivePopUp& popUp)
+{
+    if (popUp.event == nullptr)
+    {
+        return;
+    }
+
+    if (!popUp.event->shouldFadeHud())
+    {
+        return;
+    }
+
+    if (m_hudFader == nullptr)
+    {
+        return;
+    }
+
+    m_hudFader->fadeTo(0.0f, m_hudFadeOutDuration);
+}
+
+void PopUpController::fadeHudIn(const ActivePopUp& popUp)
+{
+    if (popUp.event == nullptr)
+    {
+        return;
+    }
+
+    if (!popUp.event->shouldFadeHud())
+    {
+        return;
+    }
+
+    if (m_hudFader == nullptr)
+    {
+        return;
+    }
+
+    m_hudFader->fadeTo(1.0f, m_hudFadeInDuration);
+}
+
 void PopUpController::setPopUpAlpha(ActivePopUp& popUp, float alpha)
 {
     if (popUp.currentImage == nullptr)
@@ -505,6 +611,62 @@ Vector2 PopUpController::calculateHiddenPosition(const ActivePopUp& popUp) const
     default:
         return popUp.visiblePosition;
     }
+}
+
+bool PopUpController::shouldUseConfirmationIndicators(const ActivePopUp& popUp) const
+{
+    if (popUp.event == nullptr)
+    {
+        return false;
+    }
+
+    return popUp.event->getCloseMode() == PopUpCloseMode::BothPlayersConfirm && popUp.event->getTransitionType() == PopUpTransitionType::Fade;
+}
+
+void PopUpController::setUpConfirmationIndicators(ActivePopUp& popUp)
+{
+    if (popUp.event == nullptr)
+    {
+        return;
+    }
+
+    popUp.player1NotConfirmedIndicator = popUp.event->getPlayer1NotConfirmedTransform2D();
+    popUp.player1ConfirmedIndicator = popUp.event->getPlayer1ConfirmedTransform2D();
+    popUp.player2NotConfirmedIndicator = popUp.event->getPlayer2NotConfirmedTransform2D();
+    popUp.player2ConfirmedIndicator = popUp.event->getPlayer2ConfirmedTransform2D();
+}
+
+void PopUpController::updateConfirmationIndicators(ActivePopUp& popUp, float alphaMultiplier)
+{
+    if (!shouldUseConfirmationIndicators(popUp))
+    {
+        hideConfirmationIndicators(popUp);
+        return;
+    }
+
+    setIndicatorAlpha(popUp.player1NotConfirmedIndicator, !popUp.player1Confirmed ? alphaMultiplier : 0.0f);
+    setIndicatorAlpha(popUp.player1ConfirmedIndicator, popUp.player1Confirmed ? alphaMultiplier : 0.0f);
+
+    setIndicatorAlpha(popUp.player2NotConfirmedIndicator, !popUp.player2Confirmed ? alphaMultiplier : 0.0f);
+    setIndicatorAlpha(popUp.player2ConfirmedIndicator, popUp.player2Confirmed ? alphaMultiplier : 0.0f);
+}
+
+void PopUpController::hideConfirmationIndicators(ActivePopUp& popUp)
+{
+    setIndicatorAlpha(popUp.player1NotConfirmedIndicator, 0.0f);
+    setIndicatorAlpha(popUp.player1ConfirmedIndicator, 0.0f);
+    setIndicatorAlpha(popUp.player2NotConfirmedIndicator, 0.0f);
+    setIndicatorAlpha(popUp.player2ConfirmedIndicator, 0.0f);
+}
+
+void PopUpController::setIndicatorAlpha(Transform2D* indicator, float alpha)
+{
+    if (indicator == nullptr)
+    {
+        return;
+    }
+
+    Transform2DAPI::setAlpha(indicator, alpha);
 }
 
 IMPLEMENT_SCRIPT(PopUpController)

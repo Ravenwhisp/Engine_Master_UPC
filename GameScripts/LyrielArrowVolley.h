@@ -13,8 +13,6 @@ class LyrielArrowVolley : public LyrielAbilityBase
 public:
     explicit LyrielArrowVolley(GameObject* owner);
 
-    FieldList getExposedFields() const override;
-
     void Start() override;
     void Update() override;
     void drawGizmo() override;

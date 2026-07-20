@@ -5,6 +5,7 @@ class EnemyDetectionAggro;
 class PlayerRotation;
 class DeathUI;
 class DeathParticles;
+class EnemyForcedMovement;
 
 class DeathTaunt : public DeathAbilityBase
 {
@@ -12,8 +13,6 @@ class DeathTaunt : public DeathAbilityBase
 
 public:
     explicit DeathTaunt(GameObject* owner);
-
-    FieldList getExposedFields() const override;
 
     void Start()  override;
     void Update() override;
@@ -33,7 +32,14 @@ private:
     void updateAim();
     void releaseAimAndCast();
 
-    void applyTauntToEnemiesInCone(const Vector3& ownerForward) const;
+    void updateImpactDelay();
+    void resolveImpact();
+
+    std::vector<GameObject*> collectEnemiesInCone(const Vector3& origin, const Vector3& direction) const;
+    void applyTauntEffects(GameObject* enemy, Transform* deathTransform, bool& anyMark) const;
+
+    Vector3 calculatePullDestination(GameObject* enemy) const;
+
     bool isEnemyInsideTauntCone(GameObject* enemy, const Vector3& ownerPosition, const Vector3& ownerForward) const;
 
     Vector3 computeAimDirection() const;
@@ -41,11 +47,23 @@ private:
     bool isAimStickValid(const Vector3& direction) const;
 
 private:
+    enum class TauntState
+    {
+        Idle,
+        Aiming,
+        WaitingForImpact
+    };
+
     PlayerRotation* m_playerRotation = nullptr;
     DeathUI* m_deathUI = nullptr;
     DeathParticles* m_deathParticles = nullptr;
 
-    float m_debugConeTimer = 0.0f;
-    bool m_isAiming = false;
+    TauntState m_tauntState = TauntState::Idle;
+
     Vector3 m_currentAimDirection = Vector3::Zero;
+    Vector3 m_castOrigin = Vector3::Zero;
+    Vector3 m_castDirection = Vector3::Zero;
+
+    float m_impactDelayTimer = 0.0f;
+    float m_debugConeTimer = 0.0f;
 };

@@ -137,18 +137,18 @@ void BarrierEnemyDamageable::takeDamage(float amount)
 {
     EnemyHitContext hit;
     hit.damage = amount;
-    hit.attackType = EnemyAttackType::Environment;
+    hit.attackType = PlayerAttackType::Environment;
     takeDamage(hit);
 }
 
-bool BarrierEnemyDamageable::canBreakBarrier(EnemyAttackType attackType) const
+bool BarrierEnemyDamageable::canBreakBarrier(PlayerAttackType attackType) const
 {
-    if (attackType == EnemyAttackType::ShadowMarkExploit)
+    if (attackType == PlayerAttackType::ShadowMarkExploit)
     {
         return m_shadowMarkExploitBreaksBarriers;
     }
 
-    return attackType == static_cast<EnemyAttackType>(m_requiredAttackType);
+    return attackType == static_cast<PlayerAttackType>(m_requiredAttackType);
 }
 
 void BarrierEnemyDamageable::takeDamage(const HitContext& ctx)

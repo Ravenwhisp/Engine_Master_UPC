@@ -43,7 +43,7 @@ cp .\Engine_Master_UPC\Transform2D.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UIRect.h .\export\EngineDependencies\
 
 cp .\Engine_Master_UPC\Asset.h .\export\EngineDependencies\
-cp .\Engine_Master_UPC\AssetRef.h .\export\EngineDependencies\
+cp .\Engine_Master_UPC\AssetId.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\AssetReference.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\AssetType.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\DataContainer.h .\export\EngineDependencies\
