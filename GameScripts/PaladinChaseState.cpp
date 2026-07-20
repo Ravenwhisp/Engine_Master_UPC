@@ -87,11 +87,11 @@ void PaladinChaseState::OnStateUpdate()
 		return;
 	}
 
-	m_paladinController->moveTowardsTarget();
+	const bool moved = m_paladinController->moveTowardsTarget();
 
 	if (m_paladinVFX)
 	{
-		m_paladinVFX->setWalkingDustActive(true);
+		m_paladinVFX->setWalkingDustActive(moved);
 	}
 }
 

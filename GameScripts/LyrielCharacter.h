@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "CharacterBase.h"
 
@@ -22,6 +22,8 @@ public:
 
     ProjectilePool*   getArrowPool() const { return m_arrowPool; }
     LyrielSound* getSound()     const { return m_sound; }
+    LyrielConfig* getConfig() const { return m_config.get(); }
+
     // Called by Lyriel's offensive scripts after they exploit a Phase 3 mark.
     // Grants the two design-defined rewards: +1 dash charge and -20% of base
     // Arrow Volley cooldown.
@@ -35,5 +37,5 @@ private:
     LyrielDash*        m_dash        = nullptr;
     LyrielSound*       m_sound       = nullptr;
     PlayerMovement*    m_movement    = nullptr;
-    AssetRef<LyrielConfig> m_config;
+    AssetReference<LyrielConfig> m_config;
 };

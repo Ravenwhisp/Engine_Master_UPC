@@ -12,6 +12,11 @@
 #include <cmath>
 #include <vector>
 
+IMPLEMENT_SCRIPT_FIELDS(DeathCharacter,
+    SERIALIZED_ASSET_REF(m_config, "Death Config", AssetType::DATA_CONTAINER)
+)
+
+
 DeathCharacter::DeathCharacter(GameObject* owner)
     : CharacterBase(owner)
 {
@@ -26,7 +31,6 @@ void DeathCharacter::Start()
     m_specialAbility = GameObjectAPI::findScript<DeathTaunt>(getOwner());
     m_sound    = GameObjectAPI::findScript<DeathSound>(getOwner());
     m_movement = GameObjectAPI::findScript<PlayerMovement>(getOwner());
-
     if (m_basicAttack == nullptr)
     {
         Debug::warn("[DeathCharacter] DeathBasicAttack not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
@@ -51,6 +55,7 @@ void DeathCharacter::Start()
     {
         Debug::log("[DeathCharacter] PlayerMovement not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
+
 }
 
 void DeathCharacter::Update()
@@ -75,16 +80,12 @@ void DeathCharacter::Update()
 
 float DeathCharacter::getComboWindowR2() const
 {
-    const DeathConfig* cfg = m_config.get();
-    if (!cfg) return 0.0f;
-    return cfg->m_comboWindowR2;
+    return m_config.get()->m_comboWindowR2;
 }
 
 float DeathCharacter::getComboWindowMaxCharge() const
 {
-    const DeathConfig* cfg = m_config.get();
-    if (!cfg) return 0.0f;
-    return cfg->m_comboWindowMaxCharge;
+    return m_config.get()->m_comboWindowMaxCharge;
 }
 
 void DeathCharacter::tickCombo(float dt)
@@ -117,11 +118,8 @@ void DeathCharacter::tickCombo(float dt)
 
 void DeathCharacter::advanceCombo(bool isR2, float comboWindowOverride)
 {
-    const DeathConfig* cfg = m_config.get();
-    if (!cfg) return;
-
     m_comboTimer        = 0.0f;
-    m_activeComboWindow = (comboWindowOverride > 0.0f) ? comboWindowOverride : cfg->m_comboWindow;
+    m_activeComboWindow = (comboWindowOverride > 0.0f) ? comboWindowOverride : m_config.get()->m_comboWindow;
 
     if (isR2)
     {
@@ -137,7 +135,7 @@ void DeathCharacter::advanceCombo(bool isR2, float comboWindowOverride)
     if (m_comboStep >= 3)
     {
         resetCombo();
-        m_comboCooldownTimer = cfg->m_comboCooldown;
+        m_comboCooldownTimer = m_config.get()->m_comboCooldown;
     }
 }
 
@@ -147,9 +145,5 @@ void DeathCharacter::resetCombo()
     m_consecutiveR2Count = 0;
     m_comboTimer         = 0.0f;
 }
-
-IMPLEMENT_SCRIPT_FIELDS(DeathCharacter,
-    SERIALIZED_ASSET_REF(m_config, "Death Config", AssetType::DATA_CONTAINER)
-)
 
 IMPLEMENT_SCRIPT(DeathCharacter)

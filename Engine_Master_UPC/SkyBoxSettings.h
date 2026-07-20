@@ -6,7 +6,7 @@
 struct SkyBoxSettings : public ISerializable
 {
 	bool enabled = true;
-	AssetReference cubemapAssetId{};
+	AssetId cubemapAssetId{};
 
 	bool operator==(const SkyBoxSettings& o) const
     {

@@ -32,6 +32,7 @@
 #include "ComponentSoundSource.h"
 #include "NavRuntimeBlockerComponent.h"
 #include "PlayerRenderBufferComponent.h"
+#include "DamageHighlightComponent.h"
 #include "TrailComponent.h"
 
 #include "CameraComponent.h"
@@ -292,7 +293,7 @@ namespace GameObjectAPI
     }
     */
 
-    ENGINE_API GameObject* instantiatePrefab(const AssetReference& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
+    ENGINE_API GameObject* instantiatePrefab(const AssetId& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
@@ -3021,7 +3022,7 @@ namespace Shaders
     {
         return component->getDamageHighlightCenterColor();
     }
-    
+
     void Shaders::setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value)
     {
         return component->setDamageHighlightCenterColor(value);
@@ -3046,4 +3047,151 @@ namespace Shaders
     {
         component->setDamageHighlightRimIntensity(value);
     }
+}
+
+namespace ShadersAPI
+{
+    DamageHighlightComponent* getDamageHighlightComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DamageHighlightComponent>(ComponentType::DAMAGE_HIGHLIGHT);
+    }
+
+    const DamageHighlightComponent* getDamageHighlightComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DamageHighlightComponent>(ComponentType::DAMAGE_HIGHLIGHT);
+    }
+
+    float getDamageHighlightIntensity(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightIntensity();
+    }
+
+    void setDamageHighlightIntensity(DamageHighlightComponent* component, float value)
+    {
+        component->setDamageHighlightIntensity(value);
+    }
+
+    Vector3 getDamageHighlightCenterColor(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightCenterColor();
+    }
+
+    void setDamageHighlightCenterColor(DamageHighlightComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightCenterColor(value);
+    }
+
+    Vector3 getDamageHighlightRimColor(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightRimColor();
+    }
+
+    void setDamageHighlightRimColor(DamageHighlightComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightRimColor(value);
+    }
+
+    float getDamageHighlightRimIntensity(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightRimIntensity();
+    }
+
+    void setDamageHighlightRimIntensity(DamageHighlightComponent* component, float value)
+    {
+        component->setDamageHighlightRimIntensity(value);
+    }
+}
+
+namespace PostProcessAPI
+{
+    static PostProcessSettings* getSettings()
+    {
+        if (!app || !app->getModuleScene() || !app->getModuleScene()->getScene())
+        {
+            return nullptr;
+        }
+        return &app->getModuleScene()->getScene()->getPostProcessSettings();
+    }
+
+    // --- Exposure ---
+    void  setExposure(float ev)        { if (auto* pp = getSettings()) pp->exposure = ev; }
+    float getExposure()                { auto* pp = getSettings(); return pp ? pp->exposure : 0.0f; }
+
+    // --- Bloom ---
+    void  setBloomEnabled(bool e)      { if (auto* pp = getSettings()) pp->bloomEnabled = e; }
+    bool  isBloomEnabled()             { auto* pp = getSettings(); return pp ? pp->bloomEnabled : false; }
+    void  setBloomThreshold(float t)   { if (auto* pp = getSettings()) pp->bloomThreshold = t; }
+    float getBloomThreshold()          { auto* pp = getSettings(); return pp ? pp->bloomThreshold : 0.0f; }
+    void  setBloomIntensity(float i)   { if (auto* pp = getSettings()) pp->bloomIntensity = i; }
+    float getBloomIntensity()          { auto* pp = getSettings(); return pp ? pp->bloomIntensity : 0.0f; }
+
+    // --- Colour grading (LUT) ---
+    void  setLutEnabled(bool e)        { if (auto* pp = getSettings()) pp->lutEnabled = e; }
+    bool  isLutEnabled()               { auto* pp = getSettings(); return pp ? pp->lutEnabled : false; }
+    void  setLutPath(const char* path) { if (auto* pp = getSettings()) pp->lutPath = path ? path : ""; }
+    const char* getLutPath()           { auto* pp = getSettings(); return pp ? pp->lutPath.c_str() : ""; }
+
+    // --- Chromatic aberration ---
+    void  setChromaticAberrationEnabled(bool e)   { if (auto* pp = getSettings()) pp->chromaticAberrationEnabled = e; }
+    bool  isChromaticAberrationEnabled()          { auto* pp = getSettings(); return pp ? pp->chromaticAberrationEnabled : false; }
+    void  setChromaticAberrationStrength(float s) { if (auto* pp = getSettings()) pp->chromaticAberrationStrength = s; }
+    float getChromaticAberrationStrength()        { auto* pp = getSettings(); return pp ? pp->chromaticAberrationStrength : 0.0f; }
+
+    // --- Heartbeat ---
+    void  setHeartbeatEnabled(bool e)  { if (auto* pp = getSettings()) pp->heartbeatEnabled = e; }
+    bool  isHeartbeatEnabled()         { auto* pp = getSettings(); return pp ? pp->heartbeatEnabled : false; }
+    void  setHealth(float h)           { if (auto* pp = getSettings()) pp->health = h; }
+    float getHealth()                  { auto* pp = getSettings(); return pp ? pp->health : 1.0f; }
+    void  setSeparation(float s)       { if (auto* pp = getSettings()) pp->separation = s; }
+    float getSeparation()              { auto* pp = getSettings(); return pp ? pp->separation : 0.0f; }
+    void  setHealthThreshold(float t)  { if (auto* pp = getSettings()) pp->healthThreshold = t; }
+    float getHealthThreshold()         { auto* pp = getSettings(); return pp ? pp->healthThreshold : 0.5f; }
+
+    // --- Death fade ---
+    void  setDeathFadeActive(bool a)      { if (auto* pp = getSettings()) pp->deathFadeActive = a; }
+    bool  isDeathFadeActive()             { auto* pp = getSettings(); return pp ? pp->deathFadeActive : false; }
+    void  setDeathGreyDuration(float s)   { if (auto* pp = getSettings()) pp->deathGreyDuration = s; }
+    float getDeathGreyDuration()          { auto* pp = getSettings(); return pp ? pp->deathGreyDuration : 0.0f; }
+    void  setDeathBlackDuration(float s)  { if (auto* pp = getSettings()) pp->deathBlackDuration = s; }
+    float getDeathBlackDuration()         { auto* pp = getSettings(); return pp ? pp->deathBlackDuration : 0.0f; }
+
+    // --- Outline ---
+    void  setOutlineEnabled(bool e)    { if (auto* pp = getSettings()) pp->outlineEnabled = e; }
+    bool  isOutlineEnabled()           { auto* pp = getSettings(); return pp ? pp->outlineEnabled : false; }
+    void  setOutlineThickness(float t) { if (auto* pp = getSettings()) pp->outlineThickness = t; }
+    float getOutlineThickness()        { auto* pp = getSettings(); return pp ? pp->outlineThickness : 0.0f; }
+    void  setOutlineThreshold(float t) { if (auto* pp = getSettings()) pp->outlineThreshold = t; }
+    float getOutlineThreshold()        { auto* pp = getSettings(); return pp ? pp->outlineThreshold : 0.0f; }
+    void  setOutlineIntensity(float i) { if (auto* pp = getSettings()) pp->outlineIntensity = i; }
+    float getOutlineIntensity()        { auto* pp = getSettings(); return pp ? pp->outlineIntensity : 0.0f; }
+    void  setOutlineColor(const Vector3& rgb)
+    {
+        if (auto* pp = getSettings())
+        {
+            pp->outlineColorR = rgb.x;
+            pp->outlineColorG = rgb.y;
+            pp->outlineColorB = rgb.z;
+        }
+    }
+    Vector3 getOutlineColor()
+    {
+        auto* pp = getSettings();
+        return pp ? Vector3(pp->outlineColorR, pp->outlineColorG, pp->outlineColorB) : Vector3::Zero;
+    }
+    void  setOutlineWobble(float w)     { if (auto* pp = getSettings()) pp->outlineWobble = w; }
+    float getOutlineWobble()            { auto* pp = getSettings(); return pp ? pp->outlineWobble : 0.0f; }
+    void  setOutlineNoiseScale(float s) { if (auto* pp = getSettings()) pp->outlineNoiseScale = s; }
+    float getOutlineNoiseScale()        { auto* pp = getSettings(); return pp ? pp->outlineNoiseScale : 0.0f; }
+    void  setOutlineBreakup(float b)    { if (auto* pp = getSettings()) pp->outlineBreakup = b; }
+    float getOutlineBreakup()           { auto* pp = getSettings(); return pp ? pp->outlineBreakup : 0.0f; }
 }

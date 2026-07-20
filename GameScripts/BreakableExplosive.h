@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -17,6 +17,8 @@ public:
 	void drawGizmo() override;
 
     FieldList getExposedFields() const override;
+
+    bool canBeTargetedDuringCombat() const override { return true; }
 
 public:
     float m_explosionRadius = 5.0f;

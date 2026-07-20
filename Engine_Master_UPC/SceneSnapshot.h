@@ -6,16 +6,15 @@
 
 #include "UID.h"
 #include "SceneReferenceResolver.h"
-#include "AssetReference.h"
 #include "SceneLightingSettings.h"
 #include "SkyBoxSettings.h"
 #include "SSAOSettings.h"
+#include "AssetId.h"
+#include "Scene.h"
 
-class Scene;
 class GameObject;
 class Component;
 class CameraComponent;
-
 
 class SceneSnapshot
 {
@@ -29,8 +28,8 @@ private:
     SceneLightingSettings m_lighting;
     SkyBoxSettings m_skybox;
     SSAOSettings m_ssao;
-    AssetReference m_navMesh;
-    std::vector<AssetReference> m_loadedBankRefs;
+    AssetId m_navMesh;
+    std::vector<AssetId> m_loadedBankRefs;
     mutable std::vector<std::string> m_loadedBankNameCache;
 
 public:

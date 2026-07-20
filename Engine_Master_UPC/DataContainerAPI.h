@@ -8,7 +8,7 @@
 //       DECLARE_DATACONTAINER(MyConfig)   // handles auto-registration
 //   public:
 //       MyConfig() = default;
-//       explicit MyConfig(AssetReference& id) : DataContainer(id) {}
+//       explicit MyConfig(AssetId& id) : DataContainer(id) {}
 //       float m_value = 10.0f;
 //
 //       IMPLEMENT_DATACONTAINER_FIELDS(MyConfig,
@@ -22,11 +22,11 @@
 #include "DataContainer.h"
 #include "FieldMacros.h"
 #include "EngineAPI.h"
-#include "AssetRef.h"
+#include "AssetReference.h"
 
 #define DECLARE_DATACONTAINER(TypeName) \
 	public: \
-		static std::unique_ptr<DataContainer> CreateInstance(AssetReference& uid) { \
+		static std::unique_ptr<DataContainer> CreateInstance(AssetId& uid) { \
 			return std::make_unique<TypeName>(uid); \
 		} \
 	private: \

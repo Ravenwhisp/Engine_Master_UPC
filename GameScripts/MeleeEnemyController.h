@@ -11,10 +11,10 @@ class MeleeEnemyController : public EnemyBaseController
 
 public:
 	explicit MeleeEnemyController(GameObject* owner);
-	FieldList getExposedFields() const override;
 
 	void Start() override;
 	void Update() override;
+	FieldList getExposedFields() const override;
 
 	bool isTargetInAttackRange() const;
 
@@ -33,7 +33,7 @@ protected:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    AssetRef<PaladinAttackConfig> m_attackConfig;
+	AssetReference<PaladinAttackConfig> m_attackConfig;
 
 	float m_chargeCooldownTimer = 0.0f;
 };

@@ -4,8 +4,7 @@
 #include "SkeletonAttackConfig.h"
 
 IMPLEMENT_SCRIPT_FIELDS(SkeletonAttackDebugDraw,
-    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER),
-    SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled"),
+	SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled"),
 	SERIALIZED_BOOL(m_drawScimitarStartRange, "Draw Scimitar Start Range"),
 	SERIALIZED_BOOL(m_drawDashStopRange, "Draw Dash Stop Range"),
 	SERIALIZED_BOOL(m_drawScimitarAttackArea, "Draw Attack Area"),
@@ -24,16 +23,15 @@ void SkeletonAttackDebugDraw::Start()
 
 void SkeletonAttackDebugDraw::drawGizmo()
 {
-    if (!m_debugEnabled)
-    {
-        return;
-    }
+	if (!m_debugEnabled)
+	{
+		return;
+	}
 
-    const SkeletonAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
+	if (!m_attackConfig.get())
+	{
+		return;
+	}
 
 	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 	if (!ownerTransform)
@@ -55,7 +53,7 @@ void SkeletonAttackDebugDraw::drawGizmo()
 			position,
 			up,
 			startRangeColor,
-            cfg->m_scimitarStartRange,
+			m_attackConfig.get()->m_scimitarStartRange,
 			32.0f,
 			0,
 			true
@@ -68,7 +66,7 @@ void SkeletonAttackDebugDraw::drawGizmo()
 			position,
 			up,
 			dashStopColor,
-            cfg->m_scimitarDashStopRange,
+			m_attackConfig.get()->m_scimitarDashStopRange,
 			32.0f,
 			0,
 			true
@@ -88,30 +86,18 @@ void SkeletonAttackDebugDraw::drawGizmo()
 
 void SkeletonAttackDebugDraw::drawScimitarAttackCone() const
 {
-    const SkeletonAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
-
-    drawScimitarCone(
-        cfg->m_basicAttackRange,
-        cfg->m_scimitarHalfAngleDegrees,
+	drawScimitarCone(
+		m_attackConfig.get()->m_basicAttackRange,
+		m_attackConfig.get()->m_scimitarHalfAngleDegrees,
 		Vector3(1.0f, 0.0f, 0.0f)
 	);
 }
 
 void SkeletonAttackDebugDraw::drawScimitarStunCone() const
 {
-    const SkeletonAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
-
-    drawScimitarCone(
-        cfg->m_scimitarStunHitRange,
-        cfg->m_scimitarHalfAngleDegrees,
+	drawScimitarCone(
+		m_attackConfig.get()->m_scimitarStunHitRange,
+		m_attackConfig.get()->m_scimitarHalfAngleDegrees,
 		Vector3(0.0f, 0.0f, 1.0f)
 	);
 }

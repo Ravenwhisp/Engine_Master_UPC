@@ -30,7 +30,7 @@
 #include <algorithm>
 
 
-Scene::Scene(AssetReference& id) : Asset(id, AssetType::SCENE)
+Scene::Scene(AssetId& id) : Asset(id, AssetType::SCENE)
 {
     m_triggerSystem = std::make_unique<TriggerSystem>();
     m_skybox = {};
@@ -620,7 +620,7 @@ void Scene::clearScene()
 
     m_objectIndexMap.clear();
     m_defaultCamera = nullptr;
-    m_navMesh = AssetReference{};
+    m_navMesh = AssetId{};
     m_loadedBankRefs.clear();
     m_loadedBankNameCache.clear();
     m_isUpdating = false;
@@ -769,11 +769,11 @@ void Scene::addLoadedBank(const std::string& bankName)
         if (name == bankName)
             return;
 
-    AssetReference ref = app->getModuleMusic()->findBankRef(bankName);
+    AssetId ref = app->getModuleMusic()->findBankRef(bankName);
     if (!ref.isValid())
     {
         UID uid = GenerateUID();
-        ref = AssetReference(uid, INVALID_ASSET_ID, AssetType::SOUND_BANK);
+        ref = AssetId(uid, INVALID_ASSET_ID, AssetType::SOUND_BANK);
     }
     m_loadedBankRefs.push_back(ref);
     m_loadedBankNameCache.push_back(bankName);
@@ -807,7 +807,7 @@ void Scene::resolveLoadedBankNames() const
     m_loadedBankNameCache.clear();
     for (const auto& ref : m_loadedBankRefs)
     {
-        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetReference&>(ref));
+        auto asset = app->getModuleAssets()->load<SoundBankAsset>(const_cast<AssetId&>(ref));
         m_loadedBankNameCache.push_back(asset ? asset->getBankName() : "");
     }
 }
@@ -838,16 +838,49 @@ void Scene::serialize(IArchive& archive)
     m_ssao.serialize(archive);
     archive.endObject();
 
+    archive.beginObject("PostProcess");
+    m_postProcess.serialize(archive);
+    archive.endObject();
+
     {
-        uint32_t bankCount = static_cast<uint32_t>(m_loadedBankRefs.size());
         archive.beginObject("SoundBanks");
-        archive.beginArray(bankCount, "banks");
-        m_loadedBankRefs.resize(bankCount);
-        for (uint32_t i = 0; i < bankCount; ++i)
+
+        if (archive.mode() == ArchiveMode::Output)
         {
-            m_loadedBankRefs[i].serialize(archive);
+            uint32_t bankCount = 0;
+            for (const auto& ref : m_loadedBankRefs)
+                if (ref.hasUID()) ++bankCount;
+
+            archive.beginArray(bankCount, "banks");
+            for (const auto& ref : m_loadedBankRefs)
+            {
+                if (!ref.hasUID()) continue;
+                archive.beginObject();
+                const_cast<AssetId&>(ref).serialize(archive);
+                archive.endObject();
+            }
+            archive.endArray();
         }
-        archive.endArray();
+        else
+        {
+            uint32_t bankCount = 0;
+            archive.beginArray(bankCount, "banks");
+            m_loadedBankRefs.resize(bankCount);
+            for (uint32_t i = 0; i < bankCount; ++i)
+            {
+                archive.beginObject();
+                m_loadedBankRefs[i].serialize(archive);
+                archive.endObject();
+            }
+            archive.endArray();
+
+            m_loadedBankRefs.erase(
+                std::remove_if(m_loadedBankRefs.begin(), m_loadedBankRefs.end(),
+                    [](const AssetId& r) { return !r.hasUID(); }),
+                m_loadedBankRefs.end());
+            m_loadedBankNameCache.clear();
+        }
+
         archive.endObject();
     }
 

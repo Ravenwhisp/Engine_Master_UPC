@@ -737,7 +737,7 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     m_prefabSession.m_isolatedScene = mainScene;
 
     const UID uid = app->getModuleAssets()->getIndex().findUID(sourcePath);
-    AssetReference* ref = app->getModuleAssets()->findReference(uid);
+    AssetId* ref = app->getModuleAssets()->findReference(uid);
     if (!ref)
     {
         m_prefabSession.clear();

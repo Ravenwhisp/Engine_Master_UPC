@@ -1,9 +1,9 @@
 ﻿#include "pch.h"
 #include "Bound.h"
-#include "BoundConfig.h"
 #include "Damageable.h"
 #include "HeartbeatHaptic.h"
 #include "CooperativeSound.h"
+#include "BoundConfig.h"
 
 IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
@@ -19,18 +19,6 @@ Bound::Bound(GameObject* owner) : Script(owner)
 
 void Bound::Start()
 {
-    if (m_config.get())
-    {
-        const BoundConfig* cfg = m_config.get();
-        m_minDistance = cfg->m_minDistance;
-        m_distanceDamage = cfg->m_distanceDamage;
-        m_distanceInstaKill = cfg->m_distanceInstaKill;
-        baseDamage = cfg->m_baseDamage;
-        maxDamage = cfg->m_maxDamage;
-        m_radiusThreshold = cfg->m_radiusThreshold;
-        m_separationHapticHpGate = cfg->m_separationHapticHpGate;
-    }
-
     GameObject* player1 = ComponentAPI::getOwner(m_firstTarget.getReferencedComponent());
     GameObject* player2 = ComponentAPI::getOwner(m_secondTarget.getReferencedComponent());
 
@@ -55,6 +43,18 @@ void Bound::Start()
     if (!coopGOs.empty())
     {
         m_coopSound = GameObjectAPI::findScript<CooperativeSound>(coopGOs.front());
+    }
+
+    if (m_config.get())
+    {
+        const BoundConfig* cfg = m_config.get();
+        m_minDistance = cfg->m_minDistance;
+        m_distanceDamage = cfg->m_distanceDamage;
+        m_distanceInstaKill = cfg->m_distanceInstaKill;
+        baseDamage = cfg->m_baseDamage;
+        maxDamage = cfg->m_maxDamage;
+        m_radiusThreshold = cfg->m_radiusThreshold;
+        m_separationHapticHpGate = cfg->m_separationHapticHpGate;
     }
 }
 

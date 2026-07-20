@@ -1,7 +1,7 @@
 #pragma once
 
-#include "DataContainerAPI.h"
 #include "Transform2D.h"
+#include "DataContainerAPI.h"
 #include "UISlider.h"
 
 class ArthurAttackConfig : public DataContainer
@@ -10,7 +10,7 @@ class ArthurAttackConfig : public DataContainer
 
 public:
     ArthurAttackConfig() = default;
-    explicit ArthurAttackConfig(AssetReference& id)
+    explicit ArthurAttackConfig(AssetId& id)
         : DataContainer(id)
     {
     }

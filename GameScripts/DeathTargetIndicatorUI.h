@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "TargetIndicatorUI.h"
 
@@ -30,5 +30,5 @@ public:
     Vector3 m_rangeIndicatorFullScale = Vector3(1.0f, 1.0f, 1.0f);
 
 private:
-    AssetRef<DeathConfig> m_deathConfig;
+    AssetReference<DeathConfig> m_deathConfig;
 };

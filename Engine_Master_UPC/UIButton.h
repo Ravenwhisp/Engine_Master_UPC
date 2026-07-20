@@ -78,24 +78,22 @@ public:
 #pragma endregion
 
 #pragma region Serialization
-	void SerializeBindings(const std::vector<UIButton::ButtonEventBinding>& bindings, rapidjson::Value& array, rapidjson::Document& doc);
-	void DeserializeBindings(const rapidjson::Value& array, std::vector<UIButton::ButtonEventBinding>& outBindings);
 	void serialize(IArchive& archive) override;
 	void ResolveBinding(UIButton::ButtonEventBinding& b, const SceneReferenceResolver& resolver);
 	void fixReferences(const SceneReferenceResolver& resolver) override;
 #pragma endregion
 
 private:
-	void applyTargetTexture(const AssetReference& assetId);
+	void applyTargetTexture(const AssetId& assetId);
 	void applyCurrentStateTexture();
-	const AssetReference& getDefaultTextureAssetId();
+	const AssetId& getDefaultTextureAssetId();
 
 #pragma region Data
 	UIImage* m_targetGraphic = nullptr;
 	UID m_targetGraphicUid = 0;
-	AssetReference m_defaultTextureAssetId = {};
-	AssetReference m_hoverTextureAssetId = {};
-	AssetReference m_pressedTextureAssetId = {};
+	AssetId m_defaultTextureAssetId = {};
+	AssetId m_hoverTextureAssetId = {};
+	AssetId m_pressedTextureAssetId = {};
 
 	bool m_isPressed = false;
 	bool m_isHovered = false;

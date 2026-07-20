@@ -28,7 +28,7 @@ void BreakableHealingDrop::Update()
 
 void BreakableHealingDrop::onBreak()
 {
-    if (!m_healthPickupPrefab.m_ref.isValid())
+    if (!m_healthPickupPrefab.m_id.isValid())
     {
 		Debug::warn("[BreakableHealingDrop] '%s' has no health pickup prefab path set.", GameObjectAPI::getName(getOwner()));
         return;
@@ -39,7 +39,7 @@ void BreakableHealingDrop::onBreak()
 
     for (int i = 0; i < m_healthDropQuantity; ++i)
     {
-        HealthDropSpawner::drop(m_healthPickupPrefab.m_ref, breakablePosition, m_healthDropAmount, m_dropRadius, m_dropHeight);
+        HealthDropSpawner::drop(m_healthPickupPrefab.m_id, breakablePosition, m_healthDropAmount, m_dropRadius, m_dropHeight);
     }
 
     // It's still a barrel/crate breaking → same break SFX.

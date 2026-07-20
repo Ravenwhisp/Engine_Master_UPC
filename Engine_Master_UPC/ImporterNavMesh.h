@@ -7,7 +7,7 @@ class ImporterNavMesh : public Importer
 {
 public:
     bool canImport(const std::filesystem::path& path) const override;
-    Asset* createAssetInstance(AssetReference& uid) const override;
+    Asset* createAssetInstance(AssetId& uid) const override;
     AssetType getAssetType() const override;
 
     bool saveNative(const Asset* asset, const std::filesystem::path& path) override;

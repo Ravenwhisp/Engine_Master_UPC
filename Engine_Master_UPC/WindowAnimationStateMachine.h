@@ -6,7 +6,7 @@
 #include <string>
 
 class AnimationStateMachineAsset;
-struct AssetReference;
+struct AssetId;
 
 namespace ax
 {
@@ -32,8 +32,8 @@ public:
 
     void cleanUp() override;
 
-    void setTargetStateMachineUID(AssetReference& uid);
-    AssetReference* getTargetStateMachineUID() const
+    void setTargetStateMachineUID(AssetId& uid);
+    AssetId* getTargetStateMachineUID() const
     {
         return m_targetStateMachineUID;
     }
@@ -89,7 +89,7 @@ private:
     bool saveAsset();
 
 private:
-    AssetReference* m_targetStateMachineUID;
+    AssetId* m_targetStateMachineUID;
     std::shared_ptr<AnimationStateMachineAsset> m_asset;
     ax::NodeEditor::EditorContext* m_editorContext = nullptr;
     bool m_needsInitialNodeLayout = true;

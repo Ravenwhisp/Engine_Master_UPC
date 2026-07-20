@@ -8,7 +8,6 @@
 #include "ArthurSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ArthurSideSweep,
-    SERIALIZED_ASSET_REF(m_attackConfig, "Arthur Attack Config", AssetType::DATA_CONTAINER),
     SERIALIZED_INT(m_sweepSide, "Sweep Side")
 )
 
@@ -33,6 +32,7 @@ void ArthurSideSweep::OnStateEnter()
         Debug::error("[ArthurSideSweep] ArthurBossController not found.");
         return;
     }
+
 
     if (!m_attackExecutor)
     {
@@ -67,13 +67,7 @@ void ArthurSideSweep::OnStateEnter()
 
 void ArthurSideSweep::OnStateUpdate()
 {
-    if (!m_arthurController || !m_attackExecutor || !m_animation)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_arthurController || !m_attackConfig.get() || !m_attackExecutor || !m_animation)
     {
         return;
     }
@@ -85,13 +79,13 @@ void ArthurSideSweep::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
-    float hitTime = cfg->m_sideSweepHitTime;
-    float totalDuration = cfg->m_sideSweepTotalDuration;
+    float hitTime = m_attackConfig.get()->m_sideSweepHitTime;
+    float totalDuration = m_attackConfig.get()->m_sideSweepTotalDuration;
 
     if (m_arthurController->isPhase2())
     {
-        hitTime = cfg->m_sideSweepPhase2HitTime;
-        totalDuration = cfg->m_sideSweepPhase2TotalDuration;
+        hitTime = m_attackConfig.get()->m_sideSweepPhase2HitTime;
+        totalDuration = m_attackConfig.get()->m_sideSweepPhase2TotalDuration;
     }
 
     if (m_arthurUI)
@@ -124,13 +118,7 @@ void ArthurSideSweep::OnStateExit()
 
 void ArthurSideSweep::applyHit()
 {
-    if (!m_arthurController || !m_attackExecutor)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_arthurController || !m_attackConfig.get() || !m_attackExecutor)
     {
         return;
     }
@@ -144,7 +132,7 @@ void ArthurSideSweep::applyHit()
     Vector3 center = TransformAPI::getGlobalPosition(ownerTransform);
     Vector3 sweepDirection = m_arthurController->getSideSweepDirection(m_sweepSide);
 
-    m_attackExecutor->applyDamageInCone(center, sweepDirection, cfg->m_sideSweepRange, cfg->m_sideSweepHalfAngleDegrees, cfg->m_sideSweepDamage, "SideSweep");
+    m_attackExecutor->applyDamageInCone(center, sweepDirection, m_attackConfig.get()->m_sideSweepRange, m_attackConfig.get()->m_sideSweepHalfAngleDegrees, m_attackConfig.get()->m_sideSweepDamage, "SideSweep");
 
     if (m_arthurSound)
     {
@@ -156,24 +144,18 @@ void ArthurSideSweep::applyHit()
 
 void ArthurSideSweep::goToRecover()
 {
-    if (!m_animation)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackConfig.get() || !m_animation)
     {
         return;
     }
 
     if (m_arthurController)
     {
-        float recoveryDuration = cfg->m_sideSweepRecoveryDuration;
+        float recoveryDuration = m_attackConfig.get()->m_sideSweepRecoveryDuration;
 
         if (m_arthurController->isPhase2())
         {
-            recoveryDuration = cfg->m_sideSweepPhase2RecoveryDuration;
+            recoveryDuration = m_attackConfig.get()->m_sideSweepPhase2RecoveryDuration;
         }
 
         m_arthurController->setRecoveryDuration(recoveryDuration);

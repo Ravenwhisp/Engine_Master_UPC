@@ -57,6 +57,7 @@ public:
 	Texture* createDepthBuffer(float width, float height);
 	Texture* createShadowMap(uint32_t size);
 	Texture* createRenderTexture(float width, float height);
+	Texture* createHDRRenderTexture(float width, float height);
 
 	Texture* createSSAODepthBuffer(float width, float height);
 	Texture* createSSAONormalBuffer(float width, float height);

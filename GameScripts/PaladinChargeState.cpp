@@ -13,19 +13,19 @@ PaladinChargeState::PaladinChargeState(GameObject* owner)
 
 void PaladinChargeState::OnStateEnter()
 {
-    m_paladinController = GameObjectAPI::findScript<MeleeEnemyController>(getOwner());
-    m_animation = AnimationAPI::getAnimationComponent(getOwner());
+	m_paladinController = GameObjectAPI::findScript<MeleeEnemyController>(getOwner());
+	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 	m_paladinVFX = GameObjectAPI::findScript<PaladinVFX>(getOwner());
 
 	m_stateTimer = 0.0f;
 
-    if (!m_paladinController)
-    {
-        Debug::error("[PaladinChargeState] MeleeEnemyController not found.");
-        return;
-    }
+	if (!m_paladinController)
+	{
+		Debug::error("[PaladinChargeState] MeleeEnemyController not found.");
+		return;
+	}
 
-    if (!m_animation)
+	if (!m_animation)
 	{
 		Debug::error("[PaladinChargeState] AnimationComponent not found.");
 		return;
@@ -58,38 +58,27 @@ void PaladinChargeState::OnStateEnter()
 
 void PaladinChargeState::OnStateUpdate()
 {
-    if (!m_paladinController || !m_animation)
-    {
-        stopChargeAttackEffect();
-        return;
-    }
-
-    if (m_paladinController->trySendDeathTrigger(m_animation))
-    {
-        stopChargeAttackEffect();
-        return;
-    }
-
-    if (m_paladinController->trySendStunTrigger(m_animation))
-    {
-        stopChargeAttackEffect();
-        return;
-    }
-
-    const PaladinAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        stopChargeAttackEffect();
-        return;
-    }
-
-    m_stateTimer += Time::getDeltaTime();
-
-    moveCharge();
-
-    if (m_stateTimer >= cfg->m_chargeDuration || m_paladinController->isTargetInAttackRange())
+	if (!m_paladinController || !m_attackConfig.get() || !m_animation)
 	{
-		finishCharge();
+		stopChargeAttackEffect();
+		return;
+	}
+
+	if (m_paladinController->trySendDeathTrigger(m_animation))
+	{
+		stopChargeAttackEffect();
+		return;
+	}
+
+	if (m_paladinController->trySendStunTrigger(m_animation))
+	{
+		stopChargeAttackEffect();
+		return;
+	}
+
+	if (m_paladinController->isForcedMovementActive())
+	{
+		cancelCharge();
 		return;
 	}
 
@@ -97,7 +86,7 @@ void PaladinChargeState::OnStateUpdate()
 
 	moveCharge();
 
-	if (m_stateTimer >= cfg->m_chargeDuration || m_paladinController->isTargetInAttackRange())
+	if (m_stateTimer >= m_attackConfig.get()->m_chargeDuration || m_paladinController->isTargetInAttackRange())
 	{
 		finishCharge();
 		return;
@@ -119,13 +108,17 @@ void PaladinChargeState::OnStateExit()
 
 void PaladinChargeState::moveCharge()
 {
-    const PaladinAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
+	if (!m_paladinController || m_paladinController->isForcedMovementActive())
+	{
+		return;
+	}
 
-    if (m_chargeDirection.LengthSquared() <= 0.0001f)
+	if (!m_attackConfig)
+	{
+		return;
+	}
+
+	if (m_chargeDirection.LengthSquared() <= 0.0001f)
 	{
 		return;
 	}
@@ -140,7 +133,7 @@ void PaladinChargeState::moveCharge()
 	Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 	Vector3 desiredPosition = ownerPosition;
 
-	desiredPosition += m_chargeDirection * cfg->m_chargeSpeed * Time::getDeltaTime();
+	desiredPosition += m_chargeDirection * m_attackConfig.get()->m_chargeSpeed * Time::getDeltaTime();
 
 	Vector3 nextPosition;
 
@@ -173,6 +166,28 @@ void PaladinChargeState::finishCharge()
 	Debug::log("[PaladinChargeState] Finished, Chase trigger sent");
 }
 
+void PaladinChargeState::cancelCharge()
+{
+	if (!m_paladinController || !m_animation)
+	{
+		stopChargeAttackEffect();
+		return;
+	}
+
+	stopChargeAttackEffect();
+
+	if (m_paladinSound)
+	{
+		m_paladinSound->stopChargeLoop();
+	}
+
+	m_paladinController->consumeChargeCooldown();
+
+	AnimationAPI::sendTrigger(m_animation, "ToChase");
+
+	Debug::log("[PaladinChargeState] Charge cancelled by forced movement.");
+}
+
 void PaladinChargeState::stopChargeAttackEffect()
 {
 	if (m_paladinVFX)
@@ -180,9 +195,5 @@ void PaladinChargeState::stopChargeAttackEffect()
 		m_paladinVFX->stopChargeAttackEffect();
 	}
 }
-
-IMPLEMENT_SCRIPT_FIELDS(PaladinChargeState,
-    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
-)
 
 IMPLEMENT_SCRIPT(PaladinChargeState)

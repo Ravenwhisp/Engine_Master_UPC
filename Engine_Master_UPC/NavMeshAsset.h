@@ -9,7 +9,7 @@ class NavMeshAsset : public Asset
 {
 public:
     NavMeshAsset() { m_type = AssetType::NAVMESH; }
-    NavMeshAsset(AssetReference& id) : Asset(id, AssetType::NAVMESH) {}
+    NavMeshAsset(AssetId& id) : Asset(id, AssetType::NAVMESH) {}
 
     NavMeshBuildSettings& getSettings()
     {

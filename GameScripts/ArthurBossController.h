@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "EnemyBaseController.h"
 
@@ -71,7 +71,7 @@ public:
 
 private:
 	ArthurDetectionAggro* m_arthurDetectionAggro = nullptr;
-	AssetRef<ArthurAttackConfig> m_attackConfig;
+	AssetReference<ArthurAttackConfig> m_attackConfig;
 	ArthurUI* m_arthurUI = nullptr;
 
 	ArthurBossPhase m_phase = ArthurBossPhase::Phase1;

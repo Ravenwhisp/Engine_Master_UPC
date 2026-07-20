@@ -20,11 +20,7 @@ namespace
     {
         Vector3 value = *reinterpret_cast<const Vector3*>(data);
         archive.serialize(value, field.name);
-    }
-
-    void deserializeVec3Field(const FieldInfo& field, void* data, IArchive& archive)
-    {
-        archive.serialize(*reinterpret_cast<Vector3*>(data), field.name);
+        *reinterpret_cast<Vector3*>(data) = value;
     }
 
     void cloneVec3Field(const FieldInfo&, const void* sourceData, void* targetData)

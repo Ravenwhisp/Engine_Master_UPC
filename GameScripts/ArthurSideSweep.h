@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 #include "StateMachineScript.h"
@@ -33,7 +33,7 @@ public:
 
 private:
     ArthurBossController* m_arthurController = nullptr;
-    AssetRef<ArthurAttackConfig> m_attackConfig;
+    AssetReference<ArthurAttackConfig> m_attackConfig;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
     ArthurUI* m_arthurUI = nullptr;
