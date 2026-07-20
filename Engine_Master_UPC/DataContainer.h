@@ -2,7 +2,6 @@
 #include "Asset.h"
 #include "IFieldContainer.h"
 
-#include <memory>
 #include <string>
 
 #pragma warning(push)
@@ -24,13 +23,11 @@ public:
 
 	FieldList getExposedFields() const override
 	{
-		if (m_upgraded) return m_upgraded->getExposedFields();
 		return {};
 	}
 
 	virtual const char* getTypeName() const
 	{
-		if (m_upgraded) return m_upgraded->getTypeName();
 		const char* name = typeid(*this).name();
 #ifdef _MSC_VER
 		if (std::strncmp(name, "class ", 6) == 0) return name + 6;
@@ -41,7 +38,6 @@ public:
 
 	virtual const char* getDisplayTypeName() const
 	{
-		if (m_upgraded) return m_upgraded->getDisplayTypeName();
 		return m_typeName.empty() ? getTypeName() : m_typeName.c_str();
 	}
 
@@ -49,7 +45,6 @@ public:
 
 protected:
 	std::string m_typeName;
-	std::unique_ptr<DataContainer> m_upgraded;
 };
 
 #pragma warning(pop)
