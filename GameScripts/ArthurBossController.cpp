@@ -12,8 +12,8 @@
 #include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(ArthurBossController, EnemyBaseController,
-	SERIALIZED_ASSET_REF(m_attackConfig, "Arthur Attack Config", AssetType::DATA_CONTAINER),
-	SERIALIZED_FLOAT(m_combatRange, "Combat Range", 0.0f, 50.0f, 0.1f)
+	SERIALIZED_FLOAT(m_combatRange, "Combat Range", 0.0f, 50.0f, 0.1f),
+	SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
 )
 
 ArthurBossController::ArthurBossController(GameObject* owner) : EnemyBaseController(owner)
@@ -196,38 +196,35 @@ void ArthurBossController::updateAttackCooldowns(float dt)
 
 void ArthurBossController::consumeChargingSlamCooldown()
 {
-	const ArthurAttackConfig* cfg = m_attackConfig.get();
-	if (!cfg)
+	if (!m_attackConfig.get())
 	{
 		Debug::error("[ArthurBossController] AtrhurAttackConfig not found.");
 		return;
 	}
 
-	m_chargingSlamCooldownTimer = cfg->m_chargingSlamCooldown;
+	m_chargingSlamCooldownTimer = m_attackConfig.get()->m_chargingSlamCooldown;
 }
 
 void ArthurBossController::consumeSideSweepCooldown()
 {
-	const ArthurAttackConfig* cfg = m_attackConfig.get();
-	if (!cfg)
+	if (!m_attackConfig.get())
 	{
 		Debug::error("[ArthurBossController] AtrhurAttackConfig not found.");
 		return;
 	}
 
-	m_sideSweepCooldownTimer = cfg->m_sideSweepCooldown;
+	m_sideSweepCooldownTimer = m_attackConfig.get()->m_sideSweepCooldown;
 }
 
 void ArthurBossController::consumeEarthHammerCooldown()
 {
-	const ArthurAttackConfig* cfg = m_attackConfig.get();
-	if (!cfg)
+	if (!m_attackConfig.get())
 	{
 		Debug::error("[ArthurBossController] AtrhurAttackConfig not found.");
 		return;
 	}
 
-	m_earthHammerCooldownTimer = cfg->m_earthHammerCooldown;
+	m_earthHammerCooldownTimer = m_attackConfig.get()->m_earthHammerCooldown;
 }
 
 Transform* ArthurBossController::getNonFocusTarget() const
@@ -260,8 +257,7 @@ Transform* ArthurBossController::getNonFocusTarget() const
 
 bool ArthurBossController::areBothPlayersInEarthHammerRange() const
 {
-	const ArthurAttackConfig* cfg = m_attackConfig.get();
-	if (!cfg || !m_arthurDetectionAggro)
+	if (!m_attackConfig.get() || !m_arthurDetectionAggro)
 	{
 		return false;
 	}
@@ -283,7 +279,7 @@ bool ArthurBossController::areBothPlayersInEarthHammerRange() const
 	Vector3 lyrielPosition = TransformAPI::getGlobalPosition(lyriel);
 	Vector3 deathPosition = TransformAPI::getGlobalPosition(death);
 
-	float earthHammerRange = cfg->m_earthHammerRadius;
+	float earthHammerRange = m_attackConfig.get()->m_earthHammerRadius;
 	float lyrielDistance = (lyrielPosition - ownerPosition).Length();
 	float deathDistance = (deathPosition - ownerPosition).Length();
 
@@ -292,15 +288,14 @@ bool ArthurBossController::areBothPlayersInEarthHammerRange() const
 
 bool ArthurBossController::isTargetInChargingSlamRange() const
 {
-	const ArthurAttackConfig* cfg = m_attackConfig.get();
-	if (!cfg)
+	if (!m_attackConfig.get())
 	{
 		return false;
 	}
 	
 	float distance = getDistanceToCurrentTarget();
 
-	return distance >= cfg->m_chargingSlamMinRange && distance <= cfg->m_chargingSlamMaxRange;
+	return distance >= m_attackConfig.get()->m_chargingSlamMinRange && distance <= m_attackConfig.get()->m_chargingSlamMaxRange;
 }
 
 bool ArthurBossController::isCurrentTargetInsideHeavySwipeArea(float range, float halfAngleDegrees) const
@@ -349,8 +344,7 @@ bool ArthurBossController::isCurrentTargetInsideHeavySwipeArea(float range, floa
 
 bool ArthurBossController::isTargetInsideSideSweepZone(Transform* targetTransform, int side) const
 {
-	const ArthurAttackConfig* cfg = m_attackConfig.get();
-	if (!cfg)
+	if (!m_attackConfig.get())
 	{
 		return false;
 	}
@@ -373,7 +367,7 @@ bool ArthurBossController::isTargetInsideSideSweepZone(Transform* targetTransfor
 	toTarget.y = 0.0f;
 
 	float distanceSquared = toTarget.LengthSquared();
-	float rangeSquared = cfg->m_sideSweepRange * cfg->m_sideSweepRange;
+	float rangeSquared = m_attackConfig.get()->m_sideSweepRange * m_attackConfig.get()->m_sideSweepRange;
 
 	if (distanceSquared > rangeSquared)
 	{
@@ -407,7 +401,7 @@ bool ArthurBossController::isTargetInsideSideSweepZone(Transform* targetTransfor
 	}
 
 	constexpr float degreesToRadians = 3.14159265f / 180.0f;
-	float minDot = std::cos(cfg->m_sideSweepHalfAngleDegrees * degreesToRadians);
+	float minDot = std::cos(m_attackConfig.get()->m_sideSweepHalfAngleDegrees * degreesToRadians);
 
 	return dot >= minDot;
 }

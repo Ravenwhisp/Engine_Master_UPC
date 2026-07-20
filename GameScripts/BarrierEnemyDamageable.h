@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "EnemyDamageable.h"
 #include <vector>
@@ -22,7 +22,7 @@ public:
 
 public:
     std::vector<float> m_barriersThresholds;
-    int m_requiredAttackType = static_cast<int>(EnemyAttackType::ShadowMarkExploit);
+    int m_requiredAttackType = static_cast<int>(PlayerAttackType::ShadowMarkExploit);
     bool m_shadowMarkExploitBreaksBarriers = true;
     PrefabRef m_barrierPrefab;
 
@@ -47,7 +47,7 @@ private:
     void instantiateBarrierUIs();
     void destroyBrokenBarrierUI(size_t index);
     float getNextBarrierAbsoluteHp() const;
-    bool canBreakBarrier(EnemyAttackType attackType) const;
+    bool canBreakBarrier(PlayerAttackType attackType) const;
 
     std::vector<Barrier> m_barriers;
     std::vector<BarrierUI> m_barrierUIs;

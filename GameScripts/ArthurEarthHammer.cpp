@@ -29,6 +29,7 @@ void ArthurEarthHammer::OnStateEnter()
         return;
     }
 
+
     if (!m_attackExecutor)
     {
         Debug::error("[ArthurEarthHammer] EnemyAttackExecutor not found.");
@@ -65,13 +66,7 @@ void ArthurEarthHammer::OnStateEnter()
 
 void ArthurEarthHammer::OnStateUpdate()
 {
-    if (!m_arthurController || !m_attackExecutor || !m_animation)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_arthurController || !m_attackConfig.get() || !m_attackExecutor || !m_animation)
     {
         return;
     }
@@ -85,16 +80,16 @@ void ArthurEarthHammer::OnStateUpdate()
 
     if (m_arthurUI)
     {
-        m_arthurUI->updateEarthHammerUI(m_stateTimer, m_hasAppliedImpact, cfg->m_earthHammerHitTime, cfg->m_earthHammerRecoveryDuration);
+        m_arthurUI->updateEarthHammerUI(m_stateTimer, m_hasAppliedImpact, m_attackConfig.get()->m_earthHammerHitTime, m_attackConfig.get()->m_earthHammerRecoveryDuration);
     }
 
-    if (!m_hasAppliedImpact && m_stateTimer >= cfg->m_earthHammerHitTime)
+    if (!m_hasAppliedImpact && m_stateTimer >= m_attackConfig.get()->m_earthHammerHitTime)
     {
         applyImpact();
         m_hasAppliedImpact = true;
     }
 
-    if (m_stateTimer >= cfg->m_earthHammerTotalDuration)
+    if (m_stateTimer >= m_attackConfig.get()->m_earthHammerTotalDuration)
     {
         goToRecover();
         return;
@@ -113,13 +108,7 @@ void ArthurEarthHammer::OnStateExit()
 
 void ArthurEarthHammer::applyImpact()
 {
-    if (!m_arthurController || !m_attackExecutor)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_arthurController || !m_attackExecutor || !m_attackConfig.get())
     {
         return;
     }
@@ -134,16 +123,16 @@ void ArthurEarthHammer::applyImpact()
 
     const bool isPhase2 = m_arthurController->isPhase2();
 
-    float damage = cfg->m_earthHammerDamage;
-    float stunDuration = cfg->m_earthHammerStunDuration;
+    float damage = m_attackConfig.get()->m_earthHammerDamage;
+    float stunDuration = m_attackConfig.get()->m_earthHammerStunDuration;
 
     if (isPhase2)
     {
-        damage = cfg->m_earthHammerPhase2Damage;
-        stunDuration = cfg->m_earthHammerPhase2StunDuration;
+        damage = m_attackConfig.get()->m_earthHammerPhase2Damage;
+        stunDuration = m_attackConfig.get()->m_earthHammerPhase2StunDuration;
     }
 
-    m_attackExecutor->applyDamageAndStunInRadius(center, cfg->m_earthHammerRadius, damage, stunDuration, "EarthHammer");
+    m_attackExecutor->applyDamageAndStunInRadius(center, m_attackConfig.get()->m_earthHammerRadius, damage, stunDuration, "EarthHammer");
 
     if (m_arthurSound)
     {
@@ -153,20 +142,14 @@ void ArthurEarthHammer::applyImpact()
 
 void ArthurEarthHammer::goToRecover()
 {
-    if (!m_animation)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackConfig.get() || !m_animation)
     {
         return;
     }
 
     if (m_arthurController)
     {
-        m_arthurController->setRecoveryDuration(cfg->m_earthHammerRecoveryDuration);
+        m_arthurController->setRecoveryDuration(m_attackConfig.get()->m_earthHammerRecoveryDuration);
     }
 
     Debug::log("[ArthurEarthHammer] Going to Recover.");

@@ -23,9 +23,16 @@ constexpr int popUpCloseModeCount = 2;
 
 IMPLEMENT_SCRIPT_FIELDS(PopUpEvent,
     SERIALIZED_COMPONENT_REF_VECTOR(m_popUpImages, "PopUp Images", ComponentType::TRANSFORM2D),
+    FIELD_GROUP_COLLAPSE("(Only Collectible PopUp) 2 Players Confirmation Sprites",
+        SERIALIZED_COMPONENT_REF(m_player1NotConfirmedIndicator, "Player 1 Not Confirmed Indicator", ComponentType::TRANSFORM2D),
+        SERIALIZED_COMPONENT_REF(m_player1ConfirmedIndicator, "Player 1 Confirmed Indicator", ComponentType::TRANSFORM2D),
+        SERIALIZED_COMPONENT_REF(m_player2NotConfirmedIndicator, "Player 2 Not Confirmed Indicator", ComponentType::TRANSFORM2D),
+        SERIALIZED_COMPONENT_REF(m_player2ConfirmedIndicator, "Player 2 Confirmed Indicator", ComponentType::TRANSFORM2D)
+    ),
     SERIALIZED_ENUM_INT(m_transitionType, "Transition Type", popUpTransitionTypeNames, popUpTransitionTypeCount),
     SERIALIZED_ENUM_INT(m_closeMode, "Close Mode", popUpCloseModeNames, popUpCloseModeCount),
     SERIALIZED_BOOL(m_lockGameplay, "Lock Gameplay"),
+    SERIALIZED_BOOL(m_fadeHud, "Fade HUD"),
     SERIALIZED_FLOAT(m_showDuration, "Show Duration", 0.0f, 5.0f, 0.05f),
     SERIALIZED_FLOAT(m_hideDuration, "Hide Duration", 0.0f, 5.0f, 0.05f)
 )
@@ -57,7 +64,7 @@ void PopUpEvent::executeEvent(GameplayEventTrigger* trigger)
         return;
     }
 
-    popUpController->startPopUp(this);
+    popUpController->startEvent(this);
 }
 
 Transform2D* PopUpEvent::getPopUpImageTransform2D(int index) const
@@ -68,6 +75,26 @@ Transform2D* PopUpEvent::getPopUpImageTransform2D(int index) const
     }
 
     return m_popUpImages[index].getReferencedComponent();
+}
+
+Transform2D* PopUpEvent::getPlayer1NotConfirmedTransform2D() const
+{
+    return m_player1NotConfirmedIndicator.getReferencedComponent();
+}
+
+Transform2D* PopUpEvent::getPlayer1ConfirmedTransform2D() const
+{
+    return m_player1ConfirmedIndicator.getReferencedComponent();
+}
+
+Transform2D* PopUpEvent::getPlayer2NotConfirmedTransform2D() const
+{
+    return m_player2NotConfirmedIndicator.getReferencedComponent();
+}
+
+Transform2D* PopUpEvent::getPlayer2ConfirmedTransform2D() const
+{
+    return m_player2ConfirmedIndicator.getReferencedComponent();
 }
 
 int PopUpEvent::getPopUpImageCount() const

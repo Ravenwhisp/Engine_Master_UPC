@@ -26,14 +26,27 @@ void CameraFollow::Start()
 
 void CameraFollow::Update()
 {
+    static int s_frameCount = 0;
+    const bool isEarlyFrame = (s_frameCount < 10);
+
     if (!m_followEnabled)
     {
+        if (isEarlyFrame)
+        {
+            Debug::log("[CameraFollow DIAG] Frame %d: m_followEnabled=false, skipping.", s_frameCount);
+        }
+        ++s_frameCount;
         return;
     }
 
     Transform* firstTarget = m_firstTarget.getReferencedComponent();
     if (!firstTarget)
     {
+        if (isEarlyFrame)
+        {
+            Debug::log("[CameraFollow DIAG] Frame %d: m_firstTarget is null, skipping.", s_frameCount);
+        }
+        ++s_frameCount;
         return;
     }
 
@@ -43,7 +56,20 @@ void CameraFollow::Update()
     Transform* secondTarget = m_secondTarget.getReferencedComponent();
     const bool hasSecondTarget = (secondTarget != nullptr);
 
-    const float dt = Time::getDeltaTime();
+    const float dt = (std::min)(Time::getDeltaTime(), 0.05f);
+
+    if (isEarlyFrame)
+    {
+        const Vector3 camPos = TransformAPI::getGlobalPosition(cameraTransform);
+        const Vector3 targetPos = TransformAPI::getGlobalPosition(firstTarget);
+        const float dist = (targetPos - camPos).Length();
+        Debug::log("[CameraFollow DIAG] Frame %d: dt=%.4f cam=(%.1f,%.1f,%.1f) target=(%.1f,%.1f,%.1f) dist=%.1f firstUpdate=%d",
+            s_frameCount, dt,
+            camPos.x, camPos.y, camPos.z,
+            targetPos.x, targetPos.y, targetPos.z,
+            dist, m_firstUpdateAfterResolve ? 1 : 0);
+    }
+    ++s_frameCount;
 
     TransformAPI::setGlobalRotationEuler(cameraTransform, m_rotationOffset);
 
@@ -89,7 +115,7 @@ bool CameraFollow::getDesiredCameraTransform(Vector3& outPosition, Vector3& outR
     Transform* secondTarget = m_secondTarget.getReferencedComponent();
     const bool hasSecondTarget = secondTarget != nullptr;
 
-    const float dt = Time::getDeltaTime();
+    const float dt = (std::min)(Time::getDeltaTime(), 0.05f);
 
     Vector3 followPoint = computeFollowPoint();
 

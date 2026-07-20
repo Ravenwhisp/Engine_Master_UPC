@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 
 #include "Damageable.h"
+#include "UISheet.h"
 
 class PlayerAnimationController;
 class HeartbeatHaptic;
@@ -27,6 +28,13 @@ protected:
     void onDeath() override;
     void onRevive() override;
 
+    void onHealthUIChanged(float previousHpPercent, float currentHpPercent) override;
+
+private:
+    void setupPlayerHealthUI();
+    void playHurtSfx();
+    void playHurtVfx();
+
 private:
     PlayerAnimationController* m_playerAnimationController = nullptr;
     HeartbeatHaptic* m_haptic = nullptr;
@@ -35,11 +43,12 @@ private:
     PlayerRenderBufferComponent* m_playerRenderBuffer = nullptr;
 
     ComponentRef<Transform> m_renderer;
+    ComponentRef<UISlider> m_healthGlow;
+
+    UISlider* m_healthGlowSlider = nullptr;
+    UISheet* m_healthGlowSheet = nullptr;
 
     bool  m_damageHighlightActive = false;
     float m_damageHighlightTimer = 0.0f;
     float m_damageHighlightSpeed = 1.0f;
-
-    void playHurtSfx();
-    void playHurtVfx();
 };

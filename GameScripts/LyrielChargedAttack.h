@@ -1,18 +1,18 @@
 #pragma once
 
-#include "LyrielAbilityBase.h"
+#include "ChargedAttackBase.h"
 #include <vector>
 
+class LyrielCharacter;
+class LyrielConfig;
 class LyrielUI;
 
-class LyrielChargedAttack : public LyrielAbilityBase
+class LyrielChargedAttack : public ChargedAttackBase
 {
     DECLARE_SCRIPT(LyrielChargedAttack)
 
 public:
     explicit LyrielChargedAttack(GameObject* owner);
-
-    FieldList getExposedFields() const override;
 
     void Start() override;
     void Update() override;
@@ -38,14 +38,19 @@ private:
     float computeChargedRange() const;
 
     void collectEnemiesInLine(const Vector3& origin, const Vector3& forward, std::vector<GameObject*>& outTargets);
-    bool applyChargedDamage(const std::vector<GameObject*>& targets, float damage);
+    bool applyChargedDamage(const std::vector<GameObject*>& targets, float damage, bool isMaxCharge);
 
     void spawnChargedArrow(const Vector3& origin, const Vector3& forward);
     void drawChargePreview(const Vector3& origin, const Vector3& forward) const;
 
     bool isAimStickValid(const Vector3& direction) const;
 
+    Transform* findArrowSpawnTransform() const;
+    void faceDirection(const Vector3& direction);
+
 private:
+    LyrielCharacter* m_lyrielCharacter = nullptr;
+    LyrielConfig* m_config = nullptr;
     LyrielUI* m_lyrielUI = nullptr;
 
     bool m_isCharging = false;

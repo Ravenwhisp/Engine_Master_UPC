@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -28,8 +28,6 @@ public:
 
     ComponentRef<Transform> m_BoundUI;
 
-    AssetReference<BoundConfig> m_config;
-
     Damageable* m_firstDamageable = nullptr;
     Damageable* m_secondDamageable = nullptr;
 
@@ -48,6 +46,8 @@ public:
     float m_previousDistance = 0.0f;
 
     float m_separationHapticHpGate = 0.5f;
+
+    AssetReference<BoundConfig> m_config;
 
 private:
     HeartbeatHaptic* m_haptic = nullptr;

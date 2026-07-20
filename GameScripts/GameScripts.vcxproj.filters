@@ -106,8 +106,6 @@
     <ClCompile Include="PaladinChargeState.cpp" />
     <ClCompile Include="PaladinChaseState.cpp" />
     <ClCompile Include="UISplashScreen.cpp" />
-    <ClCompile Include="NavBlockerTest.cpp" />
-    <ClCompile Include="AnimationOverrideTester.cpp" />
     <ClCompile Include="ProjectileBase.cpp" />
     <ClCompile Include="CameraTransitionStep.cpp" />
     <ClCompile Include="ProjectilePool.cpp" />
@@ -142,7 +140,6 @@
     <ClCompile Include="EnemyStunParticles.cpp" />
     <ClCompile Include="EnergyBallProjectile.cpp" />
     <ClCompile Include="EnvironmentSound.cpp" />
-    <ClCompile Include="SummonerAttackConfig.cpp" />
     <ClCompile Include="SummonerEnemyController.cpp" />
     <ClCompile Include="SummonerEnergyBallState.cpp" />
     <ClCompile Include="SummonerIdleState.cpp" />
@@ -161,6 +158,8 @@
     <ClCompile Include="PlayAnimationAction.cpp" />
     <ClCompile Include="PopUpController.cpp" />
     <ClCompile Include="PopUpEvent.cpp" />
+    <ClCompile Include="ChargedAttackBase.cpp" />
+    <ClCompile Include="EnemyForcedMovement.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -267,8 +266,6 @@
     <ClInclude Include="PaladinChargeState.h" />
     <ClInclude Include="PaladinChaseState.h" />
     <ClInclude Include="UISplashScreen.h" />
-    <ClInclude Include="NavBlockerTest.h" />
-    <ClInclude Include="AnimationOverrideTester.h" />
     <ClInclude Include="ProjectileBase.h" />
     <ClInclude Include="CameraTransitionStep.h" />
     <ClInclude Include="ProjectilePool.h" />
@@ -328,6 +325,8 @@
     <ClInclude Include="PopUpController.h" />
     <ClInclude Include="PopUpEvent.h" />
     <ClInclude Include="BoundConfig.h" />
+    <ClInclude Include="ChargedAttackBase.h" />
+    <ClInclude Include="EnemyForcedMovement.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

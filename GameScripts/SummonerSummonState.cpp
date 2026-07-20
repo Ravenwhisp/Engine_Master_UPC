@@ -11,8 +11,8 @@ SummonerSummonState::SummonerSummonState(GameObject* owner)
 
 void SummonerSummonState::OnStateEnter()
 {
-    m_controller = GameObjectAPI::findScript<SummonerEnemyController>(getOwner());
-    m_animation = AnimationAPI::getAnimationComponent(getOwner());
+	m_controller = GameObjectAPI::findScript<SummonerEnemyController>(getOwner());
+	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	if (!m_controller)
 	{
@@ -34,32 +34,26 @@ void SummonerSummonState::OnStateEnter()
 
 void SummonerSummonState::OnStateUpdate()
 {
-    if (!m_controller || !m_animation)
-    {
-        return;
-    }
+	if (!m_controller || !m_attackConfig || !m_animation)
+	{
+		return;
+	}
 
-    if (m_controller->trySendDeathTrigger(m_animation))
-    {
-        return;
-    }
+	if (m_controller->trySendDeathTrigger(m_animation))
+	{
+		return;
+	}
 
-    const SummonerAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
+	m_stateTimer += Time::getDeltaTime();
 
-    m_stateTimer += Time::getDeltaTime();
+	if (!m_hasSummoned && m_stateTimer >= m_attackConfig.get()->m_summonCastTime)
+	{
+		m_controller->summonSpidersAroundSelf();
+		m_controller->consumeSummonCooldown();
+		m_hasSummoned = true;
+	}
 
-    if (!m_hasSummoned && m_stateTimer >= cfg->m_summonCastTime)
-    {
-        m_controller->summonSpidersAroundSelf();
-        m_controller->consumeSummonCooldown();
-        m_hasSummoned = true;
-    }
-
-    if (m_stateTimer >= cfg->m_summonTotalDuration)
+	if (m_stateTimer >= m_attackConfig.get()->m_summonTotalDuration)
 	{
 		AnimationAPI::sendTrigger(m_animation, "ToRecover");
 	}
@@ -73,6 +67,4 @@ void SummonerSummonState::OnStateExit()
 	Debug::log("[SummonerSummonState] EXIT");
 }
 
-IMPLEMENT_SCRIPT_FIELDS(SummonerSummonState,
-    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
-)
+IMPLEMENT_SCRIPT(SummonerSummonState)

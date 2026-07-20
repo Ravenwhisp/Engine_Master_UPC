@@ -15,8 +15,6 @@ class ArcherSomersaultState : public StateMachineScript
 public:
     explicit ArcherSomersaultState(GameObject* owner);
 
-    FieldList getExposedFields() const override;
-
     void OnStateEnter() override;
     void OnStateUpdate() override;
     void OnStateExit() override;
@@ -24,6 +22,7 @@ public:
 private:
     void moveSomersault();
     void finishSomersault();
+    void cancelSomersault();
 
 private:
     RangedEnemyController* m_archerController = nullptr;

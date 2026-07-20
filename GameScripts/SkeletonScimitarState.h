@@ -14,7 +14,6 @@ class SkeletonScimitarState : public StateMachineScript
 
 public:
 	explicit SkeletonScimitarState(GameObject* owner);
-	FieldList getExposedFields() const override;
 
 	void OnStateEnter() override;
 	void OnStateUpdate() override;
@@ -46,7 +45,7 @@ private:
 
 private:
 	SkeletonEnemyController* m_controller = nullptr;
-    AssetReference<SkeletonAttackConfig> m_attackConfig;
+	AssetReference<SkeletonAttackConfig> m_attackConfig;
 	EnemyAttackExecutor* m_attackExecutor = nullptr;
 	AnimationComponent* m_animation = nullptr;
 

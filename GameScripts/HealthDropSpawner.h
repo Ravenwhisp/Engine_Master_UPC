@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ScriptAPI.h"
+struct AssetId;
 
 class HealthDropSpawner
 {

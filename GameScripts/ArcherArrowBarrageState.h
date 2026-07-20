@@ -18,8 +18,6 @@ class ArcherArrowBarrageState : public StateMachineScript
 public:
     explicit ArcherArrowBarrageState(GameObject* owner);
 
-    FieldList getExposedFields() const override;
-
     void OnStateEnter() override;
     void OnStateUpdate() override;
     void OnStateExit() override;
