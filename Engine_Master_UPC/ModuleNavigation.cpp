@@ -377,7 +377,7 @@ bool ModuleNavigation::findStraightPath(const Vector3& start, const Vector3& end
 
     if (pathPolys[pathCount - 1] != endRef)
     {
-        Debug::warn("[Navigation] Partial path - target unreachable.");
+        DEBUG_WARN("[Navigation] Partial path - target unreachable.");
         return false;
     }
 
