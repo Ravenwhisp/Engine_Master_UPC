@@ -38,6 +38,7 @@
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "PostProcessPass.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
@@ -97,6 +98,11 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
+
+    // Resolve the HDR scene into COMPOSITE (exposure, tone mapping, bloom, LUT,
+    // outline, etc.) before the overlay passes draw on top.
+    m_renderPasses.push_back(std::make_unique<PostProcessPass>(device));
+
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
     m_renderPasses.push_back(std::make_unique<FontPass>(device));

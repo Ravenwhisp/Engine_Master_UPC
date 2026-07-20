@@ -336,8 +336,9 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     
     
     //Calculate final color
-    float3 colorMapped = PBRNeutralToneMapping(directLighting + indirectLighting + emissive);
-    float3 finalColor = LinearToSRGB(colorMapped);
+    // Output linear HDR colour. Exposure, tone mapping and gamma correction are
+    // applied later by the post-process pass.
+    float3 finalColor = directLighting + indirectLighting + emissive;
 
     
     
