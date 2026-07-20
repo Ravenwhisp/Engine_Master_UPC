@@ -1,6 +1,26 @@
 #include "GBufferCommon.hlsli"
+#include "General.hlsli"
 
-// Root param [3]: albedo texture (t0) + sampler (s0)
+struct DamageHighlightData
+{
+    float damageHighlight;
+    float3 damageHighlightCenterColor;
+    float3 damageHighlightRimColor;
+    float damageHighlightRimIntensity;
+};
+
+cbuffer DamageHighlightDataCB : register(b4)
+{
+    uint hasDamageHighlightComponent;
+    float3 padding1;
+    
+    DamageHighlightData damageHighlightData;
+    float3 padding2;
+};
+
+
+
+// Root param [4]: albedo texture (t0) + sampler (s0)
 Texture2D diffuseTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
@@ -28,6 +48,19 @@ struct PSOutput
     float4 position       : SV_Target3;   // world position
     float4 emissive       : SV_Target4;   // emissive
 };
+
+
+
+float3 CalculateDamageHighlight(float3 normalVector, float3 viewDirection, float3 albedo)
+{
+    float NdotV = saturate(dot(normalVector, viewDirection));
+    
+    float3 fresnelColor = ColoredSchlickFresnel(damageHighlightData.damageHighlightCenterColor * albedo, damageHighlightData.damageHighlightRimColor, NdotV, 25 - damageHighlightData.damageHighlightRimIntensity);
+    
+    return fresnelColor * damageHighlightData.damageHighlight;
+}
+
+
 
 PSOutput main(VSOutput IN)
 {
@@ -91,6 +124,10 @@ PSOutput main(VSOutput IN)
         float3 emissiveSample = emissiveTex.Sample(linearWrapSample, IN.texCoord);
         
         emissive = emissiveSample.rgb * gMaterial.emissiveColor;
+    }
+    if (hasDamageHighlightComponent == 1)
+    {
+        emissive += CalculateDamageHighlight(finalWorldNormal, normalize(gViewPos - IN.worldPos), albedo);
     }
     OUT.emissive     = float4(emissive, 0.0f);
   
