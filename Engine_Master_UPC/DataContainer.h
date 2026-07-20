@@ -2,25 +2,19 @@
 #include "Asset.h"
 #include "IFieldContainer.h"
 
+#include <memory>
+#include <string>
+
 #pragma warning(push)
 #pragma warning(disable: 4251)
-
-#include <rapidjson/document.h>
-#include <typeinfo>
-#include <cstring>
-
-class ImporterDataContainer;
 
 class ENGINE_API DataContainer : public Asset, public IFieldContainer
 {
 public:
-	friend class ImporterDataContainer;
-
 	DataContainer() = default;
-	explicit DataContainer(AssetReference& id)
+	explicit DataContainer(AssetId& id)
 		: Asset(id, AssetType::DATA_CONTAINER)
 	{
-		m_data.SetObject();
 	}
 
 	virtual void syncFromData() {}
@@ -28,11 +22,15 @@ public:
 
 	void serialize(IArchive& archive) override;
 
-	const rapidjson::Document& getData() const { return m_data; }
-	rapidjson::Document& getDataMutable() { return m_data; }
+	FieldList getExposedFields() const override
+	{
+		if (m_upgraded) return m_upgraded->getExposedFields();
+		return {};
+	}
 
 	virtual const char* getTypeName() const
 	{
+		if (m_upgraded) return m_upgraded->getTypeName();
 		const char* name = typeid(*this).name();
 #ifdef _MSC_VER
 		if (std::strncmp(name, "class ", 6) == 0) return name + 6;
@@ -43,11 +41,15 @@ public:
 
 	virtual const char* getDisplayTypeName() const
 	{
-		return getTypeName();
+		if (m_upgraded) return m_upgraded->getDisplayTypeName();
+		return m_typeName.empty() ? getTypeName() : m_typeName.c_str();
 	}
 
+	const std::string& getStoredType() const { return m_typeName; }
+
 protected:
-	rapidjson::Document m_data;
+	std::string m_typeName;
+	std::unique_ptr<DataContainer> m_upgraded;
 };
 
 #pragma warning(pop)

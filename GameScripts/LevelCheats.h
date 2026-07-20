@@ -42,6 +42,6 @@ private:
 	bool KeyComboPressed(KeyCode mainKey);
     std::unordered_map<KeyCode, bool> m_previousKeyStates;
 
-    //std::vector<AssetRef<Prefab>> m_enemyPrefabPaths;
+    //std::vector<AssetReference<Prefab>> m_enemyPrefabPaths;
 };
 

@@ -11,7 +11,7 @@ bool ImporterNavMesh::canImport(const std::filesystem::path& path) const
     return path.extension() == NAVMESH_EXTENSION;
 }
 
-Asset* ImporterNavMesh::createAssetInstance(AssetReference& uid) const
+Asset* ImporterNavMesh::createAssetInstance(AssetId& uid) const
 {
     return new NavMeshAsset(uid);
 }

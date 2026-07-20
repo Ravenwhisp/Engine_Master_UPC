@@ -7,7 +7,6 @@
 #endif
 
 #include "GenericTypeFactory.h"
-#include "AssetReference.h"
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
@@ -34,6 +33,7 @@ class NavRuntimeBlockerComponent;
 class PlayerRenderBufferComponent;
 class DamageHighlightComponent;
 class TrailComponent;
+struct AssetId;
 
 struct HapticEffectDefinition;
 
@@ -64,7 +64,7 @@ namespace GameObjectAPI
     ENGINE_API GameObject* createGameObject(const char* name, GameObject* parentObject = nullptr);
     ENGINE_API void removeGameObject(GameObject* gameObject);
 
-    ENGINE_API GameObject* instantiatePrefab(const AssetReference& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
+    ENGINE_API GameObject* instantiatePrefab(const AssetId& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
 
     ENGINE_API Script* getScript(GameObject* gameObject, const char* scriptName);
     ENGINE_API const Script* getScript(const GameObject* gameObject, const char* scriptName);
@@ -81,7 +81,10 @@ namespace GameObjectAPI
 
     template<typename T>
     const T* findScript(const GameObject* gameObject);
+
 }
+
+
 
 namespace TransformAPI
 {

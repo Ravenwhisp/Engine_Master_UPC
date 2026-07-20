@@ -18,5 +18,5 @@ protected:
 
 protected:
     LyrielCharacter* m_lyrielCharacter = nullptr;
-    AssetRef<LyrielConfig> m_config;
+    AssetReference<LyrielConfig> m_config;
 };

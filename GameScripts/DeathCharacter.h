@@ -49,5 +49,5 @@ private:
 
     DeathSound*     m_sound     = nullptr;
     PlayerMovement* m_movement  = nullptr;
-    AssetRef<DeathConfig> m_config;
+    AssetReference<DeathConfig> m_config;
 };

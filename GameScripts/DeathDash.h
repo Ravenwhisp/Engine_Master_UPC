@@ -33,7 +33,7 @@ protected:
 
 private:
     DeathCharacter* m_deathCharacter = nullptr;
-    AssetRef<DeathConfig> m_config;
+    AssetReference<DeathConfig> m_config;
     DeathSound* m_sound = nullptr;
     DeathParticles* m_particles = nullptr;
 

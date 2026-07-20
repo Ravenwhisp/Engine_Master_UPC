@@ -98,7 +98,7 @@ void CrystalShadowMark::activeEffect()
 {
     if (effectObject == nullptr)
     {
-        effectObject = GameObjectAPI::instantiatePrefab(m_crystalSparks.m_ref, TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())) + Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
+        effectObject = GameObjectAPI::instantiatePrefab(m_crystalSparks.m_id, TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())) + Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
     }
 }
 

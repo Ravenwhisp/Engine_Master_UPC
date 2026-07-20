@@ -8,7 +8,7 @@ class DeathConfig : public DataContainer
 
 public:
 	DeathConfig() = default;
-	explicit DeathConfig(AssetReference& id)
+	explicit DeathConfig(AssetId& id)
 		: DataContainer(id)
 	{
 	}

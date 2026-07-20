@@ -9,7 +9,7 @@ public:
     friend class ImporterFont;
 
     FontAsset() {}
-    FontAsset(AssetReference& id) : Asset(id, AssetType::FONT) {}
+    FontAsset(AssetId& id) : Asset(id, AssetType::FONT) {}
 
     void serialize(IArchive& archive) override
     {

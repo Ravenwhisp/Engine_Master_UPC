@@ -112,11 +112,11 @@ void Level2Cheats::SpawnEnemy(int enemyPrefabIndex)
     Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
     Vector3 enemySpawnPosition = playerPosition + Vector3(2.0f, 0.0f, 0.0f);
 
-    const AssetRef<Prefab> prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];
+    const AssetReference<Prefab> prefabPath = m_enemyPrefabPaths[enemyPrefabIndex];
 
-    Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.m_ref);
+    Debug::log("[LevelCheats] Spawning enemy prefab: %s", prefabPath.m_id);
 
-    GameObjectAPI::instantiatePrefab(prefabPath.m_ref, enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));*/
+    GameObjectAPI::instantiatePrefab(prefabPath.m_id, enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));*/
 }
 
 IMPLEMENT_SCRIPT(Level2Cheats)

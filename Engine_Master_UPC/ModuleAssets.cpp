@@ -55,6 +55,7 @@ bool ModuleAssets::init()
 #ifndef GAME_RELEASE
     refresh();
 #endif
+
     return true;
 }
 
@@ -76,13 +77,13 @@ bool ModuleAssets::canImport(const std::filesystem::path& sourcePath) const
     return m_importers.canImport(sourcePath);
 }
 
-void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetReference& reference)
+void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId& reference)
 {
     Importer* importer = m_importers.findByPath(sourcePath);
     if (!importer)
     {
         DEBUG_WARN("[ModuleAssets] No importer found for '%s'.", sourcePath.string().c_str());
-        reference = AssetReference();
+        reference = AssetId();
         return;
     }
 
@@ -128,28 +129,13 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
-        if (!isReimport) reference = AssetReference();
+        if (!isReimport) reference = AssetId();
         return;
-    }
-
-    if (reference.m_type == AssetType::DATA_CONTAINER)
-    {
-        DataContainer* baseDc = static_cast<DataContainer*>(asset.release());
-        DataContainer* derivedDc = resolveDataContainerType(baseDc);
-        if (derivedDc)
-        {
-            delete baseDc;
-            asset.reset(derivedDc);
-        }
-        else
-        {
-            asset.reset(baseDc);
-        }
     }
 
     if (!persistAsset(asset.get(), importer, reference, sourcePath))
     {
-        if (!isReimport) reference = AssetReference();
+        if (!isReimport) reference = AssetId();
     }
 }
 
@@ -188,7 +174,7 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
     }
 
     const UID uid = isValidUID(asset.getUID()) ? asset.getUID() : GenerateUID();
-    AssetReference ref(uid, INVALID_ASSET_ID, asset.getType());
+    AssetId ref(uid, INVALID_ASSET_ID, asset.getType());
     if (persistAsset(&asset, importer, ref, targetPath))
     {
         asset.setUID(ref.m_uid);
@@ -198,7 +184,7 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
     return false;
 }
 
-bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference& reference,
+bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetId& reference,
                                  const std::filesystem::path& sourcePath)
 {
     const MD5Hash sourceHash = computeMD5(sourcePath);
@@ -299,7 +285,7 @@ void ModuleAssets::refresh()
     tCollect0 = std::chrono::high_resolution_clock::now();
     for (ImportRequest& req : scanResult.imports)
     {
-        AssetReference ref(req.existingUID);
+        AssetId ref(req.existingUID);
         importAsset(req.sourcePath, ref);
     }
     tCollect1 = std::chrono::high_resolution_clock::now();
@@ -321,12 +307,12 @@ void ModuleAssets::unregisterAsset(const fs::path& sourcePath)
 #endif
 }
 
-bool ModuleAssets::isLoaded(const AssetReference& ref)
+bool ModuleAssets::isLoaded(const AssetId& ref)
 {
     return m_cache.isLoaded(ref.m_uid);
 }
 
-void ModuleAssets::unload(const AssetReference& ref)
+void ModuleAssets::unload(const AssetId& ref)
 {
     m_cache.unload(ref.m_uid);
 }
@@ -385,7 +371,7 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID,
     }
 }
 
-AssetReference* ModuleAssets::findReference(const UID& uid)
+AssetId* ModuleAssets::findReference(const UID& uid)
 {
     if (!isValidUID(uid))
     {
@@ -400,7 +386,7 @@ AssetReference* ModuleAssets::findReference(const UID& uid)
 
     if (isValidAsset(entry->contentHash))
     {
-        return new AssetReference(uid, entry->contentHash, entry->type);
+        return new AssetId(uid, entry->contentHash, entry->type);
     }
 
     if (!entry->sourcePath.empty())
@@ -417,7 +403,7 @@ AssetReference* ModuleAssets::findReference(const UID& uid)
             {
                 mutableEntry->contentHash = meta.contentHash;
             }
-            return new AssetReference(uid, meta.contentHash, meta.type);
+            return new AssetId(uid, meta.contentHash, meta.type);
         }
     }
 
@@ -445,32 +431,4 @@ ContentRegistry* ModuleAssets::getContentRegistry() const
 PrefabManager* ModuleAssets::getPrefabManager() const
 {
     return m_prefabManager.get();
-}
-
-DataContainer* ModuleAssets::resolveDataContainerType(DataContainer* baseContainer) const
-{
-    if (!baseContainer)
-    {
-        return nullptr;
-    }
-
-    const rapidjson::Document& data = baseContainer->getData();
-    if (!data.HasMember("_typeName") || !data["_typeName"].IsString())
-    {
-        return nullptr;
-    }
-
-    const char* typeName = data["_typeName"].GetString();
-    AssetReference ref = baseContainer->getReference();
-
-    auto derived = DataContainerFactory::create(typeName, ref);
-    if (!derived)
-    {
-        return nullptr;
-    }
-
-    JsonArchive archive(ArchiveMode::Input);
-    archive.setValue(data);
-    derived->serialize(archive);
-    return derived.release();
 }

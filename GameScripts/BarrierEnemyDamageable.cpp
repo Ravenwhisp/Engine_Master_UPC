@@ -65,7 +65,7 @@ void BarrierEnemyDamageable::instantiateBarrierUIs()
 {
     m_barrierUIs.clear();
 
-    if (!m_barrierPrefab.m_ref.isValid())
+    if (!m_barrierPrefab.m_id.isValid())
         return;
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
@@ -81,7 +81,7 @@ void BarrierEnemyDamageable::instantiateBarrierUIs()
     for (const Barrier& barrier : m_barriers)
     {
         GameObject* uiObject = GameObjectAPI::instantiatePrefab(
-            m_barrierPrefab.m_ref,
+            m_barrierPrefab.m_id,
             Vector3::Zero,
             Vector3::Zero,
             healthBarObject);

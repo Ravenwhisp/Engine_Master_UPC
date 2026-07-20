@@ -19,7 +19,7 @@ private:
 	std::vector<WwiseEvent> m_events;
 
 	bool m_loaded;
-	AssetReference m_assetRef;
+	AssetId m_assetRef;
 
 	std::vector<uint8_t> m_bankData;
 
@@ -40,7 +40,7 @@ public:
 
 	void setName(const std::string& name) { m_bankName = name; }
 	void addEvent(const WwiseEvent& e) { m_events.push_back(e); }
-	void setAssetRef(const AssetReference& ref) { m_assetRef = ref; }
-	const AssetReference& getAssetRef() const { return m_assetRef; }
+	void setAssetRef(const AssetId& ref) { m_assetRef = ref; }
+	const AssetId& getAssetRef() const { return m_assetRef; }
 	void setBankData(const std::vector<uint8_t>& d) { m_bankData = d; }
 };

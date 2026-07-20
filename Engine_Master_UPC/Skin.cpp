@@ -161,7 +161,7 @@ void Skin::cleanUp()
     invalidateSkinningRuntime();
 }
 
-void Skin::setSkinReference(AssetReference& skinUID)
+void Skin::setSkinReference(AssetId& skinUID)
 {
     if (m_skinAsset == skinUID)
         return;
