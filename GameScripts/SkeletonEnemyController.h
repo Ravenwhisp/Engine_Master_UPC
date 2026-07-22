@@ -12,12 +12,13 @@ class SkeletonEnemyController : public EnemyBaseController
 
 public:
 	explicit SkeletonEnemyController(GameObject* owner);
-	FieldList getExposedFields() const override;
 
 	void Start() override;
 	void Update() override;
-
+	FieldList getExposedFields() const override;
 	bool isTargetInScimitarRange() const;
+
+	const EnemyBaseAttackConfig* getAttackConfig() const override;
 
 	bool isGuardReady() const;
 	void consumeGuardCooldown();
@@ -37,9 +38,11 @@ protected:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    AssetReference<SkeletonAttackConfig> m_attackConfig;
 	SkeletonDamageable* m_damageable = nullptr;
 
 	float m_guardCooldownTimer = 0.0f;
 	bool m_isGuarding = false;
+
+public:
+	AssetReference<SkeletonAttackConfig> m_attackConfig;
 };

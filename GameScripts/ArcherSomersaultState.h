@@ -4,7 +4,6 @@
 #include "StateMachineScript.h"
 
 class RangedEnemyController;
-class ArcherAttackConfig;
 class AnimationComponent;
 class ArcherGuardParticles;
 
@@ -15,8 +14,6 @@ class ArcherSomersaultState : public StateMachineScript
 public:
     explicit ArcherSomersaultState(GameObject* owner);
 
-    FieldList getExposedFields() const override;
-
     void OnStateEnter() override;
     void OnStateUpdate() override;
     void OnStateExit() override;
@@ -24,10 +21,10 @@ public:
 private:
     void moveSomersault();
     void finishSomersault();
+    void cancelSomersault();
 
 private:
     RangedEnemyController* m_archerController = nullptr;
-    AssetReference<ArcherAttackConfig> m_attackConfig;
     AnimationComponent* m_animation = nullptr;
     ArcherGuardParticles* m_particles = nullptr;
 

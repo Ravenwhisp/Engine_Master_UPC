@@ -1,4 +1,6 @@
 #pragma once
+#include "SimpleMath.h"
+using DirectX::SimpleMath::Vector2;
 
 struct Rect2D
 {

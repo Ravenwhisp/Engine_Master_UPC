@@ -6,7 +6,6 @@
 #include "ArcherGuardParticles.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ArcherArrowShooter,
-    SERIALIZED_ASSET_REF(m_config, "Attack Config", AssetType::DATA_CONTAINER),
     SERIALIZED_ASSET_REF(m_arrowPrefab, "Arrow Prefab", AssetType::PREFAB)
 )
 
@@ -22,10 +21,7 @@ void ArcherArrowShooter::Start()
 
 void ArcherArrowShooter::Update()
 {
-    if (!m_animation || !m_arrowPrefab.m_id.isValid()) return;
-
-    const ArcherAttackConfig* cfg = m_config.get();
-    if (!cfg) return;
+    if (!m_animation || !m_config || !m_arrowPrefab.m_id.isValid()) return;
 
     const char* state = AnimationAPI::getActiveStateName(m_animation);
     if (!state) return;
@@ -51,7 +47,7 @@ void ArcherArrowShooter::Update()
     m_timer += Time::getDeltaTime();
 
     // ── Fire arrow at windup time ─────────────────────────────────────────────
-    if (!m_fired && m_timer >= cfg->m_basicAttackWindupTime)
+    if (!m_fired && m_timer >= m_config.get()->m_basicAttackWindupTime)
     {
         Transform* archerT = GameObjectAPI::getTransform(getOwner());
         Transform* targetT = m_controller ? m_controller->getCurrentTarget() : nullptr;

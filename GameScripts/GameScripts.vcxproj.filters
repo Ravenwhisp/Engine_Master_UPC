@@ -161,6 +161,8 @@
     <ClCompile Include="PlayAnimationAction.cpp" />
     <ClCompile Include="PopUpController.cpp" />
     <ClCompile Include="PopUpEvent.cpp" />
+    <ClCompile Include="ChargedAttackBase.cpp" />
+    <ClCompile Include="EnemyForcedMovement.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -328,6 +330,8 @@
     <ClInclude Include="PopUpController.h" />
     <ClInclude Include="PopUpEvent.h" />
     <ClInclude Include="BoundConfig.h" />
+    <ClInclude Include="ChargedAttackBase.h" />
+    <ClInclude Include="EnemyForcedMovement.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

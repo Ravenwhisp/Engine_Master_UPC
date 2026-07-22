@@ -43,7 +43,7 @@ void ArcherSomersaultState::OnStateEnter()
 
 void ArcherSomersaultState::OnStateUpdate()
 {
-    if (!m_archerController || !m_animation)
+    if (!m_archerController || !m_archerController->m_attackConfig.get() || !m_animation)
     {
         return;
     }
@@ -58,9 +58,9 @@ void ArcherSomersaultState::OnStateUpdate()
         return;
     }
 
-    const ArcherAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (m_archerController->isForcedMovementActive())
     {
+        cancelSomersault();
         return;
     }
 
@@ -69,7 +69,7 @@ void ArcherSomersaultState::OnStateUpdate()
     if (m_particles) m_particles->updateChargeParticle();
     moveSomersault();
 
-    if (m_stateTimer >= cfg->m_somersaultDuration)
+    if (m_stateTimer >= m_archerController->m_attackConfig.get()->m_somersaultDuration)
     {
         finishSomersault();
         return;
@@ -84,8 +84,12 @@ void ArcherSomersaultState::OnStateExit()
 
 void ArcherSomersaultState::moveSomersault()
 {
-    const ArcherAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_archerController || m_archerController->isForcedMovementActive())
+    {
+        return;
+    }
+
+    if (!m_archerController->m_attackConfig)
     {
         return;
     }
@@ -97,13 +101,13 @@ void ArcherSomersaultState::moveSomersault()
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 
-    const float duration = cfg->m_somersaultDuration;
+    const float duration = m_archerController->m_attackConfig.get()->m_somersaultDuration;
     if (duration <= 0.0f)
     {
         return;
     }
 
-    const float speed = cfg->m_somersaultDistance / duration;
+    const float speed = m_archerController->m_attackConfig.get()->m_somersaultDistance / duration;
     const float stepDistance = speed * Time::getDeltaTime();
 
     Vector3 currentPosition = TransformAPI::getGlobalPosition(ownerTransform);
@@ -130,6 +134,18 @@ void ArcherSomersaultState::finishSomersault()
     Debug::log("[ArcherSomersaultState] Finished, Chase trigger sent");
 }
 
-IMPLEMENT_SCRIPT_FIELDS(ArcherSomersaultState,
-    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
-)
+void ArcherSomersaultState::cancelSomersault()
+{
+    if (!m_archerController || !m_animation)
+    {
+        return;
+    }
+
+    m_archerController->consumeSomersaultCooldown();
+
+    AnimationAPI::sendTrigger(m_animation, "ToChase");
+
+    Debug::log("[ArcherSomersaultState] Somersault cancelled by forced movement.");
+}
+
+IMPLEMENT_SCRIPT(ArcherSomersaultState)

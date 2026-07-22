@@ -10,7 +10,6 @@
 #include "Transform2D.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ArthurChargingSlam,
-    SERIALIZED_ASSET_REF(m_attackConfig, "Arthur Attack Config", AssetType::DATA_CONTAINER),
     SERIALIZED_FLOAT(m_animPrepStartTime, "Anim Prep Start Time", 0.0f, 20.0f, 0.01f),
     SERIALIZED_FLOAT(m_animDashStartTime, "Anim Dash Start Time", 0.0f, 20.0f, 0.01f),
     SERIALIZED_FLOAT(m_animImpactStartTime, "Anim Impact Start Time", 0.0f, 20.0f, 0.01f),
@@ -49,6 +48,7 @@ void ArthurChargingSlam::OnStateEnter()
         return;
     }
 
+
     if (!m_attackExecutor)
     {
         Debug::error("[ArthurChargingSlam] EnemyAttackExecutor not found.");
@@ -81,6 +81,11 @@ void ArthurChargingSlam::OnStateEnter()
 
     m_arthurUI->setupChargingSlamUI(m_startPosition, m_lockedTargetPosition, m_dashDirection);
 
+    if (m_arthurController)
+    {
+        m_arthurController->setForcedMovementBlocked(true);
+    }
+
     if (m_arthurSound)
     {
         m_arthurSound->playPreparingGrowl();   // wind-up growl
@@ -91,13 +96,7 @@ void ArthurChargingSlam::OnStateEnter()
 
 void ArthurChargingSlam::OnStateUpdate()
 {
-    if (!m_arthurController || !m_attackExecutor || !m_animation)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_arthurController || !m_attackConfig.get() || !m_attackExecutor || !m_animation)
     {
         return;
     }
@@ -109,11 +108,11 @@ void ArthurChargingSlam::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
-    float chargingDuration = cfg->m_chargingSlamHitTime;
+    float chargingDuration = m_attackConfig.get()->m_chargingSlamHitTime;
 
     if (m_arthurController->isPhase2())
     {
-        chargingDuration = cfg->m_chargingSlamPhase2HitTime;
+        chargingDuration = m_attackConfig.get()->m_chargingSlamPhase2HitTime;
     }
 
     if (!m_hasStartedDash)
@@ -137,7 +136,7 @@ void ArthurChargingSlam::OnStateUpdate()
         m_hasAppliedImpact = true;
     }
 
-    if (m_hasAppliedImpact && m_stateTimer >= cfg->m_chargingSlamTotalDuration)
+    if (m_hasAppliedImpact && m_stateTimer >= m_attackConfig.get()->m_chargingSlamTotalDuration)
     {
         goToRecover();
         return;
@@ -151,6 +150,11 @@ void ArthurChargingSlam::OnStateUpdate()
 
 void ArthurChargingSlam::OnStateExit()
 {
+    if (m_arthurController)
+    {
+        m_arthurController->setForcedMovementBlocked(false);
+    }
+
     if (m_arthurSound)
     {
         m_arthurSound->stopGallopingLoop();   // safety: covers death/interrupt mid-dash
@@ -219,9 +223,8 @@ void ArthurChargingSlam::startDash()
 
 void ArthurChargingSlam::updateDash()
 {
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-    if (!ownerTransform || !cfg)
+    if (!ownerTransform)
     {
         return;
     }
@@ -233,11 +236,11 @@ void ArthurChargingSlam::updateDash()
 
     const float remainingDistance = toDestination.Length();
 
-    float dashSpeed = cfg->m_chargingSlamDashSpeed;
+    float dashSpeed = m_attackConfig.get()->m_chargingSlamDashSpeed;
 
     if (m_arthurController->isPhase2())
     {
-        dashSpeed = cfg->m_chargingSlamPhase2DashSpeed;
+        dashSpeed = m_attackConfig.get()->m_chargingSlamPhase2DashSpeed;
     }
 
     const float stepDistance = dashSpeed * Time::getDeltaTime();
@@ -273,13 +276,7 @@ void ArthurChargingSlam::tryApplyDashDamage(Transform* targetTransform, bool& ha
         return;
     }
 
-    if (!m_attackExecutor)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackExecutor || !m_attackConfig.get())
     {
         return;
     }
@@ -292,7 +289,7 @@ void ArthurChargingSlam::tryApplyDashDamage(Transform* targetTransform, bool& ha
 
     Vector3 center = TransformAPI::getGlobalPosition(ownerTransform);
 
-    const bool damaged = m_attackExecutor->tryDamageTargetInRadius(targetTransform, center, cfg->m_chargingSlamDashHitRadius, cfg->m_chargingSlamDashDamage, "ChargingSlamDash");
+    const bool damaged = m_attackExecutor->tryDamageTargetInRadius(targetTransform, center, m_attackConfig.get()->m_chargingSlamDashHitRadius, m_attackConfig.get()->m_chargingSlamDashDamage, "ChargingSlamDash");
 
     if (damaged)
     {
@@ -302,13 +299,7 @@ void ArthurChargingSlam::tryApplyDashDamage(Transform* targetTransform, bool& ha
 
 void ArthurChargingSlam::applyImpact()
 {
-    if (!m_attackExecutor)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackExecutor || !m_attackConfig.get())
     {
         return;
     }
@@ -320,7 +311,7 @@ void ArthurChargingSlam::applyImpact()
         m_arthurUI->startChargingSlamImpactUI();
     }
 
-    m_attackExecutor->applyDamageAndStunInRadius(m_lockedTargetPosition, cfg->m_chargingSlamImpactRadius, cfg->m_chargingSlamFinalAreaImpactDamage, cfg->m_chargingSlamImpactStunDuration, "ChargingSlamImpact");
+    m_attackExecutor->applyDamageAndStunInRadius(m_lockedTargetPosition, m_attackConfig.get()->m_chargingSlamImpactRadius, m_attackConfig.get()->m_chargingSlamFinalAreaImpactDamage, m_attackConfig.get()->m_chargingSlamImpactStunDuration, "ChargingSlamImpact");
 
     if (m_arthurSound)
     {
@@ -333,20 +324,14 @@ void ArthurChargingSlam::applyImpact()
 
 void ArthurChargingSlam::goToRecover()
 {
-    if (!m_animation)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackConfig.get() || !m_animation)
     {
         return;
     }
 
     if (m_arthurController)
     {
-        m_arthurController->setRecoveryDuration(cfg->m_chargingSlamRecoveryDuration);
+        m_arthurController->setRecoveryDuration(m_attackConfig.get()->m_chargingSlamRecoveryDuration);
     }
 
     Debug::log("[ArthurChargingSlam] Going to Recover.");
@@ -356,17 +341,16 @@ void ArthurChargingSlam::goToRecover()
 
 float ArthurChargingSlam::getChargingDuration() const
 {
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackConfig.get())
     {
         return 0.0f;
     }
 
-    float chargingDuration = cfg->m_chargingSlamHitTime;
+    float chargingDuration = m_attackConfig.get()->m_chargingSlamHitTime;
 
     if (m_arthurController && m_arthurController->isPhase2())
     {
-        chargingDuration = cfg->m_chargingSlamPhase2HitTime;
+        chargingDuration = m_attackConfig.get()->m_chargingSlamPhase2HitTime;
     }
 
     return chargingDuration;
@@ -374,17 +358,16 @@ float ArthurChargingSlam::getChargingDuration() const
 
 float ArthurChargingSlam::getDashSpeed() const
 {
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackConfig.get())
     {
         return 0.0f;
     }
 
-    float dashSpeed = cfg->m_chargingSlamDashSpeed;
+    float dashSpeed = m_attackConfig.get()->m_chargingSlamDashSpeed;
 
     if (m_arthurController && m_arthurController->isPhase2())
     {
-        dashSpeed = cfg->m_chargingSlamPhase2DashSpeed;
+        dashSpeed = m_attackConfig.get()->m_chargingSlamPhase2DashSpeed;
     }
 
     return dashSpeed;
@@ -448,19 +431,13 @@ void ArthurChargingSlam::setupAnimationDashSection()
 
 void ArthurChargingSlam::setupAnimationImpactSection()
 {
-    if (!m_animation)
-    {
-        return;
-    }
-
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_animation || !m_attackConfig.get())
     {
         return;
     }
 
     const float animationImpactDuration = m_animEndTime - m_animImpactStartTime;
-    const float gameplayImpactDuration = cfg->m_chargingSlamTotalDuration - m_stateTimer;
+    const float gameplayImpactDuration = m_attackConfig.get()->m_chargingSlamTotalDuration - m_stateTimer;
 
     const float speed = getSafeSectionSpeed(animationImpactDuration, gameplayImpactDuration);
 

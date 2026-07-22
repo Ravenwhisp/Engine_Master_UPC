@@ -11,14 +11,15 @@ SummonerEnemyController::SummonerEnemyController(GameObject* owner)
 
 void SummonerEnemyController::Start()
 {
-    m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
+	EnemyBaseController::Start();
 
-    if (!m_enemyDetectionAggro)
-    {
-        Debug::warn("[SummonerEnemyController] EnemyDetectionAggro not found on '%s'.", GameObjectAPI::getName(getOwner()));
-    }
+	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
+	if (!m_enemyDetectionAggro)
+	{
+		Debug::warn("[SummonerEnemyController] EnemyDetectionAggro not found on '%s'.", GameObjectAPI::getName(getOwner()));
+	}
 
-    m_currentTarget = nullptr;
+	m_currentTarget = nullptr;
 	m_deathTriggerSent = false;
 
 	resetRepathTimer();
@@ -63,20 +64,9 @@ bool SummonerEnemyController::isTargetDowned(Transform* target) const
 	return m_enemyDetectionAggro->isDowned(target);
 }
 
-bool SummonerEnemyController::isTargetInAttackRange() const
+const EnemyBaseAttackConfig* SummonerEnemyController::getAttackConfig() const
 {
-    if (!hasValidTarget())
-    {
-        return false;
-    }
-
-    const SummonerAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return false;
-    }
-
-    return isCurrentTargetInRange(cfg->m_basicAttackRange);
+	return m_attackConfig.get();
 }
 
 bool SummonerEnemyController::isTeleportReady() const
@@ -86,21 +76,19 @@ bool SummonerEnemyController::isTeleportReady() const
 
 void SummonerEnemyController::consumeTeleportCooldown()
 {
-    const SummonerAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
+	if (!m_attackConfig)
+	{
+		return;
+	}
 
-    m_teleportCooldownTimer = cfg->m_teleportCooldown;
+	m_teleportCooldownTimer = m_attackConfig.get()->m_teleportCooldown;
 }
 
 bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 {
-    constexpr int MaxTeleportAttempts = 20;
+	constexpr int MaxTeleportAttempts = 20;
 
-    const SummonerAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg || !hasValidTarget())
+	if (!m_attackConfig || !hasValidTarget())
 	{
 		return false;
 	}
@@ -117,7 +105,7 @@ bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 	const Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
 
 	const bool targetInAttackRange =
-        isCurrentTargetInRange(cfg->m_basicAttackRange);
+		isCurrentTargetInRange(m_attackConfig.get()->m_basicAttackRange);
 
 	const Vector3 searchCenter =
 		targetInAttackRange ? ownerPosition : targetPosition;
@@ -126,8 +114,8 @@ bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 	Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
 
 	const Vector3 searchExtents = Vector3(5.0f, 5.0f, 5.0f);
-    const float attackRangeSquared =
-        cfg->m_basicAttackRange * cfg->m_basicAttackRange;
+	const float attackRangeSquared =
+		m_attackConfig.get()->m_basicAttackRange * m_attackConfig.get()->m_basicAttackRange;
 
 	float bestScore = -FLT_MAX;
 	bool foundPosition = false;
@@ -137,9 +125,9 @@ bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 	{
 		Vector3 candidatePosition;
 
-        const bool found = NavigationAPI::findRandomReachablePointAround(
-            searchCenter,
-            cfg->m_teleportRadius,
+		const bool found = NavigationAPI::findRandomReachablePointAround(
+			searchCenter,
+			m_attackConfig.get()->m_teleportRadius,
 			candidatePosition,
 			searchExtents,
 			1);
@@ -194,8 +182,8 @@ bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 			continue;
 		}
 
-        if (!targetInAttackRange &&
-            closestPlayerDistance < cfg->m_teleportMinPlayerDistance)
+		if (!targetInAttackRange &&
+			closestPlayerDistance < m_attackConfig.get()->m_teleportMinPlayerDistance)
 		{
 			continue;
 		}
@@ -250,24 +238,22 @@ bool SummonerEnemyController::isSummonReady() const
 
 void SummonerEnemyController::consumeSummonCooldown()
 {
-    const SummonerAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
+	if (!m_attackConfig)
+	{
+		return;
+	}
 
-    m_summonCooldownTimer = cfg->m_summonCooldown;
+	m_summonCooldownTimer = m_attackConfig.get()->m_summonCooldown;
 }
 
 void SummonerEnemyController::summonSpidersAroundSelf()
 {
-    const SummonerAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
+	if (!m_attackConfig)
+	{
+		return;
+	}
 
-    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 	if (!ownerTransform)
 	{
 		return;
@@ -276,13 +262,13 @@ void SummonerEnemyController::summonSpidersAroundSelf()
 	const Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
 	const Vector3 searchExtents = Vector3(5.0f, 5.0f, 5.0f);
 
-    for (int i = 0; i < cfg->m_summonCount; ++i)
-    {
-        Vector3 spawnPosition;
+	for (int i = 0; i < m_attackConfig.get()->m_summonCount; ++i)
+	{
+		Vector3 spawnPosition;
 
-        const bool found = NavigationAPI::findRandomReachablePointAround(
-            ownerPosition,
-            cfg->m_summonRadius,
+		const bool found = NavigationAPI::findRandomReachablePointAround(
+			ownerPosition,
+			m_attackConfig.get()->m_summonRadius,
 			spawnPosition,
 			searchExtents,
 			10
@@ -293,8 +279,8 @@ void SummonerEnemyController::summonSpidersAroundSelf()
 			continue;
 		}
 
-        GameObjectAPI::instantiatePrefab(
-            cfg->m_spiderPrefab.m_id,
+		GameObjectAPI::instantiatePrefab(
+			m_attackConfig.get()->m_spiderPrefab.m_id,
 			spawnPosition,
 			Vector3(0.0f, 0.0f, 0.0f)
 		);
@@ -318,13 +304,12 @@ void SummonerEnemyController::updateSummonCooldown(float dt)
 
 float SummonerEnemyController::getRecoveryDuration() const
 {
-    const SummonerAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return 0.0f;
-    }
+	if (!m_attackConfig)
+	{
+		return 0.0f;
+	}
 
-    return cfg->m_summonRecoverDuration;
+	return m_attackConfig.get()->m_summonRecoverDuration;
 }
 
 bool SummonerEnemyController::isAttackReady() const
@@ -334,13 +319,12 @@ bool SummonerEnemyController::isAttackReady() const
 
 void SummonerEnemyController::consumeAttackCooldown()
 {
-    const SummonerAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
+	if (!m_attackConfig)
+	{
+		return;
+	}
 
-    m_attackCooldownTimer = cfg->m_basicAttackCooldown;
+	m_attackCooldownTimer = m_attackConfig.get()->m_basicAttackCooldown;
 }
 
 void SummonerEnemyController::updateAttackCooldown(float dt)
@@ -358,6 +342,8 @@ void SummonerEnemyController::updateAttackCooldown(float dt)
 	}
 }
 
-IMPLEMENT_SCRIPT_FIELDS(SummonerEnemyController,
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(SummonerEnemyController, EnemyBaseController,
     SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
 )
+
+IMPLEMENT_SCRIPT(SummonerEnemyController)

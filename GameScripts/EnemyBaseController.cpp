@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "EnemyBaseController.h"
+#include "EnemyBaseAttackConfig.h"
 
 #include "Damageable.h"
+#include "EnemyBaseAttackConfig.h"
 #include "EnemySound.h"
 
 static const char* navAgentProfileNames[] =
@@ -25,6 +27,17 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyBaseController,
 EnemyBaseController::EnemyBaseController(GameObject* owner)
     : Script(owner)
 {
+}
+
+void EnemyBaseController::Start()
+{
+    const EnemyBaseAttackConfig* cfg = getAttackConfig();
+    if (cfg)
+    {
+        m_moveSpeed = cfg->m_moveSpeed;
+        m_recoveryDuration = cfg->m_recoveryDuration;
+        m_stunnedDuration = cfg->m_stunnedDuration;
+    }
 }
 
 void EnemyBaseController::updateCurrentTarget()
@@ -88,6 +101,22 @@ bool EnemyBaseController::isCurrentTargetInRange(float range) const
     return getDistanceToCurrentTarget() <= range;
 }
 
+bool EnemyBaseController::isTargetInAttackRange() const
+{
+    if (!hasValidTarget())
+    {
+        return false;
+    }
+
+    const EnemyBaseAttackConfig* cfg = getAttackConfig();
+    if (!cfg)
+    {
+        return false;
+    }
+
+    return isCurrentTargetInRange(cfg->m_basicAttackRange);
+}
+
 void EnemyBaseController::faceCurrentTarget()
 {
     if (!m_currentTarget)
@@ -140,6 +169,11 @@ void EnemyBaseController::facePosition(const Vector3& worldPosition)
 
 bool EnemyBaseController::moveTowardsTarget()
 {
+    if (m_isForcedMovementActive)
+    {
+        return false;
+    }
+
     if (!hasValidTarget())
     {
         clearPath();
@@ -187,6 +221,24 @@ void EnemyBaseController::clearPath()
 void EnemyBaseController::resetRepathTimer()
 {
     m_repathTimer = 0.0f;
+}
+
+void EnemyBaseController::setForcedMovementActive(bool active)
+{
+    if (m_isForcedMovementActive == active)
+    {
+        return;
+    }
+
+    m_isForcedMovementActive = active;
+
+    clearPath();
+    resetRepathTimer();
+}
+
+void EnemyBaseController::setForcedMovementBlocked(bool blocked)
+{
+    m_isForcedMovementBlocked = blocked;
 }
 
 bool EnemyBaseController::isDead() const
@@ -244,11 +296,16 @@ void EnemyBaseController::setStunnedDuration(float stunnedDuration)
     m_stunnedDuration = stunnedDuration;
 }
 
-void EnemyBaseController::useStun()
+void EnemyBaseController::useStun(float duration)
 {
+    if (duration <= 0.0f)
+    {
+        return;
+    }
+
     m_isStunned = true;
     m_stunnedTriggerSent = false;
-    m_stunnedTimer = m_stunnedDuration;
+    m_stunnedTimer = duration;
     clearPath();
 }
 

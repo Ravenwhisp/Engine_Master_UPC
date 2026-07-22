@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "DataContainerAPI.h"
 
@@ -38,13 +38,21 @@ public:
 	float m_chargedShotArcRange = 3.5f;
 	float m_chargedShotArcAngle = 150.0f;
 	float m_chargedCooldown = 0.0f;
+	float m_chargedMovementSlowdownPercentage = 50.0f;
+	bool m_chargedStunOnMaxCharge = true;
+	float m_chargedStunDuration = 1.0f;
 
-	// Taunt
+	// Taunt / Pull
 	float m_tauntDuration = 3.0f;
-	float m_tauntRange = 2.5f;
-	float m_tauntHalfAngleDegrees = 35.0f;
-	float m_tauntLockDuration = 0.4f;
-	float m_tauntCooldown = 0.0f;
+	float m_tauntRange = 5.0f;
+	float m_tauntHalfAngleDegrees = 70.0f;
+	float m_tauntCooldown = 7.0f;
+
+	float m_tauntImpactDelay = 1.0f;
+	float m_tauntPullDuration = 0.5f;
+	float m_tauntPullDamage = 10.0f;
+
+	float m_tauntPullDestinationDistance = 1.5f;
 
 	// Dash
 	float m_dashDuration = 0.15f;
@@ -80,15 +88,21 @@ public:
 			SERIALIZED_FLOAT(m_chargedFinalHitLockDuration, "Charged Final Hit Lock Duration", 0.05f, 3.0f, 0.05f),
 			SERIALIZED_FLOAT(m_chargedShotArcRange, "Charged Arc Range", 0.5f, 10.0f, 0.1f),
 			SERIALIZED_FLOAT(m_chargedShotArcAngle, "Charged Arc Angle", 10.0f, 360.0f, 5.0f),
-			SERIALIZED_FLOAT(m_chargedCooldown, "Charged Cooldown", 0.0f, 10.0f, 0.01f)
+			SERIALIZED_FLOAT(m_chargedCooldown, "Charged Cooldown", 0.0f, 10.0f, 0.01f),
+			SERIALIZED_FLOAT(m_chargedMovementSlowdownPercentage, "Charged Movement Slowdown (%)", 0.0f, 100.0f, 1.0f),
+			SERIALIZED_BOOL(m_chargedStunOnMaxCharge, "Stun On Max Charge"),
+			SERIALIZED_FLOAT(m_chargedStunDuration, "Max Charge Stun Duration", 0.0f, 10.0f, 0.05f)
 		),
 
 		FIELD_GROUP_COLLAPSE("Taunt",
 			SERIALIZED_FLOAT(m_tauntDuration, "Taunt Duration", 1.0f, 10.0f, 0.05f),
 			SERIALIZED_FLOAT(m_tauntRange, "Cone Range", 1.0f, 10.0f, 0.1f),
-			SERIALIZED_FLOAT(m_tauntHalfAngleDegrees, "Cone Angle", 1.0f, 180.0f, 1.0f),
-			SERIALIZED_FLOAT(m_tauntLockDuration, "Taunt Lock Duration", 0.05f, 2.0f, 0.05f),
-			SERIALIZED_FLOAT(m_tauntCooldown, "Taunt Cooldown", 0.0f, 10.0f, 0.01f)
+			SERIALIZED_FLOAT(m_tauntHalfAngleDegrees, "Cone Half Angle", 1.0f, 180.0f, 1.0f),
+			SERIALIZED_FLOAT(m_tauntCooldown, "Taunt Cooldown", 0.0f, 10.0f, 0.01f),
+			SERIALIZED_FLOAT(m_tauntImpactDelay, "Taunt Impact Delay", 0.0f, 5.0f, 0.05f),
+			SERIALIZED_FLOAT(m_tauntPullDuration, "Taunt Pull Duration", 0.0f, 3.0f, 0.05f),
+			SERIALIZED_FLOAT(m_tauntPullDamage, "Taunt Pull Damage", 0.0f, 100.0f, 1.0f),
+			SERIALIZED_FLOAT(m_tauntPullDestinationDistance, "Taunt Pull Destination Distance", 0.5f, 5.0f, 0.1f)
 		),
 
 		FIELD_GROUP_COLLAPSE("Dash",

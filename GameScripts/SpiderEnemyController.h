@@ -11,12 +11,12 @@ class SpiderEnemyController : public EnemyBaseController
 
 public:
 	explicit SpiderEnemyController(GameObject* owner);
-	FieldList getExposedFields() const override;
 
 	void Start() override;
 	void Update() override;
+	FieldList getExposedFields() const override;
 
-	bool isTargetInAttackRange() const;
+	const EnemyBaseAttackConfig* getAttackConfig() const override;
 
 protected:
 	Transform* acquireCurrentTarget() override;
@@ -24,5 +24,7 @@ protected:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    AssetReference<EnemyBaseAttackConfig> m_attackConfig;
+
+public:
+	AssetReference<EnemyBaseAttackConfig> m_attackConfig;
 };

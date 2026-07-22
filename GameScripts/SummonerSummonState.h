@@ -4,7 +4,6 @@
 #include "StateMachineScript.h"
 
 class SummonerEnemyController;
-class SummonerAttackConfig;
 class AnimationComponent;
 
 class SummonerSummonState : public StateMachineScript
@@ -13,7 +12,6 @@ class SummonerSummonState : public StateMachineScript
 
 public:
 	explicit SummonerSummonState(GameObject* owner);
-	FieldList getExposedFields() const override;
 
 	void OnStateEnter() override;
 	void OnStateUpdate() override;
@@ -21,7 +19,6 @@ public:
 
 private:
 	SummonerEnemyController* m_controller = nullptr;
-    AssetReference<SummonerAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 
 	float m_stateTimer = 0.0f;

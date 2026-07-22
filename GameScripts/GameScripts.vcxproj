@@ -288,6 +288,7 @@
     <ClInclude Include="CameraTransitionStepAction.h" />
     <ClInclude Include="CharacterBase.h" />
     <ClInclude Include="CharacterUI.h" />
+    <ClInclude Include="ChargedAttackBase.h" />
     <ClInclude Include="CombatAreaEvent.h" />
     <ClInclude Include="CooperativeSound.h" />
     <ClInclude Include="CrystalShadowMark.h" />
@@ -314,6 +315,7 @@
     <ClInclude Include="EnemyDamageable.h" />
     <ClInclude Include="EnemyDeathState.h" />
     <ClInclude Include="EnemyDetectionAggro.h" />
+    <ClInclude Include="EnemyForcedMovement.h" />
     <ClInclude Include="EnemyIdleState.h" />
     <ClInclude Include="EnemyRecoverState.h" />
     <ClInclude Include="EnemyShadowMark.h" />
@@ -454,6 +456,7 @@
     <ClCompile Include="CameraTransitionStepAction.cpp" />
     <ClCompile Include="CharacterBase.cpp" />
     <ClCompile Include="CharacterUI.cpp" />
+    <ClCompile Include="ChargedAttackBase.cpp" />
     <ClCompile Include="CombatAreaEvent.cpp" />
     <ClCompile Include="CooperativeSound.cpp" />
     <ClCompile Include="CrystalShadowMark.cpp" />
@@ -481,6 +484,7 @@
     <ClCompile Include="EnemyDamageable.cpp" />
     <ClCompile Include="EnemyDeathState.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
+    <ClCompile Include="EnemyForcedMovement.cpp" />
     <ClCompile Include="EnemyIdleState.cpp" />
     <ClCompile Include="EnemyRecoverState.cpp" />
     <ClCompile Include="EnemyShadowMark.cpp" />

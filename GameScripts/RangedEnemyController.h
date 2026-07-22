@@ -12,12 +12,12 @@ class RangedEnemyController : public EnemyBaseController
 
 public:
     explicit RangedEnemyController(GameObject* owner);
-    FieldList getExposedFields() const override;
 
     void Start() override;
     void Update() override;
+    FieldList getExposedFields() const override;
 
-    bool isTargetInAttackRange() const;
+    const EnemyBaseAttackConfig* getAttackConfig() const override;
 
     // Somersault helpers
     bool playerInSomersaultRange() const;
@@ -41,8 +41,10 @@ protected:
 
 private:
     EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    AssetReference<ArcherAttackConfig> m_attackConfig;
 
     float m_somersaultCooldownTimer = 0.0f;
     float m_arrowBarrageCooldownTimer = 0.0f;
+
+public:
+    AssetReference<ArcherAttackConfig> m_attackConfig;
 };
