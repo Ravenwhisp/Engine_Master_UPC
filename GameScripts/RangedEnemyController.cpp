@@ -12,6 +12,8 @@ RangedEnemyController::RangedEnemyController(GameObject* owner) : EnemyBaseContr
 
 void RangedEnemyController::Start()
 {
+    EnemyBaseController::Start();
+
     m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
     if (!m_enemyDetectionAggro)
     {
@@ -60,14 +62,9 @@ bool RangedEnemyController::isTargetDowned(Transform* target) const
     return m_enemyDetectionAggro->isDowned(target);
 }
 
-bool RangedEnemyController::isTargetInAttackRange() const
+const EnemyBaseAttackConfig* RangedEnemyController::getAttackConfig() const
 {
-    if (!hasValidTarget() || !m_attackConfig)
-    {
-        return false;
-    }
-
-    return isCurrentTargetInRange(m_attackConfig.get()->m_basicAttackRange);
+    return m_attackConfig.get();
 }
 
 bool RangedEnemyController::playerInSomersaultRange() const

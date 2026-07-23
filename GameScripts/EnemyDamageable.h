@@ -1,25 +1,13 @@
 #pragma once
 
 #include "Damageable.h"
+#include "PlayerAttackType.h"
 
 class EnemyDetectionAggro;
 class EnemySound;
+class EnemyShadowMark;
 class Transform2D;
-
-enum class PlayerAttackType
-{
-	None = 0,
-	DeathBasic,
-	DeathCharged,
-	DeathDash,
-	DeathTaunt,
-	LyrielArrow,
-	LyrielVolley,
-	LyrielCharged,
-	ShadowExecution,
-	ShadowMarkExploit,
-	Environment
-};
+class EnemyBaseController;
 
 struct EnemyHitContext : public HitContext
 {
@@ -36,22 +24,33 @@ public:
 
 	void Start() override;
 	void Update() override;
-	void takeDamage(const HitContext& ctx) override;
 
 	FieldList getExposedFields() const override;
+	
+    void takeDamage(const HitContext& ctx) override;
+	bool lastHitExploitShadowMark() const { return m_lastHitExploitedShadowMark; }
 
 protected:
 	void onDamaged(float amount) override;
+	void onDeath() override;
+
+	void resetLastShadowMarkResult() { m_lastHitExploitedShadowMark = false; }
+	bool processShadowMarkHit(PlayerAttackType attackType);
+	void applyDamageWithoutShadowMark(const EnemyHitContext& hit);
+
+	virtual void setHealthBarAlpha(float alpha);
 
 private: 
 	void resolveHealthBarReferences();
 	void updateHealthBarFade();
-	void setHealthBarAlpha(float alpha);
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
 	EnemySound* m_enemySound = nullptr;
+	EnemyShadowMark* m_shadowMark = nullptr;
 	Transform* m_damageSource = nullptr;
+	
+	bool m_lastHitExploitedShadowMark = false;
 
 	ComponentRef<Transform2D> m_healthBarContainer;
 	Transform2D* m_healthBarContainerTransform = nullptr;

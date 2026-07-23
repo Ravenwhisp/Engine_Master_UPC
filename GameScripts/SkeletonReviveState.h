@@ -5,7 +5,6 @@
 
 class SkeletonEnemyController;
 class SkeletonDamageable;
-class SkeletonAttackConfig;
 class AnimationComponent;
 
 class SkeletonReviveState : public StateMachineScript
@@ -39,7 +38,6 @@ private:
 private:
 	SkeletonEnemyController* m_controller = nullptr;
 	SkeletonDamageable* m_damageable = nullptr;
-	AssetReference<SkeletonAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 
 	Phase m_phase = Phase::ReviveStart;

@@ -38,7 +38,7 @@ private:
     float computeChargedRange() const;
 
     void collectEnemiesInLine(const Vector3& origin, const Vector3& forward, std::vector<GameObject*>& outTargets);
-    bool applyChargedDamage(const std::vector<GameObject*>& targets, float damage, bool isMaxCharge);
+    void applyChargedDamage(const std::vector<GameObject*>& targets, float damage, bool isMaxCharge);
 
     void spawnChargedArrow(const Vector3& origin, const Vector3& forward);
     void drawChargePreview(const Vector3& origin, const Vector3& forward) const;

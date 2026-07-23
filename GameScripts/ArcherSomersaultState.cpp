@@ -43,7 +43,7 @@ void ArcherSomersaultState::OnStateEnter()
 
 void ArcherSomersaultState::OnStateUpdate()
 {
-    if (!m_archerController || !m_attackConfig.get() || !m_animation)
+    if (!m_archerController || !m_archerController->m_attackConfig.get() || !m_animation)
     {
         return;
     }
@@ -69,7 +69,7 @@ void ArcherSomersaultState::OnStateUpdate()
     if (m_particles) m_particles->updateChargeParticle();
     moveSomersault();
 
-    if (m_stateTimer >= m_attackConfig.get()->m_somersaultDuration)
+    if (m_stateTimer >= m_archerController->m_attackConfig.get()->m_somersaultDuration)
     {
         finishSomersault();
         return;
@@ -89,7 +89,7 @@ void ArcherSomersaultState::moveSomersault()
         return;
     }
 
-    if (!m_attackConfig)
+    if (!m_archerController->m_attackConfig)
     {
         return;
     }
@@ -101,13 +101,13 @@ void ArcherSomersaultState::moveSomersault()
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 
-    const float duration = m_attackConfig.get()->m_somersaultDuration;
+    const float duration = m_archerController->m_attackConfig.get()->m_somersaultDuration;
     if (duration <= 0.0f)
     {
         return;
     }
 
-    const float speed = m_attackConfig.get()->m_somersaultDistance / duration;
+    const float speed = m_archerController->m_attackConfig.get()->m_somersaultDistance / duration;
     const float stepDistance = speed * Time::getDeltaTime();
 
     Vector3 currentPosition = TransformAPI::getGlobalPosition(ownerTransform);

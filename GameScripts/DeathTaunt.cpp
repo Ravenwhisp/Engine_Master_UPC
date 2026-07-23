@@ -6,8 +6,6 @@
 #include "EnemyDamageable.h"
 #include "EnemyForcedMovement.h"
 #include "PlayerRotation.h"
-#include "PersistingPowerupState.h"
-#include "EnemyShadowMark.h"
 #include "DeathUI.h"
 #include "DeathConfig.h"
 #include "DeathParticles.h"
@@ -289,13 +287,12 @@ void DeathTaunt::resolveImpact()
 
     const std::vector<GameObject*> enemies = collectEnemiesInCone(m_castOrigin, m_castDirection);
 
-    bool anyMark = false;
     int taunted = 0;
     int pulled = 0;
 
     for (GameObject* enemy : enemies)
     {
-        applyTauntEffects(enemy, deathTransform, anyMark);
+        applyTauntEffects(enemy, deathTransform);
         ++taunted;
 
         // This is an edge case where the enemy affected is closer to the destination distance. In this case it won't be affected by the pull
@@ -342,16 +339,6 @@ void DeathTaunt::resolveImpact()
         }
     }
 
-    if (anyMark)
-    {
-        DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
-
-        if (sound)
-        {
-            sound->playMarkApply();
-        }
-    }
-
     m_tauntState = TauntState::Idle;
 
     if (m_movementLockedForCombo)
@@ -388,7 +375,7 @@ std::vector<GameObject*> DeathTaunt::collectEnemiesInCone(const Vector3& origin,
     return validEnemies;
 }
 
-void DeathTaunt::applyTauntEffects(GameObject* enemy, Transform* deathTransform, bool& anyMark) const
+void DeathTaunt::applyTauntEffects(GameObject* enemy, Transform* deathTransform) const
 {
     if (!enemy || !deathTransform)
     {
@@ -400,19 +387,6 @@ void DeathTaunt::applyTauntEffects(GameObject* enemy, Transform* deathTransform,
     if (enemyAggro)
     {
         enemyAggro->applyTaunt(deathTransform, m_deathCharacter->getConfig()->m_tauntDuration);
-    }
-
-    if (!PersistingPowerupState::isUnlocked(PowerupId::DeathPowerup1))
-    {
-        return;
-    }
-
-    EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(enemy);
-
-    if (shadowMark)
-    {
-        shadowMark->notifyDeathHit();
-        anyMark = true;
     }
 }
 

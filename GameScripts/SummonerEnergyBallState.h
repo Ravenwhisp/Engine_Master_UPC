@@ -4,7 +4,6 @@
 #include "StateMachineScript.h"
 
 class SummonerEnemyController;
-class SummonerAttackConfig;
 class AnimationComponent;
 
 class SummonerEnergyBallState : public StateMachineScript
@@ -23,7 +22,6 @@ private:
 
 private:
 	SummonerEnemyController* m_controller = nullptr;
-	AssetReference<SummonerAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 
 	Transform* m_committedTarget = nullptr;

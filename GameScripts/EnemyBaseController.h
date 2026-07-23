@@ -5,12 +5,15 @@
 class AnimationComponent;
 class Transform;
 class EnemySound;
+class EnemyBaseAttackConfig;
 
 class EnemyBaseController : public Script
 {
 public:
     explicit EnemyBaseController(GameObject* owner);
     virtual ~EnemyBaseController() = default;
+
+    void Start() override;
 
     FieldList getExposedFields() const override;
 
@@ -20,8 +23,12 @@ public:
 
     virtual bool hasValidTarget() const;
 
+    // Attack config access (non-pure virtual: returns nullptr by default for controllers without one)
+    virtual const EnemyBaseAttackConfig* getAttackConfig() const { return nullptr; }
+
     float getDistanceToCurrentTarget() const;
     bool isCurrentTargetInRange(float range) const;
+    bool isTargetInAttackRange() const;
 
     // Facing helpers
     void faceCurrentTarget();

@@ -14,6 +14,8 @@ SkeletonEnemyController::SkeletonEnemyController(GameObject* owner)
 
 void SkeletonEnemyController::Start()
 {
+	EnemyBaseController::Start();
+
 	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
 	m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
 
@@ -66,6 +68,11 @@ bool SkeletonEnemyController::isTargetDowned(Transform* target) const
 	}
 
 	return m_enemyDetectionAggro->isDowned(target);
+}
+
+const EnemyBaseAttackConfig* SkeletonEnemyController::getAttackConfig() const
+{
+	return m_attackConfig.get();
 }
 
 bool SkeletonEnemyController::isTargetInScimitarRange() const

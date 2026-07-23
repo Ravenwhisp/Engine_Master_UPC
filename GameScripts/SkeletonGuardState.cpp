@@ -45,7 +45,7 @@ void SkeletonGuardState::OnStateEnter()
 
 void SkeletonGuardState::OnStateUpdate()
 {
-	if (!m_skeletonController || !m_attackConfig.get() || !m_damageable || !m_animation)
+	if (!m_skeletonController || !m_skeletonController->m_attackConfig.get() || !m_damageable || !m_animation)
 	{
 		return;
 	}
@@ -65,12 +65,12 @@ void SkeletonGuardState::OnStateUpdate()
 	// Heal over time
 	if (m_damageable->getCurrentHp() < m_damageable->getMaxHp())
 	{
-		const float healAmount = m_attackConfig.get()->m_guardHealPerSecond * dt;
+		const float healAmount = m_skeletonController->m_attackConfig.get()->m_guardHealPerSecond * dt;
 		m_damageable->heal(healAmount);
 	}
 
 	// End GuardState
-	if (m_stateTimer >= m_attackConfig.get()->m_guardDuration)
+	if (m_stateTimer >= m_skeletonController->m_attackConfig.get()->m_guardDuration)
 	{
 		m_skeletonController->consumeGuardCooldown();
 		AnimationAPI::sendTrigger(m_animation, "ToChase");

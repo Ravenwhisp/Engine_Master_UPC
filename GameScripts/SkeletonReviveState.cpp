@@ -47,7 +47,7 @@ void SkeletonReviveState::OnStateEnter()
 
 void SkeletonReviveState::OnStateUpdate()
 {
-	if (!m_controller || !m_damageable || !m_attackConfig.get() || !m_animation)
+	if (!m_controller || !m_damageable || !m_controller->m_attackConfig.get() || !m_animation)
 	{
 		return;
 	}
@@ -132,7 +132,7 @@ void SkeletonReviveState::updateReviveStart()
 
 void SkeletonReviveState::updateReviveIdle()
 {
-	if (m_phaseTimer >= m_attackConfig.get()->m_reviveDuration)
+	if (m_phaseTimer >= m_controller->m_attackConfig.get()->m_reviveDuration)
 	{
 		changePhase(Phase::ReviveEnd);
 		return;

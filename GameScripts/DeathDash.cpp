@@ -4,7 +4,6 @@
 #include "DeathCharacter.h"
 #include "DeathSound.h"
 #include "EnemyDamageable.h"
-#include "EnemyShadowMark.h"
 #include "DeathConfig.h"
 #include "DeathParticles.h"
 
@@ -162,8 +161,6 @@ void DeathDash::applyDashDamage()
 
     std::vector<GameObject*> allEnemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
 
-    bool anyMark = false;
-
     for (GameObject* enemyObj : allEnemies)
     {
         if (enemyObj == nullptr)
@@ -187,28 +184,13 @@ void DeathDash::applyDashDamage()
         EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(enemyObj);
 
         if (damageable != nullptr)
-        {
-            {
-                EnemyHitContext ctx;
-                ctx.damage = m_deathCharacter->getConfig()->m_dashDamage;
-                ctx.attacker = GameObjectAPI::getTransform(getOwner());
-                ctx.attackType = PlayerAttackType::DeathDash;
-                damageable->takeDamage(ctx);
-            }
-
-            EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(enemyObj);
-            if (shadowMark != nullptr)
-            {
-                shadowMark->notifyDeathHit();
-                anyMark = true;
-            }
+        {  
+            EnemyHitContext ctx;
+            ctx.damage = m_deathCharacter->getConfig()->m_dashDamage;
+            ctx.attacker = GameObjectAPI::getTransform(getOwner());
+            ctx.attackType = PlayerAttackType::DeathDash;
+            damageable->takeDamage(ctx);         
         }
-    }
-
-    // playDashImpact is fired in onDashUpdate on first contact, not here.
-    if (m_sound != nullptr && anyMark)
-    {
-        m_sound->playMarkApply();
     }
 }
 

@@ -4,7 +4,6 @@
 #include "StateMachineScript.h"
 
 class MeleeEnemyController;
-class PaladinAttackConfig;
 class AnimationComponent;
 class PaladinSound;
 class PaladinVFX;
@@ -29,7 +28,6 @@ private:
 
 private:
 	MeleeEnemyController* m_paladinController = nullptr;
-	AssetReference<PaladinAttackConfig> m_attackConfig;
 	AnimationComponent* m_animation = nullptr;
 	PaladinSound* m_paladinSound = nullptr;
 	PaladinVFX* m_paladinVFX = nullptr;

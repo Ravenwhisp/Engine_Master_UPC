@@ -54,7 +54,7 @@ void EnemyAttackState::OnStateEnter()
 
 void EnemyAttackState::OnStateUpdate()
 {
-    if (!m_controller || !m_attackConfig.get() || !m_animation)
+    if (!m_controller || !m_controller->getAttackConfig() || !m_animation)
     {
         return;
     }
@@ -73,7 +73,7 @@ void EnemyAttackState::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
-    if (!m_hasAppliedDamage && m_stateTimer >= m_attackConfig.get()->m_basicAttackWindupTime)
+    if (!m_hasAppliedDamage && m_stateTimer >= m_controller->getAttackConfig()->m_basicAttackWindupTime)
     {
         playBasicAttackEffect();
         tryDamageTarget(m_committedTarget);
@@ -86,7 +86,7 @@ void EnemyAttackState::OnStateUpdate()
         m_hasAppliedDamage = true;
     }
 
-    if (m_stateTimer >= m_attackConfig.get()->m_basicAttackTotalDuration)
+    if (m_stateTimer >= m_controller->getAttackConfig()->m_basicAttackTotalDuration)
     {
         m_controller->updateCurrentTarget();
 
@@ -112,7 +112,7 @@ void EnemyAttackState::OnStateExit()
 
 void EnemyAttackState::tryDamageTarget(Transform* targetTransform)
 {
-    if (!m_attackConfig.get())
+    if (!m_controller->getAttackConfig())
     {
         return;
     }
@@ -140,9 +140,9 @@ void EnemyAttackState::tryDamageTarget(Transform* targetTransform)
         return;
     }
 
-    damageable->takeDamage(m_attackConfig.get()->m_basicAttackDamage);
+    damageable->takeDamage(m_controller->getAttackConfig()->m_basicAttackDamage);
 
-    Debug::log("[EnemyAttackState] Damaged '%s' for %.2f.", GameObjectAPI::getName(targetObject), m_attackConfig.get()->m_basicAttackDamage);
+    Debug::log("[EnemyAttackState] Damaged '%s' for %.2f.", GameObjectAPI::getName(targetObject), m_controller->getAttackConfig()->m_basicAttackDamage);
 }
 
 void EnemyAttackState::playBasicAttackEffect()

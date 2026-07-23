@@ -34,7 +34,7 @@ void SummonerSummonState::OnStateEnter()
 
 void SummonerSummonState::OnStateUpdate()
 {
-	if (!m_controller || !m_attackConfig || !m_animation)
+	if (!m_controller || !m_controller->m_attackConfig || !m_animation)
 	{
 		return;
 	}
@@ -46,14 +46,14 @@ void SummonerSummonState::OnStateUpdate()
 
 	m_stateTimer += Time::getDeltaTime();
 
-	if (!m_hasSummoned && m_stateTimer >= m_attackConfig.get()->m_summonCastTime)
+	if (!m_hasSummoned && m_stateTimer >= m_controller->m_attackConfig.get()->m_summonCastTime)
 	{
 		m_controller->summonSpidersAroundSelf();
 		m_controller->consumeSummonCooldown();
 		m_hasSummoned = true;
 	}
 
-	if (m_stateTimer >= m_attackConfig.get()->m_summonTotalDuration)
+	if (m_stateTimer >= m_controller->m_attackConfig.get()->m_summonTotalDuration)
 	{
 		AnimationAPI::sendTrigger(m_animation, "ToRecover");
 	}

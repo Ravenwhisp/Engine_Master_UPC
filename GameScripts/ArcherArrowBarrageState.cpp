@@ -57,14 +57,14 @@ void ArcherArrowBarrageState::OnStateEnter()
 
     m_archerController->updateCurrentTarget();
 
-    m_archerUI->setupArrowBarrageUI(m_attackConfig.get()->m_arrowBarrageRadius);
+    m_archerUI->setupArrowBarrageUI(m_archerController->m_attackConfig.get()->m_arrowBarrageRadius);
 
     Debug::log("[ArcherArrowBarrageState] ENTER");
 }
 
 void ArcherArrowBarrageState::OnStateUpdate()
 {
-    if (!m_archerController || !m_attackConfig || !m_attackExecutor || !m_animation)
+    if (!m_archerController || !m_archerController->m_attackConfig || !m_attackExecutor || !m_animation)
     {
         return;
     }
@@ -81,7 +81,7 @@ void ArcherArrowBarrageState::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
-    if (!m_hasLockedImpactPosition && m_stateTimer >= m_attackConfig.get()->m_arrowBarrageThrowTime)
+    if (!m_hasLockedImpactPosition && m_stateTimer >= m_archerController->m_attackConfig.get()->m_arrowBarrageThrowTime)
     {
         lockImpactPosition();
 
@@ -93,7 +93,7 @@ void ArcherArrowBarrageState::OnStateUpdate()
         m_hasLockedImpactPosition = true;
     }
 
-    const float impactTime = m_attackConfig.get()->m_arrowBarrageThrowTime + m_attackConfig.get()->m_arrowBarrageLandDelay;
+    const float impactTime = m_archerController->m_attackConfig.get()->m_arrowBarrageThrowTime + m_archerController->m_attackConfig.get()->m_arrowBarrageLandDelay;
 
     if (m_hasLockedImpactPosition && !m_hasAppliedImpact && m_stateTimer >= impactTime)
     {
@@ -109,10 +109,10 @@ void ArcherArrowBarrageState::OnStateUpdate()
 
     if (m_archerUI)
     {
-        m_archerUI->updateArrowBarrageUI(m_stateTimer, m_impactPosition, m_attackConfig.get()->m_arrowBarrageThrowTime, m_attackConfig.get()->m_arrowBarrageLandDelay, m_attackConfig.get()->m_arrowBarrageTotalDuration);
+        m_archerUI->updateArrowBarrageUI(m_stateTimer, m_impactPosition, m_archerController->m_attackConfig.get()->m_arrowBarrageThrowTime, m_archerController->m_attackConfig.get()->m_arrowBarrageLandDelay, m_archerController->m_attackConfig.get()->m_arrowBarrageTotalDuration);
     }
 
-    if (m_stateTimer >= m_attackConfig.get()->m_arrowBarrageTotalDuration)
+    if (m_stateTimer >= m_archerController->m_attackConfig.get()->m_arrowBarrageTotalDuration)
     {
         finishArrowBarrage();
         return;
@@ -149,14 +149,14 @@ void ArcherArrowBarrageState::lockImpactPosition()
     m_impactPosition = TransformAPI::getGlobalPosition(targetTransform);
 
     if (m_particles)
-        m_particles->spawnBarrageArrows(m_impactPosition, m_attackConfig.get()->m_arrowBarrageLandDelay);
+        m_particles->spawnBarrageArrows(m_impactPosition, m_archerController->m_attackConfig.get()->m_arrowBarrageLandDelay);
 
     Debug::log("[ArcherArrowBarrageState] Impact position locked: %.2f %.2f %.2f", m_impactPosition.x, m_impactPosition.y, m_impactPosition.z);
 }
 
 void ArcherArrowBarrageState::applyImpact()
 {
-    m_attackExecutor->applyDamageInRadius(m_impactPosition, m_attackConfig.get()->m_arrowBarrageRadius, m_attackConfig.get()->m_arrowBarrageDamage, "ArrowBarrage");
+    m_attackExecutor->applyDamageInRadius(m_impactPosition, m_archerController->m_attackConfig.get()->m_arrowBarrageRadius, m_archerController->m_attackConfig.get()->m_arrowBarrageDamage, "ArrowBarrage");
 
     if (m_particles)
         m_particles->spawnImpactParticle(m_impactPosition);

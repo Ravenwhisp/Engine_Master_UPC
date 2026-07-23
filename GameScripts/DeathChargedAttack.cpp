@@ -5,7 +5,6 @@
 #include "DeathSound.h"
 #include "PlayerAnimationController.h"
 #include "EnemyDamageable.h"
-#include "EnemyShadowMark.h"
 #include "BreakableDamageable.h"
 #include "DeathUI.h"
 #include "DeathConfig.h"
@@ -219,7 +218,6 @@ void DeathChargedAttack::dealDamageInArc(float damage, float range, float angle,
 	targets.insert(targets.end(), breakables.begin(), breakables.end());
     int scanned = 0;
     int hit = 0;
-    bool anyMark = false;
 
     for (GameObject* target : targets)
     {
@@ -274,17 +272,11 @@ void DeathChargedAttack::dealDamageInArc(float damage, float range, float angle,
             ctx.attacker = GameObjectAPI::getTransform(getOwner());
             ctx.attackType = PlayerAttackType::DeathCharged;
             damageable->takeDamage(ctx);
+
             tryStunTarget(target, isMaxCharge, m_config->m_chargedStunOnMaxCharge, m_config->m_chargedStunDuration);
         }
 
         hit++;
-
-        EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(target);
-        if (shadowMark != nullptr)
-        {
-            shadowMark->notifyDeathHit();
-            anyMark = true;
-        }
     }
 
     DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
@@ -295,10 +287,6 @@ void DeathChargedAttack::dealDamageInArc(float damage, float range, float angle,
         if (hit > 0 && !isChargedShot)
         {
             sound->playHeavyImpact();
-        }
-        if (anyMark)
-        {
-            sound->playMarkApply();
         }
     }
 

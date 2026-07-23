@@ -39,7 +39,7 @@ void SkeletonScimitarState::OnStateEnter()
 	m_controller->updateCurrentTarget();
 
 	m_previousAnimationSpeed = AnimationAPI::getSpeedMultiplier(m_animation);
-	AnimationAPI::setSpeedMultiplier(m_animation, m_attackConfig.get()->m_attackAnimationSpeed);
+	AnimationAPI::setSpeedMultiplier(m_animation, m_controller->m_attackConfig.get()->m_attackAnimationSpeed);
 
 	changePhase(Phase::Dash);
 
@@ -48,7 +48,7 @@ void SkeletonScimitarState::OnStateEnter()
 
 void SkeletonScimitarState::OnStateUpdate()
 {
-	if (!m_controller || !m_attackConfig.get() || !m_attackExecutor || !m_animation)
+	if (!m_controller || !m_controller->m_attackConfig.get() || !m_attackExecutor || !m_animation)
 	{
 		return;
 	}
@@ -108,7 +108,7 @@ void SkeletonScimitarState::changePhase(Phase phase)
 	m_phaseTimer = 0.0f;
 	m_hasAppliedHit = false;
 
-	if (!m_animation || !m_attackConfig.get())
+	if (!m_animation || !m_controller->m_attackConfig.get())
 	{
 		return;
 	}
@@ -130,10 +130,10 @@ void SkeletonScimitarState::updateDash()
 	Vector3 forward = TransformAPI::getForward(ownerTransform);
 	forward.y = 0.0f;
 
-	moveInDirection(forward, m_attackConfig.get()->m_scimitarDashSpeed);
+	moveInDirection(forward, m_controller->m_attackConfig.get()->m_scimitarDashSpeed);
 
-	if (m_controller->isCurrentTargetInRange(m_attackConfig.get()->m_scimitarDashStopRange) ||
-		m_phaseTimer >= m_attackConfig.get()->m_scimitarDashDuration)
+	if (m_controller->isCurrentTargetInRange(m_controller->m_attackConfig.get()->m_scimitarDashStopRange) ||
+		m_phaseTimer >= m_controller->m_attackConfig.get()->m_scimitarDashDuration)
 	{
 		changePhase(Phase::Attack1);
 		return;
@@ -185,9 +185,9 @@ void SkeletonScimitarState::updateBackstep()
 	Vector3 backward = -TransformAPI::getForward(ownerTransform);
 	backward.y = 0.0f;
 
-	moveInDirection(backward, m_attackConfig.get()->m_stepBackSpeed);
+	moveInDirection(backward, m_controller->m_attackConfig.get()->m_stepBackSpeed);
 
-	if (m_phaseTimer >= m_attackConfig.get()->m_stepBackDuration)
+	if (m_phaseTimer >= m_controller->m_attackConfig.get()->m_stepBackDuration)
 	{
 		changePhase(Phase::Attack3);
 		return;
@@ -217,10 +217,10 @@ void SkeletonScimitarState::applyHit(bool shouldStun)
 			currentTarget,
 			center,
 			forward,
-			m_attackConfig.get()->m_scimitarStunHitRange,
-			m_attackConfig.get()->m_scimitarHalfAngleDegrees,
-			m_attackConfig.get()->m_basicAttackDamage,
-			m_attackConfig.get()->m_scimitarStunDuration,
+			m_controller->m_attackConfig.get()->m_scimitarStunHitRange,
+			m_controller->m_attackConfig.get()->m_scimitarHalfAngleDegrees,
+			m_controller->m_attackConfig.get()->m_basicAttackDamage,
+			m_controller->m_attackConfig.get()->m_scimitarStunDuration,
 			"SkeletonScimitar"
 		);
 	}
@@ -230,9 +230,9 @@ void SkeletonScimitarState::applyHit(bool shouldStun)
 			currentTarget,
 			center,
 			forward,
-			m_attackConfig.get()->m_basicAttackRange,
-			m_attackConfig.get()->m_scimitarHalfAngleDegrees,
-			m_attackConfig.get()->m_basicAttackDamage,
+			m_controller->m_attackConfig.get()->m_basicAttackRange,
+			m_controller->m_attackConfig.get()->m_scimitarHalfAngleDegrees,
+			m_controller->m_attackConfig.get()->m_basicAttackDamage,
 			"SkeletonScimitar"
 		);
 	}
@@ -283,12 +283,12 @@ void SkeletonScimitarState::goToChase()
 
 float SkeletonScimitarState::getScimitarAttackClipDuration() const
 {
-	return m_attackConfig.get()->m_attackClipDuration / m_attackConfig.get()->m_attackAnimationSpeed;
+	return m_controller->m_attackConfig.get()->m_attackClipDuration / m_controller->m_attackConfig.get()->m_attackAnimationSpeed;
 }
 
 float SkeletonScimitarState::getScimitarAttackHitTime() const
 {
-	return getScimitarAttackClipDuration() * m_attackConfig.get()->m_attackHitTime;
+	return getScimitarAttackClipDuration() * m_controller->m_attackConfig.get()->m_attackHitTime;
 }
 
 IMPLEMENT_SCRIPT(SkeletonScimitarState)

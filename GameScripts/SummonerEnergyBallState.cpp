@@ -39,7 +39,7 @@ void SummonerEnergyBallState::OnStateEnter()
 
 void SummonerEnergyBallState::OnStateUpdate()
 {
-	if (!m_controller || !m_attackConfig || !m_animation)
+	if (!m_controller || !m_controller->m_attackConfig || !m_animation)
 	{
 		return;
 	}
@@ -53,14 +53,14 @@ void SummonerEnergyBallState::OnStateUpdate()
 
 	m_stateTimer += Time::getDeltaTime();
 
-	if (!m_hasFiredEnergyBall && m_stateTimer >= m_attackConfig.get()->m_basicAttackWindupTime)
+	if (!m_hasFiredEnergyBall && m_stateTimer >= m_controller->m_attackConfig.get()->m_basicAttackWindupTime)
 	{
 		spawnEnergyBall();
 		m_controller->consumeAttackCooldown();
 		m_hasFiredEnergyBall = true;
 	}
 
-	if (m_stateTimer >= m_attackConfig.get()->m_basicAttackTotalDuration)
+	if (m_stateTimer >= m_controller->m_attackConfig.get()->m_basicAttackTotalDuration)
 	{
 		AnimationAPI::sendTrigger(m_animation, "ToIdle");
 		return;
@@ -77,7 +77,7 @@ void SummonerEnergyBallState::OnStateExit()
 
 void SummonerEnergyBallState::spawnEnergyBall()
 {
-	if (!m_controller || !m_attackConfig)
+	if (!m_controller || !m_controller->m_attackConfig)
 	{
 		return;
 	}
@@ -126,10 +126,10 @@ void SummonerEnergyBallState::spawnEnergyBall()
 	projectile->launch(
 		spawnPosition,
 		direction,
-		m_attackConfig.get()->m_energyBallSpeed,
-		m_attackConfig.get()->m_energyBallLifetime,
+		m_controller->m_attackConfig.get()->m_energyBallSpeed,
+		m_controller->m_attackConfig.get()->m_energyBallLifetime,
 		targetObject,
-		m_attackConfig.get()->m_basicAttackDamage
+		m_controller->m_attackConfig.get()->m_basicAttackDamage
 	);
 }
 

@@ -22,6 +22,8 @@ ArthurBossController::ArthurBossController(GameObject* owner) : EnemyBaseControl
 
 void ArthurBossController::Start()
 {
+	EnemyBaseController::Start();
+
 	m_arthurDetectionAggro = GameObjectAPI::findScript<ArthurDetectionAggro>(getOwner());
 
 	if (!m_arthurDetectionAggro)

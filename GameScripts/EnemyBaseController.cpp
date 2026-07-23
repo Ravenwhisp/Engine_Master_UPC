@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "EnemyBaseController.h"
+#include "EnemyBaseAttackConfig.h"
 
 #include "Damageable.h"
+#include "EnemyBaseAttackConfig.h"
 #include "EnemySound.h"
 
 static const char* navAgentProfileNames[] =
@@ -25,6 +27,17 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyBaseController,
 EnemyBaseController::EnemyBaseController(GameObject* owner)
     : Script(owner)
 {
+}
+
+void EnemyBaseController::Start()
+{
+    const EnemyBaseAttackConfig* cfg = getAttackConfig();
+    if (cfg)
+    {
+        m_moveSpeed = cfg->m_moveSpeed;
+        m_recoveryDuration = cfg->m_recoveryDuration;
+        m_stunnedDuration = cfg->m_stunnedDuration;
+    }
 }
 
 void EnemyBaseController::updateCurrentTarget()
@@ -86,6 +99,22 @@ bool EnemyBaseController::isCurrentTargetInRange(float range) const
     }
 
     return getDistanceToCurrentTarget() <= range;
+}
+
+bool EnemyBaseController::isTargetInAttackRange() const
+{
+    if (!hasValidTarget())
+    {
+        return false;
+    }
+
+    const EnemyBaseAttackConfig* cfg = getAttackConfig();
+    if (!cfg)
+    {
+        return false;
+    }
+
+    return isCurrentTargetInRange(cfg->m_basicAttackRange);
 }
 
 void EnemyBaseController::faceCurrentTarget()

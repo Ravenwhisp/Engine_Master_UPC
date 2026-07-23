@@ -8,7 +8,6 @@
 #include "PlayerRotation.h"
 #include "PlayerState.h"
 #include "EnemyDamageable.h"
-#include "EnemyShadowMark.h"
 #include "BreakableDamageable.h"
 #include "DeathUI.h"
 #include "DeathConfig.h"
@@ -223,16 +222,6 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
             if (sound != nullptr)
             {
                 sound->playLightImpact();
-            }
-
-            EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(enemy);
-            if (shadowMark != nullptr)
-            {
-                shadowMark->notifyDeathHit();
-                if (sound != nullptr)
-                {
-                    sound->playMarkApply();
-                }
             }
         };
 

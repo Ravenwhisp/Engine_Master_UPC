@@ -4,7 +4,6 @@
 #include "StateMachineScript.h"
 
 class RangedEnemyController;
-class ArcherAttackConfig;
 class EnemyAttackExecutor;
 class AnimationComponent;
 class ArcherUI;
@@ -29,7 +28,6 @@ private:
 
 private:
     RangedEnemyController* m_archerController = nullptr;
-    AssetReference<ArcherAttackConfig> m_attackConfig;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
     ArcherUI* m_archerUI = nullptr;

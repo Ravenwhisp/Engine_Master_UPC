@@ -8,8 +8,6 @@
 #include "LyrielArrowProjectile.h"
 #include "EnemyDamageable.h"
 #include "PlayerState.h"
-#include "PersistingPowerupState.h"
-#include "EnemyShadowMark.h"
 #include "BreakableDamageable.h"
 #include "LyrielUI.h"
 #include "LyrielConfig.h"
@@ -190,7 +188,7 @@ void LyrielArrowVolley::releaseAimAndCast()
 
     std::vector<Damageable*> targets;
     collectEnemiesInCone(origin, forward, targets);
-    const bool anyMarkExploited = applyVolleyDamage(targets);
+    applyVolleyDamage(targets);
     spawnVolleyArrows(origin, forward);
     notifyAbilitySuccessfullyStarted();
 
@@ -198,10 +196,6 @@ void LyrielArrowVolley::releaseAimAndCast()
     if (sound != nullptr)
     {
         sound->playVolleyRelease();
-        if (anyMarkExploited)
-        {
-            sound->playMarkExploit();
-        }
     }
 
     beginAttackPresentation();
@@ -302,10 +296,8 @@ void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector
     }
 }
 
-bool LyrielArrowVolley::applyVolleyDamage(const std::vector<Damageable*>& targets)
+void LyrielArrowVolley::applyVolleyDamage(const std::vector<Damageable*>& targets)
 {
-    bool anyMarkExploited = false;
-
     for (Damageable* target : targets)
     {
         if (target == nullptr)
@@ -318,35 +310,23 @@ bool LyrielArrowVolley::applyVolleyDamage(const std::vector<Damageable*>& target
             EnemyHitContext ctx;
             ctx.damage = m_lyrielCharacter->getConfig()->m_volleyDamage;
             ctx.attacker = GameObjectAPI::getTransform(getOwner());
-
-            if (PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1))
-            {
-                EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(target->getOwner());
-
-                if (mark != nullptr && mark->isExploitable())
-                {
-                    mark->exploit();
-					ctx.attackType = PlayerAttackType::ShadowMarkExploit;
-                    anyMarkExploited = true;
-                    if (m_lyrielCharacter != nullptr)
-                        m_lyrielCharacter->onMarkExploited();
-                }
-                else
-                {
-                    ctx.attackType = PlayerAttackType::LyrielVolley;
-                }
-            }
+            ctx.attackType = PlayerAttackType::LyrielVolley;
 
             enemyDamageable->takeDamage(ctx);
+
+            if (enemyDamageable->lastHitExploitShadowMark() && m_lyrielCharacter != nullptr)
+            {
+                m_lyrielCharacter->onMarkExploited();
+            }
+
             continue;
         }
-        else if(BreakableDamageable* breakableDamageable = dynamic_cast<BreakableDamageable*>(target))
+
+        if (BreakableDamageable* breakableDamageable = dynamic_cast<BreakableDamageable*>(target))
         {
             breakableDamageable->takeDamage(m_lyrielCharacter->getConfig()->m_volleyDamage);
 		} 
     }
-
-    return anyMarkExploited;
 }
 
 void LyrielArrowVolley::spawnVolleyArrows(const Vector3& origin, const Vector3& forward)

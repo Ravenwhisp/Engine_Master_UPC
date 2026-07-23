@@ -58,16 +58,18 @@ void PaladinChargeState::OnStateEnter()
 
 void PaladinChargeState::OnStateUpdate()
 {
-	if (!m_paladinController || !m_attackConfig.get() || !m_animation)
+	if (!m_paladinController || !m_paladinController->m_attackConfig.get() || !m_animation)
 	{
 		stopChargeAttackEffect();
 		return;
+
 	}
 
 	if (m_paladinController->trySendDeathTrigger(m_animation))
 	{
 		stopChargeAttackEffect();
 		return;
+
 	}
 
 	if (m_paladinController->trySendStunTrigger(m_animation))
@@ -86,7 +88,7 @@ void PaladinChargeState::OnStateUpdate()
 
 	moveCharge();
 
-	if (m_stateTimer >= m_attackConfig.get()->m_chargeDuration || m_paladinController->isTargetInAttackRange())
+	if (m_stateTimer >= m_paladinController->m_attackConfig.get()->m_chargeDuration || m_paladinController->isTargetInAttackRange())
 	{
 		finishCharge();
 		return;
@@ -113,7 +115,7 @@ void PaladinChargeState::moveCharge()
 		return;
 	}
 
-	if (!m_attackConfig)
+	if (!m_paladinController->m_attackConfig)
 	{
 		return;
 	}
@@ -133,7 +135,7 @@ void PaladinChargeState::moveCharge()
 	Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 	Vector3 desiredPosition = ownerPosition;
 
-	desiredPosition += m_chargeDirection * m_attackConfig.get()->m_chargeSpeed * Time::getDeltaTime();
+	desiredPosition += m_chargeDirection * m_paladinController->m_attackConfig.get()->m_chargeSpeed * Time::getDeltaTime();
 
 	Vector3 nextPosition;
 

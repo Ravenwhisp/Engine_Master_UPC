@@ -17,7 +17,7 @@ public:
 	void Update() override;
 	FieldList getExposedFields() const override;
 
-	bool isTargetInAttackRange() const;
+	const EnemyBaseAttackConfig* getAttackConfig() const override;
 
 	bool isTeleportReady() const;
 	void consumeTeleportCooldown();
@@ -43,9 +43,11 @@ private:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-	AssetReference<SummonerAttackConfig> m_attackConfig;
 
 	float m_attackCooldownTimer = 0.0f;
 	float m_teleportCooldownTimer = 0.0f;
 	float m_summonCooldownTimer = 0.0f;
+
+public:
+	AssetReference<SummonerAttackConfig> m_attackConfig;
 };
