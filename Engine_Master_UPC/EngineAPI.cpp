@@ -1957,15 +1957,24 @@ namespace NavigationAPI
             return false;
         }
 
-        dtPolyRef lastRef = (visitedCount > 0) ? visited[visitedCount - 1] : startRef;
-
-        float height = result[1];
-        if (dtStatusFailed(query->getPolyHeight(lastRef, result, &height)))
+        const dtPolyRef lastRef = visitedCount > 0 ? visited[visitedCount - 1] : startRef;
+        
+        if (!lastRef)
         {
             return false;
         }
 
-        outResultPosition = Vector3(result[0], height, result[2]);
+        float resultOnPoly[3] = {};
+        bool isOverPoly = false;
+
+        const dtStatus closestStatus = query->closestPointOnPoly(lastRef, result, resultOnPoly, &isOverPoly);
+
+        if (dtStatusFailed(closestStatus))
+        {
+            return false;
+        }        
+
+        outResultPosition = Vector3(resultOnPoly[0], resultOnPoly[1], resultOnPoly[2]);
         return true;
     }
 
