@@ -251,7 +251,6 @@
     <ClInclude Include="AbilityBase.h" />
     <ClInclude Include="AbilityDash.h" />
     <ClInclude Include="AmbientSoundLoop.h" />
-    <ClInclude Include="AnimationOverrideTester.h" />
     <ClInclude Include="ArcherArrowBarrageState.h" />
     <ClInclude Include="ArcherArrowProjectile.h" />
     <ClInclude Include="ArcherArrowShooter.h" />
@@ -363,7 +362,6 @@
     <ClInclude Include="PaladinAttackConfig.h" />
     <ClInclude Include="PaladinChargeState.h" />
     <ClInclude Include="PaladinChaseState.h" />
-    <ClInclude Include="NavBlockerTest.h" />
     <ClInclude Include="PaladinSound.h" />
     <ClInclude Include="PaladinVFX.h" />
     <ClInclude Include="ParticleManager.h" />
@@ -420,7 +418,6 @@
     <ClCompile Include="AbilityBase.cpp" />
     <ClCompile Include="AbilityDash.cpp" />
     <ClCompile Include="AmbientSoundLoop.cpp" />
-    <ClCompile Include="AnimationOverrideTester.cpp" />
     <ClCompile Include="ArcherArrowBarrageState.cpp" />
     <ClCompile Include="ArcherArrowProjectile.cpp" />
     <ClCompile Include="ArcherArrowShooter.cpp" />
@@ -528,7 +525,6 @@
     <ClCompile Include="PaladinAttackConfig.cpp" />
     <ClCompile Include="PaladinChargeState.cpp" />
     <ClCompile Include="PaladinChaseState.cpp" />
-    <ClCompile Include="NavBlockerTest.cpp" />
     <ClCompile Include="PaladinSound.cpp" />
     <ClCompile Include="PaladinVFX.cpp" />
     <ClCompile Include="ParticleManager.cpp" />
@@ -577,7 +573,6 @@
     <ClCompile Include="SpiderChaseState.cpp" />
     <ClCompile Include="SpiderEnemyController.cpp" />
     <ClCompile Include="SpikeTrap.cpp" />
-    <ClCompile Include="SummonerAttackConfig.cpp" />
     <ClCompile Include="SummonerEnemyController.cpp" />
     <ClCompile Include="SummonerEnergyBallState.cpp" />
     <ClCompile Include="SummonerIdleState.cpp" />

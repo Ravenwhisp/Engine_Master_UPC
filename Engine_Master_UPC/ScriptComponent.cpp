@@ -71,6 +71,7 @@ void ScriptComponent::update()
     {
         m_script->Start();
         m_hasStarted = true;
+        return;
     }
 
     m_script->Update();
