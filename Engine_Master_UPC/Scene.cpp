@@ -26,6 +26,8 @@
 #include "TriggerSystem.h"
 #include "TriggerComponent.h"
 
+#include "ScriptComponent.h"
+
 #include <limits>
 #include <algorithm>
 
@@ -628,6 +630,15 @@ void Scene::clearScene()
     m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
     markDirty();
+}
+
+void Scene::onGameStop()
+{
+    auto scriptComponents = app->getModuleScene()->getScriptComponents();
+    for (auto scriptComponent : scriptComponents)
+    {
+        scriptComponent->onGameStop();
+    }
 }
 
 void Scene::markDirty()

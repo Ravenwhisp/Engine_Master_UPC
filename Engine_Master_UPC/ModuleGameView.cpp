@@ -61,6 +61,7 @@ void ModuleGameView::startGameSimulation()
 void ModuleGameView::stopGameSimulation()
 {
 	m_moduleScene->clearRuntimeSceneSystems();
+	m_moduleScene->onGameStop();
 
 	m_moduleScene->loadFromSnapshot(*m_sceneCloned.get());
 	m_sceneCloned.reset();
