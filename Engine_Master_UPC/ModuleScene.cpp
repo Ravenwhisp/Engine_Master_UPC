@@ -43,6 +43,11 @@ void ModuleScene::requestSceneChange(std::shared_ptr<Scene> scene)
     m_pendingScene = std::move(scene);
 }
 
+void ModuleScene::onGameStop()
+{
+    m_scene->onGameStop();
+}
+
 #pragma region GameLoop
 bool ModuleScene::init()
 {

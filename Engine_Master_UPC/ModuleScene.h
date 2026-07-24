@@ -69,6 +69,8 @@ public:
     void requestSceneChange(std::shared_ptr<Scene> scene);
 
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
+
+    void onGameStop();
 #pragma endregion
 
 #pragma region SnapShot 
