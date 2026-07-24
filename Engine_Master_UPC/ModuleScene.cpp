@@ -112,31 +112,32 @@ void ModuleScene::rebuildComponentCaches()
         {
             continue;
         }
-
-        if (auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+        for (Component* component : go->GetAllComponents())
         {
-            m_meshRenderers.push_back(mesh);
-        }
+            if (component->getType() == ComponentType::MODEL)
+            {
+                m_meshRenderers.push_back(static_cast<MeshRenderer*>(component));
+            }
 
+            else if (component->getType() == ComponentType::LIGHT)
+            {
+                m_lightComponents.push_back(static_cast<LightComponent*>(component));
+            }
 
-        if (auto* light = go->GetComponentAs<LightComponent>(ComponentType::LIGHT))
-        {
-            m_lightComponents.push_back(light);
-        }
+            else if (component->getType() == ComponentType::SCRIPT)
+            {
+                m_scriptComponents.push_back(static_cast<ScriptComponent*>(component));
+            }
 
-        if (auto* script = go->GetComponentAs<ScriptComponent>(ComponentType::SCRIPT))
-        {
-            m_scriptComponents.push_back(script);
-        }
+            else if (component->getType() == ComponentType::PARTICLE_SYSTEM)
+            {
+                m_particleSystemComponents.push_back(static_cast<ParticleSystemComponent*>(component));
+            }
 
-        if (auto* particleSystem = go->GetComponentAs<ParticleSystemComponent>(ComponentType::PARTICLE_SYSTEM))
-        {
-            m_particleSystemComponents.push_back(particleSystem);
-        }
-
-        if (auto* particleSystem = go->GetComponentAs<TrailComponent>(ComponentType::TRAIL))
-        {
-            m_trailComponents.push_back(particleSystem);
+            else if (component->getType() == ComponentType::TRAIL)
+            {
+                m_trailComponents.push_back(static_cast<TrailComponent*>(component));
+            }
         }
     }
 
