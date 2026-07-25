@@ -23,6 +23,8 @@ void ModuleParticleSystem::resetAllParticles()
         currentParticleSystemComponent->setLocalTimeScale(1.f); // FOR NOW, SO THAT TRANSITION TO PLAY MODE WORKS WELL
     }
 
+    m_firstUsed = m_firstFree;
+
     m_timeScale = 1.f; // ALSO FOR NOW, FOR THE SAME REASON
 }
 
@@ -76,7 +78,7 @@ void ModuleParticleSystem::initSlotManagement()
         m_slots[i] = i + 1;
     }
 
-    m_firstFree = 0;
+    m_firstFree = m_firstUsed = 0; // used here means nothing, but it will be true once we reserve the first slot
 }
 
 void ModuleParticleSystem::preRender()
@@ -97,11 +99,23 @@ void ModuleParticleSystem::preRender()
 
 void ModuleParticleSystem::update()
 {
-    if (app->getCurrentEngineState() != ENGINE_STATE::EDITOR) return;
+    if (app->getCurrentEngineState() == ENGINE_STATE::PAUSED) return;
 
+    /*
     for (auto& currentParticleSystemComponent : app->getModuleScene()->getParticleSystemComponents())
     {
         currentParticleSystemComponent->update();
+    }
+    */
+
+    for (auto& currentParticleSystemComponent : app->getModuleScene()->getParticleSystemComponents())
+    {
+        currentParticleSystemComponent->updateSpawn();
+    }
+
+    for (auto& currentParticleSystemComponent : app->getModuleScene()->getParticleSystemComponents())
+    {
+        currentParticleSystemComponent->updateTheRest();
     }
 }
 
@@ -139,10 +153,20 @@ bool ModuleParticleSystem::removeSystem(ParticleSystem* system)
 }
 */
 
-int ModuleParticleSystem::requestPoolSlot()
+int ModuleParticleSystem::requestPoolSlot(EmitterInstance* newOwner)
 {
 
-    if (m_firstFree == m_slots[m_firstFree]) return -1; // because the slot points to itself, which indicates used
+    if (m_firstFree == m_slots[m_firstFree]) { // the slot points to itself => used
+
+        int slot = m_firstUsed;
+        m_firstUsed = (++m_firstUsed) % MAX_PARTICLES; // move to next in the pool (approximated)
+
+        m_pool[slot].moved = true;  // "mark" for the original owner
+
+        m_pool[slot].owner->removeNewParticle(slot); // in case it was a new one for the original owner (makes sense since we are doing the spawn first for all the emitters)
+        m_pool[slot].owner = newOwner;
+        return slot;
+    }
 
     int slot = m_firstFree;
 
@@ -150,17 +174,18 @@ int ModuleParticleSystem::requestPoolSlot()
 
     m_slots[slot] = slot; // mark as used
 
+    m_pool[slot].owner = newOwner;
     return slot;
 }
 
 void ModuleParticleSystem::freePoolSlot(unsigned int index) 
 {
+    if (index == m_firstUsed) m_firstUsed = (++m_firstUsed) % MAX_PARTICLES; // move to next in the pool (approximated)
+
     m_slots[index] = m_firstFree; // Set next free (because we are adding the index slot as the new first)
 
     m_firstFree = index; // Update first
 }
-
-
 
 void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* particleSystemComponent)
 {

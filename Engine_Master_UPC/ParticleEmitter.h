@@ -7,6 +7,7 @@
 #include <vector>
 #include <utility>
 
+class EmitterSpawn;
 class EmitterLifetime;
 class EmitterAnimation;
 
@@ -23,6 +24,7 @@ public:
 	void setTexture(Texture* texture) { m_texture = texture; }
 	Texture* getTexture() { return m_texture; }
 
+	EmitterSpawn* getSpawnModule() { return m_spawnModule; }
 	EmitterLifetime* getLifetimeModule() { return m_lifetimeModule; }
 	EmitterAnimation* getAnimationModule() { return m_animationModule;  }
 	EmitterRender* getRenderModule() { return m_renderModule; }
@@ -34,6 +36,7 @@ private:
 	Texture* m_texture = nullptr;
 	
 	std::vector<std::unique_ptr<ParticleModule>> m_particleModules;
+	EmitterSpawn* m_spawnModule;
 	EmitterLifetime* m_lifetimeModule;
 	EmitterAnimation* m_animationModule;
 	EmitterRender* m_renderModule;

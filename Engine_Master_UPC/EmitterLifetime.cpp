@@ -24,7 +24,12 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 		{
 			unsigned int poolIndex = aliveParticles[i].second;
 
-			if (particlePool[poolIndex].lifeTime == 0.f) 
+			if (particlePool[poolIndex].moved)  // => reused on some emitter because no free slots (has to be removed)
+			{
+				eraseBySwap(aliveParticles, i);
+				particlePool[poolIndex].moved = false;
+			}
+			else if (particlePool[poolIndex].lifeTime == 0.f) 
 			{
 				// Remove from alives
 				// aliveParticles->erase(aliveParticles->begin() + i); <- Should not need to be brough back

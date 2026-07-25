@@ -35,6 +35,8 @@ public:
     void drawUi() override;
 
     void update() override;
+    void updateSpawn();
+    void updateTheRest();
 
     void serialize(IArchive& archive) override;
 

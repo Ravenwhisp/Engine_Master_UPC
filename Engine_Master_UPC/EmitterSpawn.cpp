@@ -24,16 +24,14 @@ void EmitterSpawn::update(EmitterInstance* instance)
 
 	while (spawn >= 1.0f)
 	{
-		int index = moduleParticleSystem->requestPoolSlot();
-		if (index == -1)
-			break;
+		int index = moduleParticleSystem->requestPoolSlot(instance);
 
 		newParticles.push_back(index);
 
 		spawn -= 1.0f;
 	}
 
-	spawn = spawn - static_cast<long>(spawn);
+	//spawn = spawn - static_cast<long>(spawn);
 
 	instance->setParticlesToSpawn(spawn);
 

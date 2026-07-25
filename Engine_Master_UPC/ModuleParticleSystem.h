@@ -27,6 +27,9 @@ struct Particle {
     float startLifeTime; //
 
     float lifeTime = 0.f;
+
+    EmitterInstance* owner;
+    bool moved = false; // means it has been reused on a different emitter, or on the same one (instead of taking a free slot) 
 };
 
 
@@ -48,7 +51,7 @@ public:
     auto& getPool() { return m_pool; }
 
     // Slot management functions //
-    int requestPoolSlot(); // returns a free pool slot, -1 if none available
+    int requestPoolSlot(EmitterInstance* newOwner); // returns a free pool slot, or an old used if no one is free (and assigns the specified owner to it)
 
     void freePoolSlot(unsigned int index); // frees the slot at the index (BUT DOES NOT CHANGE THE OTHER ARRAY!)
 
@@ -77,7 +80,7 @@ private:
     // Slot management data
     std::array <unsigned int, MAX_PARTICLES> m_slots; // contains for each particle the next free (or self if nothing free)
     unsigned int m_firstFree;
-
+    unsigned int m_firstUsed; // approximation, for claiming if there are no free slots
 
     std::vector<ParticleEmitterCommand> m_particleCommands; // we will probably want to directly get the shader parameters in the future
     std::unordered_map<MD5Hash, std::shared_ptr<Texture>> m_particleTextures;
