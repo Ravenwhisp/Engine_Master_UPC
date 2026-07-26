@@ -106,5 +106,5 @@ namespace Engine
 
 float uniform_rand(); // returns a random value between 0 and 1
 
-#include <rapidjson/document.h>
+
 

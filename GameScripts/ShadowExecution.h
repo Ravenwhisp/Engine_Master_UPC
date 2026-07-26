@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 #include <vector>
@@ -25,7 +25,7 @@ public:
     void Update()    override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     bool isActive() const { return m_isActive; }
 
@@ -35,8 +35,7 @@ public:
     float m_instaKillThreshold = 0.20f;
     float m_standardDamage     = 0.10f;
 
-    // Ruta del prefab de partículas (ajustable desde el editor si lo expones)
-    const char* m_particlePrefabPath = "Assets/Prefabs/Particles/Death/ShadowExecution.prefab";
+    PrefabRef m_particlePrefab;
 
 private:
     void cachePlayers();
@@ -67,9 +66,9 @@ private:
     std::vector<SpawnedPrefab> m_temporaryPrefabs;
 
 public:
-    ScriptComponentRef<UISlider> m_reaperGaugeBar;
-    ScriptComponentRef<Transform> m_executionCanvas;
-    ScriptComponentRef<Transform2D> m_executionSprite;
+    ComponentRef<UISlider> m_reaperGaugeBar;
+    ComponentRef<Transform> m_executionCanvas;
+    ComponentRef<Transform2D> m_executionSprite;
 
 private:
     UISlider* m_reaperGaugeSlider = nullptr;

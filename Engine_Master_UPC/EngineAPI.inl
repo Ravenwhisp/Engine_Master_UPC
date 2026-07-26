@@ -1,9 +1,11 @@
 #pragma once
 
+
 #include "GameObject.h"
 #include "Component.h"
 #include "Script.h"
 #include <vector>
+#include "EngineAPI.h"
 
 template<typename T>
 T* GameObjectAPI::findScript(GameObject* gameObject)
@@ -62,6 +64,7 @@ const T* GameObjectAPI::findScript(const GameObject* gameObject)
 
     return nullptr;
 }
+
 
 template<typename T>
 std::vector<GameObject*> SceneAPI::findAllGameObjectsWithScript()

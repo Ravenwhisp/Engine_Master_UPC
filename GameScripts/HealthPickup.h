@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -17,13 +17,13 @@ public:
     void Update() override;
     void OnTriggerEnter(GameObject* player) override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void setupDrop(float healAmount, const Vector3& landingPosition);
 
 public:
     float   m_healAmount            = 10.0f;
-    std::string m_collectParticlePrefabPath = "";
+    PrefabRef m_collectParticlePrefab;
     float   m_spawnHeight           = 1.5f;   // fallback height when no custom spawn-from
     float   m_fallGravity           = 8.0f;
     Vector3 m_landingPosition       = Vector3::Zero;  // target floor position, set by spawner

@@ -5,7 +5,6 @@
 class LyrielSound;
 class LyrielUI;
 class LyrielCharacter;
-class LyrielConfig;
 class LyrielParticles;
 
 class LyrielDash : public AbilityDash
@@ -33,7 +32,6 @@ protected:
 
 private:
     LyrielCharacter* m_lyrielCharacter = nullptr;
-    LyrielConfig* m_config = nullptr;
     LyrielUI* m_lyrielUI = nullptr;
 
     int m_currentCharges = 0;

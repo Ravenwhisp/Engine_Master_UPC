@@ -50,7 +50,7 @@ std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) 
     return cloned;
 }
 
-void ParticleSystemComponent::setTextureAssetReference(AssetReference& assetRef)
+void ParticleSystemComponent::setTextureAssetId(AssetId& assetRef)
 {
     m_textureAsset = assetRef;
 }
@@ -85,7 +85,7 @@ void ParticleSystemComponent::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            AssetId* assetRef = app->getModuleAssets()->findReference(*ref);
             if (assetRef)
             {
                 m_textureAsset = *assetRef;

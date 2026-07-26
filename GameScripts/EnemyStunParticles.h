@@ -1,6 +1,5 @@
-#pragma once
+﻿#pragma once
 #include "ScriptAPI.h"
-#include <string>
 
 class EnemyStunParticles : public Script
 {
@@ -8,9 +7,9 @@ class EnemyStunParticles : public Script
 public:
     explicit EnemyStunParticles(GameObject* owner);
     void Start() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
-    std::string m_stunPrefab   = "Assets/Prefabs/Particles/Stun/StunSoul.prefab";
+    PrefabRef m_stunPrefab;
     float       m_heightOffset = 2.0f;
 
     // Called by EnemyStunnedState

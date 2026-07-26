@@ -1,13 +1,13 @@
 #pragma once
 
-#include "ScriptFieldInfo.h"
+#include "IFieldContainer.h"
 
 #include "ScriptMethodInfo.h"
 #include "ScriptMethodList.h"
 
 class GameObject;
 
-class Script
+class Script : public IFieldContainer
 {
 public:
     explicit Script(GameObject* owner) : m_owner(owner) {}
@@ -19,21 +19,10 @@ public:
     virtual void OnTriggerEnter(GameObject* gameObject) {}
     virtual void OnTriggerExit(GameObject* gameObject) {}
 
-    virtual ScriptFieldList getExposedFields() const
-    {
-        return {};
-    }
-
     virtual ScriptMethodList getExposedMethods() const
     {
         return {};
     }
-
-    //Used when changing a field in the inspector must trigger some extra action
-    virtual void onFieldEdited(const ScriptFieldInfo& field) {}
-
-    //Used when needing to rebuild runtime state after deserializing a field
-    virtual void onAfterDeserialize() {}
 
     //Used when needing to rebuild runtime state after fixing references
     virtual void onAfterReferencesFixed() {}

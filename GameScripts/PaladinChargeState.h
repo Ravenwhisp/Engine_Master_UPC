@@ -4,7 +4,6 @@
 #include "StateMachineScript.h"
 
 class MeleeEnemyController;
-class PaladinAttackConfig;
 class AnimationComponent;
 class PaladinSound;
 class PaladinVFX;
@@ -23,12 +22,12 @@ public:
 private:
 	void moveCharge();
 	void finishCharge();
+	void cancelCharge();
 
 	void stopChargeAttackEffect();
 
 private:
 	MeleeEnemyController* m_paladinController = nullptr;
-	PaladinAttackConfig* m_attackConfig = nullptr;
 	AnimationComponent* m_animation = nullptr;
 	PaladinSound* m_paladinSound = nullptr;
 	PaladinVFX* m_paladinVFX = nullptr;

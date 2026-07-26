@@ -28,7 +28,7 @@ void ModuleParticleSystem::resetAllParticles()
     m_timeScale = 1.f; // ALSO FOR NOW, FOR THE SAME REASON
 }
 
-Texture* ModuleParticleSystem::resolveTexture(AssetReference& textureRef)
+Texture* ModuleParticleSystem::resolveTexture(AssetId& textureRef)
 {
     if (!textureRef.isValid())
     {
@@ -194,7 +194,7 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
         return;
     }
 
-    AssetReference& textureRef = particleSystemComponent->getTextureAssetReference();
+    AssetId& textureRef = particleSystemComponent->getTextureAssetId();
     Texture* texture = resolveTexture(textureRef);
     if (!texture)
     {

@@ -1,21 +1,22 @@
-﻿#pragma once
+#pragma once
 #include "Module.h"
 #include "AssetIndex.h"
 #include "ImporterRegistry.h"
 #include "AssetCache.h"
+#ifndef GAME_RELEASE
 #include "AssetFileDialog.h"
-#include "AssetReference.h"
+#endif
 #include <filesystem>
-#include <memory>
-#include <unordered_map>
-#include <vector>
 
+struct AssetId;
 class AssetScanner;
 class ContentRegistry;
 class PrefabManager;
 struct DependencyRecord;
 struct ScanFileResult;
+
 struct Metadata;
+class DataContainer;
 
 class ModuleAssets : public Module
 {
@@ -29,14 +30,10 @@ public:
 
 #pragma region Load
     template<typename T>
-    std::shared_ptr<T> load(AssetReference& ref);
+    std::shared_ptr<T> load(AssetId& ref);
 
-
-    template<typename T>
-    std::shared_ptr<T> loadAtPath(const std::filesystem::path& sourcePath);
-
-    bool isLoaded(const AssetReference& id);
-    void unload(const AssetReference& id);
+    bool isLoaded(const AssetId& id);
+    void unload(const AssetId& id);
 #pragma endregion
 
 #pragma region Save
@@ -44,7 +41,7 @@ public:
 #pragma endregion
 
 #pragma region Import
-    void importAsset(const std::filesystem::path& sourcePath, AssetReference& reference);
+    void importAsset(const std::filesystem::path& sourcePath, AssetId& reference);
     bool canImport(const std::filesystem::path& sourcePath) const;
     void registerSubAsset(const Metadata& meta, const UID& parentUID, uint8_t* binaryData, size_t binarySize);
 #pragma endregion
@@ -62,20 +59,22 @@ public:
     AssetIndex& getIndex()           { return m_index; }
     ImporterRegistry& getImporters() { return m_importers; }
 
-    AssetReference* findReference(const UID& uid);
+    AssetId* findReference(const UID& uid);
 
     void refresh();
 
 private:
-    bool persistAsset(Asset* asset, Importer* importer, AssetReference& reference, const std::filesystem::path& sourcePath);
+    bool persistAsset(Asset* asset, Importer* importer, AssetId& reference, const std::filesystem::path& sourcePath);
 
     AssetIndex                           m_index;
     ImporterRegistry                     m_importers;
     AssetCache                           m_cache;
+#ifndef GAME_RELEASE
     AssetFileDialog                      m_dialog;
 
     std::unique_ptr<AssetScanner>        m_scanner;
     std::unique_ptr<ContentRegistry>     m_contentRegistry;
+#endif
     std::unique_ptr<PrefabManager>       m_prefabManager;
 
     std::unordered_map<UID, std::vector<DependencyRecord>> m_pendingDependencies;

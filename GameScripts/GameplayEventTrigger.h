@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -16,7 +16,7 @@ public:
     void OnTriggerEnter(GameObject* gameObject) override;
     void OnTriggerExit(GameObject* gameObject) override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 private:
     void findPlayers();

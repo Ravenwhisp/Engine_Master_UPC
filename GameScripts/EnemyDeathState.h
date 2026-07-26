@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 #include "StateMachineScript.h"
@@ -14,7 +14,7 @@ public:
 	void OnStateUpdate() override;
 	void OnStateExit() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	void pauseDeathCountdown();
 	void resumeDeathCountdown();
@@ -34,7 +34,7 @@ protected:
 	float m_destroyDelay = 2.0f;
 	float m_deathTimer = 0.0f;
 	
-	std::string m_healthPrefabPath = "";
+	PrefabRef m_healthPrefab;
 	bool m_shouldDropHealth = true;
 	int m_healthDropQuantity = 1;
 	float m_dropHealAmount = 10.0f;

@@ -1,14 +1,20 @@
 #pragma once
 #include "IArchive.h"
-#include "UID.h"
-#include "MD5Fwd.h"
-#include "AssetType.h"
-#include "ImportSettings.h"
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
 #include <stack>
+
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/filereadstream.h>
+#include <fstream>
+#include <cstdio>
+
+using namespace rapidjson;
 
 struct DependencyRecord;
 

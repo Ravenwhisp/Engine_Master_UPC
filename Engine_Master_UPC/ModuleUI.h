@@ -9,13 +9,15 @@ class GameObject;
 class UIImagePass;
 class Texture;
 class Transform2D;
-struct AssetReference;
+struct AssetId;
 
 class ModuleUI : public Module
 {
 public:
     void preRender() override;
     bool cleanUp() override;
+
+    void buildCommandsForViewport(float width, float height);
 
     const std::vector<UITextCommand>& getTextCommands()  const { return m_textCommands; }
     const std::vector<UIImageCommand>& getImageCommands() const { return m_imageCommands; }

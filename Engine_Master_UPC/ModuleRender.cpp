@@ -38,6 +38,7 @@
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "PostProcessPass.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
@@ -97,6 +98,11 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
+
+    // Resolve the HDR scene into COMPOSITE (exposure, tone mapping, bloom, LUT,
+    // outline, etc.) before the overlay passes draw on top.
+    m_renderPasses.push_back(std::make_unique<PostProcessPass>(device));
+
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
     m_renderPasses.push_back(std::make_unique<FontPass>(device));
@@ -365,6 +371,8 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
     const float w = static_cast<float>(outputSurface.getWidth());
     const float h = static_cast<float>(outputSurface.getHeight());
+
+    app->getModuleUI()->buildCommandsForViewport(w, h);
 
     D3D12_VIEWPORT viewport = { 0.0f, 0.0f, w, h, 0.0f, 1.0f };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };

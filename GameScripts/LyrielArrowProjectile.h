@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 #include "ProjectileBase.h"
@@ -11,7 +11,7 @@ public:
     explicit LyrielArrowProjectile(GameObject* owner);
 
     void Update() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void launch(const Vector3& start_position, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage);
     void resetProjectile() override;
@@ -21,7 +21,7 @@ private:
     void syncParticleTransform();
 
 public:
-    std::string m_particlePrefabPath = "";
+    PrefabRef m_particlePrefab;
 
 private:
     Vector3 m_direction = Vector3::Zero;

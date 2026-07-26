@@ -18,7 +18,7 @@ public:
     friend class ImporterGltf;
 
 	MeshAsset() {}
-	MeshAsset(AssetReference& id) : Asset(id, AssetType::MESH) {}
+	MeshAsset(AssetId& id) : Asset(id, AssetType::MESH) {}
 
     const void* getVertexData() const { return vertices.data(); }
 

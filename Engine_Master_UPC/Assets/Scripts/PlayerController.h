@@ -17,7 +17,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     bool getGodMode() const { return m_godMode; }
     int getPlayerIndex() const { return m_playerIndex; }

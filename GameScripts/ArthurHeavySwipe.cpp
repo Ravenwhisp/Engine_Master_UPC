@@ -15,7 +15,6 @@ ArthurHeavySwipe::ArthurHeavySwipe(GameObject* owner)
 void ArthurHeavySwipe::OnStateEnter()
 {
     m_arthurController = GameObjectAPI::findScript<ArthurBossController>(getOwner());
-    m_attackConfig = GameObjectAPI::findScript<ArthurAttackConfig>(getOwner());
     m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
@@ -34,11 +33,6 @@ void ArthurHeavySwipe::OnStateEnter()
         return;
     }
 
-    if (!m_attackConfig)
-    {
-        Debug::error("[ArthurHeavySwipe] ArthurAttackConfig not found.");
-        return;
-    }
 
     if (!m_attackExecutor)
     {
@@ -81,7 +75,7 @@ void ArthurHeavySwipe::OnStateEnter()
 
 void ArthurHeavySwipe::OnStateUpdate()
 {
-    if (!m_arthurController || !m_attackConfig || !m_attackExecutor || !m_animation)
+    if (!m_arthurController || !m_attackConfig.get() || !m_attackExecutor || !m_animation)
     {
         return;
     }
@@ -95,21 +89,21 @@ void ArthurHeavySwipe::OnStateUpdate()
 
     const bool isPhase2 = m_arthurController->isPhase2();
 
-    float hit1Time = m_attackConfig->m_heavySwipeHit1Time;
-    float hit2Time = m_attackConfig->m_heavySwipeHit2Time;
-    float hit3Time = m_attackConfig->m_heavySwipeHit3Time;
-    float hit4Time = m_attackConfig->m_heavySwipePhase2Hit4Time;
+    float hit1Time = m_attackConfig.get()->m_heavySwipeHit1Time;
+    float hit2Time = m_attackConfig.get()->m_heavySwipeHit2Time;
+    float hit3Time = m_attackConfig.get()->m_heavySwipeHit3Time;
+    float hit4Time = m_attackConfig.get()->m_heavySwipePhase2Hit4Time;
 
     if (isPhase2)
     {
-        hit1Time = m_attackConfig->m_heavySwipePhase2Hit1Time;
-        hit2Time = m_attackConfig->m_heavySwipePhase2Hit2Time;
-        hit3Time = m_attackConfig->m_heavySwipePhase2Hit3Time;
+        hit1Time = m_attackConfig.get()->m_heavySwipePhase2Hit1Time;
+        hit2Time = m_attackConfig.get()->m_heavySwipePhase2Hit2Time;
+        hit3Time = m_attackConfig.get()->m_heavySwipePhase2Hit3Time;
     }
 
     if (m_arthurUI)
     {
-        m_arthurUI->updateHeavySwipeUI(m_stateTimer, isPhase2, hit1Time, hit2Time, hit3Time, hit4Time, m_attackConfig->m_heavySwipeTotalDuration, m_attackConfig->m_heavySwipeRange);
+        m_arthurUI->updateHeavySwipeUI(m_stateTimer, isPhase2, hit1Time, hit2Time, hit3Time, hit4Time, m_attackConfig.get()->m_heavySwipeTotalDuration, m_attackConfig.get()->m_heavySwipeRange);
     }
 
     if (!m_hit1Applied && m_stateTimer >= hit1Time)
@@ -136,7 +130,7 @@ void ArthurHeavySwipe::OnStateUpdate()
         m_hit4Applied = true;
     }
 
-    if (m_stateTimer >= m_attackConfig->m_heavySwipeTotalDuration)
+    if (m_stateTimer >= m_attackConfig.get()->m_heavySwipeTotalDuration)
     {
         goToRecover();
         return;
@@ -161,7 +155,7 @@ void ArthurHeavySwipe::OnStateExit()
 
 void ArthurHeavySwipe::tryApplyHit(int hitIndex)
 {
-    if (!m_attackConfig || !m_attackExecutor)
+    if (!m_attackConfig.get() || !m_attackExecutor)
     {
         return;
     }
@@ -175,7 +169,7 @@ void ArthurHeavySwipe::tryApplyHit(int hitIndex)
     Vector3 center = TransformAPI::getGlobalPosition(ownerTransform);
     Vector3 forward = TransformAPI::getForward(ownerTransform);
 
-    const int hits = m_attackExecutor->applyDamageInCone(center, forward, m_attackConfig->m_heavySwipeRange, m_attackConfig->m_heavySwipeHalfAngleDegrees, m_attackConfig->m_heavySwipeDamage, "HeavySwipe");
+    const int hits = m_attackExecutor->applyDamageInCone(center, forward, m_attackConfig.get()->m_heavySwipeRange, m_attackConfig.get()->m_heavySwipeHalfAngleDegrees, m_attackConfig.get()->m_heavySwipeDamage, "HeavySwipe");
 
     if (m_arthurSound)
     {
@@ -191,18 +185,18 @@ void ArthurHeavySwipe::tryApplyHit(int hitIndex)
 
 void ArthurHeavySwipe::goToRecover()
 {
-    if (!m_attackConfig || !m_animation)
+    if (!m_attackConfig.get() || !m_animation)
     {
         return;
     }
 
     if (m_arthurController)
     {
-        float recoveryDuration = m_attackConfig->m_heavySwipeRecoveryDuration;
+        float recoveryDuration = m_attackConfig.get()->m_heavySwipeRecoveryDuration;
 
         if (m_arthurController->isPhase2())
         {
-            recoveryDuration = m_attackConfig->m_heavySwipePhase2RecoveryDuration;
+            recoveryDuration = m_attackConfig.get()->m_heavySwipePhase2RecoveryDuration;
         }
 
         m_arthurController->setRecoveryDuration(recoveryDuration);

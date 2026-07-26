@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -13,7 +13,7 @@ public:
     void Update() override;
 	void OnTriggerEnter(GameObject* gameObject) override;
 
-    //ScriptFieldList getExposedFields() const override;
+    //FieldList getExposedFields() const override;
 //
 //public:
 //    float m_idleSpeed = 0.5f;

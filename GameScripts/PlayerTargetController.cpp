@@ -8,6 +8,7 @@
 #include "LyrielSound.h"
 #include "EnemyDamageable.h"
 #include "BreakableDamageable.h"
+#include "BreakableObject.h"
 
 IMPLEMENT_SCRIPT_FIELDS(PlayerTargetController,
     SERIALIZED_FLOAT(m_targetRange, "Target Range", 0.0f, 20.0f, 0.05f),
@@ -122,6 +123,8 @@ void PlayerTargetController::updateTargetsInRange()
     const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
     const std::vector<GameObject*> breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE, true);
 
+    bool hasEnemyInRange = false;
+
     for (GameObject* enemy : enemies)
     {
         if (enemy == nullptr)
@@ -129,11 +132,10 @@ void PlayerTargetController::updateTargetsInRange()
             continue;
         }
 
-        const bool inRange = isTargetInRange(enemy);
-
-        if (inRange && isTargetAlive(enemy))
+        if (isTargetInRange(enemy) && isTargetAlive(enemy))
         {
             m_targetsInRange.push_back(enemy);
+            hasEnemyInRange = true;
         }
     }
 
@@ -144,12 +146,17 @@ void PlayerTargetController::updateTargetsInRange()
             continue;
         }
 
-        const bool inRange = isTargetInRange(breakable);
-
-        if (inRange && isTargetAlive(breakable))
+        if (!isTargetInRange(breakable) || !isTargetAlive(breakable))
         {
-            m_targetsInRange.push_back(breakable);
+            continue;
         }
+
+        if (hasEnemyInRange && !canTargetBreakableDuringCombat(breakable))
+        {
+            continue;
+        }
+
+        m_targetsInRange.push_back(breakable);
     }
 }
 
@@ -566,6 +573,23 @@ bool PlayerTargetController::isTargetAlive(GameObject* target) const
     }
 
     return false;
+}
+
+bool PlayerTargetController::canTargetBreakableDuringCombat(GameObject* target) const
+{
+    if (target == nullptr)
+    {
+        return false;
+    }
+
+    BreakableObject* breakableObject = GameObjectAPI::findScript<BreakableObject>(target);
+
+    if (breakableObject == nullptr)
+    {
+        return false;
+    }
+
+    return breakableObject->canBeTargetedDuringCombat();
 }
 
 IMPLEMENT_SCRIPT(PlayerTargetController)

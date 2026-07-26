@@ -28,6 +28,52 @@ ImGradient::~ImGradient()
 	}
 }
 
+ImGradient::ImGradient(const ImGradient& other)
+    : edit_alpha(other.edit_alpha)
+{
+    for (ImGradientMark* otherMark : other.m_marks)
+    {
+        if (!otherMark)
+        {
+            continue;
+        }
+
+        ImGradientMark* newMark = new ImGradientMark();
+        *newMark = *otherMark;
+        m_marks.push_back(newMark);
+    }
+
+    refreshCache();
+}
+
+ImGradient& ImGradient::operator=(const ImGradient& other)
+{
+    if (this == &other)
+    {
+        return *this;
+    }
+
+    clearMarks();
+
+    edit_alpha = other.edit_alpha;
+
+    for (ImGradientMark* otherMark : other.m_marks)
+    {
+        if (!otherMark)
+        {
+            continue;
+        }
+
+        ImGradientMark* newMark = new ImGradientMark();
+        *newMark = *otherMark;
+        m_marks.push_back(newMark);
+    }
+
+    refreshCache();
+
+    return *this;
+}
+
 ImGradientMark* ImGradient::addMark(float position, ImColor const color)
 {
     position = ImClamp(position, 0.0f, 1.0f);
@@ -63,11 +109,17 @@ ImGradientMark* ImGradient::addAlphaMark(float position, float alpha)
 void ImGradient::removeMark(ImGradientMark* mark)
 {
     m_marks.remove(mark);
+    delete mark;
     refreshCache();
 }
 
 void ImGradient::clearMarks()
 {
+    for (ImGradientMark* mark : m_marks)
+    {
+        delete mark;
+    }
+
     m_marks.clear();
     refreshCache();
 }

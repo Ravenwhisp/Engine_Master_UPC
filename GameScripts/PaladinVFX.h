@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -13,7 +13,7 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     void setWalkingDustActive(bool active);
     void stopWalkingDust();
@@ -43,6 +43,10 @@ private:
     void updateBasicAttackEffectLifetime(float deltaTime);
 
 public:
+
+    PrefabRef m_walkingDustPrefab;
+    PrefabRef m_chargeAttackEffectPrefab;
+    PrefabRef m_basicAttackEffectPrefab;
 
     float walkingDustYOffset = 0.05f;
     float walkingDustForwardOffset = -0.35f;

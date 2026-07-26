@@ -1,5 +1,5 @@
 #pragma once
-#include "AssetReference.h"
+#include "AssetId.h"
 #include "ISerializable.h"
 #include "UID.h"
 #include "MD5Fwd.h"
@@ -8,14 +8,14 @@
 
 class IArchive;
 
-class Asset : public ISerializable
+class ENGINE_API Asset : public ISerializable
 {
 public:
     Asset() = default;
-    Asset(AssetReference& id, AssetType type = AssetType::UNKNOWN) : m_reference(id), m_type(type) {}
+    Asset(AssetId& id, AssetType type = AssetType::UNKNOWN) : m_reference(id), m_type(type) {}
     virtual ~Asset() = default;
 
-    AssetReference getReference() const { return m_reference; }
+    AssetId getReference() const { return m_reference; }
     UID getUID() const { return m_reference.m_uid; }
     void setUID(const UID& uid) { m_reference.m_uid = uid; }
     MD5Hash getLibId() const { return m_reference.m_libId; }
@@ -31,7 +31,7 @@ public:
     void serialize(IArchive& archive) override = 0;
 
 protected:
-    AssetReference m_reference;
+    AssetId m_reference;
     AssetType m_type = AssetType::UNKNOWN;
     std::unique_ptr<ImportSettings> m_importSettings;
 };

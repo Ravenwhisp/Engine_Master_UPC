@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -15,7 +15,7 @@ public:
 
 	void Start() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	ProjectileBase* acquireProjectile();
 	void releaseProjectile(ProjectileBase* projectile);
@@ -25,7 +25,7 @@ private:
 
 public:
 	int m_maxProjectiles = 5;
-	std::string m_projectilePrefabPath = "Assets/Prefabs/Particles/Lyriel/LyrielArrowParticle_1.prefab";
+	PrefabRef m_projectilePrefab;
 
 private:
 	std::vector<ProjectileBase*> m_projectiles;

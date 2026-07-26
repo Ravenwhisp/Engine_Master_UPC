@@ -19,12 +19,6 @@ SkeletonAttackDebugDraw::SkeletonAttackDebugDraw(GameObject* owner)
 
 void SkeletonAttackDebugDraw::Start()
 {
-	m_attackConfig = GameObjectAPI::findScript<SkeletonAttackConfig>(getOwner());
-
-	if (!m_attackConfig)
-	{
-		Debug::warn("[SkeletonAttackDebugDraw] SkeletonAttackConfig not found.");
-	}
 }
 
 void SkeletonAttackDebugDraw::drawGizmo()
@@ -34,12 +28,7 @@ void SkeletonAttackDebugDraw::drawGizmo()
 		return;
 	}
 
-	if (!m_attackConfig)
-	{
-		m_attackConfig = GameObjectAPI::findScript<SkeletonAttackConfig>(getOwner());
-	}
-
-	if (!m_attackConfig)
+	if (!m_attackConfig.get())
 	{
 		return;
 	}
@@ -64,7 +53,7 @@ void SkeletonAttackDebugDraw::drawGizmo()
 			position,
 			up,
 			startRangeColor,
-			m_attackConfig->m_scimitarStartRange,
+			m_attackConfig.get()->m_scimitarStartRange,
 			32.0f,
 			0,
 			true
@@ -77,7 +66,7 @@ void SkeletonAttackDebugDraw::drawGizmo()
 			position,
 			up,
 			dashStopColor,
-			m_attackConfig->m_scimitarDashStopRange,
+			m_attackConfig.get()->m_scimitarDashStopRange,
 			32.0f,
 			0,
 			true
@@ -98,8 +87,8 @@ void SkeletonAttackDebugDraw::drawGizmo()
 void SkeletonAttackDebugDraw::drawScimitarAttackCone() const
 {
 	drawScimitarCone(
-		m_attackConfig->m_basicAttackRange,
-		m_attackConfig->m_scimitarHalfAngleDegrees,
+		m_attackConfig.get()->m_basicAttackRange,
+		m_attackConfig.get()->m_scimitarHalfAngleDegrees,
 		Vector3(1.0f, 0.0f, 0.0f)
 	);
 }
@@ -107,8 +96,8 @@ void SkeletonAttackDebugDraw::drawScimitarAttackCone() const
 void SkeletonAttackDebugDraw::drawScimitarStunCone() const
 {
 	drawScimitarCone(
-		m_attackConfig->m_scimitarStunHitRange,
-		m_attackConfig->m_scimitarHalfAngleDegrees,
+		m_attackConfig.get()->m_scimitarStunHitRange,
+		m_attackConfig.get()->m_scimitarHalfAngleDegrees,
 		Vector3(0.0f, 0.0f, 1.0f)
 	);
 }

@@ -27,6 +27,12 @@ void SummonerTeleportState::OnStateEnter()
 
 	Debug::log("[SummonerTeleportState] ENTER");
 
+	if (m_controller->isForcedMovementActive())
+	{
+		AnimationAPI::sendTrigger(m_animation, "ToIdle");
+		return;
+	}
+
 	Vector3 teleportPosition;
 	if (m_controller->tryGetTeleportPosition(teleportPosition))
 	{

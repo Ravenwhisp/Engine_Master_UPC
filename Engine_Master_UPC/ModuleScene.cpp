@@ -24,7 +24,7 @@
 
 ModuleScene::ModuleScene()
 {
-    AssetReference defaultSceneRef;
+    AssetId defaultSceneRef;
     m_scene = std::make_unique<Scene>(defaultSceneRef);
     m_staticQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree = std::make_unique<Quadtree>();
@@ -374,7 +374,7 @@ bool ModuleScene::loadScene(const std::string& sceneName)
         return false;
     }
 
-    AssetReference ref(GenerateUID());
+    AssetId ref(GenerateUID());
     auto newScene = std::make_unique<Scene>(ref);
     newScene->serialize(archive);
     newScene->setName(sceneName.c_str());
@@ -406,10 +406,12 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
     rebuildComponentCaches();
 
-    for (std::string bank : m_scene->getLoadedBanks())
+    for (const auto& ref : m_scene->getLoadedBankRefs())
     {
-        app->getModuleMusic()->loadBank(bank);
+        app->getModuleMusic()->loadBank(ref);
     }
+
+    m_scene->resolveLoadedBankNames();
 
     initializeRuntimeSceneSystems();
 
@@ -454,8 +456,31 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 #endif
 
     rebuildComponentCaches();
-    initializeRuntimeSceneSystems();
+
+    for (const auto& ref : m_scene->getLoadedBankRefs())
+    {
+        app->getModuleMusic()->loadBank(ref);
+    }
+
+    m_scene->resolveLoadedBankNames();
+
     return true;
+}
+
+bool ModuleScene::loadScene(const AssetId& ref)
+{
+    AssetId mutableRef = ref;
+    auto scene = app->getModuleAssets()->load<Scene>(mutableRef);
+    if (!scene)
+    {
+        DEBUG_ERROR("[ModuleScene] Failed to load scene from Library.");
+        return false;
+    }
+
+    scene->FixReferences();
+    scene->initLoadedObjects();
+
+    return loadScene(scene);
 }
 
 #pragma endregion

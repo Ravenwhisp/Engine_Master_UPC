@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "EnemyBaseController.h"
+#include "EnemyBaseAttackConfig.h"
 
 #include "Damageable.h"
+#include "EnemyBaseAttackConfig.h"
 #include "EnemySound.h"
 
 static const char* navAgentProfileNames[] =
@@ -25,6 +27,17 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyBaseController,
 EnemyBaseController::EnemyBaseController(GameObject* owner)
     : Script(owner)
 {
+}
+
+void EnemyBaseController::Start()
+{
+    const EnemyBaseAttackConfig* cfg = getAttackConfig();
+    if (cfg)
+    {
+        m_moveSpeed = cfg->m_moveSpeed;
+        m_recoveryDuration = cfg->m_recoveryDuration;
+        m_stunnedDuration = cfg->m_stunnedDuration;
+    }
 }
 
 void EnemyBaseController::updateCurrentTarget()
@@ -88,6 +101,22 @@ bool EnemyBaseController::isCurrentTargetInRange(float range) const
     return getDistanceToCurrentTarget() <= range;
 }
 
+bool EnemyBaseController::isTargetInAttackRange() const
+{
+    if (!hasValidTarget())
+    {
+        return false;
+    }
+
+    const EnemyBaseAttackConfig* cfg = getAttackConfig();
+    if (!cfg)
+    {
+        return false;
+    }
+
+    return isCurrentTargetInRange(cfg->m_basicAttackRange);
+}
+
 void EnemyBaseController::faceCurrentTarget()
 {
     if (!m_currentTarget)
@@ -140,6 +169,11 @@ void EnemyBaseController::facePosition(const Vector3& worldPosition)
 
 bool EnemyBaseController::moveTowardsTarget()
 {
+    if (m_isForcedMovementActive)
+    {
+        return false;
+    }
+
     if (!hasValidTarget())
     {
         clearPath();
@@ -187,6 +221,24 @@ void EnemyBaseController::clearPath()
 void EnemyBaseController::resetRepathTimer()
 {
     m_repathTimer = 0.0f;
+}
+
+void EnemyBaseController::setForcedMovementActive(bool active)
+{
+    if (m_isForcedMovementActive == active)
+    {
+        return;
+    }
+
+    m_isForcedMovementActive = active;
+
+    clearPath();
+    resetRepathTimer();
+}
+
+void EnemyBaseController::setForcedMovementBlocked(bool blocked)
+{
+    m_isForcedMovementBlocked = blocked;
 }
 
 bool EnemyBaseController::isDead() const
@@ -244,11 +296,16 @@ void EnemyBaseController::setStunnedDuration(float stunnedDuration)
     m_stunnedDuration = stunnedDuration;
 }
 
-void EnemyBaseController::useStun()
+void EnemyBaseController::useStun(float duration)
 {
+    if (duration <= 0.0f)
+    {
+        return;
+    }
+
     m_isStunned = true;
     m_stunnedTriggerSent = false;
-    m_stunnedTimer = m_stunnedDuration;
+    m_stunnedTimer = duration;
     clearPath();
 }
 
@@ -413,6 +470,31 @@ bool EnemyBaseController::followPath()
         return false;
     }
 
+    for (size_t i = 0; i < m_path.size(); ++i)
+    {
+        const Vector3 color =
+            i == m_currentPathIndex
+            ? Vector3(1.0f, 0.0f, 0.0f)
+            : Vector3(0.0f, 1.0f, 0.0f);
+
+        DebugDrawAPI::drawSphere(
+            m_path[i],
+            color,
+            0.15f,
+            1000
+        );
+
+        if (i > 0)
+        {
+            DebugDrawAPI::drawLine(
+                m_path[i - 1],
+                m_path[i],
+                Vector3(1.0f, 1.0f, 0.0f),
+                1000
+            );
+        }
+    }
+
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 
     if (!ownerTransform)
@@ -458,6 +540,7 @@ bool EnemyBaseController::followPath()
     if (!NavigationAPI::moveAlongSurface(ownerPosition, desiredStepTarget, nextPosition, m_pathSearchExtents))
     {
         clearPath();
+        //Debug::error("Move along surface FAILED");
         return false;
     }
 

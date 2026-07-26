@@ -1,11 +1,11 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "DeathParticles.h"
 
 
 IMPLEMENT_SCRIPT_FIELDS(DeathParticles,
     SERIALIZED_COMPONENT_REF(m_dashTrail, "Dash", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_scytheTrail, "Scythe", ComponentType::TRANSFORM),
-    SERIALIZED_STRING(m_tauntParticlePath, "Taunt Particle Prefab Path")
+    SERIALIZED_ASSET_REF(m_tauntParticle, "Taunt Particle Prefab", AssetType::PREFAB)
 )
 
 DeathParticles::DeathParticles(GameObject* owner) : Script(owner)
@@ -29,7 +29,7 @@ void DeathParticles::Update()
     }
 }
 
-Transform* DeathParticles::getTransform(ScriptComponentRef<Transform> controller)
+Transform* DeathParticles::getTransform(ComponentRef<Transform> controller)
 {
     Transform* particleTransform = controller.getReferencedComponent();
 
@@ -111,7 +111,7 @@ void DeathParticles::SetTauntActive(const Vector3& direction)
         m_activeTauntParticle = nullptr;
     }
 
-    m_activeTauntParticle = GameObjectAPI::instantiatePrefab(m_tauntParticlePath.c_str(), spawnPosition, particleRootRotation);
+    m_activeTauntParticle = GameObjectAPI::instantiatePrefab(m_tauntParticle.m_id, spawnPosition, particleRootRotation);
 
     m_tauntParticleLifetime = 1.0f;
 }
