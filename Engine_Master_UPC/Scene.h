@@ -145,6 +145,8 @@ public:
 
     void clearScene();
 
+    void onGameStop();
+
     void  markDirty();
     bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
     void  clearDirty() { m_componentCacheDirty = false; }
