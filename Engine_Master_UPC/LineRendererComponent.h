@@ -32,7 +32,7 @@ public:
 
 	AssetReference& getTextureAssetReference() { return m_textureAsset; }
 
-	std::vector<std::shared_ptr<RenderPoint>>& getTrailPoints() { return m_points; }
+	std::vector<std::shared_ptr<RenderPoint>>& getPoints() { return m_points; }
 
 	ImGradient& getColorGradient() { return m_color; }
 

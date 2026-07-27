@@ -37,7 +37,7 @@ void LineRendererComponent::drawUi()
     
     //ImGui::Begin("Render Points");
 
-    ImGui::BeginChild("List", ImVec2(220, 0), true);
+    ImGui::BeginChild("List", ImVec2(220, 210), true);
    
     // Add button
     if (ImGui::Button("Add"))
@@ -65,7 +65,7 @@ void LineRendererComponent::drawUi()
 
     ImGui::Separator();
 
-    if (ImGui::BeginListBox("Points"))
+    if (ImGui::BeginListBox("Points", ImVec2(0, 160)))
     {
         for (int i = 0; i < (int)m_points.size(); i++)
         {
@@ -87,7 +87,7 @@ void LineRendererComponent::drawUi()
 
     ImGui::SameLine();
 
-    ImGui::BeginChild("Inspector", ImVec2(0, 0), true);
+    ImGui::BeginChild("Inspector", ImVec2(0, 210), true);
 
     if (m_selectedPoint >= 0 && m_selectedPoint < (int)m_points.size())
     {
@@ -105,9 +105,11 @@ void LineRendererComponent::drawUi()
         ImGui::Button(ParentTransformName, ImVec2(200, 0));
         if (ImGui::BeginDragDropTarget())
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT"))
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
             {
-                Component* comp = *(Component**)payload->Data;
+                GameObject* droppedObject = *(GameObject**)payload->Data;
+
+                Component* comp = droppedObject->GetComponent(ComponentType::TRANSFORM);
 
                 if (comp && comp->getType() == ComponentType::TRANSFORM)
                 {
@@ -208,6 +210,7 @@ void LineRendererComponent::update()
             const Matrix& globalMatrix = point->get()->transformParent->getGlobalMatrix();
             point->get()->position = globalMatrix.Translation();
             point->get()->rotation = Quaternion::CreateFromRotationMatrix(globalMatrix);
+            point->get()->editorEuler = point->get()->transformParent->getEulerDegrees();
         }
 
         ++point;
@@ -241,7 +244,19 @@ std::unique_ptr<Component> LineRendererComponent::clone(GameObject* newOwner) co
 
     cloned->m_color = m_color;
 
-    //TODO: Copy list of points
+    for (auto point = m_points.begin(); point != m_points.end(); )
+    {
+        cloned->CreatePoint();
+
+        RenderPoint* clonedPoint = cloned->m_points.back().get();
+
+        clonedPoint->position    = point->get()->position;
+        clonedPoint->rotation    = point->get()->rotation;
+        clonedPoint->editorEuler = point->get()->editorEuler;
+        clonedPoint->width       = point->get()->width;
+
+        ++point;
+    }
 
     return cloned;
 }
@@ -255,6 +270,57 @@ void LineRendererComponent::serialize(IArchive& archive)
 
     if (archive.mode() == ArchiveMode::Output)
     {
+        uint32_t pointCount = static_cast<uint32_t>(m_points.size());
+        archive.beginArray(pointCount, "Points");
+
+        for (const std::shared_ptr<RenderPoint> point : m_points)
+        {
+
+            archive.beginObject();
+
+            Vector3 position = point.get()->position;
+            uint32_t positionCount = 3;
+            archive.beginArray(positionCount, "Position");
+            float x = position.x;
+            float y = position.y;
+            float z = position.z;
+            archive.serialize(x, "");
+            archive.serialize(y, "");
+            archive.serialize(z, "");
+            archive.endArray();
+
+            Vector3 euler = point.get()->editorEuler;
+            uint32_t eulerCount = 3;
+            archive.beginArray(eulerCount, "EditorEuler");
+            x = euler.x;
+            y = euler.y;
+            z = euler.z;
+            archive.serialize(x, "");
+            archive.serialize(y, "");
+            archive.serialize(z, "");
+            archive.endArray();
+
+            Quaternion rotation = point.get()->rotation;
+            uint32_t rotationCount = 4;
+            archive.beginArray(eulerCount, "Rotation");
+            x = rotation.x;
+            y = rotation.y;
+            z = rotation.z;
+            float w = rotation.w;
+            archive.serialize(x, "");
+            archive.serialize(y, "");
+            archive.serialize(z, "");
+            archive.serialize(w, "");
+            archive.endArray();
+
+            float width = point.get()->width;
+            archive.serialize(width, "Width");
+
+            archive.endObject();
+        }
+
+        archive.endArray();
+
         const auto& marks = m_color.getMarks();
         uint32_t markCount = static_cast<uint32_t>(marks.size());
         archive.beginArray(markCount, "ColorGradient");
@@ -293,6 +359,56 @@ void LineRendererComponent::serialize(IArchive& archive)
     }
     else
     {
+        uint32_t pointCount = 0;
+        archive.beginArray(pointCount, "Points");
+        m_points.clear();
+        for (uint32_t i = 0; i < pointCount; ++i)
+        {
+            archive.beginObject();
+
+            CreatePoint();
+            RenderPoint* newPoint = m_points.back().get();
+
+            uint32_t positionCount = 3;
+            archive.beginArray(positionCount, "Position");
+            float x = 0.f, y = 0.f, z = 0.f;
+            archive.serialize(x, "");
+            archive.serialize(y, "");
+            archive.serialize(z, "");
+            archive.endArray();
+            Vector3 position = Vector3(x, y, z);
+            newPoint->position = position;
+
+            uint32_t eulerCount = 3;
+            archive.beginArray(eulerCount, "EditorEuler");
+            x = 0.f, y = 0.f, z = 0.f;
+            archive.serialize(x, "");
+            archive.serialize(y, "");
+            archive.serialize(z, "");
+            archive.endArray();
+            Vector3 euler = Vector3(x, y, z);
+            newPoint->editorEuler = euler;
+
+            uint32_t roationCount = 4;
+            archive.beginArray(roationCount, "Rotation");
+            x = 0.f, y = 0.f, z = 0.f; 
+            float w = 0.f;
+            archive.serialize(x, "");
+            archive.serialize(y, "");
+            archive.serialize(z, "");
+            archive.serialize(w, "");
+            archive.endArray();
+            Quaternion rotation = Quaternion(x, y, z, w);
+            newPoint->rotation = rotation;
+
+            float width = 0.f;
+            archive.serialize(width, "Width");
+            newPoint->width = width;
+
+        }
+
+        archive.endArray();
+
         uint32_t markCount = 0;
         archive.beginArray(markCount, "ColorGradient");
         m_color.clearMarks();
