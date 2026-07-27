@@ -11,17 +11,17 @@ public:
 	friend class ImporterGltf;
 
 	MaterialAsset() = default;
-	MaterialAsset(AssetReference& id) : Asset(id, AssetType::MATERIAL) {}
+	MaterialAsset(AssetId& id) : Asset(id, AssetType::MATERIAL) {}
 
-	AssetReference& getBaseMap() { return baseMap; }
+	AssetId& getBaseMap() { return baseMap; }
 	Color& getBaseColour() const { return baseColour; }
 
-	AssetReference& getMetallicRoughnessMap() { return metallicRoughnessMap; }
-	AssetReference& getNormalMap() { return normalMap; }
+	AssetId& getMetallicRoughnessMap() { return metallicRoughnessMap; }
+	AssetId& getNormalMap() { return normalMap; }
 	uint32_t getMetallicFactor() const { return metallicFactor; }
 	uint32_t getRoughnessFactor() const { return roughnessFactor; }
 	uint32_t getNormalFactor() const { return normalFactor; }
-	AssetReference& getEmissive() { return emissiveMap; }
+	AssetId& getEmissive() { return emissiveMap; }
 
 	void serialize(IArchive& archive) override
 	{
@@ -65,17 +65,17 @@ public:
 
 protected:
 
-	AssetReference		baseMap{};
+	AssetId		baseMap{};
 	mutable Color		baseColour = Color(255, 255, 255, 0);
 
-	AssetReference		metallicRoughnessMap{};
+	AssetId		metallicRoughnessMap{};
 	uint32_t			roughnessFactor = 0;
 	uint32_t			metallicFactor = 0;
-	AssetReference		normalMap{};
+	AssetId		normalMap{};
 	uint32_t			normalFactor = 0;
-	AssetReference		occlusionMap{};
+	AssetId		occlusionMap{};
 
 	bool				isEmissive = false;
-	AssetReference		emissiveMap{};
+	AssetId		emissiveMap{};
 };
 

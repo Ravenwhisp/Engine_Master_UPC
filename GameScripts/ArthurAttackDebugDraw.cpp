@@ -6,7 +6,6 @@
 #include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS(ArthurAttackDebugDraw,
-    SERIALIZED_ASSET_REF(m_attackConfig, "Arthur Attack Config", AssetType::DATA_CONTAINER),
     SERIALIZED_BOOL(m_debugEnabled, "Debug Enabled"),
     SERIALIZED_BOOL(m_drawHeavySwipe, "Draw Heavy Swipe"),
     SERIALIZED_BOOL(m_drawSideSweepRight, "Draw Side Sweep Right"),
@@ -32,8 +31,7 @@ void ArthurAttackDebugDraw::drawGizmo()
         return;
     }
 
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackConfig.get())
     {
         return;
     }
@@ -66,12 +64,6 @@ void ArthurAttackDebugDraw::drawGizmo()
 
 void ArthurAttackDebugDraw::drawHeavySwipeCone() const
 {
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
-
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
     if (!ownerTransform)
     {
@@ -96,8 +88,8 @@ void ArthurAttackDebugDraw::drawHeavySwipeCone() const
 
     constexpr float degreesToRadians = 3.14159265f / 180.0f;
 
-    const float range = cfg->m_heavySwipeRange;
-    const float halfAngleRadians = cfg->m_heavySwipeHalfAngleDegrees * degreesToRadians;
+    const float range = m_attackConfig.get()->m_heavySwipeRange;
+    const float halfAngleRadians = m_attackConfig.get()->m_heavySwipeHalfAngleDegrees * degreesToRadians;
 
     const Vector3 heavySwipeColor = { 0.6f, 0.0f, 1.0f };
 
@@ -131,12 +123,6 @@ void ArthurAttackDebugDraw::drawHeavySwipeCone() const
 
 void ArthurAttackDebugDraw::drawEarthHammerRadius() const
 {
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
-
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
     if (!ownerTransform)
     {
@@ -148,17 +134,11 @@ void ArthurAttackDebugDraw::drawEarthHammerRadius() const
 
     const Vector3 earthHammerColor = { 0.6f, 0.0f, 1.0f };
 
-    DebugDrawAPI::drawCircle(ownerPosition, Vector3(0.0f, 1.0f, 0.0f), earthHammerColor, cfg->m_earthHammerRadius, 48.0f, 0, true);
+    DebugDrawAPI::drawCircle(ownerPosition, Vector3(0.0f, 1.0f, 0.0f), earthHammerColor, m_attackConfig.get()->m_earthHammerRadius, 48.0f, 0, true);
 }
 
 void ArthurAttackDebugDraw::drawSideSweepCone(int side) const
 {
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
-    {
-        return;
-    }
-
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
     if (!ownerTransform)
     {
@@ -184,8 +164,8 @@ void ArthurAttackDebugDraw::drawSideSweepCone(int side) const
     Vector3 sideDirection = rotateAroundY(forward, halfPi * static_cast<float>(side));
     sideDirection.Normalize();
 
-    const float range = cfg->m_sideSweepRange;
-    const float halfAngleRadians = cfg->m_sideSweepHalfAngleDegrees * degreesToRadians;
+    const float range = m_attackConfig.get()->m_sideSweepRange;
+    const float halfAngleRadians = m_attackConfig.get()->m_sideSweepHalfAngleDegrees * degreesToRadians;
 
     const Vector3 sideSweepColor = { 0.6f, 0.0f, 1.0f };
 
@@ -219,8 +199,7 @@ void ArthurAttackDebugDraw::drawSideSweepCone(int side) const
 
 void ArthurAttackDebugDraw::drawChargingSlamPreview() const
 {
-    const ArthurAttackConfig* cfg = m_attackConfig.get();
-    if (!cfg)
+    if (!m_attackConfig.get())
     {
         return;
     }
@@ -259,7 +238,7 @@ void ArthurAttackDebugDraw::drawChargingSlamPreview() const
         startPosition,
         Vector3(0.0f, 1.0f, 0.0f),
         purple,
-        cfg->m_chargingSlamDashHitRadius,
+        m_attackConfig.get()->m_chargingSlamDashHitRadius,
         24.0f,
         0,
         true
@@ -269,7 +248,7 @@ void ArthurAttackDebugDraw::drawChargingSlamPreview() const
         endPosition,
         Vector3(0.0f, 1.0f, 0.0f),
         purple,
-        cfg->m_chargingSlamImpactRadius,
+        m_attackConfig.get()->m_chargingSlamImpactRadius,
         48.0f,
         0,
         true

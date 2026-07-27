@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "DeathParticles.h"
 
 
@@ -111,7 +111,7 @@ void DeathParticles::SetTauntActive(const Vector3& direction)
         m_activeTauntParticle = nullptr;
     }
 
-    m_activeTauntParticle = GameObjectAPI::instantiatePrefab(m_tauntParticle.m_ref, spawnPosition, particleRootRotation);
+    m_activeTauntParticle = GameObjectAPI::instantiatePrefab(m_tauntParticle.m_id, spawnPosition, particleRootRotation);
 
     m_tauntParticleLifetime = 1.0f;
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -27,7 +27,7 @@ public:
     float m_heightOffset = 0.15f;
 
 private:
-    AssetRef<ArthurAttackConfig> m_attackConfig;
+    AssetReference<ArthurAttackConfig> m_attackConfig;
 
 private:
     void drawHeavySwipeCone() const;

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "CombatAreaEvent.h"
 
 #include "GameplayEventTrigger.h"

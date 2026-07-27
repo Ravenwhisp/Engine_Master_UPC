@@ -40,12 +40,7 @@ namespace
     {
         uint32_t value = static_cast<uint32_t>(*reinterpret_cast<const int*>(data));
         archive.serialize(value, field.name);
-    }
-
-    void deserializeEnumIntField(const FieldInfo& field, void* data, IArchive& archive)
-    {
-        uint32_t raw = *reinterpret_cast<uint32_t*>(data);
-        archive.serialize(raw, field.name);
+        *reinterpret_cast<int*>(data) = static_cast<int>(value);
     }
 
     void cloneEnumIntField(const FieldInfo&, const void* sourceData, void* targetData)

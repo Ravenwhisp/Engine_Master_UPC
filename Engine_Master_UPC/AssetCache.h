@@ -1,5 +1,5 @@
 #pragma once
-#include "AssetReference.h"
+#include "AssetId.h"
 #include "WeakCache.h"
 #include "MD5Fwd.h"
 #include "UID.h"
@@ -14,7 +14,7 @@ class AssetCache
 {
 public:
     template<typename T>
-    std::shared_ptr<T> load(AssetReference& ref, AssetIndex& index,
+    std::shared_ptr<T> load(AssetId& ref, AssetIndex& index,
                              ImporterRegistry& importers);
 
     template<typename T>
@@ -22,7 +22,7 @@ public:
                                    AssetIndex& index, ImporterRegistry& importers);
 
     template<typename T>
-    std::shared_ptr<T> loadFromLibrary(AssetReference& ref, ImporterRegistry& importers,
+    std::shared_ptr<T> loadFromLibrary(AssetId& ref, ImporterRegistry& importers,
                                         AssetIndex& index);
 
     bool isLoaded(const UID& uid);

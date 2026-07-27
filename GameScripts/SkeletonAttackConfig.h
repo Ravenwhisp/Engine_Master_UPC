@@ -8,7 +8,7 @@ class SkeletonAttackConfig : public EnemyBaseAttackConfig
 
 public:
     SkeletonAttackConfig() = default;
-    explicit SkeletonAttackConfig(AssetReference& id)
+    explicit SkeletonAttackConfig(AssetId& id)
         : EnemyBaseAttackConfig(id)
     {
     }

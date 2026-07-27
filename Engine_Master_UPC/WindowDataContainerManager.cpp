@@ -73,7 +73,7 @@ void WindowDataContainerManager::ensureLoaded(int i)
     if (!isValidUID(uid))
         return;
 
-    AssetReference* ref = ma->findReference(uid);
+    AssetId* ref = ma->findReference(uid);
     if (!ref)
         return;
 

@@ -8,7 +8,7 @@ class BoundConfig : public DataContainer
 
 public:
     BoundConfig() = default;
-    explicit BoundConfig(AssetReference& id)
+    explicit BoundConfig(AssetId& id)
         : DataContainer(id)
     {
     }

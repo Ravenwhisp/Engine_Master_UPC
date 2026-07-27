@@ -148,6 +148,9 @@ private:
     bool isGamePadButtonJustPressedInternal(int player, SDL_GamepadButton button) const;
     bool isGamePadButtonReleasedInternal(int player, SDL_GamepadButton button) const;
 
+    void handleGamepadAdded(SDL_JoystickID joystickId);
+    void handleGamepadRemoved(SDL_JoystickID joystickId);
+
 private:
     // Core input devices
     std::unique_ptr<Keyboard> m_keyboard;

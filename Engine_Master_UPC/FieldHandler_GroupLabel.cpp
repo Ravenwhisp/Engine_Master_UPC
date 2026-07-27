@@ -16,10 +16,6 @@ namespace
     {
     }
 
-    void deserializeGroupLabel(const FieldInfo&, void*, IArchive&)
-    {
-    }
-
     void cloneGroupLabel(const FieldInfo&, const void*, void*)
     {
     }

@@ -183,7 +183,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
         if (uiImg->consumeLoadRequest())
         {
             TextureAsset* asset = uiImg->getTextureAsset();
-            const AssetReference& assetId = uiImg->getTextureAssetId();
+            const AssetId& assetId = uiImg->getTextureAssetId();
 
             if (!asset || !assetId.isValid())
             {

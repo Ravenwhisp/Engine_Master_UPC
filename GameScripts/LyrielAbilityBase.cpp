@@ -17,6 +17,7 @@ void LyrielAbilityBase::Start()
     AbilityBase::Start();
 
     m_lyrielCharacter = dynamic_cast<LyrielCharacter*>(m_character);
+
 }
 
 Transform* LyrielAbilityBase::findArrowSpawnTransform() const

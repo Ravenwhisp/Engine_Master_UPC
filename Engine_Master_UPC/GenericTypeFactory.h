@@ -5,7 +5,7 @@
 #include <memory>
 #include <algorithm>
 
-struct AssetReference;
+struct AssetId;
 class Script;
 class GameObject;
 class DataContainer;
@@ -70,6 +70,6 @@ private:
 };
 
 using ScriptFactory = GenericTypeFactory<Script, GameObject*>;
-using DataContainerFactory = GenericTypeFactory<DataContainer, AssetReference&>;
+using DataContainerFactory = GenericTypeFactory<DataContainer, AssetId&>;
 
 

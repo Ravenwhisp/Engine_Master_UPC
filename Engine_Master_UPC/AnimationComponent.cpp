@@ -999,7 +999,7 @@ void AnimationComponent::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            AssetId* assetRef = app->getModuleAssets()->findReference(*ref);
             if (assetRef)
             {
                 setStateMachineUID(*assetRef);
@@ -1150,7 +1150,7 @@ void AnimationComponent::serialize(IArchive& archive)
     archive.serialize(m_forceWorldAfterApply, "ForceWorldAfterApply");
 }
 
-void AnimationComponent::setStateMachineUID(AssetReference& uid)
+void AnimationComponent::setStateMachineUID(AssetId& uid)
 {
     if (m_stateMachine == uid)
         return;
@@ -1163,7 +1163,7 @@ void AnimationComponent::setStateMachineUID(AssetReference& uid)
     m_stateMachineDirty = false;
 }
 
-void AnimationComponent::setAnimationSourceUID(AssetReference& uid)
+void AnimationComponent::setAnimationSourceUID(AssetId& uid)
 {
     if (m_animationSource == uid)
         return;

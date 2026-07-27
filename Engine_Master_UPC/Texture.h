@@ -27,6 +27,7 @@ struct TextureDesc
     uint32_t                width{ 1 };
     uint32_t                height{ 1 };
     uint16_t                arraySize{ 1 };
+    uint16_t                depth{ 1 };       // > 1 makes this a 3D (volume) texture
     uint16_t                mipLevels{ 1 };
     TextureView             views{ TextureView::SRV };
     D3D12_RESOURCE_STATES   initialState{ D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };

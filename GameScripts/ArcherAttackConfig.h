@@ -8,7 +8,7 @@ class ArcherAttackConfig : public EnemyBaseAttackConfig
 
 public:
     ArcherAttackConfig() = default;
-    explicit ArcherAttackConfig(AssetReference& id)
+    explicit ArcherAttackConfig(AssetId& id)
         : EnemyBaseAttackConfig(id)
     {
     }

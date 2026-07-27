@@ -1,4 +1,6 @@
 #pragma once
+#include <cstring>
+#include <cstdint>
 
 #define COMPONENT_TYPE_LIST(X) \
     X(TRANSFORM)            \

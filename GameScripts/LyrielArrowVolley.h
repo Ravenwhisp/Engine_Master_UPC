@@ -13,8 +13,6 @@ class LyrielArrowVolley : public LyrielAbilityBase
 public:
     explicit LyrielArrowVolley(GameObject* owner);
 
-    FieldList getExposedFields() const override;
-
     void Start() override;
     void Update() override;
     void drawGizmo() override;
@@ -38,7 +36,7 @@ private:
     bool isAimStickValid(const Vector3& direction) const;
 
     void collectEnemiesInCone(const Vector3& origin, const Vector3& forward, std::vector<Damageable*>& outTargets);
-    bool applyVolleyDamage(const std::vector<Damageable*>& targets);
+    void applyVolleyDamage(const std::vector<Damageable*>& targets);
     void spawnVolleyArrows(const Vector3& origin, const Vector3& forward);
 
     void drawAimPreview(const Vector3& origin, const Vector3& forward) const;

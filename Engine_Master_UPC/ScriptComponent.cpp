@@ -60,6 +60,15 @@ void ScriptComponent::resetStartState()
     m_hasStarted = false;
 }
 
+void ScriptComponent::onGameStop()
+{
+    if (!m_script)
+    {
+        return;
+    }
+    m_script->OnGameStop();
+}
+
 void ScriptComponent::update()
 {
     if (!m_script)
@@ -71,6 +80,7 @@ void ScriptComponent::update()
     {
         m_script->Start();
         m_hasStarted = true;
+        return;
     }
 
     m_script->Update();

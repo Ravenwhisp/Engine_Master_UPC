@@ -23,11 +23,7 @@ namespace
     {
         float value = *reinterpret_cast<const float*>(data);
         archive.serialize(value, field.name);
-    }
-
-    void deserializeFloatField(const FieldInfo& field, void* data, IArchive& archive)
-    {
-        archive.serialize(*reinterpret_cast<float*>(data), field.name);
+        *reinterpret_cast<float*>(data) = value;
     }
 
     void cloneFloatField(const FieldInfo&, const void* sourceData, void* targetData)

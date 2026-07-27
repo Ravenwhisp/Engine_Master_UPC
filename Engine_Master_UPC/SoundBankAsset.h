@@ -9,7 +9,7 @@ class SoundBankAsset : public Asset
 {
 public:
     SoundBankAsset() { m_type = AssetType::SOUND_BANK; }
-    SoundBankAsset(AssetReference& id) : Asset(id, AssetType::SOUND_BANK) {}
+    SoundBankAsset(AssetId& id) : Asset(id, AssetType::SOUND_BANK) {}
 
     const std::string& getBankName() const { return m_bankName; }
     void setBankName(const std::string& name) { m_bankName = name; }

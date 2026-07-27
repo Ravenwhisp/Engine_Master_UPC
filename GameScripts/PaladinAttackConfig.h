@@ -8,7 +8,7 @@ class PaladinAttackConfig : public EnemyBaseAttackConfig
 
 public:
     PaladinAttackConfig() = default;
-    explicit PaladinAttackConfig(AssetReference& id)
+    explicit PaladinAttackConfig(AssetId& id)
         : EnemyBaseAttackConfig(id)
     {
     }

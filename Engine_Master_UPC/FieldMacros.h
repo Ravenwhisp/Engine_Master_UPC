@@ -117,6 +117,9 @@
 #define SERIALIZED_COMPONENT_REF_VECTOR(MemberName, DisplayName, ComponentTypeValue) \
     { DisplayName, FieldType::List, offsetof(ThisType, MemberName), getListFieldHandler(FieldType::ComponentRef), {}, {}, { ComponentTypeValue }, { FieldType::ComponentRef, getComponentRefFieldHandler() } }
 
+#define SERIALIZED_ASSET_REF_VECTOR(MemberName, DisplayName) \
+    { DisplayName, FieldType::List, offsetof(ThisType, MemberName), getListFieldHandler(FieldType::AssetRef), {}, {}, {}, { FieldType::AssetRef, getAssetRefFieldHandler() } }
+
 // Non serializable fields macros
 
 #define FIELD_GROUP_LABEL(DisplayName) \

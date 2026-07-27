@@ -117,12 +117,12 @@ bool Application::init()
                         line.erase(line.find_last_not_of(" \n\r\t") + 1);
                         if (!line.empty())
                         {
-                            AssetReference initRef(GenerateUID(), line, AssetType::SOUND_BANK);
+                            AssetId initRef(GenerateUID(), line, AssetType::SOUND_BANK);
                             m_moduleMusic->loadBank(initRef);
                         }
                     }
 
-                    AssetReference ref(uid, sceneHash, AssetType::SCENE);
+                    AssetId ref(uid, sceneHash, AssetType::SCENE);
                     m_moduleScene->loadScene(ref);
                 }
                 else

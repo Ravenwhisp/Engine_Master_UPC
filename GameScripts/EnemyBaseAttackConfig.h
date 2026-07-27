@@ -8,7 +8,7 @@ class EnemyBaseAttackConfig : public EnemyBaseDataConfig
 
 public:
     EnemyBaseAttackConfig() = default;
-    explicit EnemyBaseAttackConfig(AssetReference& id)
+    explicit EnemyBaseAttackConfig(AssetId& id)
         : EnemyBaseDataConfig(id)
     {
     }

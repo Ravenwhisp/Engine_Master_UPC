@@ -51,7 +51,7 @@ void CommandCreateDataContainer::run()
 
     doc.AddMember("_typeName", rapidjson::Value(m_typeName.c_str(), allocator), allocator);
 
-    AssetReference tempRef(INVALID_UID);
+    AssetId tempRef(INVALID_UID);
     auto instance = DataContainerFactory::create(m_typeName, tempRef);
     if (instance)
     {

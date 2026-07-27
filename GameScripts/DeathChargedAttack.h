@@ -1,18 +1,18 @@
 #pragma once
 
-#include "DeathAbilityBase.h"
+#include "ChargedAttackBase.h"
 
 class DeathUI;
 class DeathParticles;
+class DeathConfig;
+class DeathCharacter;
 
-class DeathChargedAttack : public DeathAbilityBase
+class DeathChargedAttack : public ChargedAttackBase
 {
     DECLARE_SCRIPT(DeathChargedAttack)
 
 public:
     explicit DeathChargedAttack(GameObject* owner);
-
-    FieldList getExposedFields() const override;
 
     void Start()     override;
     void Update()    override;
@@ -38,11 +38,12 @@ private:
     void updateUI() override;
 
 private:
+    DeathCharacter* m_deathCharacter = nullptr;
+    DeathConfig* m_config = nullptr;
     DeathUI* m_deathUI = nullptr;
+    DeathParticles* m_particles = nullptr;
 
     float   m_chargeTime = 0.0f;
     bool    m_isCharging = false;
     Vector3 m_aimDirection = { 0.0f, 0.0f, 0.0f };
-
-    DeathParticles* m_particles = nullptr;
 };

@@ -87,7 +87,7 @@ void EnemyDeathState::destroyEnemyNow()
 
 void EnemyDeathState::dropRewards()
 {
-    if (!m_healthPrefab.m_ref.isValid())
+    if (!m_healthPrefab.m_id.isValid())
     {
         return;
     }
@@ -102,7 +102,7 @@ void EnemyDeathState::dropRewards()
 
     for (int i = 0; i < m_healthDropQuantity; ++i)
     {
-        HealthDropSpawner::drop(m_healthPrefab.m_ref,
+        HealthDropSpawner::drop(m_healthPrefab.m_id,
                                 spawnPosition,
                                 m_dropHealAmount,
                                 m_dropRadius,

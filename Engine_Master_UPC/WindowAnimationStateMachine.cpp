@@ -95,7 +95,7 @@ void WindowAnimationStateMachine::cleanUp()
     m_lastSaveSucceeded = false;
 }
 
-void WindowAnimationStateMachine::setTargetStateMachineUID(AssetReference& uid)
+void WindowAnimationStateMachine::setTargetStateMachineUID(AssetId& uid)
 {
     if (m_targetStateMachineUID == &uid)
     {
@@ -1237,7 +1237,7 @@ void WindowAnimationStateMachine::drawInternal()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            AssetId* assetRef = app->getModuleAssets()->findReference(*ref);
             m_asset = app->getModuleAssets()->load<AnimationStateMachineAsset>(*assetRef);
             if (m_asset)
             {

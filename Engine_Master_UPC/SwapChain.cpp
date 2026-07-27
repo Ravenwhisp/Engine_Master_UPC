@@ -61,6 +61,10 @@ SwapChain::SwapChain(HWND hWnd, ComPtr<ID3D12Device4> device, CommandQueue* queu
     auto* depthTexture = app->getModuleResources()->createDepthBuffer(float(m_windowWidth), float(m_windowHeight));
     m_renderSurface.attachTexture( RenderSurface::DEPTH_STENCIL, std::shared_ptr<Texture>(depthTexture));
 
+    // HDR scene target used by the post-process pipeline (resolved into the backbuffer).
+    auto* hdrTexture = app->getModuleResources()->createHDRRenderTexture(float(m_windowWidth), float(m_windowHeight));
+    m_renderSurface.attachTexture( RenderSurface::SCENE_HDR, std::shared_ptr<Texture>(hdrTexture));
+
     m_renderSurface.setSize(m_windowWidth, m_windowHeight);
 }
 
@@ -119,6 +123,9 @@ void SwapChain::resize()
 
         auto* depthTexture = app->getModuleResources()->createDepthBuffer(float(m_windowWidth), float(m_windowHeight));
         m_renderSurface.attachTexture(RenderSurface::DEPTH_STENCIL, std::shared_ptr<Texture>(depthTexture));
+
+        auto* hdrTexture = app->getModuleResources()->createHDRRenderTexture(float(m_windowWidth), float(m_windowHeight));
+        m_renderSurface.attachTexture(RenderSurface::SCENE_HDR, std::shared_ptr<Texture>(hdrTexture));
 
         m_renderSurface.setSize(m_windowWidth, m_windowHeight);
     }

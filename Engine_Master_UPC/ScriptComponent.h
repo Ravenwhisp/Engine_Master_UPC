@@ -23,6 +23,7 @@ public:
     bool createScriptInstance();
     void destroyScriptInstance();
     void resetStartState();
+    void onGameStop();
 
     void update() override;
     void drawUi() override;

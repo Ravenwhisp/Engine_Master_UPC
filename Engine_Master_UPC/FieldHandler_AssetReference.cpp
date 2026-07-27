@@ -5,7 +5,6 @@
 #include "FieldHandlerRegistry.h"
 #include "IArchive.h"
 #include "IFieldContainer.h"
-#include "AssetRef.h"
 #include "AssetReference.h"
 #include "AssetType.h"
 
@@ -18,9 +17,9 @@ namespace
 {
     void drawAssetRefFieldUi(const FieldInfo& field, void* data, IFieldContainer& container)
     {
-        AssetRef<void>* assetRef = reinterpret_cast<AssetRef<void>*>(data);
+        AssetReference<void>* assetRef = reinterpret_cast<AssetReference<void>*>(data);
 
-        const bool hasAsset = assetRef->m_ref.isValid();
+        const bool hasAsset = assetRef->m_id.isValid();
         const char* displayName = field.name;
 
         ImGui::Text("%s", displayName);
@@ -28,7 +27,7 @@ namespace
 
         if (hasAsset)
         {
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Assigned (UID %llu)", assetRef->m_ref.m_uid);
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Assigned (UID %llu)", assetRef->m_id.m_uid);
         }
         else
         {
@@ -40,10 +39,10 @@ namespace
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
                 const UID droppedUID = *static_cast<const UID*>(payload->Data);
-                AssetReference* resolved = app->getModuleAssets()->findReference(droppedUID);
+                AssetId* resolved = app->getModuleAssets()->findReference(droppedUID);
                 if (resolved)
                 {
-                    assetRef->m_ref = *resolved;
+                    assetRef->m_id = *resolved;
                     if (resolved->m_type == AssetType::DATA_CONTAINER)
                     {
                         assetRef->m_data = app->getModuleAssets()->load<DataContainer>(*resolved);
@@ -57,10 +56,10 @@ namespace
             {
                 const std::string pathStr(static_cast<const char*>(payload->Data));
                 const UID uid = app->getModuleAssets()->getIndex().findUID(std::filesystem::path(pathStr));
-                AssetReference* resolved = app->getModuleAssets()->findReference(uid);
+                AssetId* resolved = app->getModuleAssets()->findReference(uid);
                 if (resolved)
                 {
-                    assetRef->m_ref = *resolved;
+                    assetRef->m_id = *resolved;
                     container.onFieldEdited(field);
                     delete resolved;
                 }
@@ -74,7 +73,7 @@ namespace
         std::string clearLabel = std::string("Clear###") + field.name;
         if (ImGui::Button(clearLabel.c_str()))
         {
-            assetRef->m_ref = AssetReference();
+            assetRef->m_id = AssetId();
             assetRef->m_data = nullptr;
             container.onFieldEdited(field);
         }
@@ -134,40 +133,42 @@ namespace
 
     void serializeAssetRefField(const FieldInfo& field, void* data, IArchive& archive)
     {
-        AssetRef<void>* ref = reinterpret_cast<AssetRef<void>*>(data);
-        uint64_t uid = static_cast<uint64_t>(ref->m_ref.m_uid);
-        archive.serialize(uid, field.name);
-        ref->m_ref.m_uid = static_cast<UID>(uid);
-
-        uint32_t type = static_cast<uint32_t>(ref->m_ref.m_type);
-        std::string typeKey = std::string(field.name) + "_type";
-        archive.serializeStringEnum(type, typeKey.c_str(), AssetTypeToString, StringToAssetType);
-        ref->m_ref.m_type = static_cast<AssetType>(type);
+        AssetReference<void>* ref = reinterpret_cast<AssetReference<void>*>(data);
+        archive.beginObject(field.name);
+        ref->m_id.serialize(archive);
+        archive.endObject();
     }
 
     void cloneAssetRefField(const FieldInfo&, const void* sourceData, void* targetData)
     {
-        const AssetRef<void>* sourceRef = reinterpret_cast<const AssetRef<void>*>(sourceData);
-        AssetRef<void>* targetRef = reinterpret_cast<AssetRef<void>*>(targetData);
-        targetRef->m_ref = sourceRef->m_ref;
+        const AssetReference<void>* sourceRef = reinterpret_cast<const AssetReference<void>*>(sourceData);
+        AssetReference<void>* targetRef = reinterpret_cast<AssetReference<void>*>(targetData);
+        targetRef->m_id = sourceRef->m_id;
         targetRef->m_data = sourceRef->m_data;
     }
 
     void fixReferencesAssetRefField(const FieldInfo&, void* data, const SceneReferenceResolver&)
     {
-        AssetRef<void>* assetRef = reinterpret_cast<AssetRef<void>*>(data);
+        AssetReference<void>* assetRef = reinterpret_cast<AssetReference<void>*>(data);
 
-        if (!assetRef->m_ref.isValid() && assetRef->m_ref.hasUID())
+        if (!assetRef->m_id.isValid() && assetRef->m_id.hasUID())
         {
-            AssetReference* resolved = app->getModuleAssets()->findReference(assetRef->m_ref.m_uid);
+            AssetId* resolved = app->getModuleAssets()->findReference(assetRef->m_id.m_uid);
             if (resolved)
             {
-                assetRef->m_ref = *resolved;
+                assetRef->m_id = *resolved;
                 if (resolved->m_type == AssetType::DATA_CONTAINER)
                 {
                     assetRef->m_data = app->getModuleAssets()->load<DataContainer>(*resolved);
                 }
                 delete resolved;
+            }
+        }
+        else
+        {
+            if (assetRef->m_id.m_type == AssetType::DATA_CONTAINER)
+            {
+                assetRef->m_data = app->getModuleAssets()->load<DataContainer>(assetRef->m_id);
             }
         }
     }

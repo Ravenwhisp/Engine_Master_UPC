@@ -2,15 +2,7 @@
 #include "JsonArchive.h"
 #include "Metadata.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/filereadstream.h>
-#include <fstream>
-#include <cstdio>
 
-using namespace rapidjson;
 
 JsonArchive::JsonArchive()
     : m_mode(ArchiveMode::Output)

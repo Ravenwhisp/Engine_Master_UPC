@@ -48,5 +48,7 @@ private:
 
     void drawSSAOSettings();
 
+    void drawPostProcessSettings();
+
     void drawMusicBanksSettings();
 };

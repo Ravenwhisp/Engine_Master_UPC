@@ -16,6 +16,8 @@ public:
     virtual void Start() {}
     virtual void Update() {}
 
+    virtual void OnGameStop() {}
+
     virtual void OnTriggerEnter(GameObject* gameObject) {}
     virtual void OnTriggerExit(GameObject* gameObject) {}
 

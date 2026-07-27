@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ScriptAPI.h"
 #include <vector>
 
@@ -10,10 +10,10 @@ public:
     void Start() override;
     FieldList getExposedFields() const override;
 
-    AssetRef<Prefab> m_trailPrefab;
-    AssetRef<Prefab> m_volleyPrefab;
-    AssetRef<Prefab> m_chargePrefab;
-    AssetRef<Prefab> m_arrowPrefab;
+    PrefabRef m_trailPrefab;
+    PrefabRef m_volleyPrefab;
+    PrefabRef m_chargePrefab;
+    PrefabRef m_arrowPrefab;
 
     // Basic attack trail — called by ArcherArrowShooter
     void spawnBasicAttackTrail(const Vector3& pos);

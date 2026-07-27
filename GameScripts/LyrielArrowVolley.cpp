@@ -8,15 +8,9 @@
 #include "LyrielArrowProjectile.h"
 #include "EnemyDamageable.h"
 #include "PlayerState.h"
-#include "PersistingPowerupState.h"
-#include "EnemyShadowMark.h"
 #include "BreakableDamageable.h"
 #include "LyrielUI.h"
 #include "LyrielConfig.h"
-
-IMPLEMENT_SCRIPT_FIELDS(LyrielArrowVolley,
-    SERIALIZED_ASSET_REF(m_config, "Lyriel Config", AssetType::DATA_CONTAINER)
-)
 
 #include <cmath>
 
@@ -102,8 +96,7 @@ void LyrielArrowVolley::onAttackWindowFinished()
 
 float LyrielArrowVolley::getCooldown() const
 {
-    const LyrielConfig* cfg = m_config.get();
-    return cfg ? cfg->m_volleyCooldown : 0.0f;
+    return m_lyrielCharacter->getConfig()->m_volleyCooldown;
 }
 
 bool LyrielArrowVolley::canCast() const
@@ -195,7 +188,7 @@ void LyrielArrowVolley::releaseAimAndCast()
 
     std::vector<Damageable*> targets;
     collectEnemiesInCone(origin, forward, targets);
-    const bool anyMarkExploited = applyVolleyDamage(targets);
+    applyVolleyDamage(targets);
     spawnVolleyArrows(origin, forward);
     notifyAbilitySuccessfullyStarted();
 
@@ -203,19 +196,11 @@ void LyrielArrowVolley::releaseAimAndCast()
     if (sound != nullptr)
     {
         sound->playVolleyRelease();
-        if (anyMarkExploited)
-        {
-            sound->playMarkExploit();
-        }
     }
 
     beginAttackPresentation();
 
-    const LyrielConfig* cfgLock = m_config.get();
-    if (cfgLock)
-    {
-        beginAttackWindow(cfgLock->m_volleyAttackLockDuration);
-    }
+    beginAttackWindow(m_lyrielCharacter->getConfig()->m_volleyAttackLockDuration);
     startCooldown();
 
     Debug::log("[LyrielArrowVolley] Cast Arrow Volley. Targets hit: %d", static_cast<int>(targets.size()));
@@ -237,10 +222,11 @@ void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector
 {
     outTargets.clear();
 
-    const LyrielConfig* cfg = m_config.get();
-    if (!cfg) return;
+    //std::vector<GameObject*> allEnemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true); //cambiar, esto no pilla los damageables
 
-    const std::vector<GameObject*> objectsInCircularRange = SceneAPI::getObjectsInCircularArea(Vector2(origin.x, origin.z), cfg->m_volleyRange);
+    //detectar enemigos en cono
+
+	const std::vector<GameObject*> objectsInCircularRange = SceneAPI::getObjectsInCircularArea(Vector2(origin.x, origin.z), m_lyrielCharacter->getConfig()->m_volleyRange);
 
     std::vector<Damageable*> damageables;
 
@@ -268,7 +254,7 @@ void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector
 
     flatForward.Normalize();
 
-    const float halfAngleRadians = DirectX::XMConvertToRadians(cfg->m_volleyConeAngleDegrees * 0.5f);
+    const float halfAngleRadians = DirectX::XMConvertToRadians(m_lyrielCharacter->getConfig()->m_volleyConeAngleDegrees * 0.5f);
     const float minDot = std::cos(halfAngleRadians);
 
     for (Damageable* damageable : damageables)
@@ -295,7 +281,7 @@ void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector
             continue;
         }
 
-        if (distanceSq > (cfg->m_volleyRange * cfg->m_volleyRange))
+        if (distanceSq > (m_lyrielCharacter->getConfig()->m_volleyRange * m_lyrielCharacter->getConfig()->m_volleyRange))
         {
             continue;
         }
@@ -310,13 +296,8 @@ void LyrielArrowVolley::collectEnemiesInCone(const Vector3& origin, const Vector
     }
 }
 
-bool LyrielArrowVolley::applyVolleyDamage(const std::vector<Damageable*>& targets)
+void LyrielArrowVolley::applyVolleyDamage(const std::vector<Damageable*>& targets)
 {
-    bool anyMarkExploited = false;
-
-    const LyrielConfig* cfg = m_config.get();
-    if (!cfg) return false;
-
     for (Damageable* target : targets)
     {
         if (target == nullptr)
@@ -327,43 +308,30 @@ bool LyrielArrowVolley::applyVolleyDamage(const std::vector<Damageable*>& target
         if(EnemyDamageable* enemyDamageable = dynamic_cast<EnemyDamageable*>(target))
         {
             EnemyHitContext ctx;
-            ctx.damage = cfg->m_volleyDamage;
+            ctx.damage = m_lyrielCharacter->getConfig()->m_volleyDamage;
             ctx.attacker = GameObjectAPI::getTransform(getOwner());
-
-            if (PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1))
-            {
-                EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(target->getOwner());
-
-                if (mark != nullptr && mark->isExploitable())
-                {
-                    mark->exploit();
-					ctx.attackType = EnemyAttackType::ShadowMarkExploit;
-                    anyMarkExploited = true;
-                    if (m_lyrielCharacter != nullptr)
-                        m_lyrielCharacter->onMarkExploited();
-                }
-                else
-                {
-                    ctx.attackType = EnemyAttackType::LyrielVolley;
-                }
-            }
+            ctx.attackType = PlayerAttackType::LyrielVolley;
 
             enemyDamageable->takeDamage(ctx);
+
+            if (enemyDamageable->lastHitExploitShadowMark() && m_lyrielCharacter != nullptr)
+            {
+                m_lyrielCharacter->onMarkExploited();
+            }
+
             continue;
         }
-        else if(BreakableDamageable* breakableDamageable = dynamic_cast<BreakableDamageable*>(target))
+
+        if (BreakableDamageable* breakableDamageable = dynamic_cast<BreakableDamageable*>(target))
         {
-            breakableDamageable->takeDamage(cfg->m_volleyDamage);
+            breakableDamageable->takeDamage(m_lyrielCharacter->getConfig()->m_volleyDamage);
 		} 
     }
-
-    return anyMarkExploited;
 }
 
 void LyrielArrowVolley::spawnVolleyArrows(const Vector3& origin, const Vector3& forward)
 {
-    const LyrielConfig* cfg = m_config.get();
-    if (m_lyrielCharacter == nullptr || !cfg || cfg->m_volleyNumVisualArrows <= 0)
+    if (m_lyrielCharacter == nullptr || m_lyrielCharacter->getConfig()->m_volleyNumVisualArrows <= 0)
     {
         return;
     }
@@ -384,15 +352,15 @@ void LyrielArrowVolley::spawnVolleyArrows(const Vector3& origin, const Vector3& 
 
     flatForward.Normalize();
 
-    const float totalAngle = cfg->m_volleyConeAngleDegrees;
+    const float totalAngle = m_lyrielCharacter->getConfig()->m_volleyConeAngleDegrees;
 
     float lifetime = 0.0f;
-    if (cfg->m_volleyArrowSpeed > 0.0001f)
+    if (m_lyrielCharacter->getConfig()->m_volleyArrowSpeed > 0.0001f)
     {
-        lifetime = cfg->m_volleyRange / cfg->m_volleyArrowSpeed;
+        lifetime = m_lyrielCharacter->getConfig()->m_volleyRange / m_lyrielCharacter->getConfig()->m_volleyArrowSpeed;
     }
 
-    for (int i = 0; i < cfg->m_volleyNumVisualArrows; ++i)
+    for (int i = 0; i < m_lyrielCharacter->getConfig()->m_volleyNumVisualArrows; ++i)
     {
         ProjectileBase* projectile = projectilePool->acquireProjectile();
         if (!projectile)
@@ -404,9 +372,9 @@ void LyrielArrowVolley::spawnVolleyArrows(const Vector3& origin, const Vector3& 
         LyrielArrowProjectile* arrow = static_cast<LyrielArrowProjectile*>(projectile);
 
         float t = 0.5f;
-        if (cfg->m_volleyNumVisualArrows > 1)
+        if (m_lyrielCharacter->getConfig()->m_volleyNumVisualArrows > 1)
         {
-            t = static_cast<float>(i) / static_cast<float>(cfg->m_volleyNumVisualArrows - 1);
+            t = static_cast<float>(i) / static_cast<float>(m_lyrielCharacter->getConfig()->m_volleyNumVisualArrows - 1);
         }
 
         const float angleOffset = -totalAngle * 0.5f + totalAngle * t;
@@ -429,7 +397,7 @@ void LyrielArrowVolley::spawnVolleyArrows(const Vector3& origin, const Vector3& 
             dir.Normalize();
         }
 
-        arrow->launch(origin, dir, cfg->m_volleyArrowSpeed, lifetime, nullptr, 0.0f);
+        arrow->launch(origin, dir, m_lyrielCharacter->getConfig()->m_volleyArrowSpeed, lifetime, nullptr, 0.0f);
     }
 }
 
@@ -445,10 +413,7 @@ void LyrielArrowVolley::drawAimPreview(const Vector3& origin, const Vector3& for
 
     flatForward.Normalize();
 
-    const LyrielConfig* cfg = m_config.get();
-    if (!cfg) return;
-
-    const float halfAngleRad = DirectX::XMConvertToRadians(cfg->m_volleyConeAngleDegrees * 0.5f);
+    const float halfAngleRad = DirectX::XMConvertToRadians(m_lyrielCharacter->getConfig()->m_volleyConeAngleDegrees * 0.5f);
     const int arcSteps = 16;
 
     const Vector3 previewColor(0.2f, 1.0f, 0.2f);
@@ -471,10 +436,10 @@ void LyrielArrowVolley::drawAimPreview(const Vector3& origin, const Vector3& for
     leftDir.Normalize();
     rightDir.Normalize();
 
-    DebugDrawAPI::drawLine(origin, origin + leftDir * cfg->m_volleyRange, previewColor, 0, true);
-    DebugDrawAPI::drawLine(origin, origin + rightDir * cfg->m_volleyRange, previewColor, 0, true);
+    DebugDrawAPI::drawLine(origin, origin + leftDir * m_lyrielCharacter->getConfig()->m_volleyRange, previewColor, 0, true);
+    DebugDrawAPI::drawLine(origin, origin + rightDir * m_lyrielCharacter->getConfig()->m_volleyRange, previewColor, 0, true);
 
-    Vector3 previousPoint = origin + leftDir * cfg->m_volleyRange;
+    Vector3 previousPoint = origin + leftDir * m_lyrielCharacter->getConfig()->m_volleyRange;
 
     for (int i = 1; i <= arcSteps; ++i)
     {
@@ -484,7 +449,7 @@ void LyrielArrowVolley::drawAimPreview(const Vector3& origin, const Vector3& for
         Vector3 arcDir = rotateXZ(flatForward, angle);
         arcDir.Normalize();
 
-        Vector3 currentPoint = origin + arcDir * cfg->m_volleyRange;
+        Vector3 currentPoint = origin + arcDir * m_lyrielCharacter->getConfig()->m_volleyRange;
 
         DebugDrawAPI::drawLine(previousPoint, currentPoint, previewColor, 0, true);
         previousPoint = currentPoint;

@@ -5,7 +5,6 @@
 class LyrielSound;
 class LyrielUI;
 class LyrielCharacter;
-class LyrielConfig;
 class LyrielParticles;
 
 class LyrielDash : public AbilityDash
@@ -14,8 +13,6 @@ class LyrielDash : public AbilityDash
 
 public:
     explicit LyrielDash(GameObject* owner);
-
-    FieldList getExposedFields() const override;
 
     void Start() override;
 
@@ -35,7 +32,6 @@ protected:
 
 private:
     LyrielCharacter* m_lyrielCharacter = nullptr;
-    AssetRef<LyrielConfig> m_config;
     LyrielUI* m_lyrielUI = nullptr;
 
     int m_currentCharges = 0;

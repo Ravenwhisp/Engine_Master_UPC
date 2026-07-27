@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -18,6 +18,8 @@ public:
 
     virtual void onBreak();
     bool isBroken() const { return m_isBroken; }
+
+    virtual bool canBeTargetedDuringCombat() const { return false; }
 
 protected:
 	Transform* m_normalObjectTransform = nullptr;

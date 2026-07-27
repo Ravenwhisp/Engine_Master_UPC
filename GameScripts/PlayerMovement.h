@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -18,7 +18,7 @@ public:
 
     inline void playerMovement(GameObject* owner, const Vector3& timeStep) const 
     { 
-        moveInternal(owner, timeStep * m_moveSpeed); 
+        moveInternal(owner, timeStep * m_moveSpeed * m_movementMultiplier);
     }
 	inline void playerDashMovement(GameObject* owner, const Vector3& displacement, bool ignoreNavMesh = false) 
     { 
@@ -33,6 +33,12 @@ public:
         moveInternal(owner, displacement);
         m_constrainToNavMesh = previousConstraint;
     }
+
+    void setMovementMultiplier(float multiplier) { m_movementMultiplier = multiplier; }
+    void resetMovementMultiplier() { m_movementMultiplier = 1.0f; }
+
+    float getMovementMultiplier() const { return m_movementMultiplier; }
+    bool canMoveFromMultiplier() const { return m_movementMultiplier > 0.0001f; }
 
     void setMoving(bool isMoving);
     bool isMoving() const { return m_isMoving; }
@@ -52,4 +58,5 @@ private:
     bool m_isMoving = false;
     PlayerAnimationController* m_playerAnimationController = nullptr;
 
+    float m_movementMultiplier = 1.0f;
 };
