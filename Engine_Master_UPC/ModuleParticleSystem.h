@@ -21,6 +21,7 @@ struct Particle {
     float rotationVelocity;
     bool flippedRotation;
     Vector3 movementDirection; // should be normalized
+    float addedGravityVelocity;
     
     Vector2 startScale;  // for interpolation calculations
     Vector2 endScale;    //
@@ -29,7 +30,7 @@ struct Particle {
     float lifeTime = 0.f;
 
     EmitterInstance* owner;
-    bool moved = false; // means it has been reused on a different emitter, or on the same one (instead of taking a free slot) 
+    bool movedFromAlives = false; // can happen if it has been reused on a different emitter, or on the same one (instead of taking a free slot) 
 };
 
 

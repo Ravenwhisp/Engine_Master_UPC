@@ -161,9 +161,10 @@ int ModuleParticleSystem::requestPoolSlot(EmitterInstance* newOwner)
         int slot = m_firstUsed;
         m_firstUsed = (++m_firstUsed) % MAX_PARTICLES; // move to next in the pool (approximated)
 
-        m_pool[slot].moved = true;  // "mark" for the original owner
+        if (!m_pool[slot].owner->removeNewParticle(slot)) { // erase in case it was a new one for the previous owner (makes sense since we are doing the spawn first for all the emitters)
 
-        m_pool[slot].owner->removeNewParticle(slot); // in case it was a new one for the original owner (makes sense since we are doing the spawn first for all the emitters)
+            m_pool[slot].movedFromAlives = true; // means previous owner had it for at least one frame, so we need to tell it to remove it from alives
+        } 
         m_pool[slot].owner = newOwner;
         return slot;
     }

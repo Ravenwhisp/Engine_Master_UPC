@@ -47,7 +47,7 @@ float4 main(PSInput input) : SV_TARGET
     // Soft particles calculation //
     
     float sceneDepth = depthStencilTexture.Sample(depthStencilSampler, input.screenUV).r;
-    float particleDepth = input.position.z / input.position.w; // in NDC
+    float particleDepth = input.position.z; // in NDC
     
     float depthDiff = sceneDepth - particleDepth;
     

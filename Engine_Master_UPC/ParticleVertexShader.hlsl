@@ -39,6 +39,7 @@ VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, uint instance
     // screenUV calculation (from clip space position)
     float2 normalizedDeviceCoord = output.position.xy / output.position.w;
     output.screenUV = normalizedDeviceCoord * 0.5f + float2(0.5f, 0.5f); // [-1, 1] -> [0, 1]
+    output.screenUV.y = 1.f - output.screenUV.y;
     
     return output;
 }
