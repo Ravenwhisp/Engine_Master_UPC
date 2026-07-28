@@ -31,7 +31,7 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 		{
 			unsigned int poolIndex = aliveParticle.second;
 			Vector3 position = particlePool[poolIndex].position;
-
+			float addedGravityVelocity = particlePool[poolIndex].addedGravityVelocity;
 			
 			if (m_velocityType == ParameterType::CURVE)
 			{
@@ -40,8 +40,13 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 				particlePool[poolIndex].velocity = m_initialVelocity + (m_initialVelocity2 - m_initialVelocity) * bezierScale;
 			}
 
-			position += (deltaTime * particlePool[poolIndex].velocity) * particlePool[poolIndex].movementDirection; // update position
+			addedGravityVelocity += deltaTime * m_gravity;
+
+			position += (deltaTime * particlePool[poolIndex].velocity) * particlePool[poolIndex].movementDirection
+					 + Vector3(0.f, -deltaTime * addedGravityVelocity, 0.f); // update position
 			particlePool[poolIndex].position = position;
+
+			particlePool[poolIndex].addedGravityVelocity = addedGravityVelocity;
 
 			aliveParticle.first = Vector3::Distance(cameraPosition, position); // update distance to camera
 		}
@@ -60,6 +65,8 @@ void EmitterVelocity::update(EmitterInstance* particleData)
 		{
 			particlePool[particleIndex].velocity = m_initialVelocity;
 		}
+
+		particlePool[particleIndex].addedGravityVelocity = 0.f;
 	}
 }
 bool EmitterVelocity::drawUi()
@@ -69,6 +76,8 @@ bool EmitterVelocity::drawUi()
 	if (ImGui::CollapsingHeader("Velocity"))
 	{
 		parameterChanged = drawVelocityUI();
+
+		parameterChanged |= ImGui::DragFloat("Gravity##Velocity", &m_gravity, 0.1f);
 	}
 
 	return parameterChanged;
@@ -157,4 +166,6 @@ void EmitterVelocity::serialize(IArchive& archive)
 			archive.endArray();
 		}
 	}
+
+	archive.serialize(m_gravity, "Gravity");
 }
