@@ -114,6 +114,9 @@ void PostProcessPass::prepare(const RenderContext& ctx)
     m_params.outlineNoiseScale = settings.outlineNoiseScale;
     m_params.outlineBreakup = settings.outlineBreakup;
 
+    m_params.depthLinearizeA = ctx.projection.m[2][2];
+    m_params.depthLinearizeB = ctx.projection.m[3][2];
+
     m_runBloom = settings.bloomEnabled;
     m_params.enableBloom = settings.bloomEnabled ? 1u : 0u;
     m_params.bloomIntensity = settings.bloomIntensity;

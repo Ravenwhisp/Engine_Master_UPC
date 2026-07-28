@@ -33,9 +33,9 @@ struct PostProcessSettings : public ISerializable
     float deathBlackDuration = 1.5f;
 
     bool  outlineEnabled = false;
-    float outlineThickness = 1.5f; 
-    float outlineThreshold = 0.02f;
-    float outlineIntensity = 0.6f;  
+    float outlineThickness = 1.5f;
+    float outlineThreshold = 0.15f;  
+    float outlineIntensity = 0.6f;
     float outlineColorR = 0.05f;  
     float outlineColorG = 0.04f;
     float outlineColorB = 0.05f;
