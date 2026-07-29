@@ -72,6 +72,11 @@ private:
 
         float    depthLinearizeA = 1.0f;
         float    depthLinearizeB = 0.0f;
+
+        float    outlineNormalThreshold = 0.35f;
+        float    paramPad0 = 0.0f;
+        float    paramPad1 = 0.0f;
+        float    paramPad2 = 0.0f;
     };
 
     void updateHeartbeat(const PostProcessSettings& settings, const RenderContext& ctx, float dt);
@@ -86,14 +91,14 @@ private:
 
     std::unique_ptr<BloomPass> m_bloomPass;
 
-    // Colour-grading LUT and a neutral identity LUT fallback.
     std::shared_ptr<Texture> m_lutTexture;
     std::shared_ptr<Texture> m_identityLut;
     std::string              m_loadedLutPath;
     int                      m_lutSize = 2;
 
-    // 1x1 placeholder bound to the bloom slot when bloom is inactive.
     std::shared_ptr<Texture> m_dummyTexture;
+
+    Texture* m_normalTexture = nullptr;
 
     RenderSurface* m_surface = nullptr;
     D3D12_VIEWPORT m_viewport{};

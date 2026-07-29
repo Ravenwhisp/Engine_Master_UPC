@@ -3172,6 +3172,8 @@ namespace PostProcessAPI
     float getOutlineThickness()        { auto* pp = getSettings(); return pp ? pp->outlineThickness : 0.0f; }
     void  setOutlineThreshold(float t) { if (auto* pp = getSettings()) pp->outlineThreshold = t; }
     float getOutlineThreshold()        { auto* pp = getSettings(); return pp ? pp->outlineThreshold : 0.0f; }
+    void  setOutlineNormalThreshold(float t) { if (auto* pp = getSettings()) pp->outlineNormalThreshold = t; }
+    float getOutlineNormalThreshold()        { auto* pp = getSettings(); return pp ? pp->outlineNormalThreshold : 0.0f; }
     void  setOutlineIntensity(float i) { if (auto* pp = getSettings()) pp->outlineIntensity = i; }
     float getOutlineIntensity()        { auto* pp = getSettings(); return pp ? pp->outlineIntensity : 0.0f; }
     void  setOutlineColor(const Vector3& rgb)

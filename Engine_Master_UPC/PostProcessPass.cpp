@@ -25,18 +25,20 @@
 
 PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
-    CD3DX12_DESCRIPTOR_RANGE sceneRange, bloomRange, lutRange, depthRange;
+    CD3DX12_DESCRIPTOR_RANGE sceneRange, bloomRange, lutRange, depthRange, normalRange;
     sceneRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
     bloomRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
     lutRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);
     depthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0);
+    normalRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
     rootParameters[0].InitAsConstants(sizeof(PostProcessParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sceneRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsDescriptorTable(1, &bloomRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[3].InitAsDescriptorTable(1, &lutRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[4].InitAsDescriptorTable(1, &depthRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[5].InitAsDescriptorTable(1, &normalRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     D3D12_STATIC_SAMPLER_DESC sampler = PostProcess::bilinearClampSampler();
 
@@ -113,9 +115,13 @@ void PostProcessPass::prepare(const RenderContext& ctx)
     m_params.outlineWobble = settings.outlineWobble;
     m_params.outlineNoiseScale = settings.outlineNoiseScale;
     m_params.outlineBreakup = settings.outlineBreakup;
+    m_params.outlineNormalThreshold = settings.outlineNormalThreshold;
 
     m_params.depthLinearizeA = ctx.projection.m[2][2];
     m_params.depthLinearizeB = ctx.projection.m[3][2];
+
+    // Reused from the SSAO geometry pass for distance-invariant crease detection.
+    m_normalTexture = ctx.ssaoNormalTexture;
 
     m_runBloom = settings.bloomEnabled;
     m_params.enableBloom = settings.bloomEnabled ? 1u : 0u;
@@ -239,7 +245,7 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     auto sceneHDR = m_surface->getTexture(RenderSurface::SCENE_HDR);
     auto composite = m_surface->getTexture(RenderSurface::COMPOSITE);
     auto depthTex = m_surface->getTexture(RenderSurface::DEPTH_STENCIL);
-    if (!sceneHDR || !composite || !depthTex)
+    if (!sceneHDR || !composite || !depthTex || !m_normalTexture)
         return;
 
     // Make the HDR scene and the depth buffer readable in the shader (the depth buffer feeds the outline edge detection).
@@ -275,6 +281,7 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootDescriptorTable(2, bloomHandle);
     commandList->SetGraphicsRootDescriptorTable(3, lut->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(4, depthTex->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(5, m_normalTexture->getSRV().gpu);
 
     PostProcess::drawFullscreenTriangle(commandList);
 
