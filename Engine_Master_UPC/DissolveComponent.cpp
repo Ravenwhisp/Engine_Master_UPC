@@ -92,7 +92,7 @@ bool DissolveComponent::consumeLoadRequest()
 	return was;
 }
 
-void DissolveComponent::setTextureAssetId(const AssetReference& assetId)
+void DissolveComponent::setTextureAssetId(const AssetId& assetId)
 {
 	m_textureAssetId = assetId;
 	m_texture = nullptr;
@@ -111,7 +111,7 @@ void DissolveComponent::setTextureAssetId(const AssetReference& assetId)
 
 void DissolveComponent::LoadTexture(UID* data)
 {
-	AssetReference* ref = app->getModuleAssets()->findReference(*data);
+	AssetId* ref = app->getModuleAssets()->findReference(*data);
 	m_textureAssetId = *ref;
 	m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*ref);
 	if (m_textureAsset)

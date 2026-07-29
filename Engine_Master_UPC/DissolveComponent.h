@@ -47,17 +47,17 @@ public:
 	void requestLoad() { m_loadRequested = true; }
 
 	Texture*			  getTexture()			       const { return m_texture.get(); }
-	const AssetReference& getTextureAssetId()          const { return m_textureAssetId; }
+	const AssetId& getTextureAssetId()          const { return m_textureAssetId; }
 	TextureAsset*		  getTextureAsset()            const { return m_textureAsset.get(); }
 	
 	bool consumeLoadRequest();
-	void setTextureAssetId(const AssetReference& assetId);
+	void setTextureAssetId(const AssetId& assetId);
 
 
 private:
 	DissolveData m_dissolveData{};
 
-	AssetReference m_textureAssetId{};
+	AssetId m_textureAssetId{};
 	std::shared_ptr<Texture> m_texture = nullptr;
 	std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
 	bool m_loadRequested = false;

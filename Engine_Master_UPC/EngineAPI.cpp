@@ -34,6 +34,7 @@
 #include "PlayerRenderBufferComponent.h"
 #include "DamageHighlightComponent.h"
 #include "TrailComponent.h"
+#include "DissolveComponent.h"
 
 #include "CameraComponent.h"
 
@@ -3109,6 +3110,56 @@ namespace ShadersAPI
     void setDamageHighlightRimIntensity(DamageHighlightComponent* component, float value)
     {
         component->setDamageHighlightRimIntensity(value);
+    }
+
+    DissolveComponent* getDissolveComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DissolveComponent>(ComponentType::DISSOLVE);
+    }
+
+    const DissolveComponent* getDissolveComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DissolveComponent>(ComponentType::DISSOLVE);
+    }
+
+    float getDissolveAmount(DissolveComponent* component)
+    {
+        return component->getDissolveAmount();
+    }
+
+    void setDissolveAmount(DissolveComponent* component, float value)
+    {
+        component->setDissolveAmount(value);
+    }
+
+    Vector3 getDissolveColor(DissolveComponent* component)
+    {
+        return component->getDissolveColor();
+    }
+
+    void setDissolveColor(DissolveComponent* component, Vector3 value)
+    {
+        return component->setDissolveColor(value);
+    }
+
+    float getDissolveThikness(DissolveComponent* component)
+    {
+        return component->getDissolveThikness();
+    }
+
+    void setDissolveThikness(DissolveComponent* component, float value)
+    {
+        component->setDissolveThikness(value);
     }
 }
 
