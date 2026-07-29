@@ -636,6 +636,7 @@
     <ClCompile Include="SoundBankAsset.cpp" />
     <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
     <ClCompile Include="LineRendererComponent.cpp" />
+    <ClCompile Include="LineRendererPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
@@ -1500,6 +1501,7 @@
     <ClInclude Include="ImporterNavMesh.h" />
     <ClInclude Include="NavMeshAsset.h" />
     <ClInclude Include="LineRendererComponent.h" />
+    <ClInclude Include="LineRendererPass.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">

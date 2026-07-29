@@ -350,6 +350,15 @@ const std::vector<TrailComponent*>& ModuleScene::getTrailComponents()
 
     return m_trailComponents;
 }
+const std::vector<LineRendererComponent*>& ModuleScene::getLineRendererComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_lineRendererComponents;
+}
 
 #pragma endregion
 
