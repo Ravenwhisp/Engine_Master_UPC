@@ -34,6 +34,7 @@ class PlayerRenderBufferComponent;
 class DamageHighlightComponent;
 class TrailComponent;
 struct AssetId;
+class DissolveComponent;
 
 struct HapticEffectDefinition;
 
@@ -482,6 +483,16 @@ namespace ShadersAPI
     ENGINE_API void    setDamageHighlightRimColor(DamageHighlightComponent* component, Vector3 value);
     ENGINE_API float   getDamageHighlightRimIntensity(DamageHighlightComponent* component);
     ENGINE_API void    setDamageHighlightRimIntensity(DamageHighlightComponent* component, float value);
+
+    ENGINE_API DissolveComponent* getDissolveComponent(GameObject* gameObject);
+    ENGINE_API const DissolveComponent* getDissolveComponent(const GameObject* gameObject);
+
+    ENGINE_API float   getDissolveAmount(DissolveComponent* component);
+    ENGINE_API void    setDissolveAmount(DissolveComponent* component, float value);
+    ENGINE_API Vector3 getDissolveColor(DissolveComponent* component);
+    ENGINE_API void    setDissolveColor(DissolveComponent* component, Vector3 value);
+    ENGINE_API float   getDissolveThikness(DissolveComponent* component);
+    ENGINE_API void    setDissolveThikness(DissolveComponent* component, float value);
 }
 
 namespace PostProcessAPI

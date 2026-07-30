@@ -15,7 +15,6 @@ struct DamageHighlightDataCB
 	Vector3 padding1 = Vector3::Zero;
 
 	DamageHighlightData damageHighlightData;
-	Vector3 padding2 = Vector3::Zero;
 };
 
 
