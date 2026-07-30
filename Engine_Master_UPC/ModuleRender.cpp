@@ -386,6 +386,9 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
     const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
 
+    const bool outlineEnabled = app->getModuleScene()->getScene()->getPostProcessSettings().outlineEnabled;
+    const bool needsNormalBuffer = ssaoEnabled || outlineEnabled;
+
     RenderContext ctx{
         .view = camera.view,
         .projection = camera.projection,
@@ -440,7 +443,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOGeometryPass");
 
-        if (m_ssaoGeometryPass && ssaoEnabled)
+        if (m_ssaoGeometryPass && needsNormalBuffer)
         {
             m_ssaoGeometryPass->prepare(ctx);
             m_ssaoGeometryPass->apply(commandList);

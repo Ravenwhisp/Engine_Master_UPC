@@ -49,9 +49,9 @@ private:
         float    hbSwayY = 0.0f;
 
         //death fade outputs
-        float    deathDesat = 0.0f;  // 0..1 desaturation towards grey
-        float    deathFade = 0.0f;   // 0..1 fade towards black
-        float    deathBlur = 0.0f;   // 0..1 out-of-focus blur amount
+        float    deathDesat = 0.0f;  
+        float    deathFade = 0.0f;   
+        float    deathBlur = 0.0f;   
         float    deathPad0 = 0.0f;
 
         //outline
@@ -69,8 +69,14 @@ private:
         //outline
         float    outlineNoiseScale = 90.0f;
         float    outlineBreakup = 0.5f;
-        float    outlinePad0 = 0.0f;
-        float    outlinePad1 = 0.0f;
+
+        float    depthLinearizeA = 1.0f;
+        float    depthLinearizeB = 0.0f;
+
+        float    outlineNormalThreshold = 0.35f;
+        float    paramPad0 = 0.0f;
+        float    paramPad1 = 0.0f;
+        float    paramPad2 = 0.0f;
     };
 
     void updateHeartbeat(const PostProcessSettings& settings, const RenderContext& ctx, float dt);
@@ -85,14 +91,14 @@ private:
 
     std::unique_ptr<BloomPass> m_bloomPass;
 
-    // Colour-grading LUT and a neutral identity LUT fallback.
     std::shared_ptr<Texture> m_lutTexture;
     std::shared_ptr<Texture> m_identityLut;
     std::string              m_loadedLutPath;
     int                      m_lutSize = 2;
 
-    // 1x1 placeholder bound to the bloom slot when bloom is inactive.
     std::shared_ptr<Texture> m_dummyTexture;
+
+    Texture* m_normalTexture = nullptr;
 
     RenderSurface* m_surface = nullptr;
     D3D12_VIEWPORT m_viewport{};

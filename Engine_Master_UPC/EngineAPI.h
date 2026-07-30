@@ -539,6 +539,8 @@ namespace PostProcessAPI
     ENGINE_API float   getOutlineThickness();
     ENGINE_API void    setOutlineThreshold(float threshold);
     ENGINE_API float   getOutlineThreshold();
+    ENGINE_API void    setOutlineNormalThreshold(float threshold);
+    ENGINE_API float   getOutlineNormalThreshold();
     ENGINE_API void    setOutlineIntensity(float intensity);
     ENGINE_API float   getOutlineIntensity();
     ENGINE_API void    setOutlineColor(const Vector3& rgb);

@@ -33,15 +33,16 @@ struct PostProcessSettings : public ISerializable
     float deathBlackDuration = 1.5f;
 
     bool  outlineEnabled = false;
-    float outlineThickness = 1.5f; 
-    float outlineThreshold = 0.02f;
-    float outlineIntensity = 0.6f;  
-    float outlineColorR = 0.05f;  
+    float outlineThickness = 1.5f;
+    float outlineThreshold = 0.15f;
+    float outlineIntensity = 0.6f;
+    float outlineColorR = 0.05f;
     float outlineColorG = 0.04f;
     float outlineColorB = 0.05f;
-    float outlineWobble = 1.0f;    
+    float outlineWobble = 1.0f;
     float outlineNoiseScale = 90.0f;
-    float outlineBreakup = 0.5f;   
+    float outlineBreakup = 0.5f;
+    float outlineNormalThreshold = 0.35f;
 
     void serialize(IArchive& archive) override
     {
@@ -74,5 +75,6 @@ struct PostProcessSettings : public ISerializable
         archive.serialize(outlineWobble, "outlineWobble");
         archive.serialize(outlineNoiseScale, "outlineNoiseScale");
         archive.serialize(outlineBreakup, "outlineBreakup");
+        archive.serialize(outlineNormalThreshold, "outlineNormalThreshold");
     }
 };

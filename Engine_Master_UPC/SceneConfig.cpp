@@ -268,7 +268,8 @@ void SceneConfig::drawPostProcessSettings()
         ImGui::Separator();
         ImGui::Checkbox("Outline (Ink)###PPOutline", &pp.outlineEnabled);
         ImGui::DragFloat("Thickness (px)###PPOutThick", &pp.outlineThickness, 0.05f, 0.5f, 6.0f);
-        ImGui::DragFloat("Threshold###PPOutThresh", &pp.outlineThreshold, 0.001f, 0.001f, 0.5f, "%.3f");
+        ImGui::DragFloat("Depth Threshold (silhouette)###PPOutThresh", &pp.outlineThreshold, 0.001f, 0.001f, 0.5f, "%.3f");
+        ImGui::DragFloat("Normal Threshold (creases)###PPOutNormalThresh", &pp.outlineNormalThreshold, 0.005f, 0.01f, 2.0f, "%.3f");
         ImGui::DragFloat("Intensity###PPOutIntensity", &pp.outlineIntensity, 0.01f, 0.0f, 1.0f);
         float ink[3] = { pp.outlineColorR, pp.outlineColorG, pp.outlineColorB };
         if (ImGui::ColorEdit3("Ink Colour###PPOutColor", ink))
@@ -280,7 +281,7 @@ void SceneConfig::drawPostProcessSettings()
         ImGui::DragFloat("Wobble###PPOutWobble", &pp.outlineWobble, 0.05f, 0.0f, 5.0f);
         ImGui::DragFloat("Noise Scale###PPOutNoise", &pp.outlineNoiseScale, 1.0f, 1.0f, 400.0f);
         ImGui::DragFloat("Break-up###PPOutBreakup", &pp.outlineBreakup, 0.01f, 0.0f, 1.0f);
-        ImGui::TextDisabled("Depth-based; threshold is scene-dependent - tune to taste.");
+        ImGui::TextDisabled("Depth threshold catches silhouettes; normal threshold catches interior creases and stays stable while zooming.");
     }
 }
 
