@@ -15,10 +15,17 @@ struct ShaderParticleData
 
 StructuredBuffer<ShaderParticleData> instanceDataBuffer : register(t1);
 
+cbuffer CameraParams : register(b0)
+{
+    float4x4 vp;
+    float2 depthlinearize; // for linearizing positions in the pixel shader (near, far, for soft particles)
+};
+
+
 static const float GAMMA = 2.2f;
 static const float INV_GAMMA = 1.0f / GAMMA;
 
-static const float softParticleScale = 0.02f; // Equivalent to distance of fading, but in NDC; we should replace it with proper distance, because in NDC we lose information (every depth mapped to [0, 1])
+static const float softParticleFadeDistance = 10.f; // for particles softness 
 
 struct PSInput
 {
@@ -39,6 +46,11 @@ float3 Tint(float3 input, float3 color)
     return input * color;
 }
 
+float linearizeDepth(float ndcDepth)
+{
+    return depthlinearize.y / (ndcDepth + depthlinearize.x);
+}
+
 float4 main(PSInput input) : SV_TARGET
 {
     float4 texColor = particleTexture.Sample(particleSampler, input.texCoord);
@@ -46,18 +58,18 @@ float4 main(PSInput input) : SV_TARGET
     
     // Soft particles calculation //
     
-    float sceneDepth = depthStencilTexture.Sample(depthStencilSampler, input.screenUV).r;
-    float particleDepth = input.position.z; // in NDC
+    float sceneDepth = linearizeDepth( depthStencilTexture.Sample(depthStencilSampler, input.screenUV).r ); //
+    float particleDepth = linearizeDepth(input.position.z);                                                 // (all where in NDC)
     
     float depthDiff = sceneDepth - particleDepth;
     
-    if (depthDiff < 0.0f) // => behind the geometry (TO REVISE)
-    {
-        discard;
-    }
+    //if (depthDiff < 0.0f) // => behind the geometry (TO REVISE)
+    //{
+    //    discard;
+    //}
     
     // Softness: the closer to the geometry, the more it disappears
-    float fade = saturate(depthDiff / softParticleScale);
+    float fade = saturate(depthDiff / softParticleFadeDistance);
     
     // Color application //
     
