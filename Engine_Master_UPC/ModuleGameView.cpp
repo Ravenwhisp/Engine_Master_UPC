@@ -63,5 +63,7 @@ void ModuleGameView::stopGameSimulation()
 	m_moduleScene->clearRuntimeSceneSystems();
 
 	m_moduleScene->loadFromSnapshot(*m_sceneCloned.get());
+	m_moduleParticleSystem->resetFirstUsedSlot();
+
 	m_sceneCloned.reset();
 }

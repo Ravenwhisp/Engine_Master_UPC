@@ -56,6 +56,8 @@ public:
 
     void freePoolSlot(unsigned int index); // frees the slot at the index (BUT DOES NOT CHANGE THE OTHER ARRAY!)
 
+    void resetFirstUsedSlot(); // ONLY USE IF AT LEAST ONE SLOT FREE
+
 
     void buildParticleCommands(ParticleSystemComponent* particleSystemComponent);
 
@@ -79,8 +81,7 @@ private:
     std::array<Particle, MAX_PARTICLES> m_pool;
 
     // Slot management data
-    std::array <unsigned int, MAX_PARTICLES> m_slots; // contains for each particle the next free (or self if nothing free)
-    unsigned int m_firstFree;
+    std::vector<unsigned int> m_freeSlots;
     unsigned int m_firstUsed; // approximation, for claiming if there are no free slots
 
     std::vector<ParticleEmitterCommand> m_particleCommands; // we will probably want to directly get the shader parameters in the future

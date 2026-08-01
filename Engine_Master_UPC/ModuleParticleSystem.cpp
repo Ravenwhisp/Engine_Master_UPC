@@ -23,7 +23,7 @@ void ModuleParticleSystem::resetAllParticles()
         currentParticleSystemComponent->setLocalTimeScale(1.f); // FOR NOW, SO THAT TRANSITION TO PLAY MODE WORKS WELL
     }
 
-    m_firstUsed = m_firstFree;
+    resetFirstUsedSlot();
 
     m_timeScale = 1.f; // ALSO FOR NOW, FOR THE SAME REASON
 }
@@ -71,14 +71,14 @@ bool ModuleParticleSystem::init()
 
 void ModuleParticleSystem::initSlotManagement()
 {
-    m_slots[MAX_PARTICLES - 1] = 0;
+    m_freeSlots.reserve(MAX_PARTICLES);
 
-    for (unsigned int i = 0; i < MAX_PARTICLES - 1; ++i)
+    for (unsigned int i = 0; i < MAX_PARTICLES; ++i)
     {
-        m_slots[i] = i + 1;
+        m_freeSlots.push_back(i);
     }
 
-    m_firstFree = m_firstUsed = 0; // used here means nothing, but it will be true once we reserve the first slot
+   m_firstUsed = MAX_PARTICLES-1; // used here means nothing, but it will be true once we reserve the first slot
 }
 
 void ModuleParticleSystem::preRender()
@@ -156,7 +156,7 @@ bool ModuleParticleSystem::removeSystem(ParticleSystem* system)
 int ModuleParticleSystem::requestPoolSlot(EmitterInstance* newOwner)
 {
 
-    if (m_firstFree == m_slots[m_firstFree]) { // the slot points to itself => used
+    if (m_freeSlots.empty()) { // => we have to reuse an used one
 
         int slot = m_firstUsed;
         m_firstUsed = (++m_firstUsed) % MAX_PARTICLES; // move to next in the pool (approximated)
@@ -169,11 +169,8 @@ int ModuleParticleSystem::requestPoolSlot(EmitterInstance* newOwner)
         return slot;
     }
 
-    int slot = m_firstFree;
-
-    m_firstFree = m_slots[slot]; // update first free, to point to the next one
-
-    m_slots[slot] = slot; // mark as used
+    int slot = m_freeSlots.back();
+    m_freeSlots.pop_back();
 
     m_pool[slot].owner = newOwner;
     return slot;
@@ -181,11 +178,14 @@ int ModuleParticleSystem::requestPoolSlot(EmitterInstance* newOwner)
 
 void ModuleParticleSystem::freePoolSlot(unsigned int index) 
 {
+    m_freeSlots.push_back(index);
+
     if (index == m_firstUsed) m_firstUsed = (++m_firstUsed) % MAX_PARTICLES; // move to next in the pool (approximated)
+}
 
-    m_slots[index] = m_firstFree; // Set next free (because we are adding the index slot as the new first)
-
-    m_firstFree = index; // Update first
+void ModuleParticleSystem::resetFirstUsedSlot()
+{
+    m_firstUsed = m_freeSlots.back(); // AT LEAST there should be one
 }
 
 void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* particleSystemComponent)
