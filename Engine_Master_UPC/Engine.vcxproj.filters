@@ -39,6 +39,7 @@
     <FxCompile Include="BloomUpsamplePixelShader.hlsl" />
     <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
     <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
+    <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp" />
@@ -270,6 +271,7 @@
     <ClCompile Include="CubeLut.cpp" />
     <ClCompile Include="BloomPass.cpp" />
     <ClCompile Include="DepthReductionPass.cpp" />
+    <ClCompile Include="ShadowFrustumComputePass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h" />
@@ -579,6 +581,7 @@
     <ClInclude Include="CubeLut.h" />
     <ClInclude Include="BloomPass.h" />
     <ClInclude Include="DepthReductionPass.h" />
+    <ClInclude Include="ShadowFrustumComputePass.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />

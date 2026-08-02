@@ -16,6 +16,7 @@
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
 #include "DepthReductionPass.h"
+#include "ShadowFrustumComputePass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -88,6 +89,7 @@ private:
 
     std::unique_ptr<SkinningComputePass> m_skinningComputePass;
     std::unique_ptr<DepthReductionPass> m_depthReductionPass;
+    std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;
     std::unique_ptr<SSAOPass> m_ssaoPass;
