@@ -25,6 +25,16 @@ public:
 
         float minOrthoSize = 10.0f;
         Vector3 padding = Vector3::Zero;
+
+        float shadowBias = 0.0005f;
+        float shadowStrength = 1.0f;
+        uint32_t shadowsEnabled = 0;
+        uint32_t pcfEnabled = 0;
+
+        uint32_t pcfRadius = 0;
+        float shadowMapTexelSizeX = 0.0f;
+        float shadowMapTexelSizeY = 0.0f;
+        float paddingSettings = 0.0f;
     };
 
 public:
