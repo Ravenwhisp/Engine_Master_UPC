@@ -33,6 +33,12 @@
     <FxCompile Include="UIPixelShader.hlsl" />
     <FxCompile Include="UIVertexShader.hlsl" />
     <FxCompile Include="VertexShader.hlsl" />
+    <FxCompile Include="PostProcessPixelShader.hlsl" />
+    <FxCompile Include="BloomThresholdPixelShader.hlsl" />
+    <FxCompile Include="BloomDownsamplePixelShader.hlsl" />
+    <FxCompile Include="BloomUpsamplePixelShader.hlsl" />
+    <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
+    <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp" />
@@ -259,6 +265,11 @@
     <ClCompile Include="WwiseManager.cpp" />
     <ClCompile Include="DamageHighlightComponent.cpp" />
     <ClCompile Include="DissolveComponent.cpp" />
+    <ClCompile Include="PostProcessPass.cpp" />
+    <ClCompile Include="PostProcessCommon.cpp" />
+    <ClCompile Include="CubeLut.cpp" />
+    <ClCompile Include="BloomPass.cpp" />
+    <ClCompile Include="DepthReductionPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h" />
@@ -562,6 +573,12 @@
     <ClInclude Include="WwiseManager.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
     <ClInclude Include="DissolveComponent.h" />
+    <ClInclude Include="PostProcessPass.h" />
+    <ClInclude Include="PostProcessSettings.h" />
+    <ClInclude Include="PostProcessCommon.h" />
+    <ClInclude Include="CubeLut.h" />
+    <ClInclude Include="BloomPass.h" />
+    <ClInclude Include="DepthReductionPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />
@@ -583,55 +600,5 @@
     <None Include="PBRGeneral.hlsli" />
     <None Include="GeometryCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="D3D12\Rendering\PostProcessing">
-      <UniqueIdentifier>{b7e2f1a4-9c3d-4f8a-b6e1-5a2c8d0f3e91}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="PostProcessPass.cpp">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClCompile>
-    <ClCompile Include="BloomPass.cpp">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClCompile>
-    <ClCompile Include="CubeLut.cpp">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClCompile>
-    <ClCompile Include="PostProcessCommon.cpp">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="PostProcessPass.h">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcessSettings.h">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClInclude>
-    <ClInclude Include="BloomPass.h">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClInclude>
-    <ClInclude Include="CubeLut.h">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcessCommon.h">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="PostProcessPixelShader.hlsl">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </FxCompile>
-    <FxCompile Include="BloomThresholdPixelShader.hlsl">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </FxCompile>
-    <FxCompile Include="BloomDownsamplePixelShader.hlsl">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </FxCompile>
-    <FxCompile Include="BloomUpsamplePixelShader.hlsl">
-      <Filter>D3D12\Rendering\PostProcessing</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>
