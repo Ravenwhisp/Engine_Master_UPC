@@ -87,6 +87,7 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
+    m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
     m_ssaoPass = std::make_unique<SSAOPass>(device);
@@ -239,6 +240,7 @@ bool ModuleRender::cleanUp()
     m_ssaoPass.reset();
     m_ssaoGeometryPass.reset();
     m_shadowMapPass.reset();
+    m_depthReductionPass.reset();
     m_skinningComputePass.reset();
 
     m_renderPasses.clear();
