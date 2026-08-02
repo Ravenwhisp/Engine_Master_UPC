@@ -123,6 +123,7 @@ void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
             Vector3 prevPos = (point == lineRendererComponent->getPoints().begin()) ? point->get()->position : std::prev(point)->get()->position;
             Vector3 nextPos = (point == std::prev(lineRendererComponent->getPoints().end())) ? point->get()->position : std::next(point)->get()->position;
 
+
             //tangent
             Vector3 tangent = nextPos - prevPos;
             tangent.Normalize();
