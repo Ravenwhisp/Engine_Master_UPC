@@ -161,6 +161,7 @@ void ShadowFrustumComputePass::prepare(
     const RenderContext& ctx)
 {
     m_enabled = false;
+    m_hasValidResult = false;
     m_constants = {};
 
     if (m_depthReductionPass == nullptr)
@@ -243,6 +244,8 @@ void ShadowFrustumComputePass::apply(
 {
     BEGIN_EVENT(commandList, "ShadowFrustumComputePass");
 
+    m_hasValidResult = false;
+
     if (commandList == nullptr ||
         !m_enabled ||
         m_depthReductionPass == nullptr ||
@@ -309,6 +312,8 @@ void ShadowFrustumComputePass::apply(
     transitionOutputBuffer(
         commandList,
         D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+    m_hasValidResult = true;
 
     END_EVENT(commandList);
 }

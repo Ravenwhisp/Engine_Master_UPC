@@ -14,6 +14,7 @@ using Microsoft::WRL::ComPtr;
 
 class LightComponent;
 class MeshRenderer;
+class ShadowFrustumComputePass;
 
 class ShadowMapPass : public IRenderPass
 {
@@ -21,11 +22,11 @@ public:
 
     struct ShadowDrawConstants
     {
-        Matrix mvp = Matrix::Identity;
+        Matrix model = Matrix::Identity;
     };
 
 public:
-    explicit ShadowMapPass(ComPtr<ID3D12Device4> device);
+    explicit ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass);
     ~ShadowMapPass() override = default;
 
     void prepare(const RenderContext& ctx) override;
@@ -51,6 +52,7 @@ private:
         const Vector3& boundsMin,
         const Vector3& boundsMax);
 
+    D3D12_GPU_VIRTUAL_ADDRESS getLightViewProjectionCBAddress() const;
     void renderCasters(ID3D12GraphicsCommandList4* commandList);
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
     void transitionShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
@@ -72,6 +74,8 @@ private:
 
 private:
     ComPtr<ID3D12Device4> m_device;
+
+    ShadowFrustumComputePass* m_shadowFrustumComputePass = nullptr;
 
     std::unique_ptr<Texture> m_shadowMap;
     D3D12_RESOURCE_STATES m_shadowMapState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
