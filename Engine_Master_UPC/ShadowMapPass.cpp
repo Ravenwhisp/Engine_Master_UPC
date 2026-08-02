@@ -18,6 +18,7 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "Skin.h"
+#include "ShadowFrustumComputePass.h"
 
 #include <d3dx12.h>
 #include <d3dcompiler.h>
@@ -27,8 +28,8 @@
 #include <algorithm>
 #include <limits>
 
-ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device)
-    : m_device(device)
+ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass)
+    : m_device(device), m_shadowFrustumComputePass(shadowFrustumComputePass)
 {
     createShadowMap(DEFAULT_SHADOW_MAP_SIZE);
 
@@ -88,11 +89,18 @@ void ShadowMapPass::updateShadowViewportAndScissor(uint32_t size)
 
 void ShadowMapPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[1] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[2] = {};
 
+    // b0: model matrix, changed for each mesh.
     rootParameters[0].InitAsConstants(
         sizeof(ShadowDrawConstants) / sizeof(UINT32),
         0,
+        0,
+        D3D12_SHADER_VISIBILITY_VERTEX);
+
+    // b1: light view-projection matrix.
+    rootParameters[1].InitAsConstantBufferView(
+        1,
         0,
         D3D12_SHADER_VISIBILITY_VERTEX);
 
@@ -480,6 +488,27 @@ void ShadowMapPass::computeLightMatricesFromBounds(
         m_frameData.lightView * m_frameData.lightProjection;
 }
 
+D3D12_GPU_VIRTUAL_ADDRESS
+ShadowMapPass::getLightViewProjectionCBAddress() const
+{
+    if (m_shadowFrustumComputePass != nullptr &&
+        m_shadowFrustumComputePass->hasValidResult())
+    {
+        const D3D12_GPU_VIRTUAL_ADDRESS gpuAddress =
+            m_shadowFrustumComputePass
+            ->getLightViewProjectionBufferAddress();
+
+        if (gpuAddress != 0)
+        {
+            return gpuAddress;
+        }
+    }
+
+    // current fallback: ShadowDataCB generated in CPU.
+    // lightViewProjection is the first member of ShadowDataCB.
+    return m_frameData.shadowCBAddress;
+}
+
 void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList)
 {
     for (MeshRenderer* renderer : m_meshRenderers)
@@ -547,14 +576,13 @@ void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, 
         return;
     }
 
-    Matrix global = transform->getGlobalMatrix();
-
-    Matrix mvp = useWorldSpaceSkinnedVB
-        ? m_frameData.lightViewProjection
-        : global * m_frameData.lightViewProjection;
+    const Matrix model =
+        useWorldSpaceSkinnedVB
+        ? Matrix::Identity
+        : transform->getGlobalMatrix();
 
     ShadowDrawConstants constants{};
-    constants.mvp = mvp.Transpose();
+    constants.model = model.Transpose();
 
     commandList->SetGraphicsRoot32BitConstants(
         0,
@@ -650,6 +678,19 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
         return;
     }
 
+    const D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress =
+        getLightViewProjectionCBAddress();
+
+    if (lightViewProjectionAddress == 0)
+    {
+        transitionShadowMap(
+            commandList,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+        END_EVENT(commandList);
+        return;
+    }
+
     transitionShadowMap(commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
     commandList->RSSetViewports(1, &m_viewport);
@@ -673,6 +714,8 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    commandList->SetGraphicsRootConstantBufferView(1, lightViewProjectionAddress);
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

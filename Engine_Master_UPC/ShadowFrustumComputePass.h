@@ -44,6 +44,11 @@ public:
         return m_enabled;
     }
 
+    bool hasValidResult() const
+    {
+        return m_hasValidResult;
+    }
+
 private:
     static constexpr float SHADOW_MIN_ORTHO_SIZE = 10.0f;
     static constexpr float SHADOW_LIGHT_DISTANCE_PADDING = 20.0f;
@@ -75,4 +80,5 @@ private:
     FrustumConstants m_constants{};
 
     bool m_enabled = false;
+    bool m_hasValidResult = false;
 };
