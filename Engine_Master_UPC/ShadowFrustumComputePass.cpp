@@ -20,6 +20,7 @@
 #include <d3dx12.h>
 
 #include "PlatformHelpers.h"
+#include <algorithm>
 
 ShadowFrustumComputePass::ShadowFrustumComputePass(
     ComPtr<ID3D12Device4> device,
@@ -157,8 +158,7 @@ ShadowFrustumComputePass::findMainShadowCastingDirectionalLight() const
     return nullptr;
 }
 
-void ShadowFrustumComputePass::prepare(
-    const RenderContext& ctx)
+void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 {
     m_enabled = false;
     m_hasValidResult = false;
@@ -177,6 +177,7 @@ void ShadowFrustumComputePass::prepare(
         return;
     }
 
+    const LightShadowSettings& shadowSettings = light->getData().shadow;
     const GameObject* owner = light->getOwner();
     const Transform* transform =
         owner != nullptr ? owner->GetTransform() : nullptr;
@@ -195,31 +196,41 @@ void ShadowFrustumComputePass::prepare(
 
     lightDirection.Normalize();
 
-    /*
-     * Las matrices se transponen antes de subirlas porque los shaders
-     * actuales usan mul(rowVector, matrix), igual que el resto del motor.
-     */
-    m_constants.inverseView =
-        ctx.view.Invert().Transpose();
+    m_constants.inverseView = ctx.view.Invert().Transpose();
 
-    m_constants.projection =
-        ctx.projection.Transpose();
+    m_constants.projection = ctx.projection.Transpose();
 
     m_constants.lightDirection = lightDirection;
-    m_constants.sunDistance =
-        SHADOW_LIGHT_DISTANCE_PADDING;
+    m_constants.sunDistance = SHADOW_LIGHT_DISTANCE_PADDING;
 
-    m_constants.minOrthoSize =
-        SHADOW_MIN_ORTHO_SIZE;
+    m_constants.minOrthoSize = SHADOW_MIN_ORTHO_SIZE;
+
+    m_constants.shadowBias = shadowSettings.shadowBias;
+
+    m_constants.shadowStrength = shadowSettings.shadowStrength;
+
+    m_constants.shadowsEnabled = 1u;
+
+    m_constants.pcfEnabled = shadowSettings.pcfEnabled ? 1u : 0u;
+
+    m_constants.pcfRadius = shadowSettings.pcfEnabled ? shadowSettings.pcfRadius : 0u;
+
+    const uint32_t shadowMapSize = std::max(1u, shadowSettings.shadowMapSize);
+
+    const float inverseShadowMapSize = 1.0f / static_cast<float>(shadowMapSize);
+
+    m_constants.shadowMapTexelSizeX = inverseShadowMapSize;
+
+    m_constants.shadowMapTexelSizeY = inverseShadowMapSize;
+
+    m_constants.paddingSettings = 0.0f;
 
     m_constants.padding = Vector3::Zero;
 
     m_enabled = true;
 }
 
-void ShadowFrustumComputePass::transitionOutputBuffer(
-    ID3D12GraphicsCommandList4* commandList,
-    D3D12_RESOURCE_STATES newState)
+void ShadowFrustumComputePass::transitionOutputBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
 {
     if (commandList == nullptr ||
         m_lightViewProjectionBuffer == nullptr ||
@@ -228,8 +239,7 @@ void ShadowFrustumComputePass::transitionOutputBuffer(
         return;
     }
 
-    CD3DX12_RESOURCE_BARRIER barrier =
-        CD3DX12_RESOURCE_BARRIER::Transition(
+    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             m_lightViewProjectionBuffer.Get(),
             m_outputBufferState,
             newState);

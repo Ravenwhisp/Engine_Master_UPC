@@ -314,6 +314,20 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
             sizeof(ShadowDataCB),
             app->getModuleD3D12()->getCurrentFrame());
     }
+
+    if (m_shadowFrustumComputePass != nullptr &&
+        m_shadowFrustumComputePass->hasValidResult())
+    {
+        const D3D12_GPU_VIRTUAL_ADDRESS gpuShadowDataAddress =
+            m_shadowFrustumComputePass
+            ->getLightViewProjectionBufferAddress();
+
+        if (gpuShadowDataAddress != 0)
+        {
+            m_frameData.shadowCBAddress =
+                gpuShadowDataAddress;
+        }
+    }
 }
 
 
