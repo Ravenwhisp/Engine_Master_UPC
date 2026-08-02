@@ -1,7 +1,21 @@
 Texture2D<float2> inputMinMax : register(t0);
 
-RWStructuredBuffer<float4x4>
-    outputLightViewProjection : register(u0);
+struct ShadowDataOutput
+{
+    float4x4 lightViewProjection;
+
+    float shadowBias;
+    float shadowStrength;
+    uint shadowsEnabled;
+    float paddingShadow;
+
+    float2 shadowMapTexelSize;
+    uint pcfEnabled;
+    uint pcfRadius;
+};
+
+RWStructuredBuffer<ShadowDataOutput>
+    outputShadowData : register(u0);
 
 cbuffer ShadowFrustumParams : register(b0)
 {
@@ -13,20 +27,20 @@ cbuffer ShadowFrustumParams : register(b0)
 
     float minOrthoSize;
     float3 padding;
+
+    float shadowBias;
+    float shadowStrength;
+    uint shadowsEnabled;
+    uint pcfEnabled;
+
+    uint pcfRadius;
+    float shadowMapTexelSizeX;
+    float shadowMapTexelSizeY;
+    float paddingSettings;
 };
 
 float LinearizeViewDepth(float deviceDepth)
 {
-    /*
-     * Right-handed projection:
-     *
-     * deviceDepth =
-     *     (viewZ * projection._33 + projection._43) /
-     *     (-viewZ)
-     *
-     * El resultado devuelto es Z en view space, por tanto negativo
-     * para geometría situada delante de la cámara.
-     */
     float denominator =
         deviceDepth + cameraProjection._33;
 
@@ -71,10 +85,6 @@ void BuildFrustumCorners(
                 const float ndcX =
                     xIndex == 0 ? -1.0f : 1.0f;
 
-                /*
-                 * Reconstrucción del punto en view space para una
-                 * proyección perspectiva right-handed.
-                 */
                 float3 viewPoint;
 
                 viewPoint.x =
@@ -86,7 +96,9 @@ void BuildFrustumCorners(
                 viewPoint.z = -distanceValue;
 
                 float4 worldPoint =
-                    mul(float4(viewPoint, 1.0f), inverseView);
+                    mul(
+                        float4(viewPoint, 1.0f),
+                        inverseView);
 
                 corners[cornerIndex] =
                     worldPoint.xyz / worldPoint.w;
@@ -97,8 +109,7 @@ void BuildFrustumCorners(
     }
 }
 
-float4 ComputeBoundingSphere(
-    float3 corners[8])
+float4 ComputeBoundingSphere(float3 corners[8])
 {
     float3 center = 0.0f;
 
@@ -164,27 +175,61 @@ float4x4 BuildOrthographicRH(
         1.0f);
 }
 
+ShadowDataOutput BuildShadowOutput(
+    float4x4 lightViewProjection,
+    uint enabled)
+{
+    ShadowDataOutput output;
+
+    output.lightViewProjection =
+        lightViewProjection;
+
+    output.shadowBias =
+        shadowBias;
+
+    output.shadowStrength =
+        shadowStrength;
+
+    output.shadowsEnabled =
+        enabled;
+
+    output.paddingShadow = 0.0f;
+
+    output.shadowMapTexelSize =
+        float2(
+            shadowMapTexelSizeX,
+            shadowMapTexelSizeY);
+
+    output.pcfEnabled =
+        pcfEnabled;
+
+    output.pcfRadius =
+        pcfRadius;
+
+    return output;
+}
+
 [numthreads(1, 1, 1)]
 void main()
 {
     float2 minMaxDepth =
         inputMinMax.Load(int3(0, 0, 0));
 
-    /*
-     * min > max es el marcador producido por la reducción cuando
-     * no se encontró geometría válida.
-     *
-     * Todavía no consumiremos este buffer en el ShadowMapPass.
-     * El fallback definitivo se añadirá en el commit 6.
-     */
     if (minMaxDepth.x > minMaxDepth.y)
     {
-        outputLightViewProjection[0] =
+        float4x4 identityMatrix =
             float4x4(
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1);
+                1.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f);
+
+        // No geometry was found in the camera depth buffer.
+        // Disable shadows instead of using an invalid fitting.
+        outputShadowData[0] =
+            BuildShadowOutput(
+                identityMatrix,
+                0u);
 
         return;
     }
@@ -199,7 +244,9 @@ void main()
         max(-nearViewZ, 0.0001f);
 
     float farDistance =
-        max(-farViewZ, nearDistance + 0.0001f);
+        max(
+            -farViewZ,
+            nearDistance + 0.0001f);
 
     float3 corners[8];
 
@@ -219,7 +266,8 @@ void main()
         normalizedLightDirection *
         (sphere.w + sunDistance);
 
-    float3 up = float3(0.0f, 1.0f, 0.0f);
+    float3 up =
+        float3(0.0f, 1.0f, 0.0f);
 
     if (abs(normalizedLightDirection.y) > 0.95f)
     {
@@ -233,7 +281,9 @@ void main()
             up);
 
     float orthoSize =
-        max(sphere.w * 2.0f, minOrthoSize);
+        max(
+            sphere.w * 2.0f,
+            minOrthoSize);
 
     float4x4 lightProjection =
         BuildOrthographicRH(
@@ -242,6 +292,11 @@ void main()
             0.0f,
             sphere.w * 2.0f + sunDistance);
 
-    outputLightViewProjection[0] =
+    float4x4 lightViewProjection =
         mul(lightView, lightProjection);
+
+    outputShadowData[0] =
+        BuildShadowOutput(
+            lightViewProjection,
+            shadowsEnabled);
 }
