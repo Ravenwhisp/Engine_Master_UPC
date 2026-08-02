@@ -26,6 +26,8 @@
 #include <PlatformHelpers.h>
 #include "MD5Fwd.h"
 
+#include <algorithm>
+
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
 {
@@ -164,6 +166,32 @@ Texture* ModuleResources::createShadowMap(uint32_t size)
 	shadowMap->setName(L"ShadowMap");
 
 	return shadowMap;
+}
+
+Texture* ModuleResources::createDepthMinMaxTexture(uint32_t width, uint32_t height)
+{
+	TextureDesc desc{};
+
+	desc.format = DXGI_FORMAT_R32G32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32G32_FLOAT;
+	desc.uavFormat = DXGI_FORMAT_R32G32_FLOAT;
+
+	desc.width = std::max(1u, width);
+	desc.height = std::max(1u, height);
+
+	desc.views = TextureView::SRV | TextureView::UAV;
+
+	desc.initialState =
+		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture =
+		new Texture(GenerateUID(), *m_device.Get(), desc);
+
+	texture->setName(L"DepthMinMaxReduction");
+
+	return texture;
 }
 
 Texture* ModuleResources::createRenderTexture(float width, float height)
