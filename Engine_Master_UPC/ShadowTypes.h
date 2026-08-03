@@ -26,10 +26,6 @@ struct ShadowFrameData
 {
     bool enabled = false;
 
-    Matrix lightView = Matrix::Identity;
-    Matrix lightProjection = Matrix::Identity;
-    Matrix lightViewProjection = Matrix::Identity;
-
     D3D12_GPU_VIRTUAL_ADDRESS shadowCBAddress = 0;
     D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV{};
 };

@@ -45,14 +45,6 @@ private:
     void prepareDisabledShadowData(const RenderContext& ctx);
     void prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light);
 
-    bool computeVisibleWorldBounds(Vector3& outMin, Vector3& outMax) const;
-
-    void computeLightMatricesFromBounds(
-        const Vector3& lightDirection,
-        const Vector3& boundsMin,
-        const Vector3& boundsMax);
-
-    D3D12_GPU_VIRTUAL_ADDRESS getLightViewProjectionCBAddress() const;
     void renderCasters(ID3D12GraphicsCommandList4* commandList);
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
     void transitionShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
@@ -64,10 +56,6 @@ private:
 
 private:
     static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 4096;
-    static constexpr float SHADOW_MIN_ORTHO_SIZE = 10.0f;
-    static constexpr float SHADOW_BOUNDS_PADDING = 10.0f;
-    static constexpr float SHADOW_LIGHT_DISTANCE_PADDING = 20.0f;
-    static constexpr float SHADOW_MIN_NEAR_PLANE = 0.1f;
 
     static constexpr float SHADOW_BIAS = 0.0005f;
     static constexpr float SHADOW_STRENGTH = 1.0f;
