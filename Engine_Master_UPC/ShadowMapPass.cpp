@@ -236,291 +236,43 @@ void ShadowMapPass::prepareDisabledShadowData(const RenderContext& ctx)
     }
 }
 
-void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light)
+void ShadowMapPass::prepareDirectionalShadowData(
+    const RenderContext& ctx,
+    const LightComponent& light)
 {
-    m_frameData = {};
-    m_frameData.enabled = true;
+    const LightShadowSettings& shadowSettings =
+        light.getData().shadow;
 
-    const LightShadowSettings& shadowSettings = light.getData().shadow;
+    resizeShadowMapIfNeeded(
+        shadowSettings.shadowMapSize);
 
-    resizeShadowMapIfNeeded(shadowSettings.shadowMapSize);
-
-    if (m_shadowMap != nullptr && m_shadowMap->hasSRV())
-    {
-        m_frameData.shadowMapSRV = m_shadowMap->getSRV().gpu;
-    }
-
-    const GameObject* lightOwner = light.getOwner();
-    const Transform* lightTransform = lightOwner != nullptr ? lightOwner->GetTransform() : nullptr;
-
-    if (lightTransform == nullptr)
+    if (m_shadowFrustumComputePass == nullptr ||
+        !m_shadowFrustumComputePass->hasValidResult())
     {
         prepareDisabledShadowData(ctx);
         return;
     }
 
-    Vector3 lightDirection = lightTransform->getForward();
-    lightDirection.Normalize();
+    const D3D12_GPU_VIRTUAL_ADDRESS shadowDataAddress =
+        m_shadowFrustumComputePass
+        ->getShadowDataBufferAddress();
 
-    Vector3 boundsMin;
-    Vector3 boundsMax;
-
-    if (computeVisibleWorldBounds(boundsMin, boundsMax))
+    if (shadowDataAddress == 0)
     {
-        computeLightMatricesFromBounds(lightDirection, boundsMin, boundsMax);
-    }
-    else
-    {
-        const Vector3 target = ctx.cameraPosition;
-        const Vector3 eye = target - lightDirection * SHADOW_LIGHT_DISTANCE_PADDING;
-
-        Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
-
-        if (std::abs(lightDirection.y) > 0.95f)
-        {
-            up = Vector3(0.0f, 0.0f, 1.0f);
-        }
-
-        m_frameData.lightView = Matrix::CreateLookAt(
-            eye,
-            target,
-            up);
-
-        m_frameData.lightProjection = Matrix::CreateOrthographic(
-            SHADOW_MIN_ORTHO_SIZE,
-            SHADOW_MIN_ORTHO_SIZE,
-            SHADOW_MIN_NEAR_PLANE,
-            SHADOW_LIGHT_DISTANCE_PADDING * 2.0f);
-
-        m_frameData.lightViewProjection =
-            m_frameData.lightView * m_frameData.lightProjection;
+        prepareDisabledShadowData(ctx);
+        return;
     }
 
-    ShadowDataCB shadowCB{};
-    shadowCB.lightViewProjection = m_frameData.lightViewProjection.Transpose();
-    shadowCB.shadowBias = shadowSettings.shadowBias;
-    shadowCB.shadowStrength = shadowSettings.shadowStrength;
-    shadowCB.shadowsEnabled = 1;
-    shadowCB.shadowMapTexelSize = Vector2(
-        1.0f / static_cast<float>(m_currentShadowMapSize),
-        1.0f / static_cast<float>(m_currentShadowMapSize));
-    shadowCB.pcfEnabled = shadowSettings.pcfEnabled ? 1u : 0u;
-    shadowCB.pcfRadius = shadowSettings.pcfEnabled ? shadowSettings.pcfRadius : 0u;
+    m_frameData = {};
+    m_frameData.enabled = true;
+    m_frameData.shadowCBAddress = shadowDataAddress;
 
-    if (ctx.ringBuffer != nullptr)
+    if (m_shadowMap != nullptr &&
+        m_shadowMap->hasSRV())
     {
-        m_frameData.shadowCBAddress = ctx.ringBuffer->allocate(
-            &shadowCB,
-            sizeof(ShadowDataCB),
-            app->getModuleD3D12()->getCurrentFrame());
+        m_frameData.shadowMapSRV =
+            m_shadowMap->getSRV().gpu;
     }
-
-    if (m_shadowFrustumComputePass != nullptr &&
-        m_shadowFrustumComputePass->hasValidResult())
-    {
-        const D3D12_GPU_VIRTUAL_ADDRESS gpuShadowDataAddress =
-            m_shadowFrustumComputePass
-            ->getLightViewProjectionBufferAddress();
-
-        if (gpuShadowDataAddress != 0)
-        {
-            m_frameData.shadowCBAddress =
-                gpuShadowDataAddress;
-        }
-    }
-}
-
-
-bool ShadowMapPass::computeVisibleWorldBounds(Vector3& outMin, Vector3& outMax) const
-{
-    bool hasBounds = false;
-
-    outMin = Vector3(
-        std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::max(),
-        std::numeric_limits<float>::max());
-
-    outMax = Vector3(
-        std::numeric_limits<float>::lowest(),
-        std::numeric_limits<float>::lowest(),
-        std::numeric_limits<float>::lowest());
-
-    for (MeshRenderer* renderer : m_meshRenderers)
-    {
-        if (renderer == nullptr)
-        {
-            continue;
-        }
-
-        GameObject* owner = renderer->getOwner();
-
-        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
-        {
-            continue;
-        }
-
-        if (!renderer->isActive())
-        {
-            continue;
-        }
-
-        if (!renderer->hasMesh())
-        {
-            continue;
-        }
-
-        Transform* transform = renderer->getTransform();
-
-        if (transform == nullptr)
-        {
-            continue;
-        }
-
-        Engine::BoundingBox& boundingBox = renderer->getBoundingBox();
-        boundingBox.update(transform->getGlobalMatrix());
-
-        const Vector3* points = boundingBox.getPoints();
-
-        for (int i = 0; i < 8; ++i)
-        {
-            outMin.x = std::min(outMin.x, points[i].x);
-            outMin.y = std::min(outMin.y, points[i].y);
-            outMin.z = std::min(outMin.z, points[i].z);
-
-            outMax.x = std::max(outMax.x, points[i].x);
-            outMax.y = std::max(outMax.y, points[i].y);
-            outMax.z = std::max(outMax.z, points[i].z);
-        }
-
-        hasBounds = true;
-    }
-
-    return hasBounds;
-}
-
-void ShadowMapPass::computeLightMatricesFromBounds(
-    const Vector3& lightDirection,
-    const Vector3& boundsMin,
-    const Vector3& boundsMax)
-{
-    Vector3 boundsCenter = (boundsMin + boundsMax) * 0.5f;
-    Vector3 boundsExtents = (boundsMax - boundsMin) * 0.5f;
-
-    float boundsRadius = boundsExtents.Length();
-
-    if (boundsRadius < SHADOW_MIN_ORTHO_SIZE * 0.5f)
-    {
-        boundsRadius = SHADOW_MIN_ORTHO_SIZE * 0.5f;
-    }
-
-    const float lightDistance = boundsRadius + SHADOW_LIGHT_DISTANCE_PADDING;
-
-    const Vector3 eye = boundsCenter - lightDirection * lightDistance;
-    const Vector3 target = boundsCenter;
-
-    Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
-
-    if (std::abs(lightDirection.y) > 0.95f)
-    {
-        up = Vector3(0.0f, 0.0f, 1.0f);
-    }
-
-    m_frameData.lightView = Matrix::CreateLookAt(
-        eye,
-        target,
-        up);
-
-    float minX = std::numeric_limits<float>::max();
-    float minY = std::numeric_limits<float>::max();
-    float minZ = std::numeric_limits<float>::max();
-
-    float maxX = std::numeric_limits<float>::lowest();
-    float maxY = std::numeric_limits<float>::lowest();
-    float maxZ = std::numeric_limits<float>::lowest();
-
-    Vector3 corners[8] =
-    {
-        Vector3(boundsMin.x, boundsMin.y, boundsMin.z),
-        Vector3(boundsMax.x, boundsMin.y, boundsMin.z),
-        Vector3(boundsMax.x, boundsMax.y, boundsMin.z),
-        Vector3(boundsMin.x, boundsMax.y, boundsMin.z),
-
-        Vector3(boundsMin.x, boundsMin.y, boundsMax.z),
-        Vector3(boundsMax.x, boundsMin.y, boundsMax.z),
-        Vector3(boundsMax.x, boundsMax.y, boundsMax.z),
-        Vector3(boundsMin.x, boundsMax.y, boundsMax.z),
-    };
-
-    for (const Vector3& corner : corners)
-    {
-        Vector3 lightSpacePoint = Vector3::Transform(corner, m_frameData.lightView);
-
-        minX = std::min(minX, lightSpacePoint.x);
-        minY = std::min(minY, lightSpacePoint.y);
-
-        maxX = std::max(maxX, lightSpacePoint.x);
-        maxY = std::max(maxY, lightSpacePoint.y);
-
-        // In our view convention, points in front of the camera/light are at negative Z.
-        // Convert view-space Z to a positive distance from the light.
-        const float depth = -lightSpacePoint.z;
-
-        minZ = std::min(minZ, depth);
-        maxZ = std::max(maxZ, depth);
-        
-    }
-
-    minX -= SHADOW_BOUNDS_PADDING;
-    minY -= SHADOW_BOUNDS_PADDING;
-    minZ -= SHADOW_BOUNDS_PADDING;
-
-    maxX += SHADOW_BOUNDS_PADDING;
-    maxY += SHADOW_BOUNDS_PADDING;
-    maxZ += SHADOW_BOUNDS_PADDING;
-
-    const float width = std::max(maxX - minX, SHADOW_MIN_ORTHO_SIZE);
-    const float height = std::max(maxY - minY, SHADOW_MIN_ORTHO_SIZE);
-
-    const float centerX = (minX + maxX) * 0.5f;
-    const float centerY = (minY + maxY) * 0.5f;
-
-    const float halfWidth = width * 0.5f;
-    const float halfHeight = height * 0.5f;
-
-    const float nearPlane = std::max(SHADOW_MIN_NEAR_PLANE, minZ);
-    const float farPlane = std::max(nearPlane + 1.0f, maxZ);
-
-    m_frameData.lightProjection = Matrix::CreateOrthographicOffCenter(
-        centerX - halfWidth,
-        centerX + halfWidth,
-        centerY - halfHeight,
-        centerY + halfHeight,
-        nearPlane,
-        farPlane);
-
-    m_frameData.lightViewProjection =
-        m_frameData.lightView * m_frameData.lightProjection;
-}
-
-D3D12_GPU_VIRTUAL_ADDRESS
-ShadowMapPass::getLightViewProjectionCBAddress() const
-{
-    if (m_shadowFrustumComputePass != nullptr &&
-        m_shadowFrustumComputePass->hasValidResult())
-    {
-        const D3D12_GPU_VIRTUAL_ADDRESS gpuAddress =
-            m_shadowFrustumComputePass
-            ->getLightViewProjectionBufferAddress();
-
-        if (gpuAddress != 0)
-        {
-            return gpuAddress;
-        }
-    }
-
-    // current fallback: ShadowDataCB generated in CPU.
-    // lightViewProjection is the first member of ShadowDataCB.
-    return m_frameData.shadowCBAddress;
 }
 
 void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList)
@@ -692,10 +444,9 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
         return;
     }
 
-    const D3D12_GPU_VIRTUAL_ADDRESS lightViewProjectionAddress =
-        getLightViewProjectionCBAddress();
+    const D3D12_GPU_VIRTUAL_ADDRESS shadowDataAddress = m_frameData.shadowCBAddress;
 
-    if (lightViewProjectionAddress == 0)
+    if (shadowDataAddress == 0)
     {
         transitionShadowMap(
             commandList,
@@ -729,7 +480,7 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-    commandList->SetGraphicsRootConstantBufferView(1, lightViewProjectionAddress);
+    commandList->SetGraphicsRootConstantBufferView(1, shadowDataAddress);
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

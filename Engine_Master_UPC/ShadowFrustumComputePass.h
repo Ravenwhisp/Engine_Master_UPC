@@ -47,7 +47,7 @@ public:
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
-    D3D12_GPU_VIRTUAL_ADDRESS getLightViewProjectionBufferAddress() const;
+    D3D12_GPU_VIRTUAL_ADDRESS getShadowDataBufferAddress() const;
 
     bool isEnabled() const
     {
@@ -70,9 +70,7 @@ private:
 
     const LightComponent* findMainShadowCastingDirectionalLight() const;
 
-    void transitionOutputBuffer(
-        ID3D12GraphicsCommandList4* commandList,
-        D3D12_RESOURCE_STATES newState);
+    void transitionOutputBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
 
 private:
     ComPtr<ID3D12Device4> m_device;
@@ -82,10 +80,9 @@ private:
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;
 
-    ComPtr<ID3D12Resource> m_lightViewProjectionBuffer;
+    ComPtr<ID3D12Resource> m_shadowDataBuffer;
 
-    D3D12_RESOURCE_STATES m_outputBufferState =
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    D3D12_RESOURCE_STATES m_outputBufferState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
     FrustumConstants m_constants{};
 

@@ -133,9 +133,6 @@ void ModuleRender::preRender()
 {
     PERF_RENDER("ModuleRender::preRender");
 
-    m_shadowMapRenderedThisFrame = false;
-    m_currentShadowData = nullptr;
-
     if (m_pendingStopSimulation)
     {
         app->getModuleD3D12()->getCommandQueue()->flush();
@@ -170,9 +167,6 @@ void ModuleRender::preRender()
 
 #ifndef GAME_RELEASE
     {
-        m_shadowMapRenderedThisFrame = false;
-        m_currentShadowData = nullptr;
-
         auto* commandList = app->getModuleD3D12()->getCommandList();
 
         PERF_RENDER("ModuleRender::RenderViewports");
@@ -508,10 +502,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
             m_shadowMapPass->prepare(ctx);
             m_shadowMapPass->apply(commandList);
 
-            m_currentShadowData =
-                &m_shadowMapPass->getFrameData();
-
-            ctx.shadowData = m_currentShadowData;
+            ctx.shadowData = &m_shadowMapPass->getFrameData();
         }
     }
 
