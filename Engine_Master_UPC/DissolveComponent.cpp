@@ -80,6 +80,17 @@ void DissolveComponent::serialize(IArchive& archive)
 			if (m_textureAsset)
 			{
 				m_loadRequested = true;
+				
+				auto texture = app->getModuleResources()->createTexture(*m_textureAsset, true);
+				
+				if (texture)
+				{
+					m_texture = texture;
+				}
+				else
+				{
+					m_texture = nullptr;
+				}
 			}
 		}
 	}
