@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <Filter Include="Resources">
@@ -162,6 +162,9 @@
     </Filter>
     <Filter Include="Third Party\ImGui\ImGuizmo">
       <UniqueIdentifier>{754cc060-cf8a-5a42-a726-f2f9f8119def}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Video">
+      <UniqueIdentifier>{5e09d6bc-b135-4232-8390-a78215e7633d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
