@@ -108,15 +108,14 @@ void ShadowFrustumComputePass::createOutputBuffer()
     constexpr size_t BUFFER_SIZE =
         D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 
-    m_lightViewProjectionBuffer =
+    m_shadowDataBuffer =
         app->getModuleResources()->createDefaultBuffer(
             BUFFER_SIZE,
             D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
             D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-            "ShadowLightViewProjection");
+            "ShadowDataBuffer");
 
-    m_outputBufferState =
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    m_outputBufferState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 }
 
 const LightComponent*
@@ -233,14 +232,14 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 void ShadowFrustumComputePass::transitionOutputBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
 {
     if (commandList == nullptr ||
-        m_lightViewProjectionBuffer == nullptr ||
+        m_shadowDataBuffer == nullptr ||
         m_outputBufferState == newState)
     {
         return;
     }
 
     CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_lightViewProjectionBuffer.Get(),
+        m_shadowDataBuffer.Get(),
             m_outputBufferState,
             newState);
 
@@ -259,7 +258,7 @@ void ShadowFrustumComputePass::apply(
     if (commandList == nullptr ||
         !m_enabled ||
         m_depthReductionPass == nullptr ||
-        m_lightViewProjectionBuffer == nullptr)
+        m_shadowDataBuffer == nullptr)
     {
         END_EVENT(commandList);
         return;
@@ -303,7 +302,7 @@ void ShadowFrustumComputePass::apply(
 
     commandList->SetComputeRootUnorderedAccessView(
         1,
-        m_lightViewProjectionBuffer->GetGPUVirtualAddress());
+        m_shadowDataBuffer->GetGPUVirtualAddress());
 
     commandList->SetComputeRoot32BitConstants(
         2,
@@ -315,7 +314,7 @@ void ShadowFrustumComputePass::apply(
 
     CD3DX12_RESOURCE_BARRIER uavBarrier =
         CD3DX12_RESOURCE_BARRIER::UAV(
-            m_lightViewProjectionBuffer.Get());
+            m_shadowDataBuffer.Get());
 
     commandList->ResourceBarrier(1, &uavBarrier);
 
@@ -328,13 +327,12 @@ void ShadowFrustumComputePass::apply(
     END_EVENT(commandList);
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS
-ShadowFrustumComputePass::getLightViewProjectionBufferAddress() const
+D3D12_GPU_VIRTUAL_ADDRESS ShadowFrustumComputePass::getShadowDataBufferAddress() const
 {
-    if (m_lightViewProjectionBuffer == nullptr)
+    if (m_shadowDataBuffer == nullptr)
     {
         return 0;
     }
 
-    return m_lightViewProjectionBuffer->GetGPUVirtualAddress();
+    return m_shadowDataBuffer->GetGPUVirtualAddress();
 }

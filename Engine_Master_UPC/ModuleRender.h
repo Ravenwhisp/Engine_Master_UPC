@@ -95,8 +95,6 @@ private:
     std::unique_ptr<SSAOPass> m_ssaoPass;
     std::unique_ptr<SSAOBlurPass> m_ssaoBlurPass;
 
-    bool m_shadowMapRenderedThisFrame = false;
-    const ShadowFrameData* m_currentShadowData = nullptr;
     SSAOFrameData m_currentSSAOData{};
 
 public:
