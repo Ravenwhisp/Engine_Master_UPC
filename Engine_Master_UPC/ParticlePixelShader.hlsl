@@ -25,7 +25,7 @@ cbuffer CameraParams : register(b0)
 static const float GAMMA = 2.2f;
 static const float INV_GAMMA = 1.0f / GAMMA;
 
-static const float softParticleFadeDistance = 10.f; // for particles softness 
+static const float softParticleFadeDistance = 1.0f; // for particles softness 
 
 struct PSInput
 {
