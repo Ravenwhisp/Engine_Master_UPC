@@ -199,6 +199,8 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
     for (const auto& command : *m_commands)
     {
+        BEGIN_EVENT(commandList, "Particle emitter rendering");
+
         if (!command.texture || command.particles.empty())
         {
             continue;
@@ -225,7 +227,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         commandList->SetGraphicsRootShaderResourceView(
             2,
-            app->getModuleRender()->allocateInRingBuffer(particleData, size * sizeof(shaderParticleData) )
+            app->getModuleRender()->allocateInStructuredRingBuffer(particleData, size * sizeof(shaderParticleData) )
         );
 
         delete[] particleData;
@@ -234,6 +236,8 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         commandList->SetGraphicsRoot32BitConstants(1, sizeof(XMFLOAT2) / sizeof(UINT32), &command.uvScale, 0);
 
         commandList->DrawInstanced(6, command.particles.size(), 0, 0); // last is  first instanceID to consider; here we will take all of them, so 0
+
+        END_EVENT(commandList);
     }
 }
 
