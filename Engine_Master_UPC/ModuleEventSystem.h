@@ -17,11 +17,13 @@ public:
     void clearHoverState();
     void onSubmit(GameObject* go, PointerEventData& data);
 
+    bool getViewportMousePos(Vector2& outPos) const;
+    ImVec2 getViewportSize() const;
+
 private:
     void processMouse();
     void processController();
 
-    bool getViewportMousePos(Vector2& outPos) const;
     bool isValidEventTarget(GameObject* go) const;
 
     GameObject* raycast(const Vector2& screenPos);

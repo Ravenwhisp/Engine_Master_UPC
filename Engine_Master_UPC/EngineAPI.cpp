@@ -9,6 +9,7 @@
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
 #include "ModuleMusic.h"
+#include "ModuleEventSystem.h"
 
 #include "PrefabManager.h"
 #include "Quadtree.h"
@@ -1473,11 +1474,39 @@ namespace Input
         {
         case DeviceType::Keyboard:
         {
-            float deltaX = 0.0f;
-            float deltaY = 0.0f;
-            input->getMouseDelta(deltaX, deltaY);
+            ModuleEventSystem* eventSystem = app->getModuleEventSystem();
 
-            return Vector2(deltaX, deltaY);
+            Vector2 viewportMouse(0.0f, 0.0f);
+            if (eventSystem == nullptr || !eventSystem->getViewportMousePos(viewportMouse))
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            const ImVec2 viewportSize = eventSystem->getViewportSize();
+            if (viewportSize.x <= 0.0f || viewportSize.y <= 0.0f)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            const float halfWidth = viewportSize.x * 0.5f;
+            const float halfHeight = viewportSize.y * 0.5f;
+
+            Vector2 stick(
+                (viewportMouse.x - halfWidth) / halfWidth,
+                (viewportMouse.y - halfHeight) / halfHeight);
+
+            if (stick.LengthSquared() > 1.0f)
+            {
+                stick.Normalize();
+            }
+
+            const float deadzone = 0.15f;
+            if (stick.LengthSquared() < deadzone * deadzone)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            return stick;
         }
 
         case DeviceType::Gamepad:
