@@ -66,7 +66,7 @@ private:
     ModuleGameView* m_moduleGameView = nullptr;
 
     RingBuffer* m_ringBuffer = nullptr;
-    RingBuffer* m_structuredRingBuffer = nullptr; // mainly for particlesPass
+    // RingBuffer* m_structuredRingBuffer = nullptr; // mainly for particlesPass
 
     // Ordered list of passes that are called every frame.
     std::vector<std::unique_ptr<IRenderPass>> m_renderPasses;
@@ -111,7 +111,7 @@ public:
     SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
 
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
-    D3D12_GPU_VIRTUAL_ADDRESS allocateInStructuredRingBuffer(const void* data, size_t size);
+    //D3D12_GPU_VIRTUAL_ADDRESS allocateInStructuredRingBuffer(const void* data, size_t size);
 
     int getTrianglesCount() const;
     int getMeshCount() const;

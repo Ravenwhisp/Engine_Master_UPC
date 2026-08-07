@@ -227,7 +227,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         commandList->SetGraphicsRootShaderResourceView(
             2,
-            app->getModuleRender()->allocateInStructuredRingBuffer(particleData, size * sizeof(shaderParticleData) )
+            app->getModuleRender()->allocateInRingBuffer(particleData, size * sizeof(shaderParticleData) )
         );
 
         delete[] particleData;
