@@ -7,6 +7,14 @@
 using Matrix = DirectX::SimpleMath::Matrix;
 using Vector2 = DirectX::SimpleMath::Vector2;
 
+static constexpr uint32_t MAX_SHADOW_CASCADES = 4;
+
+enum class ShadowCascadeFitMode : uint32_t
+{
+    FIT_TO_SCENE = 0,
+    FIT_TO_CASCADE = 1
+};
+
 struct ShadowDataCB
 {
     Matrix lightViewProjection = Matrix::Identity;
