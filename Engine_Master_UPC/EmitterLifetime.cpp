@@ -24,16 +24,12 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 		{
 			unsigned int poolIndex = aliveParticles[i].second;
 
-			if (particlePool[poolIndex].movedFromAlives)  // => reused on some emitter because no free slots (has to be removed)
-			{
-				eraseBySwap(aliveParticles, i);
-				particlePool[poolIndex].movedFromAlives = false;
-			}
-			else if (particlePool[poolIndex].lifeTime == 0.f) 
+			if (particlePool[poolIndex].lifeTime == 0.f) 
 			{
 				// Remove from alives
 				// aliveParticles->erase(aliveParticles->begin() + i); <- Should not need to be brough back
 				eraseBySwap(aliveParticles, i);
+
 				moduleParticleSystem->freePoolSlot(poolIndex); // mark poolIndex slot as free
 			}
 			else 

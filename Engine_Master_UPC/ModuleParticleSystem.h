@@ -30,7 +30,8 @@ struct Particle {
     float lifeTime = 0.f;
 
     EmitterInstance* owner;
-    bool movedFromAlives = false; // can happen if it has been reused on a different emitter, or on the same one (instead of taking a free slot) 
+	bool isNew; // => added to an emitter this frame, so it needs to be initialized
+	unsigned int vectorPosition; // if isNew, it is from the m_newParticles vector, otherwise it is from the m_aliveParticles vector
 };
 
 
@@ -58,6 +59,8 @@ public:
 
     void resetFirstUsedSlot(); // ONLY USE IF AT LEAST ONE SLOT FREE
 
+    void updateOwnerData (unsigned int index, bool isNew, unsigned int vectorPosition); // (owner is only changed when requesting pool slot, so this is only for changes over time)
+
 
     void buildParticleCommands(ParticleSystemComponent* particleSystemComponent);
 
@@ -69,6 +72,10 @@ public:
     float getTimeScale() const { return m_timeScale; };
 
     void resetAllParticles();
+
+#ifdef _DEBUG
+    void debugCheckDuplicateAliveIndices();
+#endif
 
 private:
 

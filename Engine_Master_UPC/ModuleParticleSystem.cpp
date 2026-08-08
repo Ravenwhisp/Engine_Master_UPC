@@ -73,12 +73,12 @@ void ModuleParticleSystem::initSlotManagement()
 {
     m_freeSlots.reserve(MAX_PARTICLES);
 
-    for (unsigned int i = 0; i < MAX_PARTICLES; ++i)
+    for (int i = MAX_PARTICLES-1; i >= 0; --i)
     {
         m_freeSlots.push_back(i);
     }
 
-   m_firstUsed = MAX_PARTICLES-1; // used here means nothing, but it will be true once we reserve the first slot
+   m_firstUsed = 0; // used here means nothing, but it will be true once we reserve the first slot
 }
 
 void ModuleParticleSystem::preRender()
@@ -95,6 +95,10 @@ void ModuleParticleSystem::preRender()
     {
         return a.layer < b.layer;
     });
+
+#ifdef _DEBUG
+    //debugCheckDuplicateAliveIndices();
+#endif
 }
 
 void ModuleParticleSystem::update()
@@ -161,10 +165,8 @@ int ModuleParticleSystem::requestPoolSlot(EmitterInstance* newOwner)
         int slot = m_firstUsed;
         m_firstUsed = (++m_firstUsed) % MAX_PARTICLES; // move to next in the pool (approximated)
 
-        if (!m_pool[slot].owner->removeNewParticle(slot)) { // erase in case it was a new one for the previous owner (makes sense since we are doing the spawn first for all the emitters)
+		m_pool[slot].owner->eraseIndexOnLocation(m_pool[slot].isNew, m_pool[slot].vectorPosition); // tell the previous owner that it is no longer using this slot
 
-            m_pool[slot].movedFromAlives = true; // means previous owner had it for at least one frame, so we need to tell it to remove it from alives
-        } 
         m_pool[slot].owner = newOwner;
         return slot;
     }
@@ -186,6 +188,12 @@ void ModuleParticleSystem::freePoolSlot(unsigned int index)
 void ModuleParticleSystem::resetFirstUsedSlot()
 {
     m_firstUsed = m_freeSlots.back(); // AT LEAST there should be one
+}
+
+void ModuleParticleSystem::updateOwnerData(unsigned int index, bool isNew, unsigned int vectorPosition)
+{
+    m_pool[index].isNew = isNew;
+	m_pool[index].vectorPosition = vectorPosition;
 }
 
 void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* particleSystemComponent)
@@ -244,3 +252,45 @@ float ModuleParticleSystem::deltaTime() const
 {
     return m_timeScale * app->getModuleTime()->deltaTime();
 }
+
+
+#include <unordered_map>
+#include <string>
+
+#ifdef _DEBUG
+void ModuleParticleSystem::debugCheckDuplicateAliveIndices()
+{
+    // Mapa: pool index -> lista de emisores que lo usan
+    std::unordered_map<unsigned int, std::vector<EmitterInstance*>> indexOwners;
+
+    for (auto* comp : app->getModuleScene()->getParticleSystemComponents())
+    {
+        for (auto& emitter : comp->getEmitterInstances())
+        {
+            for (const auto& alive : emitter.getAliveParticles())
+            {
+                indexOwners[alive.second].push_back(&emitter);
+            }
+        }
+    }
+
+    for (auto& kv : indexOwners)
+    {
+        if (kv.second.size() > 1)
+        {
+            DEBUG_WARN("[Particles] Duplicate pool index %u used by %zu emitters", kv.first, kv.second.size());
+            for (EmitterInstance* e : kv.second)
+            {
+                auto ownerComp = e->getParticleSystemComponent();
+                const char* ownerName = "(unknown)";
+                if (ownerComp)
+                {
+                    GameObject* go = ownerComp->getOwner();
+                    if (go) ownerName = go->GetName().c_str();
+                }
+                DEBUG_WARN("  emitter=%p owner=%s", e, ownerName);
+            }
+        }
+    }
+}
+#endif

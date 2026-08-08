@@ -27,6 +27,7 @@ void EmitterSpawn::update(EmitterInstance* instance)
 		int index = moduleParticleSystem->requestPoolSlot(instance);
 
 		newParticles.push_back(index);
+		moduleParticleSystem->updateOwnerData(index, true, newParticles.size() - 1);
 
 		spawn -= 1.0f;
 	}
