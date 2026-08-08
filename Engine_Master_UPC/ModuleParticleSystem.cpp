@@ -73,12 +73,12 @@ void ModuleParticleSystem::initSlotManagement()
 {
     m_freeSlots.reserve(MAX_PARTICLES);
 
-    for (unsigned int i = 0; i < MAX_PARTICLES; ++i)
+    for (int i = MAX_PARTICLES-1; i >= 0; --i)
     {
         m_freeSlots.push_back(i);
     }
 
-   m_firstUsed = MAX_PARTICLES-1; // used here means nothing, but it will be true once we reserve the first slot
+   m_firstUsed = 0; // used here means nothing, but it will be true once we reserve the first slot
 }
 
 void ModuleParticleSystem::preRender()
