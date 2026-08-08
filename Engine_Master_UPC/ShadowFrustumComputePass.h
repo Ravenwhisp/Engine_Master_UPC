@@ -2,6 +2,7 @@
 
 #include "IRenderPass.h"
 #include "SimpleMath.h"
+#include "ShadowTypes.h"
 
 #include <cstdint>
 #include <d3d12.h>
@@ -35,6 +36,13 @@ public:
         float shadowMapTexelSizeX = 0.0f;
         float shadowMapTexelSizeY = 0.0f;
         float paddingSettings = 0.0f;
+
+        uint32_t cascadeCount = 1;
+        uint32_t cascadeFitMode = static_cast<uint32_t>(ShadowCascadeFitMode::FIT_TO_CASCADE);
+        float cascadeSplit0 = 0.10f;
+        float cascadeSplit1 = 0.30f;
+        float cascadeSplit2 = 0.60f;
+        Vector3 cascadePadding = Vector3::Zero;
     };
 
 public:
