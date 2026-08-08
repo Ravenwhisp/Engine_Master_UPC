@@ -106,9 +106,18 @@ DescriptorHandle Texture::getRTV(uint32_t mip) const
     return m_rtv[mip];
 }
 
-DescriptorHandle Texture::getDSV() const
+DescriptorHandle Texture::getDSV(uint32_t arraySlice) const
 {
     assert(hasDSV() && "Texture was not created with TextureView::DSV");
+
+    if (m_desc.arraySize > 1)
+    {
+        assert(arraySlice < m_dsvArray.size() && "DSV array slice out of range");
+        return m_dsvArray[arraySlice];
+    }
+
+    assert(arraySlice == 0 && "Non-array texture only has DSV slice 0");
+
     return m_dsv;
 }
 
@@ -312,13 +321,48 @@ void Texture::createDSV()
 {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
     dsvDesc.Format = resolvedDSVFormat();
-    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+    DescriptorHeap& dsvHeap =
+        app->getModuleDescriptors()
+        ->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+    if (m_desc.arraySize > 1)
+    {
+        dsvDesc.ViewDimension =
+            D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+
+        dsvDesc.Texture2DArray.MipSlice = 0;
+        dsvDesc.Texture2DArray.ArraySize = 1;
+
+        m_dsvArray.resize(m_desc.arraySize);
+
+        for (uint32_t slice = 0; slice < m_desc.arraySize; ++slice)
+        {
+            dsvDesc.Texture2DArray.FirstArraySlice = slice;
+
+            m_dsvArray[slice] = dsvHeap.allocate();
+
+            m_device.CreateDepthStencilView(
+                m_Resource.Get(),
+                &dsvDesc,
+                m_dsvArray[slice].cpu);
+        }
+
+        return;
+    }
+
+    dsvDesc.ViewDimension =
+        D3D12_DSV_DIMENSION_TEXTURE2D;
+
     dsvDesc.Texture2D.MipSlice = 0;
 
-    m_dsv = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).allocate();
+    m_dsv = dsvHeap.allocate();
 
-    m_device.CreateDepthStencilView(m_Resource.Get(), &dsvDesc, m_dsv.cpu);
+    m_device.CreateDepthStencilView(
+        m_Resource.Get(),
+        &dsvDesc,
+        m_dsv.cpu);
 }
 
 void Texture::createUAV()
@@ -377,11 +421,30 @@ void Texture::releaseViews()
         }
     }
 
-    if (hasDSV() && m_dsv.IsValid())
+    if (hasDSV())
     {
-        //descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).free(m_dsv.handle);
-        app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_dsv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-        m_dsv = {};
+        for (DescriptorHandle& dsv : m_dsvArray)
+        {
+            if (dsv.IsValid())
+            {
+                app->getModuleDescriptors()->defferDescriptorRelease(
+                    (Handle)dsv.handle,
+                    D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+                dsv = {};
+            }
+        }
+
+        m_dsvArray.clear();
+
+        if (m_dsv.IsValid())
+        {
+            app->getModuleDescriptors()->defferDescriptorRelease(
+                (Handle)m_dsv.handle,
+                D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+            m_dsv = {};
+        }
     }
 
     if (hasUAV())
