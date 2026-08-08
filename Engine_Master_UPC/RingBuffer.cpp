@@ -3,7 +3,7 @@
 #include "Application.h"
 #include "ModuleResources.h"
 
-RingBuffer::RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t size) : Buffer(device, buffer), m_totalMemorySize(size)
+RingBuffer::RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t size, size_t alignment) : Buffer(device, buffer), m_totalMemorySize(size), m_alignment (alignment)
 {
     CD3DX12_RANGE readRange(0, 0);
     buffer->Map(0, &readRange, reinterpret_cast<void**>(&m_mappedData));
@@ -25,7 +25,7 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
 
     // The GPU needs constant-buffer data 256-byte aligned, so the ring
     // reservation uses the aligned size; the copy uses the real size.
-    size = alignUp(size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+    size = alignUp(size, m_alignment);
 
     if (size == 0 || size > m_totalMemorySize)
         return 0;

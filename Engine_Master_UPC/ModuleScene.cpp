@@ -7,6 +7,7 @@
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
 #include "ModuleMusic.h"
+#include "ModuleParticleSystem.h"
 
 #include "Scene.h"
 #include "Quadtree.h"
@@ -394,6 +395,8 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
     m_dynamicQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
+    
+    app->getModuleParticleSystem()->resetFirstUsedSlot();
 
     if (app->getModuleNavigation()->loadNavMeshForScene(sceneName.c_str()))
     {
@@ -445,6 +448,8 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
     m_dynamicQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
+
+    app->getModuleParticleSystem()->resetFirstUsedSlot();
 
     if (app->getModuleNavigation()->loadNavMeshForScene(sceneName))
     {
@@ -511,6 +516,8 @@ void ModuleScene::loadFromSnapshot(SceneSnapshot& snapshot)
     m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
     m_dynamicQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
+
+    app->getModuleParticleSystem()->resetFirstUsedSlot();
 
     rebuildComponentCaches();
 }
