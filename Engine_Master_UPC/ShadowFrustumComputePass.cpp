@@ -105,8 +105,9 @@ void ShadowFrustumComputePass::createPipelineState()
 
 void ShadowFrustumComputePass::createOutputBuffer()
 {
-    constexpr size_t BUFFER_SIZE =
-        D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
+    constexpr size_t ALIGNMENT = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
+    constexpr size_t BUFFER_SIZE = ((sizeof(ShadowDataCB) + ALIGNMENT - 1) / ALIGNMENT) * ALIGNMENT;
+    static_assert(BUFFER_SIZE == 512, "ShadowDataBuffer must be large enough for cascaded shadow data.");
 
     m_shadowDataBuffer =
         app->getModuleResources()->createDefaultBuffer(
@@ -225,6 +226,18 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
     m_constants.paddingSettings = 0.0f;
 
     m_constants.padding = Vector3::Zero;
+
+    m_constants.cascadeCount = std::clamp(shadowSettings.cascadeCount, 1u, MAX_SHADOW_CASCADES);
+
+    m_constants.cascadeFitMode = static_cast<uint32_t>(shadowSettings.cascadeFitMode);
+
+    m_constants.cascadeSplit0 = shadowSettings.cascadeSplit0;
+
+    m_constants.cascadeSplit1 = shadowSettings.cascadeSplit1;
+
+    m_constants.cascadeSplit2 = shadowSettings.cascadeSplit2;
+
+    m_constants.cascadePadding = Vector3::Zero;
 
     m_enabled = true;
 }

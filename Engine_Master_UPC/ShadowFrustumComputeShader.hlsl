@@ -1,7 +1,12 @@
 Texture2D<float2> inputMinMax : register(t0);
 
+#define MAX_SHADOW_CASCADES 4
+#define CASCADE_FIT_TO_SCENE 0
+#define CASCADE_FIT_TO_CASCADE 1
+
 struct ShadowDataOutput
 {
+    // Full fitted frustum used by the existing shadow pipeline.
     float4x4 lightViewProjection;
 
     float shadowBias;
@@ -12,6 +17,15 @@ struct ShadowDataOutput
     float2 shadowMapTexelSize;
     uint pcfEnabled;
     uint pcfRadius;
+
+    // CSM
+    uint cascadeCount;
+    uint cascadeFitMode;
+    float2 cascadePadding;
+
+    float4 cascadeFarDistances;
+
+    float4x4 cascadeLightViewProjection[MAX_SHADOW_CASCADES];
 };
 
 RWStructuredBuffer<ShadowDataOutput>
@@ -37,6 +51,14 @@ cbuffer ShadowFrustumParams : register(b0)
     float shadowMapTexelSizeX;
     float shadowMapTexelSizeY;
     float paddingSettings;
+    
+    uint cascadeCount;
+    uint cascadeFitMode;
+    float cascadeSplit0;
+    float cascadeSplit1;
+
+    float cascadeSplit2;
+    float3 cascadePadding;
 };
 
 float LinearizeViewDepth(float deviceDepth)
@@ -175,79 +197,19 @@ float4x4 BuildOrthographicRH(
         1.0f);
 }
 
-ShadowDataOutput BuildShadowOutput(
-    float4x4 lightViewProjection,
-    uint enabled)
+float4x4 BuildIdentityMatrix()
 {
-    ShadowDataOutput output;
-
-    output.lightViewProjection =
-        lightViewProjection;
-
-    output.shadowBias =
-        shadowBias;
-
-    output.shadowStrength =
-        shadowStrength;
-
-    output.shadowsEnabled =
-        enabled;
-
-    output.paddingShadow = 0.0f;
-
-    output.shadowMapTexelSize =
-        float2(
-            shadowMapTexelSizeX,
-            shadowMapTexelSizeY);
-
-    output.pcfEnabled =
-        pcfEnabled;
-
-    output.pcfRadius =
-        pcfRadius;
-
-    return output;
+    return float4x4(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-[numthreads(1, 1, 1)]
-void main()
+float4x4 BuildLightViewProjection(
+    float nearDistance,
+    float farDistance)
 {
-    float2 minMaxDepth =
-        inputMinMax.Load(int3(0, 0, 0));
-
-    if (minMaxDepth.x > minMaxDepth.y)
-    {
-        float4x4 identityMatrix =
-            float4x4(
-                1.0f, 0.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f, 0.0f,
-                0.0f, 0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 0.0f, 1.0f);
-
-        // No geometry was found in the camera depth buffer.
-        // Disable shadows instead of using an invalid fitting.
-        outputShadowData[0] =
-            BuildShadowOutput(
-                identityMatrix,
-                0u);
-
-        return;
-    }
-
-    float nearViewZ =
-        LinearizeViewDepth(minMaxDepth.x);
-
-    float farViewZ =
-        LinearizeViewDepth(minMaxDepth.y);
-
-    float nearDistance =
-        max(-nearViewZ, 0.0001f);
-
-    float farDistance =
-        max(
-            -farViewZ,
-            nearDistance + 0.0001f);
-
     float3 corners[8];
 
     BuildFrustumCorners(
@@ -292,11 +254,253 @@ void main()
             0.0f,
             sphere.w * 2.0f + sunDistance);
 
-    float4x4 lightViewProjection =
-        mul(lightView, lightProjection);
+    return mul(
+        lightView,
+        lightProjection);
+}
+
+ShadowDataOutput BuildShadowOutput(
+    float4x4 lightViewProjection,
+    uint enabled)
+{
+    ShadowDataOutput output;
+
+    output.lightViewProjection =
+        lightViewProjection;
+
+    output.shadowBias =
+        shadowBias;
+
+    output.shadowStrength =
+        shadowStrength;
+
+    output.shadowsEnabled =
+        enabled;
+
+    output.paddingShadow =
+        0.0f;
+
+    output.shadowMapTexelSize =
+        float2(
+            shadowMapTexelSizeX,
+            shadowMapTexelSizeY);
+
+    output.pcfEnabled =
+        pcfEnabled;
+
+    output.pcfRadius =
+        pcfRadius;
+
+    output.cascadeCount =
+        clamp(
+            cascadeCount,
+            1u,
+            (uint) MAX_SHADOW_CASCADES);
+
+    output.cascadeFitMode =
+        cascadeFitMode;
+
+    output.cascadePadding =
+        float2(0.0f, 0.0f);
+
+    output.cascadeFarDistances =
+        float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    float4x4 identityMatrix =
+    BuildIdentityMatrix();
+
+    output.cascadeLightViewProjection[0] =
+    identityMatrix;
+
+    output.cascadeLightViewProjection[1] =
+    identityMatrix;
+
+    output.cascadeLightViewProjection[2] =
+    identityMatrix;
+
+    output.cascadeLightViewProjection[3] =
+    identityMatrix;
+
+    return output;
+}
+
+[numthreads(1, 1, 1)]
+void main()
+{
+    float2 minMaxDepth =
+        inputMinMax.Load(int3(0, 0, 0));
+
+    if (minMaxDepth.x > minMaxDepth.y)
+    {
+        float4x4 identityMatrix =
+            BuildIdentityMatrix();
+
+        outputShadowData[0] =
+            BuildShadowOutput(
+                identityMatrix,
+                0u);
+
+        return;
+    }
+
+    float nearViewZ =
+        LinearizeViewDepth(
+            minMaxDepth.x);
+
+    float farViewZ =
+        LinearizeViewDepth(
+            minMaxDepth.y);
+
+    float nearDistance =
+        max(
+            -nearViewZ,
+            0.0001f);
+
+    float farDistance =
+        max(
+            -farViewZ,
+            nearDistance + 0.0001f);
+
+    // Preserve the current full fitted shadow frustum.
+    float4x4 fullLightViewProjection =
+        BuildLightViewProjection(
+            nearDistance,
+            farDistance);
+
+    ShadowDataOutput output =
+        BuildShadowOutput(
+            fullLightViewProjection,
+            shadowsEnabled);
+
+    uint activeCascadeCount =
+        output.cascadeCount;
+
+    float fittedDepthRange =
+        farDistance - nearDistance;
+
+
+    // Cascade 0
+    float cascade0FarFraction =
+        activeCascadeCount > 1
+        ? cascadeSplit0
+        : 1.0f;
+
+    float cascade0NearDistance =
+        nearDistance;
+
+    float cascade0FarDistance =
+        nearDistance +
+        fittedDepthRange *
+        cascade0FarFraction;
+
+    cascade0FarDistance =
+        max(
+            cascade0FarDistance,
+            cascade0NearDistance + 0.0001f);
+
+    output.cascadeFarDistances.x =
+        cascade0FarDistance;
+
+    output.cascadeLightViewProjection[0] =
+        BuildLightViewProjection(
+            cascade0NearDistance,
+            cascade0FarDistance);
+
+
+    // Cascade 1
+    if (activeCascadeCount > 1)
+    {
+        float cascade1FarFraction =
+            activeCascadeCount > 2
+            ? cascadeSplit1
+            : 1.0f;
+
+        float cascade1NearDistance =
+            output.cascadeFitMode ==
+                CASCADE_FIT_TO_CASCADE
+            ? cascade0FarDistance
+            : nearDistance;
+
+        float cascade1FarDistance =
+            nearDistance +
+            fittedDepthRange *
+            cascade1FarFraction;
+
+        cascade1FarDistance =
+            max(
+                cascade1FarDistance,
+                cascade1NearDistance + 0.0001f);
+
+        output.cascadeFarDistances.y =
+            cascade1FarDistance;
+
+        output.cascadeLightViewProjection[1] =
+            BuildLightViewProjection(
+                cascade1NearDistance,
+                cascade1FarDistance);
+
+
+        // Cascade 2
+        if (activeCascadeCount > 2)
+        {
+            float cascade2FarFraction =
+                activeCascadeCount > 3
+                ? cascadeSplit2
+                : 1.0f;
+
+            float cascade2NearDistance =
+                output.cascadeFitMode ==
+                    CASCADE_FIT_TO_CASCADE
+                ? cascade1FarDistance
+                : nearDistance;
+
+            float cascade2FarDistance =
+                nearDistance +
+                fittedDepthRange *
+                cascade2FarFraction;
+
+            cascade2FarDistance =
+                max(
+                    cascade2FarDistance,
+                    cascade2NearDistance + 0.0001f);
+
+            output.cascadeFarDistances.z =
+                cascade2FarDistance;
+
+            output.cascadeLightViewProjection[2] =
+                BuildLightViewProjection(
+                    cascade2NearDistance,
+                    cascade2FarDistance);
+
+
+            // Cascade 3
+            if (activeCascadeCount > 3)
+            {
+                float cascade3NearDistance =
+                    output.cascadeFitMode ==
+                        CASCADE_FIT_TO_CASCADE
+                    ? cascade2FarDistance
+                    : nearDistance;
+
+                float cascade3FarDistance =
+                    farDistance;
+
+                cascade3FarDistance =
+                    max(
+                        cascade3FarDistance,
+                        cascade3NearDistance + 0.0001f);
+
+                output.cascadeFarDistances.w =
+                    cascade3FarDistance;
+
+                output.cascadeLightViewProjection[3] =
+                    BuildLightViewProjection(
+                        cascade3NearDistance,
+                        cascade3FarDistance);
+            }
+        }
+    }
 
     outputShadowData[0] =
-        BuildShadowOutput(
-            lightViewProjection,
-            shadowsEnabled);
+        output;
 }
