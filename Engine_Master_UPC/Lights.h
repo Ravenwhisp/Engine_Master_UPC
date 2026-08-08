@@ -3,6 +3,8 @@
 #include <cstdint>
 #include "SimpleMath.h"
 
+#include "ShadowTypes.h"
+
 using DirectX::SimpleMath::Vector3;
 
 struct LightDefaults
@@ -33,6 +35,14 @@ struct LightDefaults
     static constexpr float DEFAULT_SHADOW_BIAS = 0.0005f;
     static constexpr float DEFAULT_SHADOW_STRENGTH = 1.0f;
 
+    static constexpr uint32_t DEFAULT_SHADOW_CASCADE_COUNT = 4;
+
+    static constexpr float DEFAULT_SHADOW_CASCADE_SPLIT_0 = 0.10f;
+    static constexpr float DEFAULT_SHADOW_CASCADE_SPLIT_1 = 0.30f;
+    static constexpr float DEFAULT_SHADOW_CASCADE_SPLIT_2 = 0.60f;
+
+    static constexpr ShadowCascadeFitMode DEFAULT_SHADOW_CASCADE_FIT_MODE = ShadowCascadeFitMode::FIT_TO_CASCADE;
+
 };
 
 enum class LightType : uint8_t
@@ -59,6 +69,12 @@ struct LightShadowSettings
 
     float shadowBias = LightDefaults::DEFAULT_SHADOW_BIAS;
     float shadowStrength = LightDefaults::DEFAULT_SHADOW_STRENGTH;
+
+    uint32_t cascadeCount = LightDefaults::DEFAULT_SHADOW_CASCADE_COUNT;
+    float cascadeSplit0 = LightDefaults::DEFAULT_SHADOW_CASCADE_SPLIT_0;
+    float cascadeSplit1 = LightDefaults::DEFAULT_SHADOW_CASCADE_SPLIT_1;
+    float cascadeSplit2 = LightDefaults::DEFAULT_SHADOW_CASCADE_SPLIT_2;
+    ShadowCascadeFitMode cascadeFitMode = LightDefaults::DEFAULT_SHADOW_CASCADE_FIT_MODE;
 };
 
 struct DirectionalLightParameters
