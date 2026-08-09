@@ -56,7 +56,7 @@ public:
 
 
 	Texture* createDepthBuffer(float width, float height);
-	Texture* createShadowMap(uint32_t size);
+	Texture* createShadowMap(uint32_t size, uint32_t arraySize = 1);
 	Texture* createDepthMinMaxTexture(uint32_t width, uint32_t height);
 	Texture* createRenderTexture(float width, float height);
 	Texture* createHDRRenderTexture(float width, float height);
