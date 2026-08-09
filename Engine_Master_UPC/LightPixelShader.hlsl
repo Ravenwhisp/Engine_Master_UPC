@@ -11,7 +11,7 @@ Texture2D emissiveTex : register(t4);
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
 Texture2D brdfTexture : register(t10);
-Texture2D shadowMap : register(t11);
+Texture2DArray shadowMap : register(t11);
 Texture2D ssaoTexture : register(t12);
 
 SamplerState linearWrapSample : register(s0);
@@ -147,55 +147,51 @@ float3 computeIndirectLighting(in float3 R, in float NdotV, in float3 N, in floa
 }
 //--------------------//
 
-
-
 //----------SHADOW MAPPING----------//
-float EvaluateShadowSample(float2 shadowUV, float currentDepth)
-{
-    float closestDepth = shadowMap.Sample(linearClampSample, shadowUV).r;
 
-    return currentDepth - shadowBias > closestDepth
-        ? 1.0f - shadowStrength
-        : 1.0f;
+float4x4 GetCascadeViewProjection(uint cascadeIndex)
+{
+    if (cascadeIndex == 0)
+        return cascadeLightViewProjection[0];
+    if (cascadeIndex == 1)
+        return cascadeLightViewProjection[1];
+    if (cascadeIndex == 2)
+        return cascadeLightViewProjection[2];
+    return cascadeLightViewProjection[3];
 }
 
-float ComputeShadow(float3 worldPos)
+bool GetCascadeShadowCoordinates(float3 worldPos, uint cascadeIndex, out float2 shadowUV, out float currentDepth)
 {
-    if (shadowsEnabled == 0)
-    {
-        return 1.0f;
-    }
+    shadowUV = float2(0.0f, 0.0f);
+    currentDepth = 0.0f;
 
-    float4 shadowPos = mul(float4(worldPos, 1.0f), lightViewProjection);
+    float4 shadowPos = mul(float4(worldPos, 1.0f), GetCascadeViewProjection(cascadeIndex));
 
     if (shadowPos.w == 0.0f)
-    {
-        return 1.0f;
-    }
+        return false;
 
     shadowPos.xyz /= shadowPos.w;
 
-    float2 shadowUV;
     shadowUV.x = shadowPos.x * 0.5f + 0.5f;
     shadowUV.y = -shadowPos.y * 0.5f + 0.5f;
+    currentDepth = shadowPos.z;
 
-    float currentDepth = shadowPos.z;
+    return shadowUV.x >= 0.0f && shadowUV.x <= 1.0f && shadowUV.y >= 0.0f && shadowUV.y <= 1.0f && currentDepth >= 0.0f && currentDepth <= 1.0f;
+}
 
-    if (shadowUV.x < 0.0f || shadowUV.x > 1.0f ||
-        shadowUV.y < 0.0f || shadowUV.y > 1.0f ||
-        currentDepth < 0.0f || currentDepth > 1.0f)
-    {
-        return 1.0f;
-    }
+float EvaluateShadowSample(uint cascadeIndex, float2 shadowUV, float currentDepth)
+{
+    float closestDepth = shadowMap.Sample(linearClampSample, float3(shadowUV, float(cascadeIndex))).r;
+    return currentDepth - shadowBias > closestDepth ? 1.0f - shadowStrength : 1.0f;
+}
 
+float ComputeCascadeShadow(uint cascadeIndex, float2 shadowUV, float currentDepth)
+{
     if (pcfEnabled == 0 || pcfRadius == 0)
-    {
-        return EvaluateShadowSample(shadowUV, currentDepth);
-    }
+        return EvaluateShadowSample(cascadeIndex, shadowUV, currentDepth);
 
     float shadowSum = 0.0f;
     float sampleCount = 0.0f;
-
     int radius = int(pcfRadius);
 
     for (int y = -radius; y <= radius; ++y)
@@ -205,14 +201,13 @@ float ComputeShadow(float3 worldPos)
             float2 offset = float2(x, y) * shadowMapTexelSize;
             float2 sampleUV = shadowUV + offset;
 
-            if (sampleUV.x < 0.0f || sampleUV.x > 1.0f ||
-                sampleUV.y < 0.0f || sampleUV.y > 1.0f)
+            if (sampleUV.x < 0.0f || sampleUV.x > 1.0f || sampleUV.y < 0.0f || sampleUV.y > 1.0f)
             {
                 shadowSum += 1.0f;
             }
             else
             {
-                shadowSum += EvaluateShadowSample(sampleUV, currentDepth);
+                shadowSum += EvaluateShadowSample(cascadeIndex, sampleUV, currentDepth);
             }
 
             sampleCount += 1.0f;
@@ -221,6 +216,28 @@ float ComputeShadow(float3 worldPos)
 
     return shadowSum / sampleCount;
 }
+
+float ComputeShadow(float3 worldPos)
+{
+    if (shadowsEnabled == 0)
+        return 1.0f;
+
+    uint activeCascadeCount = clamp(cascadeCount, 1u, (uint) MAX_SHADOW_CASCADES);
+    float2 shadowUV;
+    float currentDepth;
+
+    if (GetCascadeShadowCoordinates(worldPos, 0u, shadowUV, currentDepth))
+        return ComputeCascadeShadow(0u, shadowUV, currentDepth);
+    if (activeCascadeCount > 1u && GetCascadeShadowCoordinates(worldPos, 1u, shadowUV, currentDepth))
+        return ComputeCascadeShadow(1u, shadowUV, currentDepth);
+    if (activeCascadeCount > 2u && GetCascadeShadowCoordinates(worldPos, 2u, shadowUV, currentDepth))
+        return ComputeCascadeShadow(2u, shadowUV, currentDepth);
+    if (activeCascadeCount > 3u && GetCascadeShadowCoordinates(worldPos, 3u, shadowUV, currentDepth))
+        return ComputeCascadeShadow(3u, shadowUV, currentDepth);
+
+    return 1.0f;
+}
+
 //--------------------//
 
 float SampleSSAO(float4 screenPosition)
