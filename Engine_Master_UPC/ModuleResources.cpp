@@ -148,7 +148,7 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ModuleResources::createShadowMap(uint32_t size)
+Texture* ModuleResources::createShadowMap(uint32_t size, uint32_t arraySize)
 {
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R32_TYPELESS;
@@ -156,6 +156,7 @@ Texture* ModuleResources::createShadowMap(uint32_t size)
 	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
 	desc.width = size;
 	desc.height = size;
+	desc.arraySize = static_cast<uint16_t>(std::max(1u, arraySize));
 	desc.views = TextureView::DSV | TextureView::SRV;
 	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	desc.hasClearValue = true;

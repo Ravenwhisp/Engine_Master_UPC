@@ -35,6 +35,9 @@ public:
     const Texture* getShadowMap() const { return m_shadowMap.get(); }
     Texture* getShadowMap() { return m_shadowMap.get(); }
 
+    const Texture* getCascadeShadowMap() const { return m_cascadeShadowMap.get(); }
+    Texture* getCascadeShadowMap() { return m_cascadeShadowMap.get(); }
+
     const ShadowFrameData& getFrameData() const { return m_frameData; }
 
 private:
@@ -54,6 +57,10 @@ private:
     void updateShadowViewportAndScissor(uint32_t size);
     uint32_t getCurrentShadowMapSize() const { return m_currentShadowMapSize; }
 
+    void createCascadeShadowMap( uint32_t size, uint32_t cascadeCount);
+    void resizeCascadeShadowMapIfNeeded( uint32_t size, uint32_t cascadeCount);
+    void transitionCascadeShadowMap( ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
+
 private:
     static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 4096;
 
@@ -68,6 +75,14 @@ private:
     std::unique_ptr<Texture> m_shadowMap;
     D3D12_RESOURCE_STATES m_shadowMapState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
     uint32_t m_currentShadowMapSize = DEFAULT_SHADOW_MAP_SIZE;
+
+    std::unique_ptr<Texture> m_cascadeShadowMap;
+
+    D3D12_RESOURCE_STATES m_cascadeShadowMapState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
+    uint32_t m_currentCascadeShadowMapSize = 0;
+    uint32_t m_currentCascadeArraySize = 0;
+    uint32_t m_activeCascadeCount = 0;
 
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;

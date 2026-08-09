@@ -58,5 +58,10 @@ struct ShadowFrameData
     bool enabled = false;
 
     D3D12_GPU_VIRTUAL_ADDRESS shadowCBAddress = 0;
+
+    // Temporary legacy map, still consumed by Deferred
     D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV{};
+
+    // Cascaded Texture2DArray, consumed starting 
+    D3D12_GPU_DESCRIPTOR_HANDLE cascadeShadowMapSRV{};
 };
