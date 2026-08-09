@@ -237,7 +237,8 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 
     m_constants.cascadeSplit2 = shadowSettings.cascadeSplit2;
 
-    m_constants.cascadePadding = Vector3::Zero;
+    m_constants.cascadeDebugEnabled = shadowSettings.cascadeDebugEnabled ? 1u : 0u;
+    m_constants.cascadePadding = Vector2::Zero;
 
     m_enabled = true;
 }
@@ -253,8 +254,8 @@ void ShadowFrustumComputePass::transitionOutputBuffer(ID3D12GraphicsCommandList4
 
     CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
         m_shadowDataBuffer.Get(),
-            m_outputBufferState,
-            newState);
+        m_outputBufferState,
+        newState);
 
     commandList->ResourceBarrier(1, &barrier);
 
