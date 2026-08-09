@@ -32,7 +32,7 @@ ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputeP
     : m_device(device), m_shadowFrustumComputePass(shadowFrustumComputePass)
 {
     createShadowMap(DEFAULT_SHADOW_MAP_SIZE);
-
+    createCascadeShadowMap(1u, 1u);
     createRootSignature();
     createPipelineState();
 }
