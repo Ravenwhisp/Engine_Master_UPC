@@ -82,7 +82,7 @@ std::unique_ptr<Component> LightComponent::clone(GameObject* newOwner) const
 
     newComponent->m_data = m_data;
 
-	return newComponent;
+    return newComponent;
 }
 
 void LightComponent::setTypeDirectional()
@@ -140,15 +140,15 @@ void LightComponent::drawUi()
         {
             const LightType newType = static_cast<LightType>(typeIndex);
 
-            if (newType == LightType::DIRECTIONAL) 
+            if (newType == LightType::DIRECTIONAL)
             {
                 setTypeDirectional();
             }
-            else if (newType == LightType::POINT) 
+            else if (newType == LightType::POINT)
             {
                 setTypePoint(m_data.parameters.point.radius);
             }
-            else if (newType == LightType::SPOT) 
+            else if (newType == LightType::SPOT)
             {
                 setTypeSpot(m_data.parameters.spot.radius, m_data.parameters.spot.innerAngleDegrees, m_data.parameters.spot.outerAngleDegrees);
             }
@@ -194,12 +194,12 @@ void LightComponent::drawUi()
             lightChanged = true;
         }
 
-        if (ImGui::DragFloat("Inner Angle##Spot", &m_data.parameters.spot.innerAngleDegrees, 0.1f, 0.0f, 179.0f)) 
+        if (ImGui::DragFloat("Inner Angle##Spot", &m_data.parameters.spot.innerAngleDegrees, 0.1f, 0.0f, 179.0f))
         {
             lightChanged = true;
         }
 
-        if (ImGui::DragFloat("Outer Angle##Spot", &m_data.parameters.spot.outerAngleDegrees, 0.1f, 0.0f, 179.0f)) 
+        if (ImGui::DragFloat("Outer Angle##Spot", &m_data.parameters.spot.outerAngleDegrees, 0.1f, 0.0f, 179.0f))
         {
             lightChanged = true;
         }
@@ -306,6 +306,11 @@ void LightComponent::drawUi()
                 lightChanged = true;
             }
 
+            if (ImGui::Checkbox("Debug Cascade Tint", &m_data.shadow.cascadeDebugEnabled))
+            {
+                lightChanged = true;
+            }
+
             if (m_data.shadow.cascadeCount > 1)
             {
                 float splitPercent = m_data.shadow.cascadeSplit0 * 100.0f;
@@ -348,7 +353,7 @@ void LightComponent::drawUi()
         }
     }
 
-    if (lightChanged) 
+    if (lightChanged)
     {
         sanitize();
     }
@@ -392,7 +397,7 @@ void LightComponent::serialize(IArchive& archive)
         m_data.shadow.cascadeCount = shadowCascadeCount;
     }
 
-    archive.serialize( m_data.shadow.cascadeSplit0, "ShadowCascadeSplit0");
+    archive.serialize(m_data.shadow.cascadeSplit0, "ShadowCascadeSplit0");
 
     archive.serialize(m_data.shadow.cascadeSplit1, "ShadowCascadeSplit1");
 
@@ -406,6 +411,8 @@ void LightComponent::serialize(IArchive& archive)
     {
         m_data.shadow.cascadeFitMode = static_cast<ShadowCascadeFitMode>(shadowCascadeFitMode);
     }
+
+    archive.serialize(m_data.shadow.cascadeDebugEnabled, "ShadowCascadeDebugEnabled");
 
     float radius = 0.0f;
     float innerAngle = 0.0f;
@@ -456,7 +463,7 @@ void LightComponent::serialize(IArchive& archive)
 }
 void LightComponent::debugDraw()
 {
-    if ( !isActive() || !m_owner->GetActive())
+    if (!isActive() || !m_owner->GetActive())
     {
         return;
     }
@@ -530,4 +537,3 @@ void LightComponent::debugDraw()
         break;
     }
 }
-

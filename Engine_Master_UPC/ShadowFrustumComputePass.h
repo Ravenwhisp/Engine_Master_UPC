@@ -42,7 +42,8 @@ public:
         float cascadeSplit0 = 0.10f;
         float cascadeSplit1 = 0.30f;
         float cascadeSplit2 = 0.60f;
-        Vector3 cascadePadding = Vector3::Zero;
+        uint32_t cascadeDebugEnabled = 0;
+        Vector2 cascadePadding = Vector2::Zero;
     };
 
 public:

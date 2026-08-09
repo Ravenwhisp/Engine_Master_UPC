@@ -42,6 +42,7 @@ struct LightDefaults
     static constexpr float DEFAULT_SHADOW_CASCADE_SPLIT_2 = 0.60f;
 
     static constexpr ShadowCascadeFitMode DEFAULT_SHADOW_CASCADE_FIT_MODE = ShadowCascadeFitMode::FIT_TO_CASCADE;
+    static constexpr bool DEFAULT_SHADOW_CASCADE_DEBUG_ENABLED = false;
 
 };
 
@@ -75,6 +76,7 @@ struct LightShadowSettings
     float cascadeSplit1 = LightDefaults::DEFAULT_SHADOW_CASCADE_SPLIT_1;
     float cascadeSplit2 = LightDefaults::DEFAULT_SHADOW_CASCADE_SPLIT_2;
     ShadowCascadeFitMode cascadeFitMode = LightDefaults::DEFAULT_SHADOW_CASCADE_FIT_MODE;
+    bool cascadeDebugEnabled = LightDefaults::DEFAULT_SHADOW_CASCADE_DEBUG_ENABLED;
 };
 
 struct DirectionalLightParameters
