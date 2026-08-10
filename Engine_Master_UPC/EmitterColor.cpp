@@ -43,7 +43,8 @@ void EmitterColor::update(EmitterInstance* particleData)
 
 	// Initialization for new ones //
 
-	for (auto& particleIndex : particleData->getNewParticles())
+	auto& newParticles = particleData->getNewParticles();
+	for (auto& particleIndex : newParticles)
 	{
 		m_colorOverTime.getColorAt(0.f, &particlePool[particleIndex].colorAndAlpha.x);
 	}
@@ -83,6 +84,10 @@ bool EmitterColor::drawUi()
 
 
 		parameterChanged |= drawBezierCurveUI(m_colorCurve);
+
+		ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+
+		parameterChanged |= drawHDRColorUI(m_hdrColor, &m_intensity);
 	}
 
 	return parameterChanged;
@@ -175,6 +180,21 @@ void EmitterColor::serialize(IArchive& archive)
 			archive.serialize(m_colorCurve[i], "");
 		archive.endArray();
 	}
+
+	{
+		uint32_t HDRcolorCount = 3;
+		archive.beginArray(HDRcolorCount, "HDRColor");
+		for (int i = 0; i < 3; ++i)
+			archive.serialize(m_hdrColor[i], "");
+		archive.endArray();
+	}
+
+	archive.serialize(m_intensity, "HDRIntensity");
+
+	if (archive.mode() == ArchiveMode::Input) // maybe better to put everything in the same if, and this in the else case
+	{
+		m_hdrColorAndIntensity = Vector3(m_hdrColor[0], m_hdrColor[1], m_hdrColor[2]) * pow (2.f, m_intensity);
+	}
 }
 
 bool EmitterColor::drawBezierCurveUI(float* curveData)
@@ -212,6 +232,75 @@ bool EmitterColor::drawBezierCurveUI(float* curveData)
 	if (ImGui::Button("EaseInOut##Color"))
 	{
 		curveData[0] = 0.445f; curveData[1] = 0.050f; curveData[2] = 0.550f; curveData[3] = 0.950f;
+		parameterChanged = true;
+	}
+
+	return parameterChanged;
+}
+
+bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity)
+{
+	bool parameterChanged = false;
+
+	if (ImGui::ColorEdit3("HDR Color##Color", colorData))
+	{
+		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity); // recalculate the final value
+
+		parameterChanged = true;
+	}
+
+	if (ImGui::SliderFloat("HDR Intensity##Color", intensity, -10.f, 10.f))
+	{
+		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+
+		parameterChanged = true;
+	}
+
+	// Buttons to adjust intensity by integer values //
+
+	if (ImGui::Button("-2##Color")) 
+	{
+		*intensity -= 2.f;
+		if (*intensity < -10.f) *intensity = -10.f;
+
+		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("-1##Color")) 
+	{
+		*intensity -= 1.f;
+		if (*intensity < -10.f) *intensity = -10.f;
+
+		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+		
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("+1##Color")) 
+	{
+		*intensity += 1.f;
+		if (*intensity > 10.f) *intensity = 10.f;
+
+		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+		
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("+2##Color")) 
+	{
+		*intensity += 2.f;
+		if (*intensity > 10.f) *intensity = 10.f;
+
+		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+		
 		parameterChanged = true;
 	}
 

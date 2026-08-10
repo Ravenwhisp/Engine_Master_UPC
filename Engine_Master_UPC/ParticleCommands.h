@@ -22,8 +22,10 @@ struct ParticleEmitterCommand
     uint32_t layer; // to indicate the order which particles between overlapped emitters will be drawn in
 
     EmitterRender::RenderMode renderMode = EmitterRender::RenderMode::BILLBOARD;
-
     Vector2 uvScale; // to determine size of a texture tile
+
+    Vector3 HDRColorAndIntensity; // HDR color + intensity for bloom post-processing
+
     std::vector <ParticleCommand> particles;
 };
 
@@ -35,8 +37,7 @@ struct shaderParticleData { // WARNING: align to 16 bytes! (add padding when req
 };
 
 struct shaderEmissorData {
-
-    UINT xTiles;
-    UINT yTiles;
-    UINT padding[2];
+    Vector3 hdrColorAndIntensity;
+	float padding; // to align to 16 bytes
+	Vector2 uvScale;
 };

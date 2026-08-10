@@ -206,7 +206,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
             XMMATRIX m = buildImageWorldMatrix(command.particles[i], command.renderMode).Transpose();
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
-            particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
+            particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha + Vector4(command.HDRColorAndIntensity.x, command.HDRColorAndIntensity.y, command.HDRColorAndIntensity.z, 0.f);
             particleData[i].sheetOffset = command.particles[i].sheetOffset;
         }
 
@@ -218,6 +218,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         delete[] particleData;
 
         commandList->SetGraphicsRootDescriptorTable(3, srv.gpu);
+
         commandList->SetGraphicsRoot32BitConstants(1, sizeof(XMFLOAT2) / sizeof(UINT32), &command.uvScale, 0);
 
         commandList->DrawInstanced(6, command.particles.size(), 0, 0); // last is  first instanceID to consider; here we will take all of them, so 0
