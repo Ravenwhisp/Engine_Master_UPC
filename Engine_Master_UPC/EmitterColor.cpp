@@ -282,6 +282,17 @@ bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity)
 
 	ImGui::SameLine();
 
+	if (ImGui::Button("0##Color"))
+	{
+		*intensity = 0.f;
+
+		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]); // because pow(2, 0) = 1, thus we don't need to multiply by it
+
+		parameterChanged = true;
+	}
+
+	ImGui::SameLine();
+
 	if (ImGui::Button("+1##Color")) 
 	{
 		*intensity += 1.f;
