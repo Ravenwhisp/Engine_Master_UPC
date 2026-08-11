@@ -29,15 +29,17 @@ struct ParticleEmitterCommand
     std::vector <ParticleCommand> particles;
 };
 
-struct shaderParticleData { // WARNING: align to 16 bytes! (add padding when required; if something doesn't fit in the alignment space, you will have to add it) <- XMFLOAT is probably unnecessary
+struct ShaderParticleData { // WARNING: align to 16 bytes! (add padding when required; if something doesn't fit in the alignment space, you will have to add it) <- XMFLOAT is probably unnecessary
     
     XMFLOAT4X4 worldPosition;
     XMFLOAT4 colorAndAlpha;
     XMFLOAT2 sheetOffset;
 };
 
-struct shaderEmissorData {
+struct ShaderEmissorData {
     Vector3 hdrColorAndIntensity;
 	float padding; // to align to 16 bytes
 	Vector2 uvScale;
+    float padding2;
+	float padding3;
 };

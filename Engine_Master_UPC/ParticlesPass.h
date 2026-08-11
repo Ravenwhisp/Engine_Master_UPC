@@ -39,7 +39,7 @@ private:
     ComPtr<ID3D12PipelineState> m_pipelineState;
 
     std::unique_ptr<VertexBuffer> m_quadVertexBuffer;
-    std::vector<shaderParticleData> m_particleDataBuffer;
+    std::vector<ShaderParticleData> m_particleDataBuffer;
 
     RenderSurface* m_gbufferSurface = nullptr; // to check depth buffer
 

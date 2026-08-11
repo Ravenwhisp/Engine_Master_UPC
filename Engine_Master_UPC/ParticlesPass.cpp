@@ -36,7 +36,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
 
 
     rootParameters[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
-    rootParameters[1].InitAsConstants(sizeof(Vector2) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b1 <- emitter u, v scaling (for tile animation)
+    rootParameters[1].InitAsConstants(sizeof(ShaderEmissorData) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_ALL); // b1 <- emitter u, v scaling (for tile animation) + HDR color (for post-processing)
     
     rootParameters[2].InitAsShaderResourceView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // t1 <- particle data (could we join it with the srvRange?)
     rootParameters[3].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
@@ -198,7 +198,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
             continue;
         }
         const size_t size = command.particles.size();
-        shaderParticleData* particleData = new shaderParticleData[size];
+        ShaderParticleData* particleData = new ShaderParticleData[size];
 
         const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
         for (unsigned int i = 0; i < size; ++i)
@@ -206,20 +206,23 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
             XMMATRIX m = buildImageWorldMatrix(command.particles[i], command.renderMode).Transpose();
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
-            particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha + Vector4(command.HDRColorAndIntensity.x, command.HDRColorAndIntensity.y, command.HDRColorAndIntensity.z, 0.f);
+            particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
             particleData[i].sheetOffset = command.particles[i].sheetOffset;
         }
 
         commandList->SetGraphicsRootShaderResourceView(
             2,
-            app->getModuleRender()->allocateInRingBuffer(particleData, size * sizeof(shaderParticleData) )
+            app->getModuleRender()->allocateInRingBuffer(particleData, size * sizeof(ShaderParticleData) )
         );
 
         delete[] particleData;
 
         commandList->SetGraphicsRootDescriptorTable(3, srv.gpu);
 
-        commandList->SetGraphicsRoot32BitConstants(1, sizeof(XMFLOAT2) / sizeof(UINT32), &command.uvScale, 0);
+		ShaderEmissorData emissorData;
+		emissorData.hdrColorAndIntensity = command.HDRColorAndIntensity;
+		emissorData.uvScale = command.uvScale;
+        commandList->SetGraphicsRoot32BitConstants(1, sizeof(ShaderEmissorData) / sizeof(UINT32), &emissorData, 0);
 
         commandList->DrawInstanced(6, command.particles.size(), 0, 0); // last is  first instanceID to consider; here we will take all of them, so 0
     }

@@ -6,6 +6,7 @@ cbuffer CameraParams : register(b0)
 
 cbuffer EmitterParams : register(b1)
 {
+    float3 hdrColor;
     float2 uvScale;
 };
 
