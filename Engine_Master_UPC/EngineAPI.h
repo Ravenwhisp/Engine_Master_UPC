@@ -199,6 +199,8 @@ namespace Input
     ENGINE_API Vector2 getMoveAxis(int player = 0);
     ENGINE_API Vector2 getLookAxis(int player = 0);
 
+    ENGINE_API Vector3 getAimDirection(const Vector3& originWorldPos, int player = 0, float gamepadDeadzoneSq = 0.0225f);
+
     ENGINE_API bool isLeftStickPressed(int player = 0);
     ENGINE_API bool isRightStickPressed(int player = 0);
 

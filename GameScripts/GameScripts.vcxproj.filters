@@ -123,6 +123,7 @@
     <ClCompile Include="ArcherGuardParticles.cpp" />
     <ClCompile Include="ArthurSound.cpp" />
     <ClCompile Include="MenuSound.cpp" />
+    <ClCompile Include="MouseAimTest.cpp" />
     <ClCompile Include="MoveObjectAlongPathAction.cpp" />
     <ClCompile Include="MoveObjectToTransformAction.cpp" />
     <ClCompile Include="MusicManager.cpp" />
@@ -283,6 +284,7 @@
     <ClInclude Include="ArcherGuardParticles.h" />
     <ClInclude Include="ArthurSound.h" />
     <ClInclude Include="MenuSound.h" />
+    <ClInclude Include="MouseAimTest.h" />
     <ClInclude Include="MoveObjectAlongPathAction.h" />
     <ClInclude Include="MoveObjectToTransformAction.h" />
     <ClInclude Include="MusicManager.h" />

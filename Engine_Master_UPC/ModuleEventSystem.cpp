@@ -96,27 +96,19 @@ bool ModuleEventSystem::cleanUp()
 }
 #pragma endregion
 
-ImVec2 ModuleEventSystem::getViewportSize() const
-{
-#ifdef GAME_RELEASE
-    auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
-    return ImVec2(viewport.Width, viewport.Height);
-#else
-    return app->getModuleEditor()->getEventViewportSize();
-#endif // GAME_RELEASE
-}
-
 bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 {
 #ifdef GAME_RELEASE
 
     auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
 
+    const ImVec2 size(viewport.Width, viewport.Height);
     const float winX = viewport.TopLeftX;
     const float winY = viewport.TopLeftY;
 
 #else
     auto viewport = app->getModuleEditor()->getEventViewport();
+    auto size = app->getModuleEditor()->getEventViewportSize();
     const float winX = viewport.x;
     const float winY = viewport.y;
 
@@ -126,7 +118,6 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
     const Vector2 rawMouse = app->getModuleInput()->getMousePosition();
 
     // Viewport top-left in screen pixels
-    const ImVec2 size = getViewportSize();
 
     const float winW = size.x;
     const float winH = size.y;

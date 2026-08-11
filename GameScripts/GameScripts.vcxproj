@@ -352,6 +352,7 @@
     <ClInclude Include="LyrielUI.h" />
     <ClInclude Include="MeleeEnemyController.h" />
     <ClInclude Include="MenuSound.h" />
+    <ClInclude Include="MouseAimTest.h" />
     <ClInclude Include="MoveObjectAlongPathAction.h" />
     <ClInclude Include="MoveObjectToTransformAction.h" />
     <ClInclude Include="MusicManager.h" />
@@ -517,6 +518,7 @@
     <ClCompile Include="LyrielUI.cpp" />
     <ClCompile Include="MeleeEnemyController.cpp" />
     <ClCompile Include="MenuSound.cpp" />
+    <ClCompile Include="MouseAimTest.cpp" />
     <ClCompile Include="MoveObjectAlongPathAction.cpp" />
     <ClCompile Include="MoveObjectToTransformAction.cpp" />
     <ClCompile Include="MusicManager.cpp" />
