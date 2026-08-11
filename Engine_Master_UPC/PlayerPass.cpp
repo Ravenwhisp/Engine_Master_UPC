@@ -140,7 +140,7 @@ void PlayerPass::prepare(const RenderContext& ctx)
     m_scissorRect = ctx.scissorRect;
 
     // Collect visible mesh renderers
-    m_meshRenderers = app->getModuleScene()->getVisibleForwardMeshRenderers(RenderMode::PLAYER);
+    m_meshRenderers = app->getModuleScene()->getVisibleForwardMeshRenderers(RenderMode::TRANSP);
 
     // Upload SceneDataCB (camera position) to the ring buffer
     SceneDataCB sceneData{};
@@ -207,7 +207,7 @@ void PlayerPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    commandList->OMSetStencilRef(static_cast<UINT>(RenderMode::PLAYER));
+    commandList->OMSetStencilRef(static_cast<UINT>(RenderMode::TRANSP));
 
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootConstantBufferView(2, m_lightsAddress);

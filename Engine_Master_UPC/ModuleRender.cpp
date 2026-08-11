@@ -45,6 +45,7 @@
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
+#include "TransparentPass.h"
 
 #include "OptickProfiler.h"
 
@@ -75,8 +76,8 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
 
-    m_forwardPrepass = new ForwardPrepass(device);
-    m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
+    //m_forwardPrepass = new ForwardPrepass(device);
+    //m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
 
     m_geometryPass = new GeometryPass(device);
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
@@ -84,7 +85,9 @@ bool ModuleRender::init()
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
 
-    m_renderPasses.push_back(std::make_unique<PlayerPass>(device));
+    //m_renderPasses.push_back(std::make_unique<PlayerPass>(device));
+
+    m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);

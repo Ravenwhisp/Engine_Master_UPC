@@ -398,6 +398,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="TrailComponent.h" />
     <ClInclude Include="TrailPass.h" />
+    <ClInclude Include="TransparentPass.h" />
     <ClInclude Include="TriggerSystem.h" />
     <ClInclude Include="NavMeshTypes.h" />
     <ClInclude Include="NavModifierVolumeComponent.h" />
@@ -829,6 +830,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="TrailComponent.cpp" />
     <ClCompile Include="TrailPass.cpp" />
+    <ClCompile Include="TransparentPass.cpp" />
     <ClCompile Include="TriggerSystem.cpp" />
     <ClCompile Include="ScenePicking.cpp" />
     <ClCompile Include="NavModifierVolumeComponent.cpp" />

@@ -852,6 +852,9 @@
     <ClCompile Include="PostProcessCommon.cpp">
       <Filter>Source\Rendering\Post Processing</Filter>
     </ClCompile>
+    <ClCompile Include="TransparentPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1771,6 +1774,9 @@
     </ClInclude>
     <ClInclude Include="PostProcessCommon.h">
       <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="TransparentPass.h">
+      <Filter>Source\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
