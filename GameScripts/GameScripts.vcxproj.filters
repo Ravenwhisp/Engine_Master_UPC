@@ -71,6 +71,7 @@
     <ClCompile Include="PowerupCollectible.cpp" />
     <ClCompile Include="PuzzleManagerLVL1.cpp" />
     <ClCompile Include="ShadowExecution.cpp" />
+    <ClCompile Include="ShootTest.cpp" />
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="PlayerStunState.cpp" />
     <ClCompile Include="CooperativeSound.cpp" />
@@ -232,6 +233,7 @@
     <ClInclude Include="PuzzleManagerLVL1.h" />
     <ClInclude Include="ReaperGauge.h" />
     <ClInclude Include="ShadowExecution.h" />
+    <ClInclude Include="ShootTest.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="PlayerStunState.h" />
     <ClInclude Include="CooperativeSound.h" />
