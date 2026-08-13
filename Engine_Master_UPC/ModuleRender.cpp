@@ -85,10 +85,6 @@ bool ModuleRender::init()
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
 
-    //m_renderPasses.push_back(std::make_unique<PlayerPass>(device));
-
-    m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
-
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
@@ -101,6 +97,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
+
+    m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
 
     // Resolve the HDR scene into COMPOSITE (exposure, tone mapping, bloom, LUT,
     // outline, etc.) before the overlay passes draw on top.

@@ -1888,6 +1888,12 @@
     <FxCompile Include="BloomUpsamplePixelShader.hlsl">
       <Filter>Shaders\Post Processing</Filter>
     </FxCompile>
+    <FxCompile Include="TransparentVertexShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="TransparentPixelShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">

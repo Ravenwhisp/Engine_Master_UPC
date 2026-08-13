@@ -118,20 +118,20 @@ void TransparentPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootConstantBufferView(2, m_lightsAddress);
 
-    commandList->SetGraphicsRootDescriptorTable(7, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(8, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(9, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(10, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+    commandList->SetGraphicsRootDescriptorTable(6, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(7, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(8, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(9, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
     if (m_hasShadowData && m_shadowCBAddress != 0 && m_shadowMapSRV.ptr != 0)
     {
         commandList->SetGraphicsRootConstantBufferView(3, m_shadowCBAddress);
-        commandList->SetGraphicsRootDescriptorTable(11, m_shadowMapSRV);
+        commandList->SetGraphicsRootDescriptorTable(10, m_shadowMapSRV);
     }
 
     if (m_hasSSAOData && m_ssaoSRV.ptr != 0)
     {
-        commandList->SetGraphicsRootDescriptorTable(12, m_ssaoSRV);
+        commandList->SetGraphicsRootDescriptorTable(11, m_ssaoSRV);
     }
 
     for (auto* renderer : m_meshRenderers)
@@ -214,7 +214,7 @@ GPULightsConstantBuffer TransparentPass::packLightsForGPU(const std::vector<Ligh
 
 void TransparentPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER		rootParams[13] = {};
+    CD3DX12_ROOT_PARAMETER		rootParams[12] = {};
     CD3DX12_DESCRIPTOR_RANGE	materialsRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange, ssaoRange;
 
     materialsRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
@@ -230,14 +230,13 @@ void TransparentPass::createRootSignature()
     rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Lights
     rootParams[3].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Shadows
     rootParams[4].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_ALL); //Model data
-    rootParams[5].InitAsConstantBufferView(5, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Player data
-    rootParams[6].InitAsDescriptorTable(1, &materialsRange, D3D12_SHADER_VISIBILITY_PIXEL); //Mesh textures
-    rootParams[7].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL); //Irradiance texture
-    rootParams[8].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL); //Prefiltered texture
-    rootParams[9].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL); //Brdf texture
-    rootParams[10].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL); //Texture samples
-    rootParams[11].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL); //Shadow map texture
-    rootParams[12].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL); //SSAO texture
+    rootParams[5].InitAsDescriptorTable(1, &materialsRange, D3D12_SHADER_VISIBILITY_PIXEL); //Mesh textures
+    rootParams[6].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL); //Irradiance texture
+    rootParams[7].InitAsDescriptorTable(1, &prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL); //Prefiltered texture
+    rootParams[8].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL); //Brdf texture
+    rootParams[9].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL); //Texture samples
+    rootParams[10].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL); //Shadow map texture
+    rootParams[11].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL); //SSAO texture
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -250,11 +249,11 @@ void TransparentPass::createRootSignature()
 void TransparentPass::createPipelineState()
 {
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"PlayerVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"TransparentVertexShader.cso", &vertexShaderBlob));
 
     // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"PlayerPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"TransparentPixelShader.cso", &pixelShaderBlob));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -268,16 +267,20 @@ void TransparentPass::createPipelineState()
     // Describe the depth stencil state
     D3D12_DEPTH_STENCIL_DESC dsDesc = {};
     dsDesc.DepthEnable = TRUE;
-    dsDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
-    dsDesc.DepthFunc = D3D12_COMPARISON_FUNC_EQUAL;
-    dsDesc.StencilEnable = TRUE;
-    dsDesc.StencilReadMask = 0xFF;
-    dsDesc.StencilWriteMask = 0x00;
-    dsDesc.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
-    dsDesc.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
-    dsDesc.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
-    dsDesc.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
-    dsDesc.BackFace = dsDesc.FrontFace;
+    dsDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+    dsDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    dsDesc.StencilEnable = FALSE;
+
+    // Describe the blend state
+    CD3DX12_BLEND_DESC blDesc = {};
+    blDesc.RenderTarget[0].BlendEnable = TRUE;
+    blDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    blDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA; // ALPHA BLEND! (needs the particle order; we should have ADDITIVE BLEND as an alternate option)
+    blDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+    blDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+    blDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA; // or D3D12_BLEND_ONE?
+    blDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+    blDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
     // Describe and create the graphics pipeline state object (PSO).
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -288,7 +291,7 @@ void TransparentPass::createPipelineState()
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
     psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
     psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
-    psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    psoDesc.BlendState = blDesc;
     psoDesc.DepthStencilState = dsDesc;
     psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     psoDesc.SampleMask = UINT_MAX;
@@ -372,7 +375,7 @@ void TransparentPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList
 
         commandList->SetGraphicsRootConstantBufferView(4, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
 
-        commandList->SetGraphicsRootDescriptorTable(6, material->getTableGPUHandle());
+        commandList->SetGraphicsRootDescriptorTable(5, material->getTableGPUHandle());
 
         commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
