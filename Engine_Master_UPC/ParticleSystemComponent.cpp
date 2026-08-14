@@ -138,12 +138,40 @@ void ParticleSystemComponent::drawUi()
 }
 
 void ParticleSystemComponent::update()
-{
+{/*
     if (m_textureAsset.isValid()) 
     {
             for (auto& particleState : m_particlesState)
         {
             particleState.updateModules();
+        }
+    }
+
+    m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position
+    
+    */
+
+    // Right now, this is not used (will do the update in ModuleParticleSystem)
+}
+
+void ParticleSystemComponent::updateSpawn()
+{
+    if (m_textureAsset.isValid())
+    {
+        for (auto& particleState : m_particlesState)
+        {
+            particleState.updateSpawnModule();
+        }
+    }
+}
+
+void ParticleSystemComponent::updateTheRest()
+{
+    if (m_textureAsset.isValid())
+    {
+        for (auto& particleState : m_particlesState)
+        {
+            particleState.updateRemainingModules();
         }
     }
 

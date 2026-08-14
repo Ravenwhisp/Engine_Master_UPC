@@ -13,7 +13,8 @@ public:
 	~EmitterInstance();
 
 	void init();
-	void updateModules();
+	void updateSpawnModule();
+	void updateRemainingModules();
 
 	void reset(); // restart particle instantiation from the beginning
 
@@ -27,6 +28,8 @@ public:
 	void setParticlesToSpawn(float particles) { m_particlesToSpawn = particles; }
 
 	float getCurrentTime() const { return m_currentTime; }
+
+	void eraseIndexOnLocation(bool isNew, unsigned int vectorPosition);
 
 private:
 
@@ -44,5 +47,12 @@ private:
 
 	void freeParticleSlots();
 	void manageNewParticles();
+	void updateAlivesOwnerData();
+
+	void eraseBySwap(std::vector<unsigned int>& newParticles, unsigned int index); // swaps the element at position = index with the back and pops it (does not respect order, but should be faster)
+	void swapWithBack(std::vector<unsigned int>& newParticles, unsigned int index);
+
+	void eraseBySwap(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index); // (same as above, but for aliveParticles)
+	void swapWithBack(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index);
 };
 
