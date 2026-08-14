@@ -1,6 +1,7 @@
 cbuffer CameraParams : register(b0)
 {
     float4x4 vp;
+    float2 depthlinearize; // for linearizing positions in the pixel shader (near, far, for soft particles)
 };
 
 
@@ -35,6 +36,7 @@ VSOut main(float2 position : POSITION, float2 texCoord : TEXCOORD, uint instance
     output.texCoord = texCoord * uvScale + instanceDataBuffer[instanceID].sheetOffset;
     //output.texCoord = texCoord;
     output.position = mul( mul(float4(position, 0.0f, 1.0f), instanceDataBuffer[instanceID].worldPosition), vp);
+    //output.position = mul(float4(position, 0.0f, 1.0f), instanceDataBuffer[instanceID].worldPosition); // TEST
     output.instanceID = instanceID;
     
     // screenUV calculation (from clip space position)

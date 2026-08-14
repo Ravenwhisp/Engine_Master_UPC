@@ -34,6 +34,9 @@ private:
     const Matrix* m_projection = nullptr;
     const Vector3* m_cameraPosition = nullptr;
 
+    float m_depthLinearizeA = 1.0f; // For
+    float m_depthLinearizeB = 0.0f; // soft particles
+
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;

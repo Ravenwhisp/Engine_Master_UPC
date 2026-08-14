@@ -17,6 +17,7 @@
 
 
 #include "VertexBuffer.h"
+#include "RingBuffer.h"
 #include "Texture.h"
 
 ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
@@ -35,7 +36,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     samplerDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 1, 0);   // stuff
 
 
-    rootParameters[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
+    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL); // b0 <- view, projection, depth linearization
     rootParameters[1].InitAsConstants(sizeof(ShaderEmissorData) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_ALL); // b1 <- emitter u, v scaling (for tile animation) + HDR color (for post-processing)
     
     rootParameters[2].InitAsShaderResourceView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // t1 <- particle data (could we join it with the srvRange?)
@@ -150,6 +151,9 @@ void ParticlesPass::prepare(const RenderContext& ctx)
     m_cameraPosition = &ctx.cameraPosition;
 
     m_gbufferSurface = &ctx.renderSurface;
+
+    m_depthLinearizeA = ctx.projection.m[2][2];
+    m_depthLinearizeB = ctx.projection.m[3][2];
 }
 
 void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -182,11 +186,21 @@ void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 {
-    Matrix vp = buildImageVP().Transpose();
-    commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
+    shaderAllEmissorsData cameraInfo = { buildImageVP().Transpose(), Vector2(m_depthLinearizeA, m_depthLinearizeB)};
+
+    commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&cameraInfo, sizeof(shaderAllEmissorsData)) );
+
+    //Matrix vp = buildImageVP().Transpose();
+    //commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
+    // OR...
+    //Matrix vp = buildImageVP();
+    //Matrix vpTranspose = vp.Transpose();
+    //commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &vpTranspose, 0);
 
     for (const auto& command : *m_commands)
     {
+        BEGIN_EVENT(commandList, "Particle emitter rendering");
+
         if (!command.texture || command.particles.empty())
         {
             continue;
@@ -204,6 +218,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         for (unsigned int i = 0; i < size; ++i)
         {
             XMMATRIX m = buildImageWorldMatrix(command.particles[i], command.renderMode).Transpose();
+            //XMMATRIX m = (buildImageWorldMatrix(command.particles[i], command.renderMode) * vp).Transpose();
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
@@ -225,6 +240,8 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         commandList->SetGraphicsRoot32BitConstants(1, sizeof(ShaderEmissorData) / sizeof(UINT32), &emissorData, 0);
 
         commandList->DrawInstanced(6, command.particles.size(), 0, 0); // last is  first instanceID to consider; here we will take all of them, so 0
+
+        END_EVENT(commandList);
     }
 }
 

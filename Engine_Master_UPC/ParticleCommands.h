@@ -43,3 +43,9 @@ struct ShaderEmissorData {
     float padding2;
 	float padding3;
 };
+
+struct shaderAllEmissorsData {
+
+    XMFLOAT4X4 viewProjection;
+    XMFLOAT2 depthLinearize;
+};

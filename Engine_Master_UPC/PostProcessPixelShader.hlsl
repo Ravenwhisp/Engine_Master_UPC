@@ -5,6 +5,7 @@ Texture2D    sceneTexture  : register(t0);
 Texture2D    bloomTexture  : register(t1);
 Texture3D    lutTexture    : register(t2);
 Texture2D    depthTexture  : register(t3);
+Texture2D    normalTexture : register(t4);
 SamplerState bilinearClamp : register(s0);
 
 cbuffer PostProcessParams : register(b0)
@@ -49,8 +50,15 @@ cbuffer PostProcessParams : register(b0)
 
     float outlineNoiseScale;
     float outlineBreakup;
-    float outlinePad0;
-    float outlinePad1;
+
+    // View-space depth linearization constants (see PostProcessPass.cpp).
+    float depthLinearizeA;
+    float depthLinearizeB;
+    
+    float outlineNormalThreshold;
+    float paramPad0;
+    float paramPad1;
+    float paramPad2;
 };
 
 float hash21(float2 p)
@@ -72,28 +80,48 @@ float valueNoise(float2 p)
     return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
 }
 
+float linearizeDepth(float ndcDepth)
+{
+    return depthLinearizeB / (ndcDepth + depthLinearizeA);
+}
+
+float3 decodeNormal(float3 enc)
+{
+    return normalize(enc * 2.0 - 1.0);
+}
+
 float3 applyOutline(float3 color, float2 uv)
 {
     float2 texSize;
     sceneTexture.GetDimensions(texSize.x, texSize.y);
     float2 texel = 1.0 / texSize;
     float2 o = texel * outlineThickness;
-    
+
     float2 warp = float2(valueNoise(uv * outlineNoiseScale),
                          valueNoise(uv * outlineNoiseScale + 17.0)) - 0.5;
     float2 suv = uv + warp * texel * outlineThickness * outlineWobble * 2.0;
-    
-    float d0 = depthTexture.Sample(bilinearClamp, suv - o).r;
-    float d1 = depthTexture.Sample(bilinearClamp, suv + o).r;
-    float d2 = depthTexture.Sample(bilinearClamp, suv + float2(o.x, -o.y)).r;
-    float d3 = depthTexture.Sample(bilinearClamp, suv + float2(-o.x, o.y)).r;
-    float dc = depthTexture.Sample(bilinearClamp, suv).r;
 
-    float g = abs(d0 - d1) + abs(d2 - d3);
+    float dcRaw = depthTexture.Sample(bilinearClamp, suv).r;
+    float dc = linearizeDepth(dcRaw);
     
-    float edge = (dc < 0.9999) ? g : 0.0;
-    edge = smoothstep(outlineThreshold, outlineThreshold * 3.0 + 1e-4, edge);
+    float d0 = linearizeDepth(depthTexture.Sample(bilinearClamp, suv - o).r);
+    float d1 = linearizeDepth(depthTexture.Sample(bilinearClamp, suv + o).r);
+    float d2 = linearizeDepth(depthTexture.Sample(bilinearClamp, suv + float2(o.x, -o.y)).r);
+    float d3 = linearizeDepth(depthTexture.Sample(bilinearClamp, suv + float2(-o.x, o.y)).r);
+
+    float depthGrad = (abs(d0 - d1) + abs(d2 - d3)) / max(dc, 1e-4);
+    float silhouette = smoothstep(outlineThreshold, outlineThreshold * 3.0 + 1e-4, depthGrad);
     
+    float3 n0 = decodeNormal(normalTexture.Sample(bilinearClamp, suv - o).rgb);
+    float3 n1 = decodeNormal(normalTexture.Sample(bilinearClamp, suv + o).rgb);
+    float3 n2 = decodeNormal(normalTexture.Sample(bilinearClamp, suv + float2(o.x, -o.y)).rgb);
+    float3 n3 = decodeNormal(normalTexture.Sample(bilinearClamp, suv + float2(-o.x, o.y)).rgb);
+
+    float normalGrad = (1.0 - dot(n0, n1)) + (1.0 - dot(n2, n3));
+    float crease = smoothstep(outlineNormalThreshold, outlineNormalThreshold * 2.0 + 1e-4, normalGrad);
+
+    float edge = (dcRaw < 0.9999) ? max(silhouette, crease) : 0.0;
+
     float breakup = lerp(1.0, valueNoise(uv * outlineNoiseScale * 2.3), outlineBreakup);
     edge *= breakup;
 
@@ -173,9 +201,11 @@ float3 applyHeartbeat(float3 color, float2 uv)
     float sv = edge * hbSepVignette;
     color = lerp(color, float3(0.0, 0.1, 0.4), sv);
     
-    float3 pulseCol = hbPulseIsLub ? float3(1.0, 0.78, 0.70) : float3(0.70, 0.86, 1.0);
-    color += pulseCol * (hbPulse * (hbPulseIsLub ? 0.25 : 0.18));
-    
+    // Heartbeat pulse: a brief dip towards dark grey/black rather than a bright colour
+    // flash, so the beat reads as a subtle thump instead of a strobing flash.
+    float pulseAmt = hbPulse * (hbPulseIsLub ? 0.25 : 0.18);
+    color = lerp(color, float3(0.02, 0.02, 0.02), pulseAmt);
+
     color *= 1.0 - edge * hbCrit;
 
     return color;

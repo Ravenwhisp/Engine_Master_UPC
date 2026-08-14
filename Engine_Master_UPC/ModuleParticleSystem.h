@@ -30,7 +30,8 @@ struct Particle {
     float lifeTime = 0.f;
 
     EmitterInstance* owner;
-    bool movedFromAlives = false; // can happen if it has been reused on a different emitter, or on the same one (instead of taking a free slot) 
+	bool isNew; // => added to an emitter this frame, so it needs to be initialized
+	unsigned int vectorPosition; // if isNew, it is from the m_newParticles vector, otherwise it is from the m_aliveParticles vector
 };
 
 
@@ -56,6 +57,10 @@ public:
 
     void freePoolSlot(unsigned int index); // frees the slot at the index (BUT DOES NOT CHANGE THE OTHER ARRAY!)
 
+    void resetFirstUsedSlot(); // ONLY USE IF AT LEAST ONE SLOT FREE
+
+    void updateOwnerData (unsigned int index, bool isNew, unsigned int vectorPosition); // (owner is only changed when requesting pool slot, so this is only for changes over time)
+
 
     void buildParticleCommands(ParticleSystemComponent* particleSystemComponent);
 
@@ -68,6 +73,10 @@ public:
 
     void resetAllParticles();
 
+#ifdef _DEBUG
+    void debugCheckDuplicateAliveIndices();
+#endif
+
 private:
 
     void initSlotManagement();
@@ -79,8 +88,7 @@ private:
     std::array<Particle, MAX_PARTICLES> m_pool;
 
     // Slot management data
-    std::array <unsigned int, MAX_PARTICLES> m_slots; // contains for each particle the next free (or self if nothing free)
-    unsigned int m_firstFree;
+    std::vector<unsigned int> m_freeSlots;
     unsigned int m_firstUsed; // approximation, for claiming if there are no free slots
 
     std::vector<ParticleEmitterCommand> m_particleCommands; // we will probably want to directly get the shader parameters in the future

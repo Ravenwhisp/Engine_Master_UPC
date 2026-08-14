@@ -58,6 +58,7 @@ bool ModuleRender::init()
     auto* device = d3d12->getDevice();
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(30);
+    //m_structuredRingBuffer = app->getModuleResources()->createRingBuffer(30);
 
     // Build the one time render-passes.
     auto staticTexturesPass = new StaticTexturesPass(device);
@@ -142,6 +143,8 @@ void ModuleRender::preRender()
     }
 
     m_ringBuffer->free(app->getModuleD3D12()->getLastCompletedFrame());
+    //m_structuredRingBuffer->free(app->getModuleD3D12()->getLastCompletedFrame());
+
 
     auto* commandList = app->getModuleD3D12()->getCommandList();
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
@@ -244,6 +247,9 @@ bool ModuleRender::cleanUp()
 
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
+    //delete m_structuredRingBuffer;
+    //m_structuredRingBuffer = nullptr;
+
 
     return true;
 }
@@ -322,6 +328,11 @@ D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, s
     return m_ringBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
 }
 
+//D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInStructuredRingBuffer(const void* data, size_t size)
+//{
+//    return m_structuredRingBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
+//}
+
 ModuleRender::RenderCamera ModuleRender::getEditorCamera()
 {
     RenderCamera camera;
@@ -386,6 +397,9 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
     const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
 
+    const bool outlineEnabled = app->getModuleScene()->getScene()->getPostProcessSettings().outlineEnabled;
+    const bool needsNormalBuffer = ssaoEnabled || outlineEnabled;
+
     RenderContext ctx{
         .view = camera.view,
         .projection = camera.projection,
@@ -440,7 +454,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOGeometryPass");
 
-        if (m_ssaoGeometryPass && ssaoEnabled)
+        if (m_ssaoGeometryPass && needsNormalBuffer)
         {
             m_ssaoGeometryPass->prepare(ctx);
             m_ssaoGeometryPass->apply(commandList);

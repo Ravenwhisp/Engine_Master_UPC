@@ -45,6 +45,8 @@ void EmitterInstance::updateRemainingModules()
 		return a.first > b.first;
 	});
 
+	updateAlivesOwnerData();
+
 	m_currentTime += m_owner->deltaTime();
 }
 
@@ -59,18 +61,30 @@ void EmitterInstance::reset() {
 	m_currentTime = 0.f;
 }
 
-bool EmitterInstance::removeNewParticle(unsigned int poolSlot)
+void EmitterInstance::eraseIndexOnLocation(bool isNew, unsigned int vectorPosition)
 {
-	for (unsigned int i = 0; i < m_newParticles.size(); ++i)
+	if (isNew) 
 	{
-		if (poolSlot == m_newParticles[i]) {
+		eraseBySwap(m_newParticles, vectorPosition);
 
-			eraseBySwap(m_newParticles, i);
-			return true;
+		if (vectorPosition != m_newParticles.size()) 
+		{
+			// handle case where the erased element was not the last one (we swapped an index, so we have to update its owner data in the pool)
+
+			app->getModuleParticleSystem()->updateOwnerData(m_newParticles[vectorPosition], true, vectorPosition);
 		}
 	}
+	else 
+	{
+		eraseBySwap(m_aliveParticles, vectorPosition);
 
-	return false;
+		if (vectorPosition != m_aliveParticles.size()) 
+		{
+			// handle case where the erased element was not the last one (we swapped an index, so we have to update its owner data in the pool)
+
+			app->getModuleParticleSystem()->updateOwnerData(m_aliveParticles[vectorPosition].second, false, vectorPosition);
+		}
+	}
 }
 
 void EmitterInstance::freeParticleSlots()
@@ -103,6 +117,14 @@ void EmitterInstance::manageNewParticles()
 	m_newParticles.clear();
 }
 
+void EmitterInstance::updateAlivesOwnerData()
+{
+	for (unsigned int i = 0; i < m_aliveParticles.size(); ++i) 
+	{
+		app->getModuleParticleSystem()->updateOwnerData(m_aliveParticles[i].second, false, i);
+	}
+}
+
 void EmitterInstance::eraseBySwap(std::vector<unsigned int>& newParticles, unsigned int index)
 {
 	// maybe also consider case = 0 (would be swapWithFront() + pop_front(); we could even be smarter with cases for cache optimisations)
@@ -117,4 +139,20 @@ void EmitterInstance::swapWithBack(std::vector<unsigned int>& newParticles, unsi
 
 	newParticles.back() = newParticles[index];
 	newParticles[index] = oldBack;
+}
+
+void EmitterInstance::eraseBySwap(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index)
+{
+	// maybe also consider case = 0 (would be swapWithFront() + pop_front(); we could even be smarter with cases for cache optimisations)
+	if (index != aliveParticles.size() - 1) swapWithBack(aliveParticles, index);
+
+	aliveParticles.pop_back();
+}
+
+void EmitterInstance::swapWithBack(std::vector<std::pair<float, unsigned int>>& aliveParticles, unsigned int index)
+{
+	std::pair<float, unsigned int> oldBack = aliveParticles.back();
+
+	aliveParticles.back() = aliveParticles[index];
+	aliveParticles[index] = oldBack;
 }
