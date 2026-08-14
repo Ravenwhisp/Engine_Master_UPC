@@ -43,6 +43,9 @@ private:
 
 
 	bool drawBezierCurveUI(float* curveData);
-	bool drawHDRColorUI(float* colorData, float* intensity);
+	bool drawHDRColorUI(float* colorData, float* intensity, Vector3* hdrEndColor);
+	Vector3 getFinalHDRColor(float* colorData, float* intensity) const;
+
+
 };
 

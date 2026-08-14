@@ -87,7 +87,7 @@ bool EmitterColor::drawUi()
 
 		ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
 
-		parameterChanged |= drawHDRColorUI(m_hdrColor, &m_intensity);
+		parameterChanged |= drawHDRColorUI(m_hdrColor, &m_intensity, &m_hdrColorAndIntensity);
 	}
 
 	return parameterChanged;
@@ -193,7 +193,7 @@ void EmitterColor::serialize(IArchive& archive)
 
 	if (archive.mode() == ArchiveMode::Input) // maybe better to put everything in the same if, and this in the else case
 	{
-		m_hdrColorAndIntensity = Vector3(m_hdrColor[0], m_hdrColor[1], m_hdrColor[2]) * pow (2.f, m_intensity);
+		m_hdrColorAndIntensity = getFinalHDRColor(m_hdrColor, &m_intensity);
 	}
 }
 
@@ -238,20 +238,20 @@ bool EmitterColor::drawBezierCurveUI(float* curveData)
 	return parameterChanged;
 }
 
-bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity)
+bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity, Vector3* hdrEndColor)
 {
 	bool parameterChanged = false;
 
 	if (ImGui::ColorEdit3("HDR Color##Color", colorData))
 	{
-		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity); // recalculate the final value
+		*hdrEndColor = getFinalHDRColor(colorData, intensity); // recalculate the final value
 
 		parameterChanged = true;
 	}
 
 	if (ImGui::SliderFloat("HDR Intensity##Color", intensity, -10.f, 10.f))
 	{
-		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+		*hdrEndColor = getFinalHDRColor(colorData, intensity);
 
 		parameterChanged = true;
 	}
@@ -263,7 +263,7 @@ bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity)
 		*intensity -= 2.f;
 		if (*intensity < -10.f) *intensity = -10.f;
 
-		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+		*hdrEndColor = getFinalHDRColor(colorData, intensity);
 
 		parameterChanged = true;
 	}
@@ -275,7 +275,7 @@ bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity)
 		*intensity -= 1.f;
 		if (*intensity < -10.f) *intensity = -10.f;
 
-		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+		*hdrEndColor = getFinalHDRColor(colorData, intensity);
 		
 		parameterChanged = true;
 	}
@@ -286,7 +286,7 @@ bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity)
 	{
 		*intensity = 0.f;
 
-		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]); // because pow(2, 0) = 1, thus we don't need to multiply by it
+		*hdrEndColor = getFinalHDRColor(colorData, intensity);
 
 		parameterChanged = true;
 	}
@@ -298,7 +298,7 @@ bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity)
 		*intensity += 1.f;
 		if (*intensity > 10.f) *intensity = 10.f;
 
-		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+		*hdrEndColor = getFinalHDRColor(colorData, intensity);
 		
 		parameterChanged = true;
 	}
@@ -310,10 +310,15 @@ bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity)
 		*intensity += 2.f;
 		if (*intensity > 10.f) *intensity = 10.f;
 
-		m_hdrColorAndIntensity = Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+		*hdrEndColor = getFinalHDRColor(colorData, intensity);
 		
 		parameterChanged = true;
 	}
 
 	return parameterChanged;
+}
+
+Vector3 EmitterColor::getFinalHDRColor(float* colorData, float* intensity) const
+{
+	return Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
 }
