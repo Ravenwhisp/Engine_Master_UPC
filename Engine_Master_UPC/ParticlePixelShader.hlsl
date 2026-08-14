@@ -21,9 +21,6 @@ struct ShaderParticleData
 
 StructuredBuffer<ShaderParticleData> instanceDataBuffer : register(t1);
 
-static const float GAMMA = 2.2f;
-static const float INV_GAMMA = 1.0f / GAMMA;
-
 static const float softParticleScale = 0.02f; // Equivalent to distance of fading, but in NDC; we should replace it with proper distance, because in NDC we lose information (every depth mapped to [0, 1])
 
 struct PSInput
@@ -33,12 +30,6 @@ struct PSInput
     float2 screenUV : SCREENPOS;
     uint instanceID : INSTANCEID;
 };
-
-float3 LinearToSRGB(float3 color)
-{
-    color = max(color, 0.0f);
-    return pow(color, INV_GAMMA);
-}
 
 float3 Tint(float3 input, float3 color)
 {
@@ -68,7 +59,7 @@ float4 main(PSInput input) : SV_TARGET
     // Color application //
     
     float4 particleColorInfo = instanceDataBuffer[input.instanceID].colorAndAlpha;
-    float3 resultingColor = LinearToSRGB(Tint(texColor.rgb, particleColorInfo.rgb) + hdrColor );
+    float3 resultingColor = Tint(texColor.rgb, particleColorInfo.rgb) + hdrColor;
     
     return float4(resultingColor, fade * texColor.a * particleColorInfo.a);
 }
