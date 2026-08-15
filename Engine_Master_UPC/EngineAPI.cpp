@@ -35,6 +35,7 @@
 #include "DamageHighlightComponent.h"
 #include "TrailComponent.h"
 #include "DissolveComponent.h"
+#include "SpectralComponent.h"
 
 #include "CameraComponent.h"
 
@@ -3160,6 +3161,36 @@ namespace ShadersAPI
     void setDissolveThikness(DissolveComponent* component, float value)
     {
         component->setDissolveThikness(value);
+    }
+
+    SpectralComponent* getSpectralComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<SpectralComponent>(ComponentType::SPECTRAL);
+    }
+
+    const SpectralComponent* getSpectralComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<SpectralComponent>(ComponentType::SPECTRAL);
+    }
+
+    Vector3 getSpectralColor(SpectralComponent* component)
+    {
+        return component->getSpectralColor();
+    }
+
+    void setSpectralColor(SpectralComponent* component, Vector3 value)
+    {
+        return component->setSpectralColor(value);
     }
 }
 

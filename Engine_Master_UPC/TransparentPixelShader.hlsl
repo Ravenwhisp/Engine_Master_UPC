@@ -28,6 +28,14 @@ cbuffer ModelDataCB : register(b4)
     float3 padding;
 };
 
+cbuffer SpectralData : register(b5)
+{
+    uint hasSpectralComponent;
+    float3 pad1;
+    float3 spectralColor;
+    uint pad2;
+}
+
 Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
@@ -266,6 +274,12 @@ float SampleSSAO(float4 screenPosition)
 
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD, float4 position : SV_POSITION) : SV_TARGET
 {
+    if (hasSpectralComponent == 1)
+    {
+        //apply spectral effect
+        return float4(spectralColor, 1);
+    }
+    
     //Initialize material values
     float metallic = metallicFactor;
     float alphaRoughness = roughnessFactor;

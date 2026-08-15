@@ -26,7 +26,8 @@
     X(PREFAB_INSTANCE)      \
     X(PLAYER_RENDER_BUFFER) \
     X(DAMAGE_HIGHLIGHT)     \
-    X(DISSOLVE)
+    X(DISSOLVE)             \
+    X(SPECTRAL)
 
 #define COMP_ENUM(name) name,
 #define COMP_SWITCH(name) case ComponentType::name: return #name;

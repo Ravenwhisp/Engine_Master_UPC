@@ -321,6 +321,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ShadowMapPass.h" />
     <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="SoundBankAsset.h" />
+    <ClInclude Include="SpectralComponent.h" />
     <ClInclude Include="SSAOBlurPass.h" />
     <ClInclude Include="SSAOGeometryPass.h" />
     <ClInclude Include="SSAOPass.h" />
@@ -821,6 +822,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ScriptLibraryLoader.cpp" />
     <ClCompile Include="ShadowMapPass.cpp" />
     <ClCompile Include="SoundBankAsset.cpp" />
+    <ClCompile Include="SpectralComponent.cpp" />
     <ClCompile Include="SSAOBlurPass.cpp" />
     <ClCompile Include="SSAOGeometryPass.cpp" />
     <ClCompile Include="SSAOPass.cpp" />
