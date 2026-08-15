@@ -624,7 +624,6 @@
       <Filter>Persistence\Importers\External\UI\Events</Filter>
     </ClCompile>
     <ClCompile Include="ForwardPrepass.cpp" />
-    <ClCompile Include="PlayerPass.cpp" />
     <ClCompile Include="PlayerRenderBufferComponent.cpp" />
     <ClCompile Include="UILayoutUtils.cpp">
       <Filter>Persistence\Importers\External\UI</Filter>
@@ -635,8 +634,15 @@
     <ClCompile Include="NavMeshBuildSettings.cpp" />
     <ClCompile Include="SoundBankAsset.cpp" />
     <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
-    <ClCompile Include="LineRendererComponent.cpp" />
-    <ClCompile Include="LineRendererPass.cpp" />
+    <ClCompile Include="LineRendererPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="LineRendererComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
@@ -1487,7 +1493,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="ForwardPrepass.h" />
-    <ClInclude Include="PlayerPass.h" />
     <ClInclude Include="PlayerRenderBufferComponent.h" />
     <ClInclude Include="UILayoutUtils.h">
       <Filter>Persistence\Importers\External\UI</Filter>
@@ -1500,8 +1505,15 @@
     <ClInclude Include="SoundBankAsset.h" />
     <ClInclude Include="ImporterNavMesh.h" />
     <ClInclude Include="NavMeshAsset.h" />
-    <ClInclude Include="LineRendererComponent.h" />
-    <ClInclude Include="LineRendererPass.h" />
+    <ClInclude Include="LineRendererPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="LineRendererComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VertexShader.hlsl">
@@ -1594,6 +1606,12 @@
     <FxCompile Include="ForwardPrepassVertexShader.hlsl" />
     <FxCompile Include="PlayerPixelShader.hlsl" />
     <FxCompile Include="PlayerVertexShader.hlsl" />
+    <FxCompile Include="LineRendererPixelShader.hlsl">
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="LineRendererVertexShader.hlsl">
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="MakeSpriteFont.exe" />

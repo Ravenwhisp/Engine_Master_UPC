@@ -13,6 +13,19 @@ using Microsoft::WRL::ComPtr;
 
 class LineRendererComponent;
 
+struct GradientColor
+{
+	Vector4 color;
+
+	float percentage;
+	Vector3 padding;
+};
+
+struct GradientConstantBuffer
+{
+	GradientColor colors[10];
+};
+
 class LineRendererPass : public IRenderPass
 {
 public:

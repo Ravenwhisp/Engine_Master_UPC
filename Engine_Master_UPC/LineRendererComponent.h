@@ -14,10 +14,9 @@ public:
 	struct RenderPoint
 	{
 		Vector3 position;
-		Quaternion rotation;
-		Vector3 editorEuler; //for UI editing
 		float width;
 		Transform* transformParent;
+		uint64_t transformId;
 
 	};
 
@@ -39,6 +38,8 @@ public:
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	void serialize(IArchive& archive) override;
+
+	void fixReferences(const SceneReferenceResolver& resolver) override;
 
 	void debugDraw() override;
 

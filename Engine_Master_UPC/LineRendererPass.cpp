@@ -8,6 +8,7 @@
 #include "LineRendererComponent.h"
 #include "RingBuffer.h"
 #include "ModuleRender.h"
+#include "imgui_color_gradient.h"
 
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
@@ -17,7 +18,7 @@ LineRendererPass::LineRendererPass(ComPtr<ID3D12Device4> device)
 	m_device = device;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
@@ -26,6 +27,7 @@ LineRendererPass::LineRendererPass(ComPtr<ID3D12Device4> device)
     rootParameters[0].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
+    rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Lights
 
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -55,6 +57,7 @@ LineRendererPass::LineRendererPass(ComPtr<ID3D12Device4> device)
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        { "PERCENTAGE", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     // Describe and create the graphics pipeline state object (PSO).
@@ -105,19 +108,32 @@ void LineRendererPass::prepare(const RenderContext& ctx)
 
 void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-    std::vector<UINT> indices;
-    std::vector<Vertex> vertices;
+    commandList->SetPipelineState(m_pipelineState.Get());
+    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
-    uint32_t firstVertex = 0;
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    Matrix vp = (*m_view * *m_projection).Transpose();
+    commandList->SetGraphicsRoot32BitConstants(2, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
+
+    std::vector<UINT> indices;
+    std::vector<VertexLineRenderer> vertices;
+    GradientConstantBuffer cb{};
 
     for (auto& lineRendererComponent : m_lineRendererComponent)
     {
-        float distance = 0.0f;
+        indices.clear();
+        vertices.clear();
+        for (auto& color : cb.colors)
+        {
+            color = {};
+        }
 
+        float distance = 0.0f;
+        
         for (auto point = lineRendererComponent->getPoints().begin(); point != lineRendererComponent->getPoints().end(); point++)
         {
             Vector3 position = point->get()->position;
-            Vector3 perpendicularVector = Vector3::Transform(Vector3::UnitX, point->get()->rotation);
             float halfWidth = point->get()->width * 0.5f;
 
             Vector3 prevPos = (point == lineRendererComponent->getPoints().begin()) ? point->get()->position : std::prev(point)->get()->position;
@@ -128,6 +144,7 @@ void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
             Vector3 tangent = nextPos - prevPos;
             tangent.Normalize();
 
+            Vector3 perpendicularVector = Vector3::Up.Cross(tangent);
             
             Vector3 right = tangent;
             right.Cross(Vector3::Up);
@@ -143,23 +160,33 @@ void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
                 distance += Vector3::Distance(prevPos, position);
             }
 
-            Vertex leftVertex{};
+            VertexLineRenderer leftVertex{};
             leftVertex.position = position - perpendicularVector * halfWidth;
             leftVertex.tangent = tangent;
             leftVertex.normal = normal;
             leftVertex.texCoord0 = Vector2(0.0f, distance); //Texture tiling can be implemented. Vector2(0.0f, distance / tileLenght)
+            leftVertex.linePercentage = distance;
 
-            Vertex rightVertex{};
+            VertexLineRenderer rightVertex{};
             rightVertex.position = position + perpendicularVector * halfWidth;
             rightVertex.tangent = tangent;
             rightVertex.normal = normal;
             rightVertex.texCoord0 = Vector2(1.0f, distance);
+            rightVertex.linePercentage = distance;
 
             vertices.push_back(leftVertex);
             vertices.push_back(rightVertex);
         }
 
-        for (uint32_t i = firstVertex; i < vertices.size() - 2; i += 2)
+        for (size_t i = 0; i < vertices.size(); i++)
+        {
+            if (vertices[i].linePercentage != 0) 
+            {
+                vertices[i].linePercentage = vertices[i].linePercentage / distance;
+            } 
+        }
+
+        for (uint32_t i = 0; i < vertices.size() - 2; i += 2)
         {
 
             indices.push_back(i);
@@ -171,30 +198,50 @@ void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
             indices.push_back(i + 3);
         }
 
-        firstVertex = vertices.size();
+        uint32_t colorIndex = 0;
+        bool colorExist;
+        for (const ImGradientMark* mark : lineRendererComponent->getColorGradient().getMarks())
+        {
+            colorExist = false;
+            GradientColor color{};
+            color.percentage = mark->position;
+            lineRendererComponent->getColorGradient().getColorAt(mark->position, &color.color.x);
+
+            for (int i = 0; i < 10; ++i) 
+            {
+                if(color.color == cb.colors[i].color && color.percentage == cb.colors[i].percentage)
+                {
+                    colorExist = true;
+                }
+            }
+
+            if (colorExist)
+            {
+                continue;
+            }
+
+            cb.colors[colorIndex] = color;
+            colorIndex++;
+        }
+
+        D3D12_VERTEX_BUFFER_VIEW vbv;
+        vbv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(vertices.data(), vertices.size() * sizeof(VertexLineRenderer));
+        vbv.SizeInBytes = (UINT)(vertices.size() * sizeof(VertexLineRenderer));
+        vbv.StrideInBytes = sizeof(VertexLineRenderer);
+
+        D3D12_INDEX_BUFFER_VIEW ibv;
+        ibv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(indices.data(), indices.size() * sizeof(uint32_t));
+        ibv.SizeInBytes = (UINT)(indices.size() * sizeof(uint32_t));
+        ibv.Format = DXGI_FORMAT_R32_UINT;
+
+        D3D12_GPU_VIRTUAL_ADDRESS cbAdress = app->getModuleRender()->allocateInRingBuffer(&cb, sizeof(cb));
+
+        commandList->SetGraphicsRootConstantBufferView(3, cbAdress);
+
+        commandList->IASetVertexBuffers(0, 1, &vbv);
+        commandList->IASetIndexBuffer(&ibv);
+
+        commandList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
     }
-
-    D3D12_VERTEX_BUFFER_VIEW vbv;
-    vbv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(vertices.data(), vertices.size() * sizeof(Vertex));
-    vbv.SizeInBytes = (UINT)(vertices.size() * sizeof(Vertex));
-    vbv.StrideInBytes = sizeof(Vertex);
-
-    D3D12_INDEX_BUFFER_VIEW ibv;
-    ibv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(indices.data(), indices.size() * sizeof(uint32_t));
-    ibv.SizeInBytes = (UINT)(indices.size() * sizeof(uint32_t));
-    ibv.Format = DXGI_FORMAT_R32_UINT;
-
-    commandList->SetPipelineState(m_pipelineState.Get());
-    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    commandList->IASetVertexBuffers(0, 1, &vbv);
-    commandList->IASetIndexBuffer(&ibv);
-
-    commandList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
-
-    Matrix vp = (*m_view) * (*m_projection);
-    commandList->SetGraphicsRoot32BitConstants(2, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
 
 }

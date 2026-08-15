@@ -19,6 +19,7 @@
 #include "ScriptComponent.h"
 #include "ParticleSystemComponent.h"
 #include "TrailComponent.h"
+#include "LineRendererComponent.h"
 
 #include "ScenePicking.h"
 
@@ -100,6 +101,7 @@ void ModuleScene::rebuildComponentCaches()
     m_scriptComponents.clear();
     m_particleSystemComponents.clear();
     m_trailComponents.clear();
+    m_lineRendererComponents.clear();
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
@@ -129,9 +131,14 @@ void ModuleScene::rebuildComponentCaches()
             m_particleSystemComponents.push_back(particleSystem);
         }
 
-        if (auto* particleSystem = go->GetComponentAs<TrailComponent>(ComponentType::TRAIL))
+        if (auto* trail = go->GetComponentAs<TrailComponent>(ComponentType::TRAIL))
         {
-            m_trailComponents.push_back(particleSystem);
+            m_trailComponents.push_back(trail);
+        }
+
+        if (auto* lineRenderer = go->GetComponentAs<LineRendererComponent>(ComponentType::LINE_RENDERER))
+        {
+            m_lineRendererComponents.push_back(lineRenderer);
         }
     }
 

@@ -10,7 +10,11 @@
 #include "imgui_bezier.h"
 #include "imgui_color_gradient.h"
 #include "ModuleTime.h"
+#include "ModuleScene.h"
 
+#include <HierarchyUtils.h>
+
+class Scene;
 
 LineRendererComponent::LineRendererComponent(UID id, GameObject* owner) : Component(id, ComponentType::LINE_RENDERER, owner)
 {
@@ -140,26 +144,6 @@ void LineRendererComponent::drawUi()
             ImGui::SetTooltip("Inherited from parent transform.");
         }
 
-        if (ImGui::DragFloat3("Rotation", &point.editorEuler.x, 1.0f))
-        {
-            point.editorEuler.x = WrapAngle(point.editorEuler.x);
-            point.editorEuler.y = WrapAngle(point.editorEuler.y);
-            point.editorEuler.z = WrapAngle(point.editorEuler.z);
-
-            point.rotation = Quaternion::CreateFromYawPitchRoll(
-                XMConvertToRadians(point.editorEuler.y),
-                XMConvertToRadians(point.editorEuler.x),
-                XMConvertToRadians(point.editorEuler.z)
-            );
-
-            point.rotation.Normalize();
-        }
-
-        if (disableTransform && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        {
-            ImGui::SetTooltip("Inherited from parent transform.");
-        }
-
         ImGui::EndDisabled();
 
         ImGui::SeparatorText("Shape");
@@ -209,8 +193,6 @@ void LineRendererComponent::update()
         {
             const Matrix& globalMatrix = point->get()->transformParent->getGlobalMatrix();
             point->get()->position = globalMatrix.Translation();
-            point->get()->rotation = Quaternion::CreateFromRotationMatrix(globalMatrix);
-            point->get()->editorEuler = point->get()->transformParent->getEulerDegrees();
         }
 
         ++point;
@@ -225,7 +207,6 @@ void LineRendererComponent::CreatePoint()
     m_points.push_back(newPoint);
 
     newPoint->position = Vector3::Zero;
-    newPoint->rotation = Quaternion::Identity;
     newPoint->width = 0.0f;
     newPoint->transformParent = nullptr;
 }
@@ -242,6 +223,7 @@ std::unique_ptr<Component> LineRendererComponent::clone(GameObject* newOwner) co
 {
     std::unique_ptr<LineRendererComponent> cloned = std::make_unique<LineRendererComponent>(m_uuid, newOwner);
 
+    cloned->m_points.clear();
     cloned->m_color = m_color;
 
     for (auto point = m_points.begin(); point != m_points.end(); )
@@ -250,10 +232,9 @@ std::unique_ptr<Component> LineRendererComponent::clone(GameObject* newOwner) co
 
         RenderPoint* clonedPoint = cloned->m_points.back().get();
 
-        clonedPoint->position    = point->get()->position;
-        clonedPoint->rotation    = point->get()->rotation;
-        clonedPoint->editorEuler = point->get()->editorEuler;
-        clonedPoint->width       = point->get()->width;
+        clonedPoint->position        = point->get()->position;
+        clonedPoint->transformParent = point->get()->transformParent;
+        clonedPoint->width           = point->get()->width;
 
         ++point;
     }
@@ -289,32 +270,15 @@ void LineRendererComponent::serialize(IArchive& archive)
             archive.serialize(z, "");
             archive.endArray();
 
-            Vector3 euler = point.get()->editorEuler;
-            uint32_t eulerCount = 3;
-            archive.beginArray(eulerCount, "EditorEuler");
-            x = euler.x;
-            y = euler.y;
-            z = euler.z;
-            archive.serialize(x, "");
-            archive.serialize(y, "");
-            archive.serialize(z, "");
-            archive.endArray();
-
-            Quaternion rotation = point.get()->rotation;
-            uint32_t rotationCount = 4;
-            archive.beginArray(eulerCount, "Rotation");
-            x = rotation.x;
-            y = rotation.y;
-            z = rotation.z;
-            float w = rotation.w;
-            archive.serialize(x, "");
-            archive.serialize(y, "");
-            archive.serialize(z, "");
-            archive.serialize(w, "");
-            archive.endArray();
-
             float width = point.get()->width;
             archive.serialize(width, "Width");
+
+            uint64_t transformParent = -1; 
+            if (point.get()->transformParent != nullptr)
+            {
+                transformParent = point.get()->transformParent->getOwner()->GetID();
+            }
+            archive.serialize(transformParent, "TransformParent");
 
             archive.endObject();
         }
@@ -379,32 +343,14 @@ void LineRendererComponent::serialize(IArchive& archive)
             Vector3 position = Vector3(x, y, z);
             newPoint->position = position;
 
-            uint32_t eulerCount = 3;
-            archive.beginArray(eulerCount, "EditorEuler");
-            x = 0.f, y = 0.f, z = 0.f;
-            archive.serialize(x, "");
-            archive.serialize(y, "");
-            archive.serialize(z, "");
-            archive.endArray();
-            Vector3 euler = Vector3(x, y, z);
-            newPoint->editorEuler = euler;
-
-            uint32_t roationCount = 4;
-            archive.beginArray(roationCount, "Rotation");
-            x = 0.f, y = 0.f, z = 0.f; 
-            float w = 0.f;
-            archive.serialize(x, "");
-            archive.serialize(y, "");
-            archive.serialize(z, "");
-            archive.serialize(w, "");
-            archive.endArray();
-            Quaternion rotation = Quaternion(x, y, z, w);
-            newPoint->rotation = rotation;
-
             float width = 0.f;
             archive.serialize(width, "Width");
             newPoint->width = width;
 
+            uint64_t transformParent = 0;
+            archive.serialize(transformParent, "TransformParent");
+            newPoint->transformId = transformParent;
+            
         }
 
         archive.endArray();
@@ -446,6 +392,19 @@ void LineRendererComponent::serialize(IArchive& archive)
         archive.endArray();
 
     }
+}
+
+void LineRendererComponent::fixReferences(const SceneReferenceResolver& resolver)
+{
+    for (auto point = m_points.begin(); point != m_points.end(); )
+    {
+        if (point->get()->transformId != -1)
+        {
+            Scene* scene = app->getModuleScene()->getScene();
+            point->get()->transformParent = HierarchyUtils::findByUID(scene, point->get()->transformId)->GetComponent(ComponentType::TRANSFORM)->getTransform();
+        }
+     }
+
 }
 
 void LineRendererComponent::debugDraw()
