@@ -320,5 +320,6 @@ bool EmitterColor::drawHDRColorUI(float* colorData, float* intensity, Vector3* h
 
 Vector3 EmitterColor::getFinalHDRColor(float* colorData, float* intensity) const
 {
-	return Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+	//return Vector3(colorData[0], colorData[1], colorData[2]) * pow(2.f, *intensity);
+	return Vector3(colorData[0], colorData[1], colorData[2]) * 0.5 * pow(2.f, *intensity);
 }
