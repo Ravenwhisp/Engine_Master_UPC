@@ -4,7 +4,6 @@
 
 class DeathSound;
 class DeathCharacter;
-class DeathConfig;
 class DeathParticles;
 
 class DeathDash : public AbilityDash
@@ -31,7 +30,6 @@ protected:
 
 private:
     DeathCharacter* m_deathCharacter = nullptr;
-    DeathConfig* m_config = nullptr;
     DeathSound* m_sound = nullptr;
     DeathParticles* m_particles = nullptr;
 

@@ -11,6 +11,12 @@ struct DefferedDescriptor {
 	D3D12_DESCRIPTOR_HEAP_TYPE heap;
 };
 
+struct DefferedBlock {
+	uint64_t frame = 0;
+	DescriptorHeapBlock* block = nullptr;
+	D3D12_DESCRIPTOR_HEAP_TYPE heapType = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+};
+
 // -----------------------------------------------------------------------------
 // ModuleDescriptors
 // -----------------------------------------------------------------------------
@@ -19,10 +25,10 @@ struct DefferedDescriptor {
 // This module abstracts the creation and lifetime management of the different
 // descriptor heap types required by Direct3D 12:
 //
-// • RTV(Render Target Views)
-// • DSV(Depth Stencil Views)
-// • SRV(Shader Resource Views, e.g.textures, buffers)
-// • Samplers(Sampler descriptors for filtering / wrapping modes)
+// ï¿½ RTV(Render Target Views)
+// ï¿½ DSV(Depth Stencil Views)
+// ï¿½ SRV(Shader Resource Views, e.g.textures, buffers)
+// ï¿½ Samplers(Sampler descriptors for filtering / wrapping modes)
 class ModuleDescriptors: public Module
 {
 public:
@@ -55,5 +61,6 @@ private:
 
 	ComPtr<ID3D12Device4>												m_device{};
 	std::vector<DefferedDescriptor>										m_defferedDescriptors{};
+	std::vector<DefferedBlock>											m_defferedBlocks{};
 };
 

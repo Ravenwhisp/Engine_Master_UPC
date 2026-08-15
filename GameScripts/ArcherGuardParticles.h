@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ScriptAPI.h"
 #include <vector>
 
@@ -8,7 +8,7 @@ class ArcherGuardParticles : public Script
 public:
     explicit ArcherGuardParticles(GameObject* owner);
     void Start() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     PrefabRef m_trailPrefab;
     PrefabRef m_volleyPrefab;

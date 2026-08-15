@@ -1,10 +1,7 @@
 #include "Globals.h"
 #include "TextureImportSettings.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
+#include "IArchive.h"
 
 #include "imgui.h"
 

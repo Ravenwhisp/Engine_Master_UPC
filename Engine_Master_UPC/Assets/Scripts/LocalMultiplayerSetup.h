@@ -11,11 +11,11 @@ public:
 
     void Start() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
     ScriptMethodList getExposedMethods() const override;
 
-    ScriptComponentRef<Transform> keyboardGamepadButton;
-	ScriptComponentRef<Transform> twoGamepadButton;
+    ComponentRef<Transform> keyboardGamepadButton;
+	ComponentRef<Transform> twoGamepadButton;
 
     void setKeyboardGamepad();
     void setTwoGamepad();

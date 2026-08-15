@@ -118,7 +118,7 @@ void PlayerPass::createPipelineState()
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT; // HDR scene target
     psoDesc.SampleDesc = { 1,0 };
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
@@ -192,7 +192,7 @@ void PlayerPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "PlayerPass");
 
-    auto colorTex = m_renderSurface->getTexture(RenderSurface::COMPOSITE);
+    auto colorTex = m_renderSurface->getTexture(RenderSurface::SCENE_HDR);
     auto depthStencilTex = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL);
     
     D3D12_CPU_DESCRIPTOR_HANDLE rtv = colorTex->getRTV(0).cpu;

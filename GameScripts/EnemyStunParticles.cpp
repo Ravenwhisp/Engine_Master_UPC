@@ -13,11 +13,11 @@ void EnemyStunParticles::Start() {}
 void EnemyStunParticles::startStunParticle()
 {
     stopStunParticle();
-    if (!m_stunPrefab.m_ref.isValid()) return;
+    if (!m_stunPrefab.m_id.isValid()) return;
     Transform* t = GameObjectAPI::getTransform(getOwner());
     Vector3 pos  = t ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
     pos.y       += m_heightOffset;
-    m_stunParticle = GameObjectAPI::instantiatePrefab(m_stunPrefab.m_ref, pos, Vector3::Zero);
+    m_stunParticle = GameObjectAPI::instantiatePrefab(m_stunPrefab.m_id, pos, Vector3::Zero);
 }
 
 void EnemyStunParticles::updateStunParticle()

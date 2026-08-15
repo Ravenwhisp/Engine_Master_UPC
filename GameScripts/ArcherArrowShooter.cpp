@@ -13,7 +13,6 @@ ArcherArrowShooter::ArcherArrowShooter(GameObject* owner) : Script(owner) {}
 
 void ArcherArrowShooter::Start()
 {
-    m_config     = GameObjectAPI::findScript<ArcherAttackConfig>(getOwner());
     m_controller = GameObjectAPI::findScript<RangedEnemyController>(getOwner());
     m_animation  = AnimationAPI::getAnimationComponent(getOwner());
     m_particles  = GameObjectAPI::findScript<ArcherGuardParticles>(getOwner());
@@ -22,7 +21,7 @@ void ArcherArrowShooter::Start()
 
 void ArcherArrowShooter::Update()
 {
-    if (!m_animation || !m_config || !m_arrowPrefab.m_ref.isValid()) return;
+    if (!m_animation || !m_config || !m_arrowPrefab.m_id.isValid()) return;
 
     const char* state = AnimationAPI::getActiveStateName(m_animation);
     if (!state) return;
@@ -48,7 +47,7 @@ void ArcherArrowShooter::Update()
     m_timer += Time::getDeltaTime();
 
     // ── Fire arrow at windup time ─────────────────────────────────────────────
-    if (!m_fired && m_timer >= m_config->m_basicAttackWindupTime)
+    if (!m_fired && m_timer >= m_config.get()->m_basicAttackWindupTime)
     {
         Transform* archerT = GameObjectAPI::getTransform(getOwner());
         Transform* targetT = m_controller ? m_controller->getCurrentTarget() : nullptr;
@@ -70,7 +69,7 @@ void ArcherArrowShooter::Update()
             Vector3 dest = targetPos;
             dest.y      += 1.0f;
 
-            m_arrowGO = GameObjectAPI::instantiatePrefab(m_arrowPrefab.m_ref, spawnPos, Vector3::Zero);
+            m_arrowGO = GameObjectAPI::instantiatePrefab(m_arrowPrefab.m_id, spawnPos, Vector3::Zero);
             if (m_arrowGO)
             {
                 ArcherArrowProjectile* arrow = GameObjectAPI::findScript<ArcherArrowProjectile>(m_arrowGO);

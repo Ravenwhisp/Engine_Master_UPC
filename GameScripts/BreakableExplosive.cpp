@@ -65,7 +65,7 @@ void BreakableExplosive::onBreak()
 		damageableScript->takeDamage(m_explosionDamage);
 	}
 
-    GameObject* explosionEffect = GameObjectAPI::instantiatePrefab(m_explosionEffectParticle.m_ref, TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
+    GameObject* explosionEffect = GameObjectAPI::instantiatePrefab(m_explosionEffectParticle.m_id, TransformAPI::getGlobalPosition(m_brokenObjectTransform), Vector3(0.0f, 0.0f, 0.0f));
 
     // Explosion SFX instead of the plain barrel break (this overrides onBreak and calls
     // breakObject() directly, so the generic break sound is intentionally skipped).

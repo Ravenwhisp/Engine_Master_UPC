@@ -15,8 +15,9 @@ public:
 
     void Start() override;
     void Update() override;
+    FieldList getExposedFields() const override;
 
-    bool isTargetInAttackRange() const;
+    const EnemyBaseAttackConfig* getAttackConfig() const override;
 
     // Somersault helpers
     bool playerInSomersaultRange() const;
@@ -40,8 +41,10 @@ protected:
 
 private:
     EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-    ArcherAttackConfig* m_attackConfig = nullptr;
 
     float m_somersaultCooldownTimer = 0.0f;
     float m_arrowBarrageCooldownTimer = 0.0f;
+
+public:
+    AssetReference<ArcherAttackConfig> m_attackConfig;
 };

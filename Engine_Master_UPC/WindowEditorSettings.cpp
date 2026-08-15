@@ -200,13 +200,13 @@ void WindowEditorSettings::drawBuildSettings()
         app->getModuleScene()->saveScene();
 
         const UID uid = scene->getUID();
-        AssetReference* ref = app->getModuleAssets()->findReference(uid);
+        AssetId* ref = app->getModuleAssets()->findReference(uid);
 
         if (ref && !ref->m_libId.empty())
         {
             std::string configStr = ref->m_libId + "\n";
 
-            AssetReference initBnkRef = app->getModuleMusic()->findBankRef("Init.bnk");
+            AssetId initBnkRef = app->getModuleMusic()->findBankRef("Init.bnk");
             if (initBnkRef.isValid())
             {
                 configStr += initBnkRef.m_libId + "\n";

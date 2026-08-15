@@ -14,7 +14,6 @@ void SkeletonReviveState::OnStateEnter()
 {
 	m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
 	m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SkeletonAttackConfig>(getOwner());
 	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	if (!m_controller)
@@ -26,12 +25,6 @@ void SkeletonReviveState::OnStateEnter()
 	if (!m_damageable)
 	{
 		Debug::error("[SkeletonReviveState] SkeletonDamageable not found.");
-		return;
-	}
-
-	if (!m_attackConfig)
-	{
-		Debug::error("[SkeletonReviveState] SkeletonAttackConfig not found.");
 		return;
 	}
 
@@ -54,7 +47,7 @@ void SkeletonReviveState::OnStateEnter()
 
 void SkeletonReviveState::OnStateUpdate()
 {
-	if (!m_controller || !m_damageable || !m_attackConfig || !m_animation)
+	if (!m_controller || !m_damageable || !m_controller->m_attackConfig.get() || !m_animation)
 	{
 		return;
 	}
@@ -139,7 +132,7 @@ void SkeletonReviveState::updateReviveStart()
 
 void SkeletonReviveState::updateReviveIdle()
 {
-	if (m_phaseTimer >= m_attackConfig->m_reviveDuration)
+	if (m_phaseTimer >= m_controller->m_attackConfig.get()->m_reviveDuration)
 	{
 		changePhase(Phase::ReviveEnd);
 		return;

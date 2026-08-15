@@ -25,6 +25,7 @@
 #include "BasicMesh.h"
 #include "SkyBox.h"
 
+
 #include "SimpleMath.h"
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
@@ -41,17 +42,20 @@ GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void GeometryPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER   rootParams[5] = {};
-    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
+    CD3DX12_ROOT_PARAMETER   rootParams[7] = {};
+    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange, vfxRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+    vfxRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, BasicMaterial::SLOT_COUNT, 0);
 
     rootParams[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-    rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParams[3].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[4].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); //MVP
+    rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL); //Model data
+    rootParams[3].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Damage Highlight Data
+    rootParams[4].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); //Materials
+    rootParams[5].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL); //Samplers
+    rootParams[6].InitAsDescriptorTable(1, &vfxRange, D3D12_SHADER_VISIBILITY_PIXEL); //VFX textures
 
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
@@ -185,28 +189,50 @@ void GeometryPass::setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
-    commandList->SetGraphicsRootDescriptorTable(4, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 }
 
 void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
 {
-    //PERF_RENDER("MeshRendererPass::renderMesh");
-
-    // DEBUG_LOG("Se va a pintar la malla %d", i);
+    GameObject* owner = renderer->getOwner();
+    if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
     {
-        //PERF_RENDER("MeshRendererPass::renderMesh::RendererValidation");
+        return;
+    }
 
-        GameObject* owner = renderer->getOwner();
-        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
-        {
-            return;
-        }
+    if (!renderer->isActive())
+    {
+        return;
+    }
 
-        if (!renderer->isActive())
+
+
+    VisualEffectsCB visualEffectsCB{};
+    
+    Component* damageHighlightComponent = owner->GetComponent(ComponentType::DAMAGE_HIGHLIGHT);
+    if (damageHighlightComponent != nullptr)
+    {
+        visualEffectsCB.damageHighlightDataCB.hasDamageHighlightComponent = 1;
+        visualEffectsCB.damageHighlightDataCB.damageHighlightData = static_cast<DamageHighlightComponent*>(damageHighlightComponent)->getDamageHighlightData();
+    }
+
+    Component* dissolveComponent = owner->GetComponent(ComponentType::DISSOLVE);
+    if (dissolveComponent != nullptr)
+    {
+        DissolveComponent* dissolve = static_cast<DissolveComponent*>(dissolveComponent);
+        Texture* noiseTexture = dissolve->getTexture();
+        if (noiseTexture != nullptr && noiseTexture->getSRV().IsValid())
         {
-            return;
+            visualEffectsCB.dissolveDataCB.hasDissolveComponent = 1;
+            visualEffectsCB.dissolveDataCB.dissolveData = dissolve->getDissolveData();
+            commandList->SetGraphicsRootDescriptorTable(6, noiseTexture->getSRV().gpu);
         }
     }
+
+    commandList->SetGraphicsRootConstantBufferView(3, app->getModuleRender()->allocateInRingBuffer(&visualEffectsCB, sizeof(VisualEffectsCB)));
+
+
+
 
     Transform* transform = renderer->getTransform();
 
@@ -266,7 +292,7 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
 
                 {
                     //PERF_RENDER("MeshRendererPass::renderMesh::BindMaterial");
-                    commandList->SetGraphicsRootDescriptorTable(3, material->getTableGPUHandle());
+                    commandList->SetGraphicsRootDescriptorTable(4, material->getTableGPUHandle());
 
                     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

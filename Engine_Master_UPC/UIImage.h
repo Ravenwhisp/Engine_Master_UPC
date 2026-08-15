@@ -13,18 +13,27 @@ public:
     enum class StretchDrawMode
     {
         Stretch = 0,
-        Tile = 1
+        Tile = 1,
+        Cover = 2
     };
 
     static const char* StretchDrawModeToString(uint32_t v)
     {
-        return v == 0 ? "Stretch" : "Tile";
+        switch (static_cast<StretchDrawMode>(v))
+        {
+        case StretchDrawMode::Stretch: return "Stretch";
+        case StretchDrawMode::Tile:    return "Tile";
+        case StretchDrawMode::Cover:   return "Cover";
+        }
     }
 
     static uint32_t StringToStretchDrawMode(const char* s)
     {
-        return std::strcmp(s, "Tile") == 0 ? 1 : 0;
+        if (std::strcmp(s, "Tile") == 0)  return 1;
+        if (std::strcmp(s, "Cover") == 0) return 2;
+        return 0;
     }
+
     UIImage(UID id, GameObject* owner);
 
     std::unique_ptr<Component> clone(GameObject* newOwner) const override;
@@ -35,10 +44,10 @@ public:
     Texture* getTexture() const { return m_texture; }
     void setTexture(Texture* texture) { m_texture = texture; }
 
-    void setTextureAssetId(const AssetReference& assetId);
+    void setTextureAssetId(const AssetId& assetId);
 
     TextureAsset* getTextureAsset() const { return m_textureAsset.get(); }
-    const AssetReference& getTextureAssetId() const { return m_textureAssetId; }
+    const AssetId& getTextureAssetId() const { return m_textureAssetId; }
 
     bool containsPoint(const Rect2D& rect, const Vector2& screenPos) const;
 
@@ -74,7 +83,7 @@ public:
     void fixReferences(const SceneReferenceResolver& resolver) override;
 
 private:
-    AssetReference m_textureAssetId{};
+    AssetId m_textureAssetId{};
     Texture* m_texture = nullptr;
     std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
     bool m_loadRequested = false;

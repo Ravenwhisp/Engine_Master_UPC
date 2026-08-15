@@ -38,6 +38,7 @@
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "PostProcessPass.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
@@ -58,6 +59,7 @@ bool ModuleRender::init()
     auto* device = d3d12->getDevice();
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(30);
+    //m_structuredRingBuffer = app->getModuleResources()->createRingBuffer(30);
 
     // Build the one time render-passes.
     auto staticTexturesPass = new StaticTexturesPass(device);
@@ -99,6 +101,11 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
     m_renderPasses.push_back(std::make_unique<LineRendererPass>(device));
+
+    // Resolve the HDR scene into COMPOSITE (exposure, tone mapping, bloom, LUT,
+    // outline, etc.) before the overlay passes draw on top.
+    m_renderPasses.push_back(std::make_unique<PostProcessPass>(device));
+
     m_renderPasses.push_back(std::move(debugDrawPass));
     m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
     m_renderPasses.push_back(std::make_unique<FontPass>(device));
@@ -138,6 +145,8 @@ void ModuleRender::preRender()
     }
 
     m_ringBuffer->free(app->getModuleD3D12()->getLastCompletedFrame());
+    //m_structuredRingBuffer->free(app->getModuleD3D12()->getLastCompletedFrame());
+
 
     auto* commandList = app->getModuleD3D12()->getCommandList();
     auto* swapChain = app->getModuleD3D12()->getSwapChain();
@@ -240,6 +249,9 @@ bool ModuleRender::cleanUp()
 
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
+    //delete m_structuredRingBuffer;
+    //m_structuredRingBuffer = nullptr;
+
 
     return true;
 }
@@ -318,6 +330,11 @@ D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, s
     return m_ringBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
 }
 
+//D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInStructuredRingBuffer(const void* data, size_t size)
+//{
+//    return m_structuredRingBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
+//}
+
 ModuleRender::RenderCamera ModuleRender::getEditorCamera()
 {
     RenderCamera camera;
@@ -368,6 +385,8 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     const float w = static_cast<float>(outputSurface.getWidth());
     const float h = static_cast<float>(outputSurface.getHeight());
 
+    app->getModuleUI()->buildCommandsForViewport(w, h);
+
     D3D12_VIEWPORT viewport = { 0.0f, 0.0f, w, h, 0.0f, 1.0f };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
 
@@ -379,6 +398,9 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     const SSAOSettings* ssaoSettings = &app->getModuleScene()->getScene()->getSSAOSettings();
     const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
     const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
+
+    const bool outlineEnabled = app->getModuleScene()->getScene()->getPostProcessSettings().outlineEnabled;
+    const bool needsNormalBuffer = ssaoEnabled || outlineEnabled;
 
     RenderContext ctx{
         .view = camera.view,
@@ -434,7 +456,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOGeometryPass");
 
-        if (m_ssaoGeometryPass && ssaoEnabled)
+        if (m_ssaoGeometryPass && needsNormalBuffer)
         {
             m_ssaoGeometryPass->prepare(ctx);
             m_ssaoGeometryPass->apply(commandList);

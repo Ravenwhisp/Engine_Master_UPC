@@ -1,8 +1,7 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 #include "UISlider.h"
-#include "UISheet.h"
 
 struct HitContext
 {
@@ -23,7 +22,7 @@ public:
     void Start()     override;
 	void Update()	 override;
     void drawGizmo() override;
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     virtual void takeDamage(float amount);
     virtual void takeDamage(const HitContext& ctx);
@@ -52,21 +51,23 @@ protected:
     virtual void onDeath();
     virtual void onRevive();
 
+    void setupUI();
+    void updateUI();
+    virtual void onHealthUIChanged(float previousHpPercent, float currentHpPercent) {}
+
 private:
     void applyDamage(float amount, bool continuous);
     void clampHp();
-    void setupUI();
-    void updateUI();
 
-public:
+protected:
     float m_maxHp = 100.0f;
-	ScriptComponentRef<UISlider> m_healthBar;
-    ScriptComponentRef<UISlider> m_healthBar2;
-    ScriptComponentRef<UISlider> m_healthGlow;
+
+    ComponentRef<UISlider> m_healthBar;
+    ComponentRef<UISlider> m_healthBar2;
+
     float m_uiWaitTime = 0.6f;
     float m_uiUpdateTime = 1.0f;
 
-protected:
     float m_currentHp   = 100.0f;
     bool  m_invulnerable = false;
     bool  m_isDead       = false;
@@ -74,11 +75,11 @@ protected:
 
 	UISlider* m_healthBarSlider = nullptr;
 	UISlider* m_healthBar2Slider = nullptr;
-    UISlider* m_healthGlowSlider = nullptr;
-    UISheet* m_healthGlowSheet = nullptr;
-	float m_uiTimer = 0.0f;
-	float m_currentDisplayedHp = 100.0f;
-	float m_previousHp = 100.0f;
-    float m_uiStartPercent;
-    float m_uiTargetPercent;
+
+private:
+    float m_uiTimer = 0.0f;
+    float m_previousHp = 100.0f;
+
+    float m_uiStartPercent = 1.0f;
+    float m_uiTargetPercent = 1.0f;
 };

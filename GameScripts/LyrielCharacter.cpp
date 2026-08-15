@@ -10,6 +10,7 @@
 #include "LyrielChargedAttack.h"
 
 IMPLEMENT_SCRIPT_FIELDS(LyrielCharacter,
+    SERIALIZED_ASSET_REF(m_config, "Lyriel Config", AssetType::DATA_CONTAINER),
     SERIALIZED_STRING(m_arrowSpawnChildName, "Arrow Spawn Child Name")
 )
 
@@ -29,8 +30,6 @@ void LyrielCharacter::Start()
     m_specialAbility   = GameObjectAPI::findScript<LyrielArrowVolley>(getOwner());
     m_sound         = GameObjectAPI::findScript<LyrielSound>(getOwner());
     m_movement      = GameObjectAPI::findScript<PlayerMovement>(getOwner());
-    m_config        = GameObjectAPI::findScript<LyrielConfig>(getOwner());
-
 
     if (m_arrowPool == nullptr)
     {
@@ -66,11 +65,6 @@ void LyrielCharacter::Start()
     {
         Debug::log("[LyrielCharacter] PlayerMovement not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
-
-    if (m_config == nullptr)
-    {
-        Debug::log("[LyrielCharacter] LyrielConfig not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
-    }
 }
 
 void LyrielCharacter::Update()
@@ -99,9 +93,9 @@ void LyrielCharacter::onMarkExploited()
         m_dash->recoverCharge();
     }
 
-    if (m_specialAbility != nullptr && m_config != nullptr)
+    if (m_specialAbility != nullptr && m_config.get() != nullptr)
     {
-        m_specialAbility->reduceCooldown(m_config->m_volleyCooldownReductionPerExploit);
+        m_specialAbility->reduceCooldown(m_config.get()->m_volleyCooldownReductionPerExploit);
     }
 }
 

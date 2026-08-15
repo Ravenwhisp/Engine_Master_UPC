@@ -57,16 +57,16 @@ public:
 
 	int getTriangles() const { return m_triangles; }
 
-	void setMeshReference(AssetReference& meshRef);
-	AssetReference& getMeshReference() { return m_meshAsset; }
-	void addMaterialReference(AssetReference& materialRef);
-	std::vector<AssetReference>& getMaterialsReference() { return m_materialAssets; }
+	void setMeshReference(AssetId& meshRef);
+	AssetId& getMeshReference() { return m_meshAsset; }
+	void addMaterialReference(AssetId& materialRef);
+	std::vector<AssetId>& getMaterialsReference() { return m_materialAssets; }
 
 	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
  
 	// Legacy only: used to migrate old prefabs/scenes that stored SkinAssetId inside MeshRenderer.
-	AssetReference& getSkinReference() { return m_skinAsset; }
-	void setSkinReference(AssetReference& skinUID) { m_skinAsset = skinUID; }
+	AssetId& getSkinReference() { return m_skinAsset; }
+	void setSkinReference(AssetId& skinUID) { m_skinAsset = skinUID; }
 
 	bool hasSkin() const { return m_skin != nullptr; }
 
@@ -89,9 +89,9 @@ private:
 	// The position of the material corresponds to the submesh number
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 
-	AssetReference m_meshAsset{};
-	AssetReference m_skinAsset{};
-	std::vector<AssetReference> m_materialAssets{};
+	AssetId m_meshAsset{};
+	AssetId m_skinAsset{};
+	std::vector<AssetId> m_materialAssets{};
 
 	mutable Engine::BoundingBox				m_boundingBox;
 

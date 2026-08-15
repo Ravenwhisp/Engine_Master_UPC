@@ -49,6 +49,7 @@ public:
 
 
 	RingBuffer* createRingBuffer(size_t size);
+	RingBuffer* createStructuredRingBuffer(size_t size);
 	VertexBuffer* createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride);
 	VertexBuffer* createVertexBuffer(ComPtr<ID3D12Resource> existingResource, size_t numVertices, size_t vertexStride);
 	IndexBuffer* createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat, const char* name = "IndexBuffer");
@@ -57,6 +58,7 @@ public:
 	Texture* createDepthBuffer(float width, float height);
 	Texture* createShadowMap(uint32_t size);
 	Texture* createRenderTexture(float width, float height);
+	Texture* createHDRRenderTexture(float width, float height);
 
 	Texture* createSSAODepthBuffer(float width, float height);
 	Texture* createSSAONormalBuffer(float width, float height);

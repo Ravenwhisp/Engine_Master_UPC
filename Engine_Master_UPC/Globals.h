@@ -41,7 +41,7 @@ void debug_error(const char file[], int line, const char* format, ...);
 
 #define FRAMES_IN_FLIGHT 2
 
-#define MAX_PARTICLES 300
+#define MAX_PARTICLES 1000
 
 #include "debug_draw.hpp"
 
@@ -106,5 +106,5 @@ namespace Engine
 
 float uniform_rand(); // returns a random value between 0 and 1
 
-#include <rapidjson/document.h>
+
 

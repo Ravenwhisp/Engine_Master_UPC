@@ -21,7 +21,8 @@ public:
 		SSAO_NORMAL = 8,
 		SSAO_RAW = 9,
 		SSAO_BLUR = 10,
-		NUM_ATTACHMENT_POINTS = 11
+		SCENE_HDR = 11,   // HDR scene colour (lit scene before post-processing)
+		NUM_ATTACHMENT_POINTS = 12
 	};
 
 
@@ -39,6 +40,7 @@ public:
 	void             resize(Vector2 size);
     void             resize(uint32_t width, uint32_t height);
 
+	void setSize(uint32_t width, uint32_t height);
 	Vector2 getSize() const;
 
     uint32_t         getWidth() const;

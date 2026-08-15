@@ -12,7 +12,7 @@ class ImporterGltf;
 struct AnimationStateMachineClip
 {
     std::string name;
-    AssetReference animationUID;
+    AssetId animationUID;
     bool loop = true;
 };
 
@@ -42,7 +42,7 @@ public:
     friend class ImporterGltf;
 
     AnimationStateMachineAsset() = default;
-    explicit AnimationStateMachineAsset(AssetReference& id)
+    explicit AnimationStateMachineAsset(AssetId& id)
         : Asset(id, AssetType::ANIMATION_STATE_MACHINE)
     {
     }

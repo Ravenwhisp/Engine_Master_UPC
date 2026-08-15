@@ -20,6 +20,9 @@
 #include "CommandImportAsset.h"
 #include "CommandPasteFile.h"
 #include "CommandSaveGameObjectAsPrefab.h"
+#include "CommandCreateDataContainer.h"
+
+#include "GenericTypeFactory.h"
 
 #include <algorithm>
 #include <cctype>
@@ -40,7 +43,7 @@ void WindowFileDialog::handleAssetClick(const AssetEntry& asset)
         return;
     }
 
-    AssetReference* ref = app->getModuleAssets()->findReference(asset.uid);
+    AssetId* ref = app->getModuleAssets()->findReference(asset.uid);
     std::shared_ptr<Asset> assetResource = app->getModuleAssets()->load<Asset>(*ref);
 
     app->getModuleEditor()->setSelectedAsset(assetResource);
@@ -319,6 +322,14 @@ void WindowFileDialog::drawAssetItem(DirectoryEntry* directory, const AssetEntry
             ImGui::CloseCurrentPopup();
         }
 
+        if (ImGui::MenuItem("Rename..."))
+        {
+            m_renamingAsset = true;
+            const std::string srcStr = sourcePath.string();
+            strncpy_s(m_renameSrcBuf, sizeof(m_renameSrcBuf), srcStr.c_str(), sizeof(m_renameSrcBuf) - 1);
+            strncpy_s(m_renameDstBuf, sizeof(m_renameDstBuf), srcStr.c_str(), sizeof(m_renameDstBuf) - 1);
+        }
+
         if (ImGui::MenuItem("Cut", "Ctrl+X"))
         {
             CommandCutItem(m_clipboard, metaPath).run();
@@ -365,7 +376,7 @@ void WindowFileDialog::drawSubAssetItem(const AssetEntry& subAsset)
         ImGui::IsMouseReleased(ImGuiMouseButton_Left) &&
         !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
     {
-        AssetReference ref(subAsset.uid);
+        AssetId ref(subAsset.uid);
         std::shared_ptr<Asset> assetResource = app->getModuleAssets()->load<Asset>(ref);
         app->getModuleEditor()->setSelectedAsset(assetResource);
         m_selectedAsset = subAsset.uid;
@@ -470,6 +481,24 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
             CommandCreateFolder(m_currentDirectory).run();
         }
 
+        const auto& dcRegistry = DataContainerFactory::getAllRegistered();
+        if (!dcRegistry.empty())
+        {
+            ImGui::Spacing();
+            if (ImGui::BeginMenu("New Data Asset"))
+            {
+                for (const auto& entry : dcRegistry)
+                {
+                    if (ImGui::MenuItem(entry.displayName.c_str()))
+                    {
+                        std::string assetName = entry.displayName + "_New";
+                        CommandCreateDataContainer(m_currentDirectory, entry.name, assetName).run();
+                    }
+                }
+                ImGui::EndMenu();
+            }
+        }
+
         ImGui::Spacing();
         ImGui::Spacing();
         ImGui::Text("General");
@@ -567,6 +596,7 @@ void WindowFileDialog::drawAssetGrid(DirectoryEntry* directory)
         m_showVariantModal,
         m_showSavePrefabModal,
         m_renamingPrefab,
+        m_renamingAsset,
         buffers
     );
 }

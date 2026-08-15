@@ -50,7 +50,7 @@ std::unique_ptr<Component> ParticleSystemComponent::clone(GameObject* newOwner) 
     return cloned;
 }
 
-void ParticleSystemComponent::setTextureAssetReference(AssetReference& assetRef)
+void ParticleSystemComponent::setTextureAssetId(AssetId& assetRef)
 {
     m_textureAsset = assetRef;
 }
@@ -85,7 +85,7 @@ void ParticleSystemComponent::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
         {
             UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            AssetId* assetRef = app->getModuleAssets()->findReference(*ref);
             if (assetRef)
             {
                 m_textureAsset = *assetRef;
@@ -138,12 +138,40 @@ void ParticleSystemComponent::drawUi()
 }
 
 void ParticleSystemComponent::update()
-{
+{/*
     if (m_textureAsset.isValid()) 
     {
             for (auto& particleState : m_particlesState)
         {
             particleState.updateModules();
+        }
+    }
+
+    m_previousPosition = m_owner->GetTransform()->getPosition(); // update previous position
+    
+    */
+
+    // Right now, this is not used (will do the update in ModuleParticleSystem)
+}
+
+void ParticleSystemComponent::updateSpawn()
+{
+    if (m_textureAsset.isValid())
+    {
+        for (auto& particleState : m_particlesState)
+        {
+            particleState.updateSpawnModule();
+        }
+    }
+}
+
+void ParticleSystemComponent::updateTheRest()
+{
+    if (m_textureAsset.isValid())
+    {
+        for (auto& particleState : m_particlesState)
+        {
+            particleState.updateRemainingModules();
         }
     }
 

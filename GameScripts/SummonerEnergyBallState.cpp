@@ -14,7 +14,6 @@ SummonerEnergyBallState::SummonerEnergyBallState(GameObject* owner)
 void SummonerEnergyBallState::OnStateEnter()
 {
 	m_controller = GameObjectAPI::findScript<SummonerEnemyController>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SummonerAttackConfig>(getOwner());
 	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
 	m_stateTimer = 0.0f;
@@ -23,12 +22,6 @@ void SummonerEnergyBallState::OnStateEnter()
 	if (!m_controller)
 	{
 		Debug::error("[SummonerEnergyBallState] EnemyController not found.");
-		return;
-	}
-
-	if (!m_attackConfig)
-	{
-		Debug::error("[SummonerEnergyBallState] AttackConfig not found.");
 		return;
 	}
 
@@ -46,7 +39,7 @@ void SummonerEnergyBallState::OnStateEnter()
 
 void SummonerEnergyBallState::OnStateUpdate()
 {
-	if (!m_controller || !m_attackConfig || !m_animation)
+	if (!m_controller || !m_controller->m_attackConfig || !m_animation)
 	{
 		return;
 	}
@@ -60,14 +53,14 @@ void SummonerEnergyBallState::OnStateUpdate()
 
 	m_stateTimer += Time::getDeltaTime();
 
-	if (!m_hasFiredEnergyBall && m_stateTimer >= m_attackConfig->m_basicAttackWindupTime)
+	if (!m_hasFiredEnergyBall && m_stateTimer >= m_controller->m_attackConfig.get()->m_basicAttackWindupTime)
 	{
 		spawnEnergyBall();
 		m_controller->consumeAttackCooldown();
 		m_hasFiredEnergyBall = true;
 	}
 
-	if (m_stateTimer >= m_attackConfig->m_basicAttackTotalDuration)
+	if (m_stateTimer >= m_controller->m_attackConfig.get()->m_basicAttackTotalDuration)
 	{
 		AnimationAPI::sendTrigger(m_animation, "ToIdle");
 		return;
@@ -84,7 +77,7 @@ void SummonerEnergyBallState::OnStateExit()
 
 void SummonerEnergyBallState::spawnEnergyBall()
 {
-	if (!m_controller || !m_attackConfig)
+	if (!m_controller || !m_controller->m_attackConfig)
 	{
 		return;
 	}
@@ -133,10 +126,10 @@ void SummonerEnergyBallState::spawnEnergyBall()
 	projectile->launch(
 		spawnPosition,
 		direction,
-		m_attackConfig->m_energyBallSpeed,
-		m_attackConfig->m_energyBallLifetime,
+		m_controller->m_attackConfig.get()->m_energyBallSpeed,
+		m_controller->m_attackConfig.get()->m_energyBallLifetime,
 		targetObject,
-		m_attackConfig->m_basicAttackDamage
+		m_controller->m_attackConfig.get()->m_basicAttackDamage
 	);
 }
 

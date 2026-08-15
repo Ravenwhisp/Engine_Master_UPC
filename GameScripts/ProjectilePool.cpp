@@ -29,13 +29,13 @@ void ProjectilePool::Start()
 
 bool ProjectilePool::createProjectile()
 {
-	if (!m_projectilePrefab.m_ref.isValid())
+	if (!m_projectilePrefab.m_id.isValid())
 	{
 		return false;
 	}
 
 	GameObject* projectileObject = GameObjectAPI::instantiatePrefab(
-		m_projectilePrefab.m_ref,
+		m_projectilePrefab.m_id,
 		Vector3::Zero,
 		Vector3::Zero,
 		nullptr

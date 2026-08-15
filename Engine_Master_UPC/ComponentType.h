@@ -1,4 +1,6 @@
 #pragma once
+#include <cstring>
+#include <cstdint>
 
 #define COMPONENT_TYPE_LIST(X) \
     X(TRANSFORM)            \
@@ -23,7 +25,9 @@
     X(SOUND_SOURCE)         \
     X(PREFAB_INSTANCE)      \
     X(PLAYER_RENDER_BUFFER) \
-    X(LINE_RENDERER)
+    X(LINE_RENDERER)        \
+    X(DAMAGE_HIGHLIGHT)     \
+    X(DISSOLVE)
 
 #define COMP_ENUM(name) name,
 #define COMP_SWITCH(name) case ComponentType::name: return #name;

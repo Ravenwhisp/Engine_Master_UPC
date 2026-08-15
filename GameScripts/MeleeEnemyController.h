@@ -14,8 +14,9 @@ public:
 
 	void Start() override;
 	void Update() override;
+	FieldList getExposedFields() const override;
 
-	bool isTargetInAttackRange() const;
+	const EnemyBaseAttackConfig* getAttackConfig() const override;
 
 	// Charge helpers
 	bool playerInChargeRange() const;
@@ -32,7 +33,9 @@ protected:
 
 private:
 	EnemyDetectionAggro* m_enemyDetectionAggro = nullptr;
-	PaladinAttackConfig* m_attackConfig = nullptr;
 
 	float m_chargeCooldownTimer = 0.0f;
+
+public:
+	AssetReference<PaladinAttackConfig> m_attackConfig;
 };

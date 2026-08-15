@@ -68,6 +68,14 @@ ComPtr<GraphicsCommandList> CommandQueue::getCommandList()
 
         DXCall(commandAllocator->Reset());
     }
+    else if (!m_CommandAllocatorQueue.empty() && m_CommandAllocatorQueue.size() >= MAX_POOL_SIZE)
+    {
+        waitForFenceValue(m_CommandAllocatorQueue.front().fenceValue);
+        commandAllocator = m_CommandAllocatorQueue.front().commandAllocator;
+        m_CommandAllocatorQueue.pop();
+
+        DXCall(commandAllocator->Reset());
+    }
     else
     {
         commandAllocator = createCommandAllocator();

@@ -13,17 +13,12 @@ MeleeEnemyController::MeleeEnemyController(GameObject* owner)
 
 void MeleeEnemyController::Start()
 {
-	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<PaladinAttackConfig>(getOwner());
+	EnemyBaseController::Start();
 
+	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
 	if (!m_enemyDetectionAggro)
 	{
 		Debug::warn("[MeleeEnemyController] EnemyDetectionAggro not found on '%s'.", GameObjectAPI::getName(getOwner()));
-	}
-
-	if (!m_attackConfig)
-	{
-		Debug::warn("[MeleeEnemyController] PaladinAttackConfig not found on '%s'.", GameObjectAPI::getName(getOwner()));
 	}
 
 	m_currentTarget = nullptr;
@@ -67,19 +62,14 @@ bool MeleeEnemyController::isTargetDowned(Transform* target) const
 	return m_enemyDetectionAggro->isDowned(target);
 }
 
-bool MeleeEnemyController::isTargetInAttackRange() const
+const EnemyBaseAttackConfig* MeleeEnemyController::getAttackConfig() const
 {
-	if (!hasValidTarget() || !m_attackConfig)
-	{
-		return false;
-	}
-
-	return isCurrentTargetInRange(m_attackConfig->m_basicAttackRange);
+	return m_attackConfig.get();
 }
 
 bool MeleeEnemyController::playerInChargeRange() const
 {
-	if (!m_enemyDetectionAggro || !m_attackConfig)
+	if (!m_enemyDetectionAggro || !m_attackConfig.get())
 	{
 		return false;
 	}
@@ -102,8 +92,8 @@ bool MeleeEnemyController::playerInChargeRange() const
 	difference.y = 0.0f;
 
 	const float distanceToTargetSquared = difference.LengthSquared();
-	const float chargeDistanceSquared = m_attackConfig->m_chargeRange * m_attackConfig->m_chargeRange;
-	const float attackRangeSquared = m_attackConfig->m_basicAttackRange * m_attackConfig->m_basicAttackRange;
+	const float chargeDistanceSquared = m_attackConfig.get()->m_chargeRange * m_attackConfig.get()->m_chargeRange;
+	const float attackRangeSquared = m_attackConfig.get()->m_basicAttackRange * m_attackConfig.get()->m_basicAttackRange;
 
 	return distanceToTargetSquared <= chargeDistanceSquared && distanceToTargetSquared > attackRangeSquared;
 }
@@ -115,12 +105,12 @@ bool MeleeEnemyController::isChargeReady() const
 
 void MeleeEnemyController::consumeChargeCooldown()
 {
-	if (!m_attackConfig)
+	if (!m_attackConfig.get())
 	{
 		return;
 	}
 
-	m_chargeCooldownTimer = m_attackConfig->m_chargeCooldown;
+	m_chargeCooldownTimer = m_attackConfig.get()->m_chargeCooldown;
 }
 
 void MeleeEnemyController::updateChargeCooldown(float dt)
@@ -160,5 +150,9 @@ Vector3 MeleeEnemyController::getChargeDirection() const
 
 	return direction;
 }
+
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(MeleeEnemyController, EnemyBaseController,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)
 
 IMPLEMENT_SCRIPT(MeleeEnemyController)

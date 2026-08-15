@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 #include <vector>
@@ -21,10 +21,10 @@ public:
 
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 public:
-    ScriptComponentRef<Transform> m_playerTransform;
+    ComponentRef<Transform> m_playerTransform;
     float                         m_activationDistance   = 50.0f;
     float                         m_checkIntervalSeconds = 1.0f;
 
