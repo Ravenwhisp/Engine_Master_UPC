@@ -36,9 +36,15 @@ struct ShaderParticleData { // WARNING: align to 16 bytes! (add padding when req
     XMFLOAT2 sheetOffset;
 };
 
-struct shaderEmissorData {
+struct ShaderEmissorData {
 
-    UINT xTiles;
-    UINT yTiles;
-    UINT padding[2];
+	Vector3 hdrColorAndIntensity;
+	float padding; // to align to 16 bytes
+	Vector2 uvScale;
+	float padding2[2]; // to align to 16 bytes
+};
+
+struct ShaderAllEmissorsData {
+    XMFLOAT4X4 viewProjection;
+    Vector2 depthRange;
 };

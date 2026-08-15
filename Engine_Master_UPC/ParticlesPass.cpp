@@ -186,9 +186,9 @@ void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 {
-    shaderAllEmissorsData cameraInfo = { buildImageVP().Transpose(), Vector2(m_depthLinearizeA, m_depthLinearizeB)};
+    ShaderAllEmissorsData cameraInfo = { buildImageVP().Transpose(), Vector2(m_depthLinearizeA, m_depthLinearizeB)};
 
-    commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&cameraInfo, sizeof(shaderAllEmissorsData)) );
+    commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&cameraInfo, sizeof(ShaderAllEmissorsData)) );
 
     //Matrix vp = buildImageVP().Transpose();
     //commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
