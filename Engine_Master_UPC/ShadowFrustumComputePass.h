@@ -1,11 +1,13 @@
 #pragma once
 
 #include "IRenderPass.h"
+#include "IDebugDrawable.h"
 #include "SimpleMath.h"
 #include "ShadowTypes.h"
 
 #include <cstdint>
 #include <d3d12.h>
+#include <vector>
 #include <wrl/client.h>
 
 using Microsoft::WRL::ComPtr;
@@ -13,7 +15,7 @@ using Microsoft::WRL::ComPtr;
 class DepthReductionPass;
 class LightComponent;
 
-class ShadowFrustumComputePass final : public IRenderPass
+class ShadowFrustumComputePass final : public IRenderPass, public IDebugDrawable
 {
 public:
     struct FrustumConstants
@@ -41,20 +43,29 @@ public:
         uint32_t cascadeFitMode = static_cast<uint32_t>(ShadowCascadeFitMode::FIT_TO_CASCADE);
         float cascadeSplit0 = 0.10f;
         float cascadeSplit1 = 0.30f;
+
         float cascadeSplit2 = 0.60f;
         uint32_t cascadeDebugEnabled = 0;
         Vector2 cascadePadding = Vector2::Zero;
     };
 
+private:
+    struct DebugCaptureMetadata
+    {
+        Matrix view = Matrix::Identity;
+        Matrix projection = Matrix::Identity;
+        bool valid = false;
+    };
+
 public:
-    ShadowFrustumComputePass(
-        ComPtr<ID3D12Device4> device,
-        DepthReductionPass* depthReductionPass);
+    ShadowFrustumComputePass(ComPtr<ID3D12Device4> device, DepthReductionPass* depthReductionPass);
 
     ~ShadowFrustumComputePass() override = default;
 
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
+
+    void debugDraw() override;
 
     D3D12_GPU_VIRTUAL_ADDRESS getShadowDataBufferAddress() const;
 
@@ -77,6 +88,10 @@ private:
     void createPipelineState();
     void createOutputBuffer();
 
+    void createDebugReadbackBuffers();
+    void refreshDebugReadbackForCurrentFrame();
+    void recordDebugReadback(ID3D12GraphicsCommandList4* commandList);
+
     const LightComponent* findMainShadowCastingDirectionalLight() const;
 
     void transitionOutputBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
@@ -97,4 +112,21 @@ private:
 
     bool m_enabled = false;
     bool m_hasValidResult = false;
+
+    std::vector<ComPtr<ID3D12Resource>> m_debugReadbackBuffers;
+    std::vector<bool> m_debugReadbackPending;
+    std::vector<DebugCaptureMetadata> m_debugCaptureMetadata;
+
+    ShadowDataCB m_debugShadowData{};
+
+    Matrix m_debugCameraView = Matrix::Identity;
+    Matrix m_debugCameraProjection = Matrix::Identity;
+
+    bool m_hasDebugShadowData = false;
+    bool m_captureDebugReadback = false;
+    bool m_drawDebugForCurrentView = false;
+
+    uint32_t m_observedDebugFrameIndex = 0;
+    uint64_t m_observedDebugFrameFenceValue = 0;
+    bool m_hasObservedDebugFrame = false;
 };
