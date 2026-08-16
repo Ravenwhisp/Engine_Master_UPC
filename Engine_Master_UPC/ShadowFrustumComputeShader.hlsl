@@ -249,6 +249,10 @@ void main()
     float4x4 fullLightViewProjection = BuildLightViewProjection(nearDistance, farDistance);
 
     ShadowDataOutput output = BuildShadowOutput(fullLightViewProjection, shadowsEnabled);
+    
+    // cascadePadding.x = debug enabled
+    // cascadePadding.y = depth-fitted camera near distance
+    output.cascadePadding.y = nearDistance;
 
     uint activeCascadeCount = output.cascadeCount;
     float fittedDepthRange = farDistance - nearDistance;
