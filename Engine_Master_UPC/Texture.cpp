@@ -369,17 +369,46 @@ void Texture::createUAV()
 {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
     uavDesc.Format = resolvedUAVFormat();
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+
+    if (m_desc.depth > 1)
+    {
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+    }
+    else
+    {
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+    }
 
     for (uint32_t mip = 0; mip < m_mipCount; ++mip)
     {
-        uavDesc.Texture2D.MipSlice = mip;
-        uavDesc.Texture2D.PlaneSlice = 0;
+        if (m_desc.depth > 1)
+        {
+            uint32_t mipDepth = static_cast<uint32_t>(m_desc.depth) >> mip;
 
-        m_uav[mip] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate();
+            if (mipDepth == 0)
+            {
+                mipDepth = 1;
+            }
+
+            uavDesc.Texture3D.MipSlice = mip;
+            uavDesc.Texture3D.FirstWSlice = 0;
+            uavDesc.Texture3D.WSize = mipDepth;
+        }
+        else
+        {
+            uavDesc.Texture2D.MipSlice = mip;
+            uavDesc.Texture2D.PlaneSlice = 0;
+        }
+
+        m_uav[mip] = app->getModuleDescriptors()
+            ->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+            .allocate();
 
         m_device.CreateUnorderedAccessView(
-        m_Resource.Get(), /*pCounterResource=*/nullptr, &uavDesc, m_uav[mip].cpu);
+            m_Resource.Get(),
+            nullptr,
+            &uavDesc,
+            m_uav[mip].cpu);
     }
 }
 

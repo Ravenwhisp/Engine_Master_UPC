@@ -38,6 +38,7 @@
 #include "StaticTexturesPass.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "VolumetricFogComputePass.h"
 #include "PostProcessPass.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
@@ -91,6 +92,7 @@ bool ModuleRender::init()
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
     m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get());
+    m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
     m_ssaoPass = std::make_unique<SSAOPass>(device);
     m_ssaoBlurPass = std::make_unique<SSAOBlurPass>(device);
@@ -235,6 +237,7 @@ bool ModuleRender::cleanUp()
     m_ssaoBlurPass.reset();
     m_ssaoPass.reset();
     m_ssaoGeometryPass.reset();
+    m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
     m_shadowFrustumComputePass.reset();
     m_depthReductionPass.reset();
@@ -504,6 +507,16 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
             m_shadowMapPass->apply(commandList);
 
             ctx.shadowData = &m_shadowMapPass->getFrameData();
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::VolumetricFogComputePass");
+
+        if (m_volumetricFogComputePass != nullptr)
+        {
+            m_volumetricFogComputePass->prepare(ctx);
+            m_volumetricFogComputePass->apply(commandList);
         }
     }
 
