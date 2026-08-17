@@ -350,7 +350,8 @@ void LineRendererComponent::serialize(IArchive& archive)
             uint64_t transformParent = 0;
             archive.serialize(transformParent, "TransformParent");
             newPoint->transformId = transformParent;
-            
+
+            archive.endObject();
         }
 
         archive.endArray();
@@ -396,14 +397,14 @@ void LineRendererComponent::serialize(IArchive& archive)
 
 void LineRendererComponent::fixReferences(const SceneReferenceResolver& resolver)
 {
-    for (auto point = m_points.begin(); point != m_points.end(); )
+    for (int i = 0; i < m_points.size(); i++)
     {
-        if (point->get()->transformId != -1)
+        if (m_points[i]->transformId != -1)
         {
             Scene* scene = app->getModuleScene()->getScene();
-            point->get()->transformParent = HierarchyUtils::findByUID(scene, point->get()->transformId)->GetComponent(ComponentType::TRANSFORM)->getTransform();
+            m_points[i]->transformParent = HierarchyUtils::findByUID(scene, m_points[i]->transformId)->GetComponent(ComponentType::TRANSFORM)->getTransform();
         }
-     }
+    }
 
 }
 
