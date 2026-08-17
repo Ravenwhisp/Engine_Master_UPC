@@ -854,6 +854,7 @@
     </ClCompile>
     <ClCompile Include="DepthReductionPass.cpp" />
     <ClCompile Include="ShadowFrustumComputePass.cpp" />
+    <ClCompile Include="VolumetricFogComputePass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1777,6 +1778,8 @@
     <ClInclude Include="DepthReductionPass.h" />
     <ClInclude Include="ShadowFrustumComputePass.h" />
     <ClInclude Include="VolumetricFogSettings.h" />
+    <ClInclude Include="VolumetricFogTypes.h" />
+    <ClInclude Include="VolumetricFogComputePass.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">

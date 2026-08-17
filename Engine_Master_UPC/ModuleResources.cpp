@@ -195,6 +195,29 @@ Texture* ModuleResources::createDepthMinMaxTexture(uint32_t width, uint32_t heig
 	return texture;
 }
 
+Texture* ModuleResources::createVolumeTexture(uint32_t width, uint32_t height, uint16_t depth, DXGI_FORMAT format)
+{
+	TextureDesc desc{};
+
+	desc.format = format;
+	desc.srvFormat = format;
+	desc.uavFormat = format;
+
+	desc.width = std::max(1u, width);
+	desc.height = std::max(1u, height);
+	desc.depth = std::max<uint16_t>(1u, depth);
+
+	desc.mipLevels = 1;
+
+	desc.views = TextureView::SRV | TextureView::UAV;
+
+	desc.initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+	desc.shaderVisibleSRV = true;
+
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
+
 Texture* ModuleResources::createRenderTexture(float width, float height)
 {
 	TextureDesc desc{};
