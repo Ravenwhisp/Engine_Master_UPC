@@ -352,7 +352,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
         float spectralNdotV = 1.0 - NdotV;
         if (spectralNdotV < 0.4f)
         {
-            return float4(0, 0, 0 ,0);
+            spectralNdotV = 0.0f;
         }
         else if (spectralNdotV > 0.9f)
         {
@@ -365,6 +365,11 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
         if (alpha > 0.999)
         {
             finalSpectralColor += 1;
+        }
+        
+        if (alpha < 0.015f)
+        {
+            alpha = 0.015f;
         }
         
         return float4(finalSpectralColor, alpha);
