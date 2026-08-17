@@ -1938,6 +1938,7 @@
     <None Include="SimpleMath.inl">
       <Filter>Source\Inline</Filter>
     </None>
+    <None Include="VolumetricFogCommon.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">

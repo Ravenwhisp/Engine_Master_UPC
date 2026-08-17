@@ -1019,6 +1019,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="PBRGeneral.hlsli" />
     <None Include="GeometryCBuffers.hlsli" />
     <None Include="SimpleMath.inl" />
+    <None Include="VolumetricFogCommon.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl">
