@@ -13,6 +13,7 @@
 #include "ModuleResources.h"
 #include "ModuleScene.h"
 #include "ModuleRender.h"
+#include "ModuleTime.h"
 #include "RenderContext.h"
 #include "RenderSurface.h"
 #include "Skin.h"
@@ -112,6 +113,12 @@ void FlowMapPass::prepare(const RenderContext& ctx)
     m_scissorRect = ctx.scissorRect;
     m_renderSurface = &ctx.renderSurface;
     m_meshRenderers = app->getModuleScene()->getVisibleForwardMeshRenderers(RenderMode::FLOW_MAP);
+
+#ifdef _DEBUG
+    const uint32_t frame = app->getModuleTime()->frameCount();
+    if ((frame % 60u) == 0u)
+        DirectX::DebugTrace("[FlowMap] pass renderers=%zu\n", m_meshRenderers.size());
+#endif
 }
 
 void FlowMapPass::transitionGBuffer(ID3D12GraphicsCommandList4* commandList,
@@ -205,6 +212,16 @@ void FlowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList,
     flowGpu.strength = data.strength;
     flowGpu.source = data.source;
     flowGpu.enabled = data.enabled;
+
+#ifdef _DEBUG
+    const uint32_t frame = app->getModuleTime()->frameCount();
+    if ((frame % 60u) == 0u)
+    {
+        DirectX::DebugTrace("[FlowMap] draw renderer=%p offset=(%.4f, %.4f) tiling=(%.3f, %.3f) enabled=%u\n",
+            static_cast<void*>(renderer), data.offset.x, data.offset.y,
+            data.tiling.x, data.tiling.y, data.enabled);
+    }
+#endif
     if (data.source == static_cast<uint32_t>(FlowMapSource::TEXTURE) && flow->getTexture())
         commandList->SetGraphicsRootDescriptorTable(5, flow->getTexture()->getSRV().gpu);
     else

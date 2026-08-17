@@ -34,6 +34,16 @@ void FlowMapComponent::update()
     m_data.offset += m_data.direction * (m_data.speed * dt);
     m_data.offset.x -= std::floor(m_data.offset.x);
     m_data.offset.y -= std::floor(m_data.offset.y);
+
+#ifdef _DEBUG
+    const uint32_t frame = app->getModuleTime()->frameCount();
+    if ((frame % 60u) == 0u)
+    {
+        DEBUG_LOG("[FlowMap] component=%llu offset=(%.4f, %.4f) speed=%.3f source=%u\n",
+            static_cast<unsigned long long>(m_uuid),
+            m_data.offset.x, m_data.offset.y, m_data.speed, m_data.source);
+    }
+#endif
 }
 
 void FlowMapComponent::drawUi()
