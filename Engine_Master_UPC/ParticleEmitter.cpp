@@ -17,7 +17,9 @@ ParticleEmitter::ParticleEmitter()
 	// We may be able to make this more automatic if we iterate over the emitterType enum... (maybe not here, but in the other functions)
 
 	// (Spawn here)
-	m_particleModules.push_back(std::make_unique<EmitterSpawn>());
+	auto emitterSpawn = std::make_unique<EmitterSpawn>();
+	m_spawnModule = emitterSpawn.get();
+	m_particleModules.push_back(std::move(emitterSpawn));
 
 	auto emitterLifeTime = std::make_unique<EmitterLifetime>();
 	m_lifetimeModule = emitterLifeTime.get();
@@ -45,7 +47,9 @@ ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
 	// Particle modules copy //
 	m_particleModules.reserve(particleEmitter.m_particleModules.size());
 
-	m_particleModules.push_back(particleEmitter.m_particleModules[0]->clone());
+	auto emitterSpawn = particleEmitter.m_particleModules[0]->clone();
+	m_spawnModule = static_cast<EmitterSpawn*>(emitterSpawn.get());
+	m_particleModules.push_back(std::move(emitterSpawn));
 
 	auto emitterLifetime = particleEmitter.m_particleModules[1]->clone();
 	m_lifetimeModule = static_cast<EmitterLifetime*>(emitterLifetime.get());
