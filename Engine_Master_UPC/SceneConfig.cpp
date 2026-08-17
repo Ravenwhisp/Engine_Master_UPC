@@ -32,6 +32,8 @@ void SceneConfig::drawInternal()
     ImGui::Separator();
     drawSSAOSettings();
     ImGui::Separator();
+    drawVolumetricFogSettings();
+    ImGui::Separator();
     drawPostProcessSettings();
     ImGui::Separator();
     drawMusicBanksSettings();
@@ -218,6 +220,38 @@ void SceneConfig::drawSSAOSettings()
         if (ImGui::Button("Reset Defaults###SSAOResetDefaults"))
         {
             ssao = SSAOSettings{};
+        }
+    }
+}
+
+void SceneConfig::drawVolumetricFogSettings()
+{
+    VolumetricFogSettings& fog = m_moduleScene->getScene()->getVolumetricFogSettings();
+
+    if (ImGui::CollapsingHeader("Volumetric Fog"))
+    {
+        ImGui::Checkbox("Enabled###VolFogEnabled", &fog.enabled);
+
+        ImGui::Separator();
+
+        ImGui::DragFloat("Density###VolFogDensity", &fog.density, 0.01f, 0.0f, 10.0f, "%.3f");
+        ImGui::DragFloat("Scattering Coefficient###VolFogScattering", &fog.scatteringCoefficient, 0.001f, 0.0f, 1.0f, "%.4f");
+        ImGui::DragFloat("Extinction Coefficient###VolFogExtinction", &fog.extinctionCoefficient, 0.001f, 0.0f, 1.0f, "%.4f");
+
+        ImGui::TextDisabled("Extinction must be greater than or equal to scattering.");
+
+        ImGui::Separator();
+
+        ImGui::SliderFloat("Anisotropy (g)###VolFogAnisotropy", &fog.anisotropy, -0.99f, 0.99f, "%.2f");
+        ImGui::DragFloat("Max Distance###VolFogMaxDistance", &fog.maxDistance, 1.0f, 1.0f, 1000.0f, "%.1f");
+
+        fog.sanitize();
+
+        ImGui::Separator();
+
+        if (ImGui::Button("Reset Defaults###VolFogResetDefaults"))
+        {
+            fog = VolumetricFogSettings{};
         }
     }
 }

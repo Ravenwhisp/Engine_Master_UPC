@@ -464,6 +464,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIParams.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
+    <ClInclude Include="VolumetricFogSettings.h" />
     <ClInclude Include="WindowAnimationStateMachine.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />

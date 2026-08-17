@@ -48,6 +48,8 @@ private:
 
     void drawSSAOSettings();
 
+    void drawVolumetricFogSettings();
+
     void drawPostProcessSettings();
 
     void drawMusicBanksSettings();
