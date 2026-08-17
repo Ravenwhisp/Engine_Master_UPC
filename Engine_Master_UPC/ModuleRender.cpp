@@ -31,6 +31,7 @@
 #include "GeometryPass.h"
 #include "DeferredShadingPass.h"
 #include "PlayerPass.h"
+#include "FlowMapPass.h"
 #include "TrailPass.h"
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
@@ -81,6 +82,8 @@ bool ModuleRender::init()
 
     m_geometryPass = new GeometryPass(device);
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
+
+    m_renderPasses.push_back(std::make_unique<FlowMapPass>(device));
 
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
