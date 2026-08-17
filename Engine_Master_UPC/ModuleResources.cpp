@@ -211,7 +211,7 @@ Texture* ModuleResources::createVolumeTexture(uint32_t width, uint32_t height, u
 
 	desc.views = TextureView::SRV | TextureView::UAV;
 
-	desc.initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	desc.initialState = D3D12_RESOURCE_STATE_COMMON;
 
 	desc.shaderVisibleSRV = true;
 

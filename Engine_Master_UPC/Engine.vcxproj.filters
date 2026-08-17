@@ -1894,6 +1894,7 @@
     <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
     <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
     <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
+    <FxCompile Include="VolumetricFogLightingCS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
