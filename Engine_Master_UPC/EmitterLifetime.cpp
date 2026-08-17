@@ -29,6 +29,7 @@ void EmitterLifetime::update(EmitterInstance* particleData)
 				// Remove from alives
 				// aliveParticles->erase(aliveParticles->begin() + i); <- Should not need to be brough back
 				eraseBySwap(aliveParticles, i);
+
 				moduleParticleSystem->freePoolSlot(poolIndex); // mark poolIndex slot as free
 			}
 			else 

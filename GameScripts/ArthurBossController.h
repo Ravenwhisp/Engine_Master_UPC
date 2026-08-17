@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "EnemyBaseController.h"
 
@@ -25,7 +25,7 @@ public:
 	void drawGizmo() override;
 	void Update() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	// Phase helpers
 	void setPhase(ArthurBossPhase phase);
@@ -71,7 +71,7 @@ public:
 
 private:
 	ArthurDetectionAggro* m_arthurDetectionAggro = nullptr;
-	ArthurAttackConfig* m_attackConfig = nullptr;
+	AssetReference<ArthurAttackConfig> m_attackConfig;
 	ArthurUI* m_arthurUI = nullptr;
 
 	ArthurBossPhase m_phase = ArthurBossPhase::Phase1;

@@ -178,7 +178,7 @@ void PaladinVFX::addWalkingDust()
     removeWalkingDust();
 
     walkingDustEffect = GameObjectAPI::instantiatePrefab(
-        m_walkingDustPrefab.m_ref,
+        m_walkingDustPrefab.m_id,
         getWalkingDustPosition(),
         getOwnerRotation()
     );
@@ -226,7 +226,7 @@ void PaladinVFX::addChargeAttackEffect()
     removeChargeAttackEffect();
 
     chargeAttackEffect = GameObjectAPI::instantiatePrefab(
-        m_chargeAttackEffectPrefab.m_ref,
+        m_chargeAttackEffectPrefab.m_id,
         getChargeAttackEffectPosition(),
         getOwnerRotation()
     );
@@ -272,7 +272,7 @@ void PaladinVFX::updateChargeAttackEffectPosition()
 void PaladinVFX::addBasicAttackEffect()
 {
     basicAttackEffect = GameObjectAPI::instantiatePrefab(
-        m_basicAttackEffectPrefab.m_ref,
+        m_basicAttackEffectPrefab.m_id,
         getBasicAttackEffectPosition(),
         getOwnerRotation()
     );

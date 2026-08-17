@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 #include "StateMachineScript.h"
@@ -14,7 +14,7 @@ public:
 	void OnStateUpdate() override;
 	void OnStateExit() override;
 
-	ScriptFieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 
 	void pauseDeathCountdown();
 	void resumeDeathCountdown();

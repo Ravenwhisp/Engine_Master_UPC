@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "LyrielParticles.h"
 
 
@@ -10,7 +10,7 @@ LyrielParticles::LyrielParticles(GameObject* owner) : Script(owner)
 {
 }
 
-Transform* LyrielParticles::getTransform(ScriptComponentRef<Transform> controller)
+Transform* LyrielParticles::getTransform(ComponentRef<Transform> controller)
 {
     Transform* particleTransform = controller.getReferencedComponent();
 

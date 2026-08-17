@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "$safeitemname$.h"
 
-IMPLEMENT_SCRIPT_FIELDS($safeitemname$
+IMPLEMENT_FIELDS($safeitemname$
 )
 
 $safeitemname$::$safeitemname$(GameObject* owner)

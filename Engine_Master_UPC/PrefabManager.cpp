@@ -95,7 +95,7 @@ bool PrefabManager::applyPrefab(const GameObject* go)
     const fs::path& prefabPath = preComp->getData().m_sourcePath;
 
     const UID existingUID = m_moduleAssets->getIndex().findUID(prefabPath);
-    AssetReference ref;
+    AssetId ref;
     Prefab tempPrefab(ref);
     tempPrefab.setUID(isValidUID(existingUID) ? existingUID : GenerateUID());
     tempPrefab.buildFrom(const_cast<GameObject*>(go));
@@ -114,7 +114,7 @@ bool PrefabManager::applyPrefab(const GameObject* go)
     }
 
     if (isValidUID(existingUID))
-        m_moduleAssets->unload(AssetReference(existingUID));
+        m_moduleAssets->unload(AssetId(existingUID));
 
     Scene* scene = app->getModuleScene()->getScene();
     if (!scene) return true;
@@ -311,11 +311,11 @@ GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
     return go;
 }
 
-GameObject* PrefabManager::spawnPrefab(const AssetReference& ref, Scene* scene)
+GameObject* PrefabManager::spawnPrefab(const AssetId& ref, Scene* scene)
 {
     if (!scene) return nullptr;
 
-    AssetReference mutableRef = ref;
+    AssetId mutableRef = ref;
     auto prefab = m_moduleAssets->load<Prefab>(mutableRef);
     if (!prefab) return nullptr;
 

@@ -1,4 +1,4 @@
-ï»¿#include "Globals.h"
+#include "Globals.h"
 #include "PrefabUI.h"
 
 #include "Application.h"
@@ -15,11 +15,12 @@
 
 #include "Prefab.h"
 #include "PrefabEditSession.h"
+#include "AssetsDictionary.h"
 #include <FileIO.h>
 
 static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& savePath)
 {
-    AssetReference ref;
+    AssetId ref;
     Prefab tempPrefab(ref);
     tempPrefab.setUID(GenerateUID());
     tempPrefab.buildFrom(go);
@@ -40,7 +41,7 @@ static void linkAndSavePrefab(GameObject* go, const std::filesystem::path& saveP
 
     const UID existingUID = app->getModuleAssets()->getIndex().findUID(savePath);
     if (isValidUID(existingUID))
-        app->getModuleAssets()->unload(AssetReference(existingUID));
+        app->getModuleAssets()->unload(AssetId(existingUID));
 }
 
 void PrefabUI::drawModeHeader(const char* prefabName)
@@ -336,7 +337,7 @@ void PrefabUI::drawPrefabSubMenu(GameObject* go, Scene* scene)
 {
     if (!go || !ImGui::BeginMenu("Prefab")) return;
 
-    // User types a full relative save path â€” no folder is assumed.
+    // User types a full relative save path — no folder is assumed.
     static char pathBuffer[512] = "";
     ImGui::SetNextItemWidth(200.f);
     ImGui::InputTextWithHint("##pfpath", "Assets/.../Name.prefab", pathBuffer, sizeof(pathBuffer));
@@ -402,8 +403,8 @@ void PrefabUI::markTransformOverride(GameObject* go)
 
 // ---------------------------------------------------------------------------
 // File-dialog context menu
-// sourcePath â€” the full path of the .prefab file being right-clicked.
-// buffers    â€” must be allocated by the caller with at least 512 bytes each.
+// sourcePath — the full path of the .prefab file being right-clicked.
+// buffers    — must be allocated by the caller with at least 512 bytes each.
 // ---------------------------------------------------------------------------
 void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& sourcePath,
     bool& outShowVariantModal,
@@ -427,7 +428,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
         if (scene)
         {
             const UID uid = app->getModuleAssets()->getIndex().findUID(realPath);
-            AssetReference* ref = app->getModuleAssets()->findReference(uid);
+            AssetId* ref = app->getModuleAssets()->findReference(uid);
             if (ref)
             {
                 GameObject* go = app->getModuleAssets()->getPrefabManager()->spawnPrefab(*ref, scene);
@@ -476,7 +477,7 @@ void PrefabUI::drawFileDialogItemContextMenu(const std::filesystem::path& source
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 0.3f, 0.3f, 1.f));
     if (ImGui::MenuItem("Delete Prefab File"))
     {
-        // Use the source path directly â€” no "Assets/Prefabs/" assumption.
+        // Use the source path directly — no "Assets/Prefabs/" assumption.
         if (FileIO::exists(sourcePath))
         {
             FileIO::remove(sourcePath);
@@ -499,6 +500,7 @@ static bool beginModal(const char* id, bool& triggerFlag, const ImVec2& screenCe
 void PrefabUI::drawFileDialogModals(bool& showVariantModal,
     bool& showSavePrefabModal,
     bool& renamingPrefab,
+    bool& renamingAsset,
     FileDialogBuffers& buffers)
 {
     const ImVec2 screenCenter = ImGui::GetMainViewport()->GetCenter();
@@ -518,7 +520,7 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
                 app->getModuleAssets()->getPrefabManager()->createVariant(
                     std::filesystem::path(buffers.variantSource),
                     std::filesystem::path(buffers.variantDest));
-                AssetReference ref;
+                AssetId ref;
                 app->getModuleAssets()->importAsset(std::filesystem::path(buffers.variantDest), ref);
             }
             ImGui::CloseCurrentPopup();
@@ -553,7 +555,7 @@ void PrefabUI::drawFileDialogModals(bool& showVariantModal,
                 if (ok) ok = FileIO::move(srcMeta, dstMeta);
                 if (ok)
                 {
-                    AssetReference ref;
+                    AssetId ref;
                     app->getModuleAssets()->importAsset(dstAsset, ref);
                 }
             }

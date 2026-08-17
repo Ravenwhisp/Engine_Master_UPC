@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <memory>
 #include <vector>
+#include "AssetType.h"
 
 class ImporterGltf;
 

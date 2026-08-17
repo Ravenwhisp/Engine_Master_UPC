@@ -4,7 +4,6 @@
 #include "StateMachineScript.h"
 
 class SkeletonEnemyController;
-class SkeletonAttackConfig;
 class EnemyAttackExecutor;
 class AnimationComponent;
 
@@ -45,7 +44,6 @@ private:
 
 private:
 	SkeletonEnemyController* m_controller = nullptr;
-	SkeletonAttackConfig* m_attackConfig = nullptr;
 	EnemyAttackExecutor* m_attackExecutor = nullptr;
 	AnimationComponent* m_animation = nullptr;
 

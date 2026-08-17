@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 #include <vector>
@@ -19,13 +19,16 @@ public:
     void Update() override;
     void drawGizmo() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
     GameObject* getCurrentTarget() const { return m_currentTarget; }
 
 private:
     void updateTargetsInRange();
-    void ensureValidCurrentTarget();
+    void clearInvalidCurrentTarget();
+    void setDefaultEnemyTargetIfNeeded();
+
+    GameObject* findDefaultEnemyTarget() const;
 
     bool canUpdateTarget() const;
     void updateCurrentTarget();
@@ -40,6 +43,8 @@ private:
 
     bool isTargetInRange(GameObject* target) const;
     bool isTargetAlive(GameObject* target) const;
+
+    bool canTargetBreakableDuringCombat(GameObject* target) const;
 
 public:
     float m_targetRange = 8.0f;

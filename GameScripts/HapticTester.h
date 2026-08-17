@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ScriptAPI.h"
 #include "HapticEffectDefinition.h" 
 #include <vector>
@@ -14,7 +14,7 @@ public:
     void Update() override;
     void registerTestEffects();
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
 
 protected:
     virtual std::vector<HapticEffectDefinition> defineEffects();

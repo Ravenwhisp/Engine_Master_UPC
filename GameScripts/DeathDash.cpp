@@ -4,7 +4,6 @@
 #include "DeathCharacter.h"
 #include "DeathSound.h"
 #include "EnemyDamageable.h"
-#include "EnemyShadowMark.h"
 #include "DeathConfig.h"
 #include "DeathParticles.h"
 
@@ -21,14 +20,6 @@ void DeathDash::Start()
     if (!m_deathCharacter)
     {
         Debug::error("[DeathDash] DeathCharacter not found.");
-        return;
-    }
-
-    m_config = GameObjectAPI::findScript<DeathConfig>(getOwner());
-
-    if (!m_config)
-    {
-        Debug::error("[DeathDash] DeathConfig not found.");
         return;
     }
 
@@ -51,17 +42,17 @@ void DeathDash::Start()
 
 float DeathDash::getCooldown() const
 {
-    return m_config->m_dashCooldown;
+    return m_deathCharacter->getConfig()->m_dashCooldown;
 }
 
 float DeathDash::getDashDuration() const
 {
-    return m_config->m_dashDuration;
+    return m_deathCharacter->getConfig()->m_dashDuration;
 }
 
 float DeathDash::getDashDistance() const
 {
-    return m_config->m_dashDistance;
+    return m_deathCharacter->getConfig()->m_dashDistance;
 }
 
 void DeathDash::onDashStarted()
@@ -156,7 +147,7 @@ bool DeathDash::isInsideDashRectangle(const Vector3& point) const
     float   longitudinal = toPoint.Dot(fwd);
     float   lateral = toPoint.Dot(side);
 
-    return (longitudinal >= 0.0f && longitudinal <= length) && (lateral >= -m_config->m_dashHitWidth && lateral <= m_config->m_dashHitWidth);
+    return (longitudinal >= 0.0f && longitudinal <= length) && (lateral >= -m_deathCharacter->getConfig()->m_dashHitWidth && lateral <= m_deathCharacter->getConfig()->m_dashHitWidth);
 }
 
 void DeathDash::applyDashDamage()
@@ -169,8 +160,6 @@ void DeathDash::applyDashDamage()
     m_dashDamageDealt = true;
 
     std::vector<GameObject*> allEnemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
-
-    bool anyMark = false;
 
     for (GameObject* enemyObj : allEnemies)
     {
@@ -195,28 +184,13 @@ void DeathDash::applyDashDamage()
         EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(enemyObj);
 
         if (damageable != nullptr)
-        {
-            {
-                EnemyHitContext ctx;
-                ctx.damage = m_config->m_dashDamage;
-                ctx.attacker = GameObjectAPI::getTransform(getOwner());
-                ctx.attackType = EnemyAttackType::DeathDash;
-                damageable->takeDamage(ctx);
-            }
-
-            EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(enemyObj);
-            if (shadowMark != nullptr)
-            {
-                shadowMark->notifyDeathHit();
-                anyMark = true;
-            }
+        {  
+            EnemyHitContext ctx;
+            ctx.damage = m_deathCharacter->getConfig()->m_dashDamage;
+            ctx.attacker = GameObjectAPI::getTransform(getOwner());
+            ctx.attackType = PlayerAttackType::DeathDash;
+            damageable->takeDamage(ctx);         
         }
-    }
-
-    // playDashImpact is fired in onDashUpdate on first contact, not here.
-    if (m_sound != nullptr && anyMark)
-    {
-        m_sound->playMarkApply();
     }
 }
 

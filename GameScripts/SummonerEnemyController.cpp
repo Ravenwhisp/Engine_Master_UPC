@@ -11,17 +11,12 @@ SummonerEnemyController::SummonerEnemyController(GameObject* owner)
 
 void SummonerEnemyController::Start()
 {
-	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
-	m_attackConfig = GameObjectAPI::findScript<SummonerAttackConfig>(getOwner());
+	EnemyBaseController::Start();
 
+	m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
 	if (!m_enemyDetectionAggro)
 	{
 		Debug::warn("[SummonerEnemyController] EnemyDetectionAggro not found on '%s'.", GameObjectAPI::getName(getOwner()));
-	}
-
-	if (!m_attackConfig)
-	{
-		Debug::warn("[SummonerEnemyController] SummonerAttackConfig not found on '%s'.", GameObjectAPI::getName(getOwner()));
 	}
 
 	m_currentTarget = nullptr;
@@ -69,14 +64,9 @@ bool SummonerEnemyController::isTargetDowned(Transform* target) const
 	return m_enemyDetectionAggro->isDowned(target);
 }
 
-bool SummonerEnemyController::isTargetInAttackRange() const
+const EnemyBaseAttackConfig* SummonerEnemyController::getAttackConfig() const
 {
-	if (!hasValidTarget() || !m_attackConfig)
-	{
-		return false;
-	}
-
-	return isCurrentTargetInRange(m_attackConfig->m_basicAttackRange);
+	return m_attackConfig.get();
 }
 
 bool SummonerEnemyController::isTeleportReady() const
@@ -91,7 +81,7 @@ void SummonerEnemyController::consumeTeleportCooldown()
 		return;
 	}
 
-	m_teleportCooldownTimer = m_attackConfig->m_teleportCooldown;
+	m_teleportCooldownTimer = m_attackConfig.get()->m_teleportCooldown;
 }
 
 bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
@@ -115,7 +105,7 @@ bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 	const Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
 
 	const bool targetInAttackRange =
-		isCurrentTargetInRange(m_attackConfig->m_basicAttackRange);
+		isCurrentTargetInRange(m_attackConfig.get()->m_basicAttackRange);
 
 	const Vector3 searchCenter =
 		targetInAttackRange ? ownerPosition : targetPosition;
@@ -125,7 +115,7 @@ bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 
 	const Vector3 searchExtents = Vector3(5.0f, 5.0f, 5.0f);
 	const float attackRangeSquared =
-		m_attackConfig->m_basicAttackRange * m_attackConfig->m_basicAttackRange;
+		m_attackConfig.get()->m_basicAttackRange * m_attackConfig.get()->m_basicAttackRange;
 
 	float bestScore = -FLT_MAX;
 	bool foundPosition = false;
@@ -137,7 +127,7 @@ bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 
 		const bool found = NavigationAPI::findRandomReachablePointAround(
 			searchCenter,
-			m_attackConfig->m_teleportRadius,
+			m_attackConfig.get()->m_teleportRadius,
 			candidatePosition,
 			searchExtents,
 			1);
@@ -193,7 +183,7 @@ bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 		}
 
 		if (!targetInAttackRange &&
-			closestPlayerDistance < m_attackConfig->m_teleportMinPlayerDistance)
+			closestPlayerDistance < m_attackConfig.get()->m_teleportMinPlayerDistance)
 		{
 			continue;
 		}
@@ -253,7 +243,7 @@ void SummonerEnemyController::consumeSummonCooldown()
 		return;
 	}
 
-	m_summonCooldownTimer = m_attackConfig->m_summonCooldown;
+	m_summonCooldownTimer = m_attackConfig.get()->m_summonCooldown;
 }
 
 void SummonerEnemyController::summonSpidersAroundSelf()
@@ -272,13 +262,13 @@ void SummonerEnemyController::summonSpidersAroundSelf()
 	const Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
 	const Vector3 searchExtents = Vector3(5.0f, 5.0f, 5.0f);
 
-	for (int i = 0; i < m_attackConfig->m_summonCount; ++i)
+	for (int i = 0; i < m_attackConfig.get()->m_summonCount; ++i)
 	{
 		Vector3 spawnPosition;
 
 		const bool found = NavigationAPI::findRandomReachablePointAround(
 			ownerPosition,
-			m_attackConfig->m_summonRadius,
+			m_attackConfig.get()->m_summonRadius,
 			spawnPosition,
 			searchExtents,
 			10
@@ -290,7 +280,7 @@ void SummonerEnemyController::summonSpidersAroundSelf()
 		}
 
 		GameObjectAPI::instantiatePrefab(
-			m_attackConfig->m_spiderPrefab.m_ref,
+			m_attackConfig.get()->m_spiderPrefab.m_id,
 			spawnPosition,
 			Vector3(0.0f, 0.0f, 0.0f)
 		);
@@ -319,7 +309,7 @@ float SummonerEnemyController::getRecoveryDuration() const
 		return 0.0f;
 	}
 
-	return m_attackConfig->m_summonRecoverDuration;
+	return m_attackConfig.get()->m_summonRecoverDuration;
 }
 
 bool SummonerEnemyController::isAttackReady() const
@@ -334,7 +324,7 @@ void SummonerEnemyController::consumeAttackCooldown()
 		return;
 	}
 
-	m_attackCooldownTimer = m_attackConfig->m_basicAttackCooldown;
+	m_attackCooldownTimer = m_attackConfig.get()->m_basicAttackCooldown;
 }
 
 void SummonerEnemyController::updateAttackCooldown(float dt)
@@ -351,5 +341,9 @@ void SummonerEnemyController::updateAttackCooldown(float dt)
 		m_attackCooldownTimer = 0.0f;
 	}
 }
+
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(SummonerEnemyController, EnemyBaseController,
+    SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+)
 
 IMPLEMENT_SCRIPT(SummonerEnemyController)

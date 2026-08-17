@@ -283,4 +283,6 @@ void UISheet::serialize(IArchive& archive)
     archive.serialize(currentFrame, "CurrentFrame");
     if (archive.mode() == ArchiveMode::Input)
         m_currentFrame = static_cast<int>(currentFrame);
+
+    applyToImage();
 }

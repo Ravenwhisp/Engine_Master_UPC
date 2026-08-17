@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Importer.h"
 #include "BinaryArchive.h"
 #include "JsonArchive.h"
@@ -28,7 +28,7 @@ public:
         return false;
     }
 
-    Asset* createAssetInstance(AssetReference& uid) const override
+    Asset* createAssetInstance(AssetId& uid) const override
     {
         return new AssetFormat(uid);
     }

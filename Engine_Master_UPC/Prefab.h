@@ -15,7 +15,7 @@ class Prefab : public Asset, public GameObject
 {
 public:
 
-    explicit Prefab(AssetReference& id)
+    explicit Prefab(AssetId& id)
         : Asset(id, AssetType::PREFAB)
         , GameObject(GenerateUID(), GenerateUID())
     {

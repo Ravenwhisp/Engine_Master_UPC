@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -14,7 +14,9 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
+
+    bool canBeTargetedDuringCombat() const override { return true; }
 
 public:
     PrefabRef m_healthPickupPrefab;

@@ -31,7 +31,7 @@ public:
 
     friend class ModuleResources;
 protected:
-    RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t sizeInMB);
+    RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t sizeInMB, size_t alignment);
 private:
     std::deque<AllocationInfo> m_allocationQueue;
 
@@ -39,4 +39,6 @@ private:
     size_t m_totalMemorySize = 0;
     size_t m_head = 0; //Oldest allocation
     size_t m_tail = 0; // Position of the next allocation
+
+    size_t m_alignment; // for data allocation
 };

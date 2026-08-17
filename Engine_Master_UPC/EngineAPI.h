@@ -6,8 +6,7 @@
 #define ENGINE_API __declspec(dllimport)
 #endif
 
-#include "AssetReference.h"
-#include "ScriptCreator.h"
+#include "GenericTypeFactory.h"
 #include "ComponentType.h"
 #include "Tag.h"
 #include "SimpleMath.h"
@@ -17,6 +16,7 @@
 
 using DirectX::SimpleMath::Vector3;
 using DirectX::SimpleMath::Vector2;
+using DirectX::SimpleMath::Matrix;
 
 class GameObject;
 class Transform;
@@ -31,7 +31,10 @@ class ComponentSoundSource;
 class CameraComponent;
 class NavRuntimeBlockerComponent;
 class PlayerRenderBufferComponent;
+class DamageHighlightComponent;
 class TrailComponent;
+struct AssetId;
+class DissolveComponent;
 
 struct HapticEffectDefinition;
 
@@ -42,7 +45,8 @@ enum class QuadtreeTarget : uint8_t
     Both = Dynamic | Static
 };
 
-ENGINE_API void registerScript(const char* scriptName, ScriptCreator creator);
+ENGINE_API void registerScript(const char* scriptName, ScriptFactory::Creator creator);
+ENGINE_API void registerDataContainer(const char* name, const char* displayName, DataContainerFactory::Creator creator);
 
 namespace GameObjectAPI 
 {
@@ -61,7 +65,7 @@ namespace GameObjectAPI
     ENGINE_API GameObject* createGameObject(const char* name, GameObject* parentObject = nullptr);
     ENGINE_API void removeGameObject(GameObject* gameObject);
 
-    ENGINE_API GameObject* instantiatePrefab(const AssetReference& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
+    ENGINE_API GameObject* instantiatePrefab(const AssetId& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject = nullptr);
 
     ENGINE_API Script* getScript(GameObject* gameObject, const char* scriptName);
     ENGINE_API const Script* getScript(const GameObject* gameObject, const char* scriptName);
@@ -78,7 +82,10 @@ namespace GameObjectAPI
 
     template<typename T>
     const T* findScript(const GameObject* gameObject);
+
 }
+
+
 
 namespace TransformAPI
 {
@@ -461,6 +468,89 @@ namespace Shaders
     ENGINE_API void    setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value);
     ENGINE_API float   getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component);
     ENGINE_API void    setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value);
+}
+
+namespace ShadersAPI
+{
+    ENGINE_API DamageHighlightComponent* getDamageHighlightComponent(GameObject* gameObject);
+    ENGINE_API const DamageHighlightComponent* getDamageHighlightComponent(const GameObject* gameObject);
+
+    ENGINE_API float   getDamageHighlightIntensity(DamageHighlightComponent* component);
+    ENGINE_API void    setDamageHighlightIntensity(DamageHighlightComponent* component, float value);
+    ENGINE_API Vector3 getDamageHighlightCenterColor(DamageHighlightComponent* component);
+    ENGINE_API void    setDamageHighlightCenterColor(DamageHighlightComponent* component, Vector3 value);
+    ENGINE_API Vector3 getDamageHighlightRimColor(DamageHighlightComponent* component);
+    ENGINE_API void    setDamageHighlightRimColor(DamageHighlightComponent* component, Vector3 value);
+    ENGINE_API float   getDamageHighlightRimIntensity(DamageHighlightComponent* component);
+    ENGINE_API void    setDamageHighlightRimIntensity(DamageHighlightComponent* component, float value);
+
+    ENGINE_API DissolveComponent* getDissolveComponent(GameObject* gameObject);
+    ENGINE_API const DissolveComponent* getDissolveComponent(const GameObject* gameObject);
+
+    ENGINE_API float   getDissolveAmount(DissolveComponent* component);
+    ENGINE_API void    setDissolveAmount(DissolveComponent* component, float value);
+    ENGINE_API Vector3 getDissolveColor(DissolveComponent* component);
+    ENGINE_API void    setDissolveColor(DissolveComponent* component, Vector3 value);
+    ENGINE_API float   getDissolveThikness(DissolveComponent* component);
+    ENGINE_API void    setDissolveThikness(DissolveComponent* component, float value);
+}
+
+namespace PostProcessAPI
+{
+    ENGINE_API void  setExposure(float ev);
+    ENGINE_API float getExposure();
+
+    ENGINE_API void  setBloomEnabled(bool enabled);
+    ENGINE_API bool  isBloomEnabled();
+    ENGINE_API void  setBloomThreshold(float threshold);
+    ENGINE_API float getBloomThreshold();
+    ENGINE_API void  setBloomIntensity(float intensity);
+    ENGINE_API float getBloomIntensity();
+
+    ENGINE_API void        setLutEnabled(bool enabled);
+    ENGINE_API bool        isLutEnabled();
+    ENGINE_API void        setLutPath(const char* path);
+    ENGINE_API const char* getLutPath();
+
+    ENGINE_API void  setChromaticAberrationEnabled(bool enabled);
+    ENGINE_API bool  isChromaticAberrationEnabled();
+    ENGINE_API void  setChromaticAberrationStrength(float strength);
+    ENGINE_API float getChromaticAberrationStrength();
+
+    ENGINE_API void  setHeartbeatEnabled(bool enabled);
+    ENGINE_API bool  isHeartbeatEnabled();
+    ENGINE_API void  setHealth(float health01);   
+    ENGINE_API float getHealth();
+    ENGINE_API void  setSeparation(float separation01); 
+    ENGINE_API float getSeparation();
+    ENGINE_API void  setHealthThreshold(float threshold);
+    ENGINE_API float getHealthThreshold();
+
+    ENGINE_API void  setDeathFadeActive(bool active);
+    ENGINE_API bool  isDeathFadeActive();
+    ENGINE_API void  setDeathGreyDuration(float seconds);
+    ENGINE_API float getDeathGreyDuration();
+    ENGINE_API void  setDeathBlackDuration(float seconds);
+    ENGINE_API float getDeathBlackDuration();
+
+    ENGINE_API void    setOutlineEnabled(bool enabled);
+    ENGINE_API bool    isOutlineEnabled();
+    ENGINE_API void    setOutlineThickness(float pixels);
+    ENGINE_API float   getOutlineThickness();
+    ENGINE_API void    setOutlineThreshold(float threshold);
+    ENGINE_API float   getOutlineThreshold();
+    ENGINE_API void    setOutlineNormalThreshold(float threshold);
+    ENGINE_API float   getOutlineNormalThreshold();
+    ENGINE_API void    setOutlineIntensity(float intensity);
+    ENGINE_API float   getOutlineIntensity();
+    ENGINE_API void    setOutlineColor(const Vector3& rgb);
+    ENGINE_API Vector3 getOutlineColor();
+    ENGINE_API void    setOutlineWobble(float wobble);
+    ENGINE_API float   getOutlineWobble();
+    ENGINE_API void    setOutlineNoiseScale(float scale);
+    ENGINE_API float   getOutlineNoiseScale();
+    ENGINE_API void    setOutlineBreakup(float breakup);
+    ENGINE_API float   getOutlineBreakup();
 }
 
 #include "EngineAPI.inl"

@@ -17,27 +17,38 @@
 
 
 #include "VertexBuffer.h"
+#include "RingBuffer.h"
 #include "Texture.h"
 
 ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     : m_device(device)
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[7] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange;
     CD3DX12_DESCRIPTOR_RANGE samplerRange;
+    CD3DX12_DESCRIPTOR_RANGE srvDepthRange;
+    CD3DX12_DESCRIPTOR_RANGE samplerDepthRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
-    rootParameters[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
+    srvDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);           // depth buffer
+    samplerDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 1, 0);   // stuff
+
+
+    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL); // b0 <- view, projection, depth linearization
     rootParameters[1].InitAsConstants(sizeof(Vector2) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b1 <- emitter u, v scaling (for tile animation)
     
-    rootParameters[2].InitAsShaderResourceView(1); // t1 <- particle data (could we join it with the srvRange?)
+    rootParameters[2].InitAsShaderResourceView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // t1 <- particle data (could we join it with the srvRange?)
     rootParameters[3].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
     rootParameters[4].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL); // s0
 
+    rootParameters[5].InitAsDescriptorTable(1, &srvDepthRange, D3D12_SHADER_VISIBILITY_PIXEL); // t2 (again, I think that we should unify instead of this, or not use ranges if we can)
+    rootParameters[6].InitAsDescriptorTable(1, &samplerDepthRange, D3D12_SHADER_VISIBILITY_PIXEL); // s1
+
+
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init(5, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init(7, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -80,9 +91,10 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT; // HDR scene target
     psoDesc.SampleDesc = { 1, 0 };
 
+    //HRESULT res = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
     /*
@@ -137,6 +149,11 @@ void ParticlesPass::prepare(const RenderContext& ctx)
     m_view = &ctx.view;
     m_projection = &ctx.projection;
     m_cameraPosition = &ctx.cameraPosition;
+
+    m_gbufferSurface = &ctx.renderSurface;
+
+    m_depthLinearizeA = ctx.projection.m[2][2];
+    m_depthLinearizeB = ctx.projection.m[3][2];
 }
 
 void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -151,6 +168,10 @@ void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     commandList->SetGraphicsRootDescriptorTable(4, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+    
+    // depth buffer parameters
+    commandList->SetGraphicsRootDescriptorTable(6, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::POINT_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable(5, m_gbufferSurface->getTexture(RenderSurface::SSAO_DEPTH)->getSRV().gpu); // TEMPORARY (we can not trust SSAO geometry pass, since we might reduce things for optimization)
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -165,11 +186,21 @@ void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 {
-    Matrix vp = buildImageVP().Transpose();
-    commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
+    shaderAllEmissorsData cameraInfo = { buildImageVP().Transpose(), Vector2(m_depthLinearizeA, m_depthLinearizeB)};
+
+    commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&cameraInfo, sizeof(shaderAllEmissorsData)) );
+
+    //Matrix vp = buildImageVP().Transpose();
+    //commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
+    // OR...
+    //Matrix vp = buildImageVP();
+    //Matrix vpTranspose = vp.Transpose();
+    //commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &vpTranspose, 0);
 
     for (const auto& command : *m_commands)
     {
+        BEGIN_EVENT(commandList, "Particle emitter rendering");
+
         if (!command.texture || command.particles.empty())
         {
             continue;
@@ -187,6 +218,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         for (unsigned int i = 0; i < size; ++i)
         {
             XMMATRIX m = buildImageWorldMatrix(command.particles[i], command.renderMode).Transpose();
+            //XMMATRIX m = (buildImageWorldMatrix(command.particles[i], command.renderMode) * vp).Transpose();
             XMStoreFloat4x4(&particleData[i].worldPosition, m);
 
             particleData[i].colorAndAlpha = command.particles[i].colorAndAlpha;
@@ -204,6 +236,8 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
         commandList->SetGraphicsRoot32BitConstants(1, sizeof(XMFLOAT2) / sizeof(UINT32), &command.uvScale, 0);
 
         commandList->DrawInstanced(6, command.particles.size(), 0, 0); // last is  first instanceID to consider; here we will take all of them, so 0
+
+        END_EVENT(commandList);
     }
 }
 
