@@ -10,6 +10,7 @@
 using Microsoft::WRL::ComPtr;
 
 class Texture;
+class LightComponent;
 
 class VolumetricFogComputePass final : public IRenderPass
 {
@@ -33,12 +34,21 @@ public:
 private:
     void createMediumRootSignature();
     void createMediumPipelineState();
+
+    void createLightingRootSignature();
+    void createLightingPipelineState();
+
     void ensureVolumes();
+
+    const LightComponent* findVolumetricDirectionalLight() const;
+    void transitionVolume(ID3D12GraphicsCommandList4* commandList, Texture* texture, D3D12_RESOURCE_STATES& currentState, D3D12_RESOURCE_STATES newState);
 
 private:
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_mediumRootSignature;
     ComPtr<ID3D12PipelineState> m_mediumPipelineState;
+    ComPtr<ID3D12RootSignature> m_lightingRootSignature;
+    ComPtr<ID3D12PipelineState> m_lightingPipelineState;
 
     std::unique_ptr<Texture> m_mediumVolume;
     std::unique_ptr<Texture> m_lightingVolume;
@@ -46,5 +56,11 @@ private:
 
     VolumetricFog::GridConstants m_gridConstants{};
     VolumetricFog::MediumConstants m_mediumConstants{};
+    VolumetricFog::LightingConstants m_lightingConstants{};
+
+    D3D12_RESOURCE_STATES m_mediumVolumeState = D3D12_RESOURCE_STATE_COMMON;
+    D3D12_RESOURCE_STATES m_lightingVolumeState = D3D12_RESOURCE_STATE_COMMON;
+    D3D12_RESOURCE_STATES m_integratedVolumeState = D3D12_RESOURCE_STATE_COMMON;
+
     bool m_enabled = false;
 };

@@ -13,6 +13,18 @@ namespace VolumetricFog
     static constexpr uint32_t GRID_DEPTH = 64;
     static constexpr float MIN_DEPTH_RANGE = 0.001f;
 
+    struct GridConstants
+    {
+        DirectX::SimpleMath::Matrix inverseView = DirectX::SimpleMath::Matrix::Identity;
+        DirectX::SimpleMath::Vector2 projectionScale = DirectX::SimpleMath::Vector2::One;
+        float nearDistance = 0.1f;
+        float maxDistance = 100.0f;
+        uint32_t gridWidth = GRID_WIDTH;
+        uint32_t gridHeight = GRID_HEIGHT;
+        uint32_t gridDepth = GRID_DEPTH;
+        uint32_t padding = 0;
+    };
+
     static constexpr uint32_t INJECT_GROUP_SIZE_X = 8;
     static constexpr uint32_t INJECT_GROUP_SIZE_Y = 8;
     static constexpr uint32_t INJECT_GROUP_SIZE_Z = 4;
@@ -30,12 +42,27 @@ namespace VolumetricFog
         uint32_t padding1 = 0;
     };
 
-    struct GridConstants
+    static constexpr uint32_t LIGHTING_GROUP_SIZE_X = 8;
+    static constexpr uint32_t LIGHTING_GROUP_SIZE_Y = 8;
+    static constexpr uint32_t LIGHTING_GROUP_SIZE_Z = 4;
+
+    struct LightingConstants
     {
-        DirectX::SimpleMath::Matrix inverseView = DirectX::SimpleMath::Matrix::Identity;
-        DirectX::SimpleMath::Vector2 projectionScale = DirectX::SimpleMath::Vector2::One;
+        Matrix inverseView = Matrix::Identity;
+
+        Vector2 projectionScale = Vector2::One;
         float nearDistance = 0.1f;
         float maxDistance = 100.0f;
+
+        Vector3 cameraPosition = Vector3::Zero;
+        float anisotropy = 0.0f;
+
+        Vector3 lightDirection = Vector3::Zero;
+        float lightIntensity = 0.0f;
+
+        Vector3 lightColor = Vector3::Zero;
+        uint32_t hasDirectionalLight = 0;
+
         uint32_t gridWidth = GRID_WIDTH;
         uint32_t gridHeight = GRID_HEIGHT;
         uint32_t gridDepth = GRID_DEPTH;
