@@ -9,6 +9,7 @@
 #include "SceneLightingSettings.h"
 #include "SkyBoxSettings.h"
 #include "SSAOSettings.h"
+#include "VolumetricFogSettings.h"
 #include "AssetId.h"
 #include "Scene.h"
 
@@ -28,6 +29,7 @@ private:
     SceneLightingSettings m_lighting;
     SkyBoxSettings m_skybox;
     SSAOSettings m_ssao;
+    VolumetricFogSettings m_volumetricFog;
     AssetId m_navMesh;
     std::vector<AssetId> m_loadedBankRefs;
     mutable std::vector<std::string> m_loadedBankNameCache;
