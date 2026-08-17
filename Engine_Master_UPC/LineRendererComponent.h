@@ -29,7 +29,7 @@ public:
 	void CreatePoint();
 	float WrapAngle(float angle);
 
-	AssetReference& getTextureAssetReference() { return m_textureAsset; }
+	AssetId& getTextureAssetReference() { return m_textureAsset; }
 
 	std::vector<std::shared_ptr<RenderPoint>>& getPoints() { return m_points; }
 
@@ -47,7 +47,7 @@ private:
 
 	std::vector<std::shared_ptr<RenderPoint>> m_points;
 
-	AssetReference m_textureAsset{};
+	AssetId m_textureAsset{};
 
 	ImGradient m_color;
 	ImGradientMark* m_draggingMark = nullptr;

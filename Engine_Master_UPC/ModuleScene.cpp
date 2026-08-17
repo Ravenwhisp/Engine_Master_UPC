@@ -384,11 +384,11 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    std::string path = "Assets/Scenes/" + sceneName + ".scene";
+
     clearRuntimeSceneSystems();
     clearComponentCaches();
     m_scene->unloadSoundBanks();
-
-    std::string path = "Assets/Scenes/" + sceneName + ".scene";
 
     JsonArchive archive(ArchiveMode::Input);
     if (!archive.loadFile(path))
