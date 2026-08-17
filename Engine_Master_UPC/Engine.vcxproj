@@ -311,6 +311,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="EmitterAnimation.h" />
     <ClInclude Include="EmitterRender.h" />
     <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="ModuleVideo.h" />
     <ClInclude Include="NavMeshBuildSettings.h" />
     <ClInclude Include="NavRuntimeBlockerComponent.h" />
     <ClInclude Include="PdbPatcher.h" />
@@ -461,6 +462,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="UISheet.h" />
     <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIParams.h" />
+    <ClInclude Include="VideoPlayback.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
     <ClInclude Include="WindowAnimationStateMachine.h" />
     <ClInclude Include="WindowGame.h" />
@@ -590,6 +592,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="WindowGameDebug.h" />
     <ClInclude Include="WeakCache.h" />
+    <ClInclude Include="WindowVideoDebug.h" />
     <ClInclude Include="WwiseBank.h" />
     <ClInclude Include="WwiseEvent.h" />
     <ClInclude Include="WwiseManager.h" />
@@ -807,6 +810,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="ModuleScripting.cpp" />
+    <ClCompile Include="ModuleVideo.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
     <ClCompile Include="NavMeshAsset.cpp" />
     <ClCompile Include="NavMeshBuildSettings.cpp" />
@@ -872,6 +876,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="UISheet.cpp" />
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="SkinningComputePass.cpp" />
+    <ClCompile Include="VideoPlayback.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
     <ClCompile Include="WindowAnimationStateMachine.cpp" />
     <ClCompile Include="WindowGame.cpp" />
@@ -984,6 +989,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="WindowGameDebug.cpp" />
+    <ClCompile Include="WindowVideoDebug.cpp" />
     <ClCompile Include="WwiseBank.cpp" />
     <ClCompile Include="WwiseManager.cpp" />
   </ItemGroup>

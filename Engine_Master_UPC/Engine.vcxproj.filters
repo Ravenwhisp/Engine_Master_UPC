@@ -852,6 +852,15 @@
     <ClCompile Include="PostProcessCommon.cpp">
       <Filter>Source\Rendering\Post Processing</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleVideo.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPlayback.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowVideoDebug.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1771,6 +1780,15 @@
     </ClInclude>
     <ClInclude Include="PostProcessCommon.h">
       <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleVideo.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPlayback.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowVideoDebug.h">
+      <Filter>Source\Editor\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
