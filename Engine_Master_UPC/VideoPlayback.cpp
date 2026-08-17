@@ -1,6 +1,9 @@
 #include "Globals.h"
 #include "VideoPlayback.h"
 
+#include "Application.h"
+#include "ModuleTime.h"
+
 extern "C"
 {
 #include <libavutil/error.h>
@@ -17,7 +20,9 @@ namespace
 	}
 }
 
-VideoPlayback::VideoPlayback() = default;
+VideoPlayback::VideoPlayback(IXAudio2* xAudio) : m_xAudio(xAudio)
+{
+}
 
 VideoPlayback::~VideoPlayback()
 {
@@ -58,7 +63,7 @@ bool VideoPlayback::load(const std::filesystem::path& path)
 
 	if (m_videoStreamIndex < 0)
 	{
-		DEBUG_LOG("[Video playback|%s] No video stream found", m_path.string().c_str());
+		DEBUG_ERROR("[Video playback|%s] No video stream found", m_path.string().c_str());
 		unload();
 		return false;
 	}
@@ -76,14 +81,23 @@ bool VideoPlayback::load(const std::filesystem::path& path)
 	}
 
 	m_packet = av_packet_alloc();
+	m_pendingPacket = av_packet_alloc();
+
+	m_decodeVideoFrame = av_frame_alloc();
 	m_videoFrame = av_frame_alloc();
 
 	if (m_audioStreamIndex >= 0)
 		m_audioFrame = av_frame_alloc();
 
-	if (!m_packet || !m_videoFrame || (m_audioStreamIndex >= 0 && !m_audioFrame))
+	if (!m_packet || !m_pendingPacket || !m_decodeVideoFrame || !m_videoFrame || (m_audioStreamIndex >= 0 && !m_audioFrame))
 	{
-		DEBUG_LOG("[Video playback|%s] Could not allocate FFmpeg packet/frame", m_path.string().c_str());
+		DEBUG_ERROR("[Video playback|%s] Could not allocate FFmpeg packet/frame", m_path.string().c_str());
+		unload();
+		return false;
+	}
+
+	if (m_audioStreamIndex >= 0 && !initAudio())
+	{
 		unload();
 		return false;
 	}
@@ -95,10 +109,13 @@ bool VideoPlayback::load(const std::filesystem::path& path)
 	m_playing = false;
 	m_paused = false;
 	m_finished = false;
+	m_endOfFile = false;
 
 	m_videoFrameReady = false;
-	m_audioFrameReady = false;
+	m_hasVideoFrame = false;
+	m_hasPendingPacket = false;
 
+	m_playbackTime = 0.0;
 	m_currentVideoTime = 0.0;
 
 	DEBUG_LOG("[Video playback|%s] Video loaded", m_path.string().c_str());
@@ -123,22 +140,18 @@ bool VideoPlayback::openDecoder(int streamIndex, AVCodecContext** codecContext)
 
 	AVStream* stream = m_formatContext->streams[streamIndex];
 	const AVCodecParameters* codecParameters = stream->codecpar;
-
 	const AVCodec* codec = avcodec_find_decoder(codecParameters->codec_id);
 
 	if (!codec)
 	{
-		DEBUG_LOG("[Video playback|%s] Decoder not found for stream %d", m_path.string().c_str(), streamIndex);
+		DEBUG_ERROR("[Video playback|%s] Decoder not found for stream %d", m_path.string().c_str(), streamIndex);
 		return false;
 	}
 
 	*codecContext = avcodec_alloc_context3(codec);
 
 	if (!*codecContext)
-	{
-		DEBUG_LOG("[Video playback|%s] Could not allocate codec context", m_path.string().c_str());
 		return false;
-	}
 
 	int result = avcodec_parameters_to_context(*codecContext, codecParameters);
 
@@ -159,6 +172,69 @@ bool VideoPlayback::openDecoder(int streamIndex, AVCodecContext** codecContext)
 	return true;
 }
 
+bool VideoPlayback::initAudio()
+{
+	if (!m_xAudio || !m_audioCodecContext)
+		return false;
+
+	WAVEFORMATEX format = {};
+	format.wFormatTag = WAVE_FORMAT_PCM;
+	format.nChannels = 2;
+	format.nSamplesPerSec = m_audioCodecContext->sample_rate;
+	format.wBitsPerSample = 16;
+	format.nBlockAlign = format.nChannels * format.wBitsPerSample / 8;
+	format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
+
+	HRESULT result = m_xAudio->CreateSourceVoice(&m_sourceVoice, &format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &m_audioCallback);
+
+	if (FAILED(result))
+	{
+		DEBUG_ERROR("[Video playback|%s] Could not create XAudio2 source voice", m_path.string().c_str());
+		return false;
+	}
+
+	AVChannelLayout outputLayout = AV_CHANNEL_LAYOUT_STEREO;
+
+	int swrResult = swr_alloc_set_opts2(&m_swrContext, &outputLayout, AV_SAMPLE_FMT_S16, m_audioCodecContext->sample_rate,
+		&m_audioCodecContext->ch_layout, m_audioCodecContext->sample_fmt, m_audioCodecContext->sample_rate, 0, nullptr);
+
+	if (swrResult < 0)
+	{
+		printFFmpegError("Could not create audio resampler", swrResult, m_path);
+		return false;
+	}
+
+	swrResult = swr_init(m_swrContext);
+
+	if (swrResult < 0)
+	{
+		printFFmpegError("Could not initialize audio resampler", swrResult, m_path);
+		return false;
+	}
+
+	DEBUG_LOG("[Video playback|%s] Audio: %d Hz | input channels: %d | output channels: 2 | input format: %d",
+		m_path.string().c_str(),
+		m_audioCodecContext->sample_rate,
+		m_audioCodecContext->ch_layout.nb_channels,
+		m_audioCodecContext->sample_fmt);
+
+	return true;
+}
+
+void VideoPlayback::cleanUpAudio()
+{
+	if (m_sourceVoice)
+	{
+		m_sourceVoice->Stop();
+		m_sourceVoice->FlushSourceBuffers();
+		m_sourceVoice->DestroyVoice();
+		m_sourceVoice = nullptr;
+	}
+
+	if (m_swrContext)
+		swr_free(&m_swrContext);
+}
+
 bool VideoPlayback::play()
 {
 	if (!m_loaded)
@@ -166,6 +242,11 @@ bool VideoPlayback::play()
 
 	if (m_finished)
 		stop();
+
+	fillDecodeQueues();
+
+	if (m_sourceVoice)
+		m_sourceVoice->Start();
 
 	m_playing = true;
 	m_paused = false;
@@ -178,6 +259,9 @@ void VideoPlayback::pause()
 	if (!m_loaded)
 		return;
 
+	if (m_sourceVoice)
+		m_sourceVoice->Stop();
+
 	m_playing = false;
 	m_paused = true;
 }
@@ -187,14 +271,34 @@ void VideoPlayback::stop()
 	if (!m_loaded)
 		return;
 
+	if (m_sourceVoice)
+	{
+		m_sourceVoice->Stop();
+		m_sourceVoice->FlushSourceBuffers();
+	}
+
 	m_playing = false;
 	m_paused = false;
 	m_finished = false;
+	m_endOfFile = false;
 
 	m_videoFrameReady = false;
-	m_audioFrameReady = false;
+	m_hasVideoFrame = false;
 
+	m_playbackTime = 0.0;
 	m_currentVideoTime = 0.0;
+
+	clearVideoFrames();
+	clearPendingPacket();
+
+	if (m_videoFrame)
+		av_frame_unref(m_videoFrame);
+
+	if (m_decodeVideoFrame)
+		av_frame_unref(m_decodeVideoFrame);
+
+	if (m_audioFrame)
+		av_frame_unref(m_audioFrame);
 
 	const int result = av_seek_frame(m_formatContext, -1, 0, AVSEEK_FLAG_BACKWARD);
 
@@ -209,132 +313,394 @@ void VideoPlayback::update()
 	if (!m_loaded || !m_playing || m_paused || m_finished)
 		return;
 
-	m_videoFrameReady = false;
-	m_audioFrameReady = false;
+	m_playbackTime += app->getModuleTime()->deltaTime();
 
-	// For now we decode until we obtain one video frame.
-	// Playback timing will be handled afterwards.
-	while (!m_videoFrameReady)
+	fillDecodeQueues();
+	updateVideoFrame();
+
+	if (!m_endOfFile)
+		return;
+
+	XAUDIO2_VOICE_STATE state = {};
+
+	if (m_sourceVoice)
+		m_sourceVoice->GetState(&state);
+
+	if (m_videoFrames.empty() && (!m_sourceVoice || state.BuffersQueued == 0))
 	{
-		const int result = av_read_frame(m_formatContext, m_packet);
-
-		if (result < 0)
-		{
-			if (result != AVERROR_EOF)
-				printFFmpegError("Error reading packet", result, m_path);
-
-			m_finished = true;
-			m_playing = false;
-
-			return;
-		}
-
-		if (m_packet->stream_index == m_videoStreamIndex)
-		{
-			decodePacket(m_videoCodecContext, m_packet, m_videoFrame, true);
-		}
-		else if (m_packet->stream_index == m_audioStreamIndex)
-		{
-			decodePacket(m_audioCodecContext, m_packet, m_audioFrame, false);
-		}
-		av_packet_unref(m_packet);
+		m_finished = true;
+		m_playing = false;
 	}
 }
 
-void VideoPlayback::decodePacket(AVCodecContext* codecContext, AVPacket* packet, AVFrame* frame, bool video)
+void VideoPlayback::fillDecodeQueues()
 {
-	if (!codecContext || !packet || !frame)
+	if (m_endOfFile)
 		return;
 
-	int result = avcodec_send_packet(codecContext, packet);
-
-	if (result < 0)
+	while (m_videoFrames.size() < MAX_VIDEO_FRAMES || canQueueAudio())
 	{
-		if (result != AVERROR(EAGAIN) && result != AVERROR_EOF)
+		AVPacket* packet = nullptr;
+
+		if (m_hasPendingPacket)
 		{
-			printFFmpegError("Error sending packet to decoder", result, m_path);
-		}
-
-		return;
-	}
-
-	while (true)
-	{
-		result = avcodec_receive_frame(codecContext, frame);
-
-		if (result == AVERROR(EAGAIN) || result == AVERROR_EOF)
-		{
-			break;
-		}
-
-		if (result < 0)
-		{
-			printFFmpegError("Error receiving decoded frame", result, m_path);
-			break;
-		}
-
-		if (video)
-		{
-			m_videoFrameReady = true;
-
-			AVStream* stream = m_formatContext->streams[m_videoStreamIndex];
-
-			if (frame->best_effort_timestamp != AV_NOPTS_VALUE)
-				m_currentVideoTime = frame->best_effort_timestamp * av_q2d(stream->time_base);
+			packet = m_pendingPacket;
 		}
 		else
 		{
-			m_audioFrameReady = true;
+			const int result = av_read_frame(m_formatContext, m_packet);
+
+			if (result < 0)
+			{
+				if (result == AVERROR_EOF)
+					m_endOfFile = true;
+				else
+				{
+					printFFmpegError("Error reading packet", result, m_path);
+					m_finished = true;
+					m_playing = false;
+				}
+
+				if (m_endOfFile)
+					flushDelayedFrames();
+
+				break;
+			}
+
+			packet = m_packet;
 		}
 
-		break;
+		if (packet->stream_index == m_audioStreamIndex && !canQueueAudio())
+		{
+			if (!m_hasPendingPacket)
+			{
+				const int result = av_packet_ref(m_pendingPacket, packet);
+
+				if (result < 0)
+				{
+					printFFmpegError("Could not store pending audio packet", result, m_path);
+					av_packet_unref(m_packet);
+					return;
+				}
+
+				m_hasPendingPacket = true;
+				av_packet_unref(m_packet);
+			}
+
+			break;
+		}
+
+		bool decoded = true;
+
+		if (packet->stream_index == m_videoStreamIndex)
+			decoded = decodeVideoPacket(packet);
+		else if (packet->stream_index == m_audioStreamIndex)
+			decoded = decodeAudioPacket(packet);
+
+		if (m_hasPendingPacket)
+			clearPendingPacket();
+		else
+			av_packet_unref(m_packet);
+
+		if (!decoded)
+		{
+			m_finished = true;
+			m_playing = false;
+			return;
+		}
+
+		if (m_videoFrames.size() >= MAX_VIDEO_FRAMES && !canQueueAudio())
+			break;
 	}
+}
+
+bool VideoPlayback::decodeVideoPacket(AVPacket* packet)
+{
+	if (!packet || !m_videoCodecContext)
+		return false;
+
+	int result = avcodec_send_packet(m_videoCodecContext, packet);
+
+	if (result == AVERROR(EAGAIN))
+	{
+		if (!receiveVideoFrames())
+			return false;
+
+		result = avcodec_send_packet(m_videoCodecContext, packet);
+	}
+
+	if (result < 0 && result != AVERROR_EOF)
+	{
+		printFFmpegError("Could not send video packet", result, m_path);
+		return false;
+	}
+
+	return receiveVideoFrames();
+}
+
+bool VideoPlayback::decodeAudioPacket(AVPacket* packet)
+{
+	if (!packet || !m_audioCodecContext)
+		return false;
+
+	int result = avcodec_send_packet(m_audioCodecContext, packet);
+
+	if (result == AVERROR(EAGAIN))
+	{
+		if (!receiveAudioFrames())
+			return false;
+
+		result = avcodec_send_packet(m_audioCodecContext, packet);
+	}
+
+	if (result < 0 && result != AVERROR_EOF)
+	{
+		printFFmpegError("Could not send audio packet", result, m_path);
+		return false;
+	}
+
+	return receiveAudioFrames();
+}
+
+bool VideoPlayback::receiveVideoFrames()
+{
+	while (m_videoFrames.size() < MAX_VIDEO_FRAMES)
+	{
+		const int result = avcodec_receive_frame(m_videoCodecContext, m_decodeVideoFrame);
+
+		if (result == AVERROR(EAGAIN) || result == AVERROR_EOF)
+			return true;
+
+		if (result < 0)
+		{
+			printFFmpegError("Could not receive video frame", result, m_path);
+			return false;
+		}
+
+		AVFrame* frame = av_frame_clone(m_decodeVideoFrame);
+
+		if (!frame)
+			return false;
+
+		double timestamp = 0.0;
+
+		if (frame->best_effort_timestamp != AV_NOPTS_VALUE)
+		{
+			AVStream* stream = m_formatContext->streams[m_videoStreamIndex];
+			timestamp = frame->best_effort_timestamp * av_q2d(stream->time_base);
+		}
+
+		m_videoFrames.push_back({ frame, timestamp });
+
+		av_frame_unref(m_decodeVideoFrame);
+	}
+
+	return true;
+}
+
+bool VideoPlayback::receiveAudioFrames()
+{
+	while (canQueueAudio())
+	{
+		const int result = avcodec_receive_frame(m_audioCodecContext, m_audioFrame);
+
+		if (result == AVERROR(EAGAIN) || result == AVERROR_EOF)
+			return true;
+
+		if (result < 0)
+		{
+			printFFmpegError("Could not receive audio frame", result, m_path);
+			return false;
+		}
+
+		if (!queueAudioFrame(m_audioFrame))
+			return false;
+
+		av_frame_unref(m_audioFrame);
+	}
+
+	return true;
+}
+
+void VideoPlayback::updateVideoFrame()
+{
+	m_videoFrameReady = false;
+
+	while (!m_videoFrames.empty() && m_videoFrames.front().timestamp <= m_playbackTime)
+	{
+		VideoFrame& queuedFrame = m_videoFrames.front();
+
+		av_frame_unref(m_videoFrame);
+
+		const int result = av_frame_ref(m_videoFrame, queuedFrame.frame);
+
+		if (result < 0)
+		{
+			printFFmpegError("Could not reference video frame", result, m_path);
+			return;
+		}
+
+		m_currentVideoTime = queuedFrame.timestamp;
+		m_videoFrameReady = true;
+		m_hasVideoFrame = true;
+
+		av_frame_free(&queuedFrame.frame);
+		m_videoFrames.pop_front();
+	}
+}
+
+bool VideoPlayback::canQueueAudio() const
+{
+	if (!m_sourceVoice)
+		return false;
+
+	XAUDIO2_VOICE_STATE state = {};
+	m_sourceVoice->GetState(&state, XAUDIO2_VOICE_NOSAMPLESPLAYED);
+
+	return state.BuffersQueued < MAX_AUDIO_BUFFERS;
+}
+
+bool VideoPlayback::queueAudioFrame(AVFrame* frame)
+{
+	if (!frame || !m_swrContext || !m_sourceVoice)
+		return false;
+
+	const int outputSamples = swr_get_out_samples(m_swrContext, frame->nb_samples);
+
+	if (outputSamples <= 0)
+		return false;
+
+	const int outputChannels = 2;
+	const int bytesPerSample = av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+
+	auto* audioData = new std::vector<uint8_t>();
+	audioData->resize(static_cast<size_t>(outputSamples) * outputChannels * bytesPerSample);
+
+	uint8_t* outputBuffer = audioData->data();
+
+	const int convertedSamples = swr_convert(m_swrContext, &outputBuffer, outputSamples,
+		const_cast<const uint8_t**>(frame->extended_data), frame->nb_samples);
+
+	if (convertedSamples < 0)
+	{
+		printFFmpegError("Could not convert audio samples", convertedSamples, m_path);
+		delete audioData;
+		return false;
+	}
+
+	audioData->resize(static_cast<size_t>(convertedSamples) * outputChannels * bytesPerSample);
+
+	if (audioData->empty())
+	{
+		delete audioData;
+		return true;
+	}
+
+	XAUDIO2_BUFFER buffer = {};
+	buffer.AudioBytes = static_cast<UINT32>(audioData->size());
+	buffer.pAudioData = audioData->data();
+	buffer.pContext = audioData;
+
+	const HRESULT result = m_sourceVoice->SubmitSourceBuffer(&buffer);
+
+	if (FAILED(result))
+	{
+		DEBUG_ERROR("[Video playback|%s] Could not submit XAudio2 buffer", m_path.string().c_str());
+		delete audioData;
+		return false;
+	}
+
+	return true;
+}
+
+void VideoPlayback::clearVideoFrames()
+{
+	for (VideoFrame& videoFrame : m_videoFrames)
+	{
+		if (videoFrame.frame)
+			av_frame_free(&videoFrame.frame);
+	}
+
+	m_videoFrames.clear();
+}
+
+void VideoPlayback::clearPendingPacket()
+{
+	if (!m_pendingPacket)
+		return;
+
+	av_packet_unref(m_pendingPacket);
+	m_hasPendingPacket = false;
 }
 
 void VideoPlayback::flushDecoders()
 {
 	if (m_videoCodecContext)
-	{
 		avcodec_flush_buffers(m_videoCodecContext);
-	}
 
 	if (m_audioCodecContext)
-	{
 		avcodec_flush_buffers(m_audioCodecContext);
+
+	if (m_swrContext)
+	{
+		swr_close(m_swrContext);
+
+		const int result = swr_init(m_swrContext);
+
+		if (result < 0)
+			printFFmpegError("Could not reset audio resampler", result, m_path);
+	}
+}
+
+void VideoPlayback::flushDelayedFrames()
+{
+	if (m_videoCodecContext)
+	{
+		const int result = avcodec_send_packet(m_videoCodecContext, nullptr);
+
+		if (result >= 0 || result == AVERROR_EOF)
+			receiveVideoFrames();
+	}
+
+	if (m_audioCodecContext && canQueueAudio())
+	{
+		const int result = avcodec_send_packet(m_audioCodecContext, nullptr);
+
+		if (result >= 0 || result == AVERROR_EOF)
+			receiveAudioFrames();
 	}
 }
 
 void VideoPlayback::unload()
 {
+	cleanUpAudio();
+
+	clearVideoFrames();
+	clearPendingPacket();
+
 	if (m_packet)
-	{
 		av_packet_free(&m_packet);
-	}
+
+	if (m_pendingPacket)
+		av_packet_free(&m_pendingPacket);
+
+	if (m_decodeVideoFrame)
+		av_frame_free(&m_decodeVideoFrame);
 
 	if (m_videoFrame)
-	{
 		av_frame_free(&m_videoFrame);
-	}
 
 	if (m_audioFrame)
-	{
 		av_frame_free(&m_audioFrame);
-	}
 
 	if (m_videoCodecContext)
-	{
 		avcodec_free_context(&m_videoCodecContext);
-	}
 
 	if (m_audioCodecContext)
-	{
 		avcodec_free_context(&m_audioCodecContext);
-	}
 
 	if (m_formatContext)
-	{
 		avformat_close_input(&m_formatContext);
-	}
 
 	m_videoStreamIndex = -1;
 	m_audioStreamIndex = -1;
@@ -343,10 +709,13 @@ void VideoPlayback::unload()
 	m_playing = false;
 	m_paused = false;
 	m_finished = false;
+	m_endOfFile = false;
 
 	m_videoFrameReady = false;
-	m_audioFrameReady = false;
+	m_hasVideoFrame = false;
+	m_hasPendingPacket = false;
 
+	m_playbackTime = 0.0;
 	m_currentVideoTime = 0.0;
 	m_duration = 0.0;
 
@@ -375,12 +744,7 @@ const std::filesystem::path& VideoPlayback::getPath() const
 
 AVFrame* VideoPlayback::getVideoFrame() const
 {
-	return m_videoFrameReady ? m_videoFrame : nullptr;
-}
-
-AVFrame* VideoPlayback::getAudioFrame() const
-{
-	return m_audioFrameReady ? m_audioFrame : nullptr;
+	return m_hasVideoFrame ? m_videoFrame : nullptr;
 }
 
 int VideoPlayback::getVideoStreamIndex() const
@@ -391,6 +755,11 @@ int VideoPlayback::getVideoStreamIndex() const
 int VideoPlayback::getAudioStreamIndex() const
 {
 	return m_audioStreamIndex;
+}
+
+double VideoPlayback::getPlaybackTime() const
+{
+	return m_playbackTime;
 }
 
 double VideoPlayback::getCurrentVideoTime() const

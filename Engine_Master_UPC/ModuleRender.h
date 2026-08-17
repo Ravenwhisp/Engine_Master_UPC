@@ -15,6 +15,7 @@
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
+#include "VideoPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -91,6 +92,7 @@ private:
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;
     std::unique_ptr<SSAOPass> m_ssaoPass;
     std::unique_ptr<SSAOBlurPass> m_ssaoBlurPass;
+    std::unique_ptr<VideoPass> m_videoPass;
 
     bool m_shadowMapRenderedThisFrame = false;
     const ShadowFrameData* m_currentShadowData = nullptr;
@@ -142,4 +144,6 @@ private:
 
     // D3D12 helpers
     void transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState,  D3D12_RESOURCE_STATES afterState);
+
+    bool renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface);
 };

@@ -166,6 +166,9 @@
     <Filter Include="Source\Video">
       <UniqueIdentifier>{5e09d6bc-b135-4232-8390-a78215e7633d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Video">
+      <UniqueIdentifier>{7ffa8667-55c9-44d9-996e-fc36a33fa233}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
@@ -860,6 +863,9 @@
     </ClCompile>
     <ClCompile Include="WindowVideoDebug.cpp">
       <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPass.cpp">
+      <Filter>Source\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1790,6 +1796,9 @@
     <ClInclude Include="WindowVideoDebug.h">
       <Filter>Source\Editor\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="VideoPass.h">
+      <Filter>Source\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
@@ -1899,6 +1908,12 @@
     </FxCompile>
     <FxCompile Include="BloomUpsamplePixelShader.hlsl">
       <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="VideoVertexShader.hlsl">
+      <Filter>Shaders\Video</Filter>
+    </FxCompile>
+    <FxCompile Include="VideoPixelShader.hlsl">
+      <Filter>Shaders\Video</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

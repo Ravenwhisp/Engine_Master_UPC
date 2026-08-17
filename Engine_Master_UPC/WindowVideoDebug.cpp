@@ -104,7 +104,7 @@ void WindowVideoDebug::drawInternal()
 			ImGui::TextUnformatted(state);
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%.2f / %.2f", video->getCurrentVideoTime(), video->getDuration());
+			ImGui::Text("E %.2f | V %.2f / %.2f", video->getPlaybackTime(), video->getCurrentVideoTime(), video->getDuration());
 
 			ImGui::TableSetColumnIndex(3);
 
