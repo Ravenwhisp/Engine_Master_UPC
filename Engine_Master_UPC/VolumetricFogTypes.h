@@ -13,6 +13,23 @@ namespace VolumetricFog
     static constexpr uint32_t GRID_DEPTH = 64;
     static constexpr float MIN_DEPTH_RANGE = 0.001f;
 
+    static constexpr uint32_t INJECT_GROUP_SIZE_X = 8;
+    static constexpr uint32_t INJECT_GROUP_SIZE_Y = 8;
+    static constexpr uint32_t INJECT_GROUP_SIZE_Z = 4;
+
+    struct MediumConstants
+    {
+        float density = 0.0f;
+        float scatteringCoefficient = 0.0f;
+        float extinctionCoefficient = 0.0f;
+        float padding0 = 0.0f;
+
+        uint32_t gridWidth = GRID_WIDTH;
+        uint32_t gridHeight = GRID_HEIGHT;
+        uint32_t gridDepth = GRID_DEPTH;
+        uint32_t padding1 = 0;
+    };
+
     struct GridConstants
     {
         DirectX::SimpleMath::Matrix inverseView = DirectX::SimpleMath::Matrix::Identity;

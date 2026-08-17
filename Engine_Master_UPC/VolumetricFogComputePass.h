@@ -31,15 +31,20 @@ public:
     const VolumetricFog::GridConstants& getGridConstants() const { return m_gridConstants; }
 
 private:
+    void createMediumRootSignature();
+    void createMediumPipelineState();
     void ensureVolumes();
 
 private:
     ComPtr<ID3D12Device4> m_device;
+    ComPtr<ID3D12RootSignature> m_mediumRootSignature;
+    ComPtr<ID3D12PipelineState> m_mediumPipelineState;
 
     std::unique_ptr<Texture> m_mediumVolume;
     std::unique_ptr<Texture> m_lightingVolume;
     std::unique_ptr<Texture> m_integratedVolume;
 
     VolumetricFog::GridConstants m_gridConstants{};
+    VolumetricFog::MediumConstants m_mediumConstants{};
     bool m_enabled = false;
 };
