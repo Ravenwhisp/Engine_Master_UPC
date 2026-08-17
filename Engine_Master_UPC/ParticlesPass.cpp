@@ -97,6 +97,13 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
     //HRESULT res = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDescAdditive = psoDesc;
+    psoDescAdditive.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+    psoDescAdditive.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
+    psoDescAdditive.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+    psoDescAdditive.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
+    DXCall(m_device->CreateGraphicsPipelineState(&psoDescAdditive, IID_PPV_ARGS(&m_pipelineStateAdditive)));
+
     /*
     const Vertex quadVertices[6] =
     {
@@ -234,6 +241,8 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         commandList->SetGraphicsRootDescriptorTable(3, srv.gpu);
 
+        commandList->SetPipelineState(command.blendMode == EmitterRender::BlendMode::ADDITIVE ? m_pipelineStateAdditive.Get() : m_pipelineState.Get());
+
 		ShaderEmissorData emissorData;
 		emissorData.hdrColorAndIntensity = command.HDRColorAndIntensity;
 		emissorData.uvScale = command.uvScale;
@@ -276,11 +285,11 @@ Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command, Emit
 
     case EmitterRender::RenderMode::VERTICAL:
     {
-        // Extraer la posición de la cámara
+        // Extraer la posiciï¿½n de la cï¿½mara
         Matrix invView = view.Invert();
         Vector3 camPos = Vector3(invView._41, invView._42, invView._43);
 
-        // Dirección hacia la cámara (ignorando la altura para que sea cilíndrico)
+        // Direcciï¿½n hacia la cï¿½mara (ignorando la altura para que sea cilï¿½ndrico)
         Vector3 lookAt = command.position - camPos;
         lookAt.y = 0.0f;
 
