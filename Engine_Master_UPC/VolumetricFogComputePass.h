@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IRenderPass.h"
+#include "VolumetricFogTypes.h"
 
 #include <d3d12.h>
 #include <memory>
@@ -27,6 +28,8 @@ public:
     Texture* getLightingVolume() { return m_lightingVolume.get(); }
     Texture* getIntegratedVolume() { return m_integratedVolume.get(); }
 
+    const VolumetricFog::GridConstants& getGridConstants() const { return m_gridConstants; }
+
 private:
     void ensureVolumes();
 
@@ -36,4 +39,7 @@ private:
     std::unique_ptr<Texture> m_mediumVolume;
     std::unique_ptr<Texture> m_lightingVolume;
     std::unique_ptr<Texture> m_integratedVolume;
+
+    VolumetricFog::GridConstants m_gridConstants{};
+    bool m_enabled = false;
 };
