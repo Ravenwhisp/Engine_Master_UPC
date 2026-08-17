@@ -274,12 +274,6 @@ float SampleSSAO(float4 screenPosition)
 
 float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent : TANGENT, float2 coord : TEXCOORD, float4 position : SV_POSITION) : SV_TARGET
 {
-    if (hasSpectralComponent == 1)
-    {
-        //apply spectral effect
-        return float4(spectralColor, 1);
-    }
-    
     //Initialize material values
     float metallic = metallicFactor;
     float alphaRoughness = roughnessFactor;
@@ -352,7 +346,29 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     alphaRoughness = alphaRoughness * alphaRoughness;
     
-    
+    //Ghostly effect
+    if (hasSpectralComponent == 1)
+    {
+        float spectralNdotV = 1.0 - NdotV;
+        if (spectralNdotV < 0.4f)
+        {
+            return float4(0, 0, 0 ,0);
+        }
+        else if (spectralNdotV > 0.9f)
+        {
+            spectralNdotV = 1.0f;
+        }
+        
+        float alpha = smoothstep(0.4f, 0.9f, spectralNdotV);
+        
+        float3 finalSpectralColor = spectralColor;
+        if (alpha > 0.999)
+        {
+            finalSpectralColor += 1;
+        }
+        
+        return float4(finalSpectralColor, alpha);
+    }
     
     //Calculate directional direct lighting
     float3 directionalMetallic = 0.0f;
