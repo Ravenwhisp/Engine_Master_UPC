@@ -394,10 +394,13 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     auto newScene = std::make_unique<Scene>(ref);
     newScene->serialize(archive);
     newScene->setName(sceneName.c_str());
-    newScene->FixReferences();
-    newScene->initLoadedObjects();
 
     m_scene = std::move(newScene);
+
+    m_scene->FixReferences();
+    m_scene->initLoadedObjects();
+
+
     m_scene->markDirty();
 
     m_staticQuadtree = std::make_unique<Quadtree>();
