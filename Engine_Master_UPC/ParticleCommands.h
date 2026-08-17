@@ -27,6 +27,8 @@ struct ParticleEmitterCommand
     Vector3 HDRColorAndIntensity; // HDR color + intensity for bloom post-processing
 
     std::vector <ParticleCommand> particles;
+
+    EmitterRender::BlendMode blendMode = EmitterRender::BlendMode::ALPHA;
 };
 
 struct ShaderParticleData { // for Structured buffet, so 16 bytes alignment not necessary <- XMFLOAT is probably unnecessary

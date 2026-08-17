@@ -230,6 +230,7 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
         command.uvScale = animationConfig->getUVScale();
 
         command.renderMode = renderConfig->getRenderMode();
+        command.blendMode = renderConfig->getBlendMode();
 
 		command.HDRColorAndIntensity = colorConfig->getHDRColorAndIntensity();
 
