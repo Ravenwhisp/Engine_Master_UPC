@@ -69,6 +69,21 @@ namespace VolumetricFog
         uint32_t padding = 0;
     };
 
+    static constexpr uint32_t INTEGRATION_GROUP_SIZE_X = 8;
+    static constexpr uint32_t INTEGRATION_GROUP_SIZE_Y = 8;
+
+    struct IntegrationConstants
+    {
+        Vector2 projectionScale = Vector2::One;
+        float nearDistance = 0.1f;
+        float maxDistance = 100.0f;
+
+        uint32_t gridWidth = GRID_WIDTH;
+        uint32_t gridHeight = GRID_HEIGHT;
+        uint32_t gridDepth = GRID_DEPTH;
+        uint32_t padding = 0;
+    };
+
     inline float getDepthAtNormalizedZ(float normalizedZ, float nearDistance, float maxDistance)
     {
         const float safeNear = std::max(nearDistance, MIN_DEPTH_RANGE);
