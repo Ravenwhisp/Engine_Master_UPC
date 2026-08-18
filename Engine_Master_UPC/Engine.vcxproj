@@ -464,6 +464,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIParams.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
+    <ClInclude Include="VolumetricFogApplyPass.h" />
     <ClInclude Include="VolumetricFogComputePass.h" />
     <ClInclude Include="VolumetricFogSettings.h" />
     <ClInclude Include="VolumetricFogTypes.h" />
@@ -880,6 +881,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="SkinningComputePass.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
+    <ClCompile Include="VolumetricFogApplyPass.cpp" />
     <ClCompile Include="VolumetricFogComputePass.cpp" />
     <ClCompile Include="WindowAnimationStateMachine.cpp" />
     <ClCompile Include="WindowGame.cpp" />
@@ -1376,6 +1378,15 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="VolumetricFogApplyPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="VolumetricFogInjectMediumCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>

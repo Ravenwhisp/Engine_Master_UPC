@@ -29,6 +29,7 @@ public:
     Texture* getLightingVolume() { return m_lightingVolume.get(); }
     Texture* getIntegratedVolume() { return m_integratedVolume.get(); }
 
+    bool isEnabled() const { return m_enabled; }
     const VolumetricFog::GridConstants& getGridConstants() const { return m_gridConstants; }
 
 private:

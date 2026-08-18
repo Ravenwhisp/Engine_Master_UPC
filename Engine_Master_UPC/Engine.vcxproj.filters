@@ -855,6 +855,7 @@
     <ClCompile Include="DepthReductionPass.cpp" />
     <ClCompile Include="ShadowFrustumComputePass.cpp" />
     <ClCompile Include="VolumetricFogComputePass.cpp" />
+    <ClCompile Include="VolumetricFogApplyPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1780,6 +1781,7 @@
     <ClInclude Include="VolumetricFogSettings.h" />
     <ClInclude Include="VolumetricFogTypes.h" />
     <ClInclude Include="VolumetricFogComputePass.h" />
+    <ClInclude Include="VolumetricFogApplyPass.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
@@ -1896,6 +1898,7 @@
     <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
     <FxCompile Include="VolumetricFogLightingCS.hlsl" />
     <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
+    <FxCompile Include="VolumetricFogApplyPixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
