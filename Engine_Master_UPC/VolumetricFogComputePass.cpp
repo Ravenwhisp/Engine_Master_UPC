@@ -40,6 +40,8 @@ VolumetricFogComputePass::VolumetricFogComputePass(ComPtr<ID3D12Device4> device)
     createMediumPipelineState();
     createLightingRootSignature();
     createLightingPipelineState();
+    createIntegrationRootSignature();
+    createIntegrationPipelineState();
 }
 
 VolumetricFogComputePass::~VolumetricFogComputePass() = default;
@@ -52,6 +54,7 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_lightingConstants = {};
     m_shadowCBAddress = 0;
     m_cascadeShadowMapSRV = {};
+    m_integrationConstants = {};
     m_hasShadowData = false;
 
     Scene* scene = app->getModuleScene()->getScene();
@@ -85,6 +88,13 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_gridConstants.gridWidth = VolumetricFog::GRID_WIDTH;
     m_gridConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_gridConstants.gridDepth = VolumetricFog::GRID_DEPTH;
+
+    m_integrationConstants.projectionScale = m_gridConstants.projectionScale;
+    m_integrationConstants.nearDistance = m_gridConstants.nearDistance;
+    m_integrationConstants.maxDistance = m_gridConstants.maxDistance;
+    m_integrationConstants.gridWidth = VolumetricFog::GRID_WIDTH;
+    m_integrationConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
+    m_integrationConstants.gridDepth = VolumetricFog::GRID_DEPTH;
 
     m_mediumConstants.density = settings.density;
     m_mediumConstants.scatteringCoefficient = settings.scatteringCoefficient;
@@ -124,7 +134,9 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 
 void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-    if (commandList == nullptr || !m_enabled || m_mediumVolume == nullptr || m_lightingVolume == nullptr || m_mediumPipelineState == nullptr || m_mediumRootSignature == nullptr || m_lightingPipelineState == nullptr || m_lightingRootSignature == nullptr) return;
+    if (commandList == nullptr || !m_enabled || m_mediumVolume == nullptr || m_lightingVolume == nullptr || m_integratedVolume == nullptr || 
+        m_mediumPipelineState == nullptr || m_mediumRootSignature == nullptr || m_lightingPipelineState == nullptr || m_lightingRootSignature == nullptr || 
+        m_integrationPipelineState == nullptr || m_integrationRootSignature == nullptr) return;
 
     ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), 
         app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
@@ -172,6 +184,28 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->Dispatch(lightingGroupsX, lightingGroupsY, lightingGroupsZ);
 
     END_EVENT(commandList);
+
+    transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    transitionVolume(commandList, m_integratedVolume.get(), m_integratedVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+    BEGIN_EVENT(commandList, "VolumetricFog::Integrate");
+
+    commandList->SetPipelineState(m_integrationPipelineState.Get());
+    commandList->SetComputeRootSignature(m_integrationRootSignature.Get());
+    commandList->SetComputeRoot32BitConstants(0, sizeof(VolumetricFog::IntegrationConstants) / sizeof(uint32_t), &m_integrationConstants, 0);
+    commandList->SetComputeRootDescriptorTable(1, m_mediumVolume->getSRV().gpu);
+    commandList->SetComputeRootDescriptorTable(2, m_lightingVolume->getSRV().gpu);
+    commandList->SetComputeRootDescriptorTable(3, m_integratedVolume->getUAV().gpu);
+
+    const uint32_t integrationGroupsX = (VolumetricFog::GRID_WIDTH + VolumetricFog::INTEGRATION_GROUP_SIZE_X - 1) / VolumetricFog::INTEGRATION_GROUP_SIZE_X;
+    const uint32_t integrationGroupsY = (VolumetricFog::GRID_HEIGHT + VolumetricFog::INTEGRATION_GROUP_SIZE_Y - 1) / VolumetricFog::INTEGRATION_GROUP_SIZE_Y;
+
+    commandList->Dispatch(integrationGroupsX, integrationGroupsY, 1);
+
+    END_EVENT(commandList);
+
+    transitionVolume(commandList, m_integratedVolume.get(), m_integratedVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
 }
 
 void VolumetricFogComputePass::createMediumRootSignature()
@@ -240,6 +274,40 @@ void VolumetricFogComputePass::createLightingPipelineState()
     psoDesc.CS = CD3DX12_SHADER_BYTECODE(computeShaderBlob.Get());
 
     DXCall(m_device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_lightingPipelineState)));
+}
+
+void VolumetricFogComputePass::createIntegrationRootSignature()
+{
+    CD3DX12_DESCRIPTOR_RANGE mediumRange, lightingRange, integratedRange;
+    mediumRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    lightingRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
+    integratedRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
+
+    CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
+    rootParameters[0].InitAsConstants(sizeof(VolumetricFog::IntegrationConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[1].InitAsDescriptorTable(1, &mediumRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[2].InitAsDescriptorTable(1, &lightingRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[3].InitAsDescriptorTable(1, &integratedRange, D3D12_SHADER_VISIBILITY_ALL);
+
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+    rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
+
+    ComPtr<ID3DBlob> signature;
+    ComPtr<ID3DBlob> error;
+    DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+    DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_integrationRootSignature)));
+}
+
+void VolumetricFogComputePass::createIntegrationPipelineState()
+{
+    ComPtr<ID3DBlob> computeShaderBlob;
+    ThrowIfFailed(D3DReadFileToBlob(L"VolumetricFogIntegrateCS.cso", &computeShaderBlob));
+
+    D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
+    psoDesc.pRootSignature = m_integrationRootSignature.Get();
+    psoDesc.CS = CD3DX12_SHADER_BYTECODE(computeShaderBlob.Get());
+
+    DXCall(m_device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_integrationPipelineState)));
 }
 
 void VolumetricFogComputePass::ensureVolumes()

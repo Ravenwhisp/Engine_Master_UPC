@@ -38,6 +38,9 @@ private:
     void createLightingRootSignature();
     void createLightingPipelineState();
 
+    void createIntegrationRootSignature();
+    void createIntegrationPipelineState();
+
     void ensureVolumes();
 
     const LightComponent* findVolumetricDirectionalLight() const;
@@ -49,6 +52,8 @@ private:
     ComPtr<ID3D12PipelineState> m_mediumPipelineState;
     ComPtr<ID3D12RootSignature> m_lightingRootSignature;
     ComPtr<ID3D12PipelineState> m_lightingPipelineState;
+    ComPtr<ID3D12RootSignature> m_integrationRootSignature;
+    ComPtr<ID3D12PipelineState> m_integrationPipelineState;
 
     std::unique_ptr<Texture> m_mediumVolume;
     std::unique_ptr<Texture> m_lightingVolume;
@@ -57,6 +62,7 @@ private:
     VolumetricFog::GridConstants m_gridConstants{};
     VolumetricFog::MediumConstants m_mediumConstants{};
     VolumetricFog::LightingConstants m_lightingConstants{};
+    VolumetricFog::IntegrationConstants m_integrationConstants{};
 
     D3D12_RESOURCE_STATES m_mediumVolumeState = D3D12_RESOURCE_STATE_COMMON;
     D3D12_RESOURCE_STATES m_lightingVolumeState = D3D12_RESOURCE_STATE_COMMON;
