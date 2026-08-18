@@ -90,12 +90,7 @@ bool Application::init()
 
 #ifdef GAME_RELEASE
     app->setEngineState(ENGINE_STATE::PLAYING);
-
-    std::vector<uint8_t> configData = FileIO::read("../Engine_OUT/build.cfg");
-    if (configData.empty())
-    {
-        configData = FileIO::read("build.cfg");
-    }
+    std::vector<uint8_t> configData = FileIO::read(std::filesystem::current_path() / "build.cfg");
 
     if (!configData.empty())
     {
