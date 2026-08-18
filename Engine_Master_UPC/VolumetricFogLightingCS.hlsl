@@ -45,7 +45,7 @@ cbuffer LightingConstants : register(b0)
     uint gridWidth;
     uint gridHeight;
     uint gridDepth;
-    uint padding;
+    uint debugDisableShadows;
 };
 
 Texture3D<float4> mediumVolume : register(t0);
@@ -155,7 +155,7 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
     float3 viewDirection = normalize(cameraPosition - worldPosition);
     float3 incomingDirection = normalize(lightDirection);
     float phase = HenyeyGreenstein(dot(incomingDirection, viewDirection), anisotropy);
-    float shadow = ComputeShadow(worldPosition);
+    float shadow = debugDisableShadows != 0 ? 1.0f : ComputeShadow(worldPosition);
     float3 inScattering = medium.rgb * lightColor * lightIntensity * phase * shadow;
 
     lightingVolume[dispatchThreadID] = float4(inScattering, 0.0f);
