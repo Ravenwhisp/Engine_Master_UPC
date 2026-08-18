@@ -248,6 +248,30 @@ void SceneConfig::drawVolumetricFogSettings()
         fog.sanitize();
 
         ImGui::Separator();
+        ImGui::Text("Animation");
+
+        ImGui::Checkbox("Animate Density###VolumetricFogAnimateDensity", &fog.animateDensity);
+
+        if (fog.animateDensity)
+        {
+            ImGui::DragFloat("Noise Scale###VolumetricFogNoiseScale", &fog.noiseScale, 0.001f, 0.001f, 1.0f);
+            ImGui::SliderFloat("Noise Strength###VolumetricFogNoiseStrength", &fog.noiseStrength, 0.0f, 1.0f);
+
+            float windDirection[3] = { fog.windDirectionX, fog.windDirectionY, fog.windDirectionZ };
+
+            if (ImGui::DragFloat3("Wind Direction###VolumetricFogWindDirection", windDirection, 0.01f))
+            {
+                fog.windDirectionX = windDirection[0];
+                fog.windDirectionY = windDirection[1];
+                fog.windDirectionZ = windDirection[2];
+            }
+
+            ImGui::DragFloat("Wind Speed###VolumetricFogWindSpeed", &fog.windSpeed, 0.01f, 0.0f, 100.0f);
+        }
+
+        fog.sanitize();
+
+        ImGui::Separator();
         ImGui::Text("Debug");
 
         static const char* DEBUG_VIEW_NAMES[] = { "Final", "Medium / Extinction Slice", "Lighting Slice", "Lighting Slice - No Shadows", "Accumulated Scattering", "Transmittance" };
