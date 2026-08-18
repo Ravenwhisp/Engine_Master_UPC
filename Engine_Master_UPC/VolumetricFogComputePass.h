@@ -72,6 +72,9 @@ private:
     D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
     D3D12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowMapSRV{};
 
+    float m_animationTime = 0.0f;
+    uint32_t m_lastAnimationFrame = 0xFFFFFFFFu;
+
     bool m_hasShadowData = false;
     bool m_enabled = false;
 };

@@ -5,6 +5,7 @@
 #include "ModuleResources.h"
 #include "ModuleScene.h"
 #include "ModuleDescriptors.h"
+#include "ModuleTime.h"
 
 #include "RenderContext.h"
 #include "Scene.h"
@@ -96,9 +97,33 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_integrationConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_integrationConstants.gridDepth = VolumetricFog::GRID_DEPTH;
 
+    if (settings.animateDensity)
+    {
+        const uint32_t frame = app->getModuleTime()->frameCount();
+
+        if (frame != m_lastAnimationFrame)
+        {
+            m_animationTime += std::min(app->getModuleTime()->unscaledDeltaTime(), 0.05f);
+            m_lastAnimationFrame = frame;
+        }
+    }
+
+    m_mediumConstants.inverseView = m_gridConstants.inverseView;
+    m_mediumConstants.projectionScale = m_gridConstants.projectionScale;
+    m_mediumConstants.nearDistance = m_gridConstants.nearDistance;
+    m_mediumConstants.maxDistance = m_gridConstants.maxDistance;
+
     m_mediumConstants.density = settings.density;
     m_mediumConstants.scatteringCoefficient = settings.scatteringCoefficient;
     m_mediumConstants.extinctionCoefficient = settings.extinctionCoefficient;
+    m_mediumConstants.noiseScale = settings.noiseScale;
+
+    m_mediumConstants.noiseStrength = settings.noiseStrength;
+    m_mediumConstants.animationTime = m_animationTime;
+    m_mediumConstants.windSpeed = settings.windSpeed;
+    m_mediumConstants.animateDensity = settings.animateDensity ? 1u : 0u;
+
+    m_mediumConstants.windDirection = Vector3(settings.windDirectionX, settings.windDirectionY, settings.windDirectionZ);
     m_mediumConstants.gridWidth = VolumetricFog::GRID_WIDTH;
     m_mediumConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_mediumConstants.gridDepth = VolumetricFog::GRID_DEPTH;

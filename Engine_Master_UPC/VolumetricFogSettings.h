@@ -35,6 +35,14 @@ struct VolumetricFogSettings
     // Maximum world-space distance covered by the volumetric volume.
     float maxDistance = 100.0f;
 
+    bool animateDensity = false;
+    float noiseScale = 0.05f;
+    float noiseStrength = 0.5f;
+    float windDirectionX = 1.0f;
+    float windDirectionY = 0.0f;
+    float windDirectionZ = 0.0f;
+    float windSpeed = 0.25f;
+
     void sanitize()
     {
         density = (std::max)(0.0f, density);
@@ -43,6 +51,9 @@ struct VolumetricFogSettings
         anisotropy = std::clamp(anisotropy, -0.99f, 0.99f);
         maxDistance = (std::max)(0.1f, maxDistance);
         debugSlice = std::clamp(debugSlice, 0.0f, 1.0f);
+        noiseScale = std::max(noiseScale, 0.0001f);
+        noiseStrength = std::clamp(noiseStrength, 0.0f, 1.0f);
+        windSpeed = std::max(windSpeed, 0.0f);
         if (static_cast<uint32_t>(debugView) > static_cast<uint32_t>(VolumetricFogDebugView::Transmittance)) debugView = VolumetricFogDebugView::Final;
     }
 
@@ -54,6 +65,13 @@ struct VolumetricFogSettings
         archive.serialize(extinctionCoefficient, "ExtinctionCoefficient");
         archive.serialize(anisotropy, "Anisotropy");
         archive.serialize(maxDistance, "MaxDistance");
+        archive.serialize(animateDensity, "AnimateDensity");
+        archive.serialize(noiseScale, "NoiseScale");
+        archive.serialize(noiseStrength, "NoiseStrength");
+        archive.serialize(windDirectionX, "WindDirectionX");
+        archive.serialize(windDirectionY, "WindDirectionY");
+        archive.serialize(windDirectionZ, "WindDirectionZ");
+        archive.serialize(windSpeed, "WindSpeed");
 
         uint32_t debugViewValue = static_cast<uint32_t>(debugView);
         archive.serialize(debugViewValue, "DebugView");

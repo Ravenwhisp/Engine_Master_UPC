@@ -31,14 +31,28 @@ namespace VolumetricFog
 
     struct MediumConstants
     {
+        Matrix inverseView = Matrix::Identity;
+
+        Vector2 projectionScale = Vector2::One;
+        float nearDistance = 0.1f;
+        float maxDistance = 100.0f;
+
         float density = 0.0f;
         float scatteringCoefficient = 0.0f;
         float extinctionCoefficient = 0.0f;
-        float padding0 = 0.0f;
+        float noiseScale = 0.05f;
 
+        float noiseStrength = 0.5f;
+        float animationTime = 0.0f;
+        float windSpeed = 0.25f;
+        uint32_t animateDensity = 0;
+
+        Vector3 windDirection = Vector3::Right;
         uint32_t gridWidth = GRID_WIDTH;
+
         uint32_t gridHeight = GRID_HEIGHT;
         uint32_t gridDepth = GRID_DEPTH;
+        uint32_t padding0 = 0;
         uint32_t padding1 = 0;
     };
 
