@@ -15,6 +15,7 @@
 #include "LightComponent.h"
 #include "Lights.h"
 #include "Transform.h"
+#include "ShadowTypes.h"
 
 
 #include "PlatformHelpers.h"
@@ -47,6 +48,11 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 {
     m_enabled = false;
     m_gridConstants = {};
+    m_mediumConstants = {};
+    m_lightingConstants = {};
+    m_shadowCBAddress = 0;
+    m_cascadeShadowMapSRV = {};
+    m_hasShadowData = false;
 
     Scene* scene = app->getModuleScene()->getScene();
     if (scene == nullptr) return;
@@ -54,7 +60,32 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     const VolumetricFogSettings& settings = scene->getVolumetricFogSettings();
     if (!settings.enabled) return;
 
-    m_mediumConstants = {};
+    if (ctx.shadowData != nullptr && ctx.shadowData->shadowCBAddress != 0 && ctx.shadowData->cascadeShadowMapSRV.ptr != 0)
+    {
+        m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
+        m_cascadeShadowMapSRV = ctx.shadowData->cascadeShadowMapSRV;
+        m_hasShadowData = true;
+    }
+
+    float nearDistance = 0.0f;
+    if (!getCameraNearDistance(ctx.projection, nearDistance)) return;
+
+    const float maxDistance = std::max(settings.maxDistance, nearDistance + VolumetricFog::MIN_DEPTH_RANGE);
+    const float projectionScaleX = ctx.projection._11;
+    const float projectionScaleY = ctx.projection._22;
+
+    if (std::abs(projectionScaleX) <= 0.000001f || std::abs(projectionScaleY) <= 0.000001f) return;
+
+    ensureVolumes();
+
+    m_gridConstants.inverseView = ctx.view.Invert().Transpose();
+    m_gridConstants.projectionScale = Vector2(projectionScaleX, projectionScaleY);
+    m_gridConstants.nearDistance = nearDistance;
+    m_gridConstants.maxDistance = maxDistance;
+    m_gridConstants.gridWidth = VolumetricFog::GRID_WIDTH;
+    m_gridConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
+    m_gridConstants.gridDepth = VolumetricFog::GRID_DEPTH;
+
     m_mediumConstants.density = settings.density;
     m_mediumConstants.scatteringCoefficient = settings.scatteringCoefficient;
     m_mediumConstants.extinctionCoefficient = settings.extinctionCoefficient;
@@ -62,7 +93,6 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_mediumConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_mediumConstants.gridDepth = VolumetricFog::GRID_DEPTH;
 
-    m_lightingConstants = {};
     m_lightingConstants.inverseView = m_gridConstants.inverseView;
     m_lightingConstants.projectionScale = m_gridConstants.projectionScale;
     m_lightingConstants.nearDistance = m_gridConstants.nearDistance;
@@ -89,25 +119,6 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
         m_lightingConstants.hasDirectionalLight = 1;
     }
 
-    float nearDistance = 0.0f;
-    if (!getCameraNearDistance(ctx.projection, nearDistance)) return;
-
-    const float maxDistance = std::max(settings.maxDistance, nearDistance + VolumetricFog::MIN_DEPTH_RANGE);
-    const float projectionScaleX = ctx.projection._11;
-    const float projectionScaleY = ctx.projection._22;
-
-    if (std::abs(projectionScaleX) <= 0.000001f || std::abs(projectionScaleY) <= 0.000001f) return;
-
-    ensureVolumes();
-
-    m_gridConstants.inverseView = ctx.view.Invert().Transpose();
-    m_gridConstants.projectionScale = Vector2(projectionScaleX, projectionScaleY);
-    m_gridConstants.nearDistance = nearDistance;
-    m_gridConstants.maxDistance = maxDistance;
-    m_gridConstants.gridWidth = VolumetricFog::GRID_WIDTH;
-    m_gridConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
-    m_gridConstants.gridDepth = VolumetricFog::GRID_DEPTH;
-
     m_enabled = m_mediumVolume != nullptr && m_lightingVolume != nullptr && m_integratedVolume != nullptr;
 }
 
@@ -115,11 +126,15 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     if (commandList == nullptr || !m_enabled || m_mediumVolume == nullptr || m_lightingVolume == nullptr || m_mediumPipelineState == nullptr || m_mediumRootSignature == nullptr || m_lightingPipelineState == nullptr || m_lightingRootSignature == nullptr) return;
 
-    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap() };
+    ID3D12DescriptorHeap* descriptorHeaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), 
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     transitionVolume(commandList, m_mediumVolume.get(), m_mediumVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+    if (!m_hasShadowData) return;
 
     BEGIN_EVENT(commandList, "VolumetricFog::InjectMedium");
 
@@ -145,6 +160,10 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetComputeRoot32BitConstants(0, sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), &m_lightingConstants, 0);
     commandList->SetComputeRootDescriptorTable(1, m_mediumVolume->getSRV().gpu);
     commandList->SetComputeRootDescriptorTable(2, m_lightingVolume->getUAV().gpu);
+
+    commandList->SetComputeRootConstantBufferView(3, m_shadowCBAddress);
+    commandList->SetComputeRootDescriptorTable(4, m_cascadeShadowMapSRV);
+    commandList->SetComputeRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     const uint32_t lightingGroupsX = (VolumetricFog::GRID_WIDTH + VolumetricFog::LIGHTING_GROUP_SIZE_X - 1) / VolumetricFog::LIGHTING_GROUP_SIZE_X;
     const uint32_t lightingGroupsY = (VolumetricFog::GRID_HEIGHT + VolumetricFog::LIGHTING_GROUP_SIZE_Y - 1) / VolumetricFog::LIGHTING_GROUP_SIZE_Y;
@@ -188,15 +207,19 @@ void VolumetricFogComputePass::createMediumPipelineState()
 
 void VolumetricFogComputePass::createLightingRootSignature()
 {
-    CD3DX12_DESCRIPTOR_RANGE srvRange;
-    CD3DX12_DESCRIPTOR_RANGE uavRange;
-    srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-    uavRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
+    CD3DX12_DESCRIPTOR_RANGE mediumRange, lightingRange, shadowRange, samplerRange;
+    mediumRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    lightingRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
+    shadowRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
+    samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
     rootParameters[0].InitAsConstants(sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[1].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[2].InitAsDescriptorTable(1, &uavRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[1].InitAsDescriptorTable(1, &mediumRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[2].InitAsDescriptorTable(1, &lightingRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[4].InitAsDescriptorTable(1, &shadowRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[5].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_ALL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
