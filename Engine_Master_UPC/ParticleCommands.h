@@ -31,14 +31,14 @@ struct ParticleEmitterCommand
     EmitterRender::BlendMode blendMode = EmitterRender::BlendMode::ALPHA;
 };
 
-struct ShaderParticleData { // WARNING: align to 16 bytes! (add padding when required; if something doesn't fit in the alignment space, you will have to add it) <- XMFLOAT is probably unnecessary
+struct ShaderParticleData { // for Structured buffet, so 16 bytes alignment not necessary <- XMFLOAT is probably unnecessary
     
     XMFLOAT4X4 worldPosition;
     XMFLOAT4 colorAndAlpha;
     XMFLOAT2 sheetOffset;
 };
 
-struct ShaderEmissorData {
+struct ShaderEmissorData { // passed in the root signature => 16 bytes alignment necessary
 
 	Vector3 hdrColorAndIntensity;
 	float padding; // to align to 16 bytes
@@ -46,7 +46,7 @@ struct ShaderEmissorData {
 	float padding2[2]; // to align to 16 bytes
 };
 
-struct ShaderAllEmissorsData {
+struct ShaderAllEmissorsData { // doesn't need to be aligned, because goes to ring buffer which is aligned to 256 bytes, and the padding (at the end) is done in the ring buffer allocation
     XMFLOAT4X4 viewProjection;
     Vector2 depthRange;
 };
