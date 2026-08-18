@@ -62,5 +62,9 @@ private:
     D3D12_RESOURCE_STATES m_lightingVolumeState = D3D12_RESOURCE_STATE_COMMON;
     D3D12_RESOURCE_STATES m_integratedVolumeState = D3D12_RESOURCE_STATE_COMMON;
 
+    D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowMapSRV{};
+
+    bool m_hasShadowData = false;
     bool m_enabled = false;
 };
