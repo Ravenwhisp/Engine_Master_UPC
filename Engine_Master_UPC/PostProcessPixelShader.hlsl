@@ -223,6 +223,12 @@ float4 main(float2 uv : TEXCOORD) : SV_TARGET
     if (isBackground)
     {
         outColor = saturate(sampleScene(suv));
+
+        if (enableBloom != 0)
+        {
+            float3 bloom = min(bloomTexture.Sample(bilinearClamp, suv).rgb, 65000.0);
+            outColor = saturate(outColor + bloom * bloomIntensity);
+        }
     }
     else
     {
