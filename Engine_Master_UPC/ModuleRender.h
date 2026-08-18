@@ -121,7 +121,7 @@ public:
     void markDebugDrawCacheDirty();
 
 private:
-    void initViewportGBuffers(RenderSurface& surface, float width, float height);
+    void initSceneRenderTargets(RenderSurface& surface, float width, float height);
 
     // Surface helpers
     void renderScene(ID3D12GraphicsCommandList4* commandList,const RenderCamera& camera,RenderSurface& outputSurface,bool renderDebug,RenderViewType viewType);
