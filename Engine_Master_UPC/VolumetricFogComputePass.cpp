@@ -113,6 +113,8 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_lightingConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_lightingConstants.gridDepth = VolumetricFog::GRID_DEPTH;
 
+    m_lightingConstants.debugDisableShadows = settings.debugView == VolumetricFogDebugView::LightingNoShadows ? 1u : 0u;
+
     const LightComponent* directionalLight = findVolumetricDirectionalLight();
 
     if (directionalLight != nullptr)
@@ -204,6 +206,8 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
     END_EVENT(commandList);
 
+    transitionVolume(commandList, m_mediumVolume.get(), m_mediumVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     transitionVolume(commandList, m_integratedVolume.get(), m_integratedVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 }

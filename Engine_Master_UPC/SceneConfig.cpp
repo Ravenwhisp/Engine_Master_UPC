@@ -248,6 +248,23 @@ void SceneConfig::drawVolumetricFogSettings()
         fog.sanitize();
 
         ImGui::Separator();
+        ImGui::Text("Debug");
+
+        static const char* DEBUG_VIEW_NAMES[] = { "Final", "Medium / Extinction Slice", "Lighting Slice", "Lighting Slice - No Shadows", "Accumulated Scattering", "Transmittance" };
+
+        int debugView = static_cast<int>(fog.debugView);
+
+        if (ImGui::Combo("Debug View###VolumetricFogDebugView", &debugView, DEBUG_VIEW_NAMES, IM_ARRAYSIZE(DEBUG_VIEW_NAMES)))
+        {
+            fog.debugView = static_cast<VolumetricFogDebugView>(debugView);
+        }
+
+        if (fog.debugView == VolumetricFogDebugView::Medium || fog.debugView == VolumetricFogDebugView::Lighting || fog.debugView == VolumetricFogDebugView::LightingNoShadows)
+        {
+            ImGui::SliderFloat("Debug Slice###VolumetricFogDebugSlice", &fog.debugSlice, 0.0f, 1.0f);
+        }
+
+        ImGui::Separator();
 
         if (ImGui::Button("Reset Defaults###VolFogResetDefaults"))
         {

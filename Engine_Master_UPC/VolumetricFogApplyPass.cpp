@@ -8,6 +8,9 @@
 
 #include "Application.h"
 #include "ModuleDescriptors.h"
+#include "ModuleScene.h"
+#include "Scene.h"
+#include "VolumetricFogSettings.h"
 
 #include <d3dx12.h>
 #include <d3dcompiler.h>
@@ -21,16 +24,20 @@ VolumetricFogApplyPass::VolumetricFogApplyPass(ComPtr<ID3D12Device4> device, Vol
 
 void VolumetricFogApplyPass::createRootSignature()
 {
-    CD3DX12_DESCRIPTOR_RANGE integratedRange, depthRange, samplerRange;
-    integratedRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-    depthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
+    CD3DX12_DESCRIPTOR_RANGE mediumRange, lightingRange, integratedRange, depthRange, samplerRange;
+    mediumRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    lightingRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
+    integratedRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);
+    depthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
     rootParameters[0].InitAsConstants(sizeof(ApplyConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[1].InitAsDescriptorTable(1, &integratedRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[2].InitAsDescriptorTable(1, &depthRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[3].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[1].InitAsDescriptorTable(1, &mediumRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[2].InitAsDescriptorTable(1, &lightingRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[3].InitAsDescriptorTable(1, &integratedRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[4].InitAsDescriptorTable(1, &depthRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[5].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -86,6 +93,8 @@ void VolumetricFogApplyPass::prepare(const RenderContext& ctx)
 {
     m_enabled = false;
     m_renderSurface = &ctx.renderSurface;
+    m_mediumVolume = nullptr;
+    m_lightingVolume = nullptr;
     m_integratedVolume = nullptr;
     m_depthTexture = nullptr;
     m_sceneHDR = nullptr;
@@ -95,19 +104,27 @@ void VolumetricFogApplyPass::prepare(const RenderContext& ctx)
 
     if (m_computePass == nullptr || !m_computePass->isEnabled()) return;
 
+    Scene* scene = app->getModuleScene()->getScene();
+    if (scene == nullptr) return;
+
+    m_mediumVolume = m_computePass->getMediumVolume();
+    m_lightingVolume = m_computePass->getLightingVolume();
     m_integratedVolume = m_computePass->getIntegratedVolume();
     m_depthTexture = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL).get();
     m_sceneHDR = m_renderSurface->getTexture(RenderSurface::SCENE_HDR).get();
 
-    if (m_integratedVolume == nullptr || m_depthTexture == nullptr || m_sceneHDR == nullptr) return;
+    if (m_mediumVolume == nullptr || m_lightingVolume == nullptr || m_integratedVolume == nullptr || m_depthTexture == nullptr || m_sceneHDR == nullptr) return;
 
     const VolumetricFog::GridConstants& grid = m_computePass->getGridConstants();
+    const VolumetricFogSettings& settings = scene->getVolumetricFogSettings();
 
     m_constants.nearDistance = grid.nearDistance;
     m_constants.maxDistance = grid.maxDistance;
     m_constants.projectionA = ctx.projection._33;
     m_constants.projectionB = ctx.projection._43;
     m_constants.gridDepth = grid.gridDepth;
+    m_constants.debugView = static_cast<uint32_t>(settings.debugView);
+    m_constants.debugSlice = settings.debugSlice;
 
     m_enabled = true;
 }
@@ -133,9 +150,11 @@ void VolumetricFogApplyPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     commandList->SetGraphicsRoot32BitConstants(0, sizeof(ApplyConstants) / sizeof(uint32_t), &m_constants, 0);
-    commandList->SetGraphicsRootDescriptorTable(1, m_integratedVolume->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(2, m_depthTexture->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(3, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
+    commandList->SetGraphicsRootDescriptorTable(1, m_mediumVolume->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(2, m_lightingVolume->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(3, m_integratedVolume->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(4, m_depthTexture->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->DrawInstanced(3, 1, 0, 0);

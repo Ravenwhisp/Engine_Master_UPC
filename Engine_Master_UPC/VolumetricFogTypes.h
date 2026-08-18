@@ -66,7 +66,7 @@ namespace VolumetricFog
         uint32_t gridWidth = GRID_WIDTH;
         uint32_t gridHeight = GRID_HEIGHT;
         uint32_t gridDepth = GRID_DEPTH;
-        uint32_t padding = 0;
+        uint32_t debugDisableShadows = 0;
     };
 
     static constexpr uint32_t INTEGRATION_GROUP_SIZE_X = 8;

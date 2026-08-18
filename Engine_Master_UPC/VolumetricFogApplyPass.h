@@ -28,9 +28,9 @@ private:
         float projectionB = 0.0f;
 
         uint32_t gridDepth = 64;
-        uint32_t padding0 = 0;
-        uint32_t padding1 = 0;
-        uint32_t padding2 = 0;
+        uint32_t debugView = 0;
+        float debugSlice = 0.5f;
+        uint32_t padding = 0;
     };
 
     void createRootSignature();
@@ -45,6 +45,8 @@ private:
     Texture* m_integratedVolume = nullptr;
     Texture* m_depthTexture = nullptr;
     Texture* m_sceneHDR = nullptr;
+    Texture* m_mediumVolume = nullptr;
+    Texture* m_lightingVolume = nullptr;
 
     ApplyConstants m_constants{};
     D3D12_VIEWPORT m_viewport{};

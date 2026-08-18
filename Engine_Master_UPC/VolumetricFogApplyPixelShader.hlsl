@@ -6,14 +6,23 @@ cbuffer ApplyConstants : register(b0)
     float projectionB;
 
     uint gridDepth;
-    uint padding0;
-    uint padding1;
-    uint padding2;
+    uint debugView;
+    float debugSlice;
+    uint padding;
 };
 
-Texture3D<float4> integratedVolume : register(t0);
-Texture2D<float> depthTexture : register(t1);
+Texture3D<float4> mediumVolume : register(t0);
+Texture3D<float4> lightingVolume : register(t1);
+Texture3D<float4> integratedVolume : register(t2);
+Texture2D<float> depthTexture : register(t3);
 SamplerState linearClampSampler : register(s0);
+
+static const uint DEBUG_FINAL = 0;
+static const uint DEBUG_MEDIUM = 1;
+static const uint DEBUG_LIGHTING = 2;
+static const uint DEBUG_LIGHTING_NO_SHADOWS = 3;
+static const uint DEBUG_SCATTERING = 4;
+static const uint DEBUG_TRANSMITTANCE = 5;
 
 float LinearizeViewDepth(float deviceDepth)
 {
@@ -31,7 +40,6 @@ float GetNormalizedVolumeDepth(float viewDepth)
     float safeNear = max(nearDistance, 0.001f);
     float safeFar = max(maxDistance, safeNear + 0.001f);
     float depth = clamp(viewDepth, safeNear, safeFar);
-
     return saturate(log(depth / safeNear) / log(safeFar / safeNear));
 }
 
@@ -50,12 +58,41 @@ float4 SampleIntegratedVolume(float2 uv, float normalizedDepth)
     return integratedVolume.SampleLevel(linearClampSampler, float3(uv, saturate(volumeZ)), 0.0f);
 }
 
+float GetDebugSliceZ()
+{
+    float slice = round(saturate(debugSlice) * float(gridDepth - 1));
+    return (slice + 0.5f) / float(gridDepth);
+}
+
+float3 DebugExposure(float3 value, float scale)
+{
+    return saturate(1.0f - exp(-max(value, 0.0f) * scale));
+}
+
 float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
 {
+    if (debugView == DEBUG_MEDIUM)
+    {
+        float4 medium = mediumVolume.SampleLevel(linearClampSampler, float3(coord, GetDebugSliceZ()), 0.0f);
+        float extinction = 1.0f - exp(-max(medium.a, 0.0f) * 50.0f);
+        return float4(extinction.xxx, 0.0f);
+    }
+
+    if (debugView == DEBUG_LIGHTING || debugView == DEBUG_LIGHTING_NO_SHADOWS)
+    {
+        float3 lighting = lightingVolume.SampleLevel(linearClampSampler, float3(coord, GetDebugSliceZ()), 0.0f).rgb;
+        return float4(DebugExposure(lighting, 20.0f), 0.0f);
+    }
+
     float deviceDepth = depthTexture.Load(int3(int2(position.xy), 0));
     float viewDepth = LinearizeViewDepth(deviceDepth);
     float normalizedDepth = GetNormalizedVolumeDepth(viewDepth);
     float4 integrated = SampleIntegratedVolume(coord, normalizedDepth);
+
+    if (debugView == DEBUG_SCATTERING)
+        return float4(DebugExposure(integrated.rgb, 1.0f), 0.0f);
+    if (debugView == DEBUG_TRANSMITTANCE)
+        return float4(integrated.aaa, 0.0f);
 
     return float4(integrated.rgb, saturate(integrated.a));
 }
