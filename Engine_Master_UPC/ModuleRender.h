@@ -125,6 +125,8 @@ public:
     // DebugDraw helper
     void markDebugDrawCacheDirty();
 
+    void resizeGameRenderTargets();
+
 private:
     void initSceneRenderTargets(RenderSurface& surface, float width, float height);
 

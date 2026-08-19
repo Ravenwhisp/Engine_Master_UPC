@@ -605,5 +605,11 @@ void ModuleRender::markDebugDrawCacheDirty()
     }
 }
 
+void ModuleRender::resizeGameRenderTargets()
+{
+    RenderSurface& gameSurface = app->getModuleD3D12()->getSwapChain()->getRenderSurface();
+    initSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
+}
+
 int ModuleRender::getTrianglesCount() const { return m_geometryPass->getTriangleCount(); }
 int ModuleRender::getMeshCount() const { return m_geometryPass->getMeshCount(); }
