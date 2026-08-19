@@ -245,9 +245,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             app->setPaused(false);
             app->getModuleD3D12()->getSwapChain()->resize();
 
-#ifdef GAME_RELEASE
-            app->getModuleRender()->resizeGameRenderTargets();
-#endif
+
         }
         break;
     case WM_SYSKEYDOWN:
