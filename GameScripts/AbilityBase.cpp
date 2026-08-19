@@ -261,70 +261,15 @@ void AbilityBase::beginAttackPresentation()
 
 Vector3 AbilityBase::computeCameraRelativeAimDirection(float deadzoneSq) const //no me gustan transforms aqui
 {
-    const Vector2 lookAxis = Input::getLookAxis(getPlayerIndex());
-    const float magSq = lookAxis.x * lookAxis.x + lookAxis.y * lookAxis.y;
-
-    if (magSq < deadzoneSq)
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+    if (ownerTransform == nullptr)
     {
         return Vector3::Zero;
     }
 
-    GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
-    if (cameraObject == nullptr)
-    {
-        Vector3 fallbackDirection(lookAxis.x, 0.0f, lookAxis.y);
+    const Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 
-        if (fallbackDirection.LengthSquared() > 0.0001f)
-        {
-            fallbackDirection.Normalize();
-        }
-
-        return fallbackDirection;
-    }
-
-    Transform* cameraTransform = GameObjectAPI::getTransform(cameraObject);
-    if (cameraTransform == nullptr)
-    {
-        Vector3 fallbackDirection(lookAxis.x, 0.0f, lookAxis.y);
-
-        if (fallbackDirection.LengthSquared() > 0.0001f)
-        {
-            fallbackDirection.Normalize();
-        }
-
-        return fallbackDirection;
-    }
-
-    Vector3 cameraForward = TransformAPI::getForward(cameraTransform);
-    Vector3 cameraRight = TransformAPI::getRight(cameraTransform);
-
-    cameraForward.y = 0.0f;
-    cameraRight.y = 0.0f;
-
-    if (cameraForward.LengthSquared() <= 0.0001f || cameraRight.LengthSquared() <= 0.0001f)
-    {
-        Vector3 fallbackDirection(lookAxis.x, 0.0f, lookAxis.y);
-
-        if (fallbackDirection.LengthSquared() > 0.0001f)
-        {
-            fallbackDirection.Normalize();
-        }
-
-        return fallbackDirection;
-    }
-
-    cameraForward.Normalize();
-    cameraRight.Normalize();
-
-    Vector3 aimDirection = -cameraRight * lookAxis.x - cameraForward * lookAxis.y;
-
-    if (aimDirection.LengthSquared() <= 0.0001f)
-    {
-        return Vector3::Zero;
-    }
-
-    aimDirection.Normalize();
-    return aimDirection;
+    return Input::getAimDirection(ownerPosition, getPlayerIndex(), deadzoneSq);
 }
 
 Vector3 AbilityBase::getFallbackFacingDirection() const

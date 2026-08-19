@@ -352,6 +352,7 @@
     <ClInclude Include="LyrielUI.h" />
     <ClInclude Include="MeleeEnemyController.h" />
     <ClInclude Include="MenuSound.h" />
+    <ClInclude Include="MouseAimTest.h" />
     <ClInclude Include="MoveObjectAlongPathAction.h" />
     <ClInclude Include="MoveObjectToTransformAction.h" />
     <ClInclude Include="MusicManager.h" />
@@ -387,6 +388,7 @@
     <ClInclude Include="RangedEnemyController.h" />
     <ClInclude Include="ReaperGauge.h" />
     <ClInclude Include="ShadowExecution.h" />
+    <ClInclude Include="ShootTest.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="SkeletonAttackConfig.h" />
     <ClInclude Include="SkeletonAttackDebugDraw.h" />
@@ -517,6 +519,7 @@
     <ClCompile Include="LyrielUI.cpp" />
     <ClCompile Include="MeleeEnemyController.cpp" />
     <ClCompile Include="MenuSound.cpp" />
+    <ClCompile Include="MouseAimTest.cpp" />
     <ClCompile Include="MoveObjectAlongPathAction.cpp" />
     <ClCompile Include="MoveObjectToTransformAction.cpp" />
     <ClCompile Include="MusicManager.cpp" />
@@ -557,6 +560,7 @@
     <ClCompile Include="RangedEnemyController.cpp" />
     <ClCompile Include="ReaperGauge.cpp" />
     <ClCompile Include="ShadowExecution.cpp" />
+    <ClCompile Include="ShootTest.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
