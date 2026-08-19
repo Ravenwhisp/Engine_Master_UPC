@@ -110,6 +110,11 @@ public:
     GeometryPass* getGeometryPass() { return m_geometryPass; }
     SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
 
+    // (Re)creates the GBuffer/SSAO attachments for `surface` and rebuilds its
+    // contiguous SRV descriptor table. Used for the swap-chain surface in
+    // GAME_RELEASE (on init and on window resize).
+    void createSceneRenderTargets(RenderSurface& surface, float width, float height);
+
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
     //D3D12_GPU_VIRTUAL_ADDRESS allocateInStructuredRingBuffer(const void* data, size_t size);
 
@@ -133,7 +138,7 @@ private:
 
     void renderPlayScene(ID3D12GraphicsCommandList4* commandList,RenderSurface& outputSurface);
 
-    // GAME_RELEASE path — render directly to the swap-chain back-buffer
+    // GAME_RELEASE path ï¿½ render directly to the swap-chain back-buffer
     void renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList,RenderSurface& outputSurface);
 
     // Camera helpers

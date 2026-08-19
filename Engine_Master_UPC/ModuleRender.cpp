@@ -118,7 +118,7 @@ bool ModuleRender::init()
         //initSceneRenderTargets(d3d12->getSwapChain()->getRenderSurface(), 1920, 1080);
 
         RenderSurface& gameSurface = d3d12->getSwapChain()->getRenderSurface();
-        initSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
+        createSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
     #endif
 
 
@@ -308,6 +308,12 @@ void ModuleRender::unregisterViewport(RenderSurface* surface)
     {
         m_viewports.erase(it);
     }
+}
+
+void ModuleRender::createSceneRenderTargets(RenderSurface& surface, float width, float height)
+{
+    initSceneRenderTargets(surface, width, height);
+    surface.rebuildDescriptorTable();
 }
 
 void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, float height)
