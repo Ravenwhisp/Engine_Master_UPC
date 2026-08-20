@@ -37,7 +37,7 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
 
 
     rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL); // b0 <- view, projection, depth linearization
-    rootParameters[1].InitAsConstants(sizeof(Vector2) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b1 <- emitter u, v scaling (for tile animation)
+    rootParameters[1].InitAsConstants(sizeof(ShaderEmissorData) / sizeof(UINT32), 1, 0, D3D12_SHADER_VISIBILITY_ALL); // b1 <- emitter u, v scaling (for tile animation) + HDR color (for post-processing)
     
     rootParameters[2].InitAsShaderResourceView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // t1 <- particle data (could we join it with the srvRange?)
     rootParameters[3].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); // t0
@@ -96,6 +96,13 @@ ParticlesPass::ParticlesPass(ComPtr<ID3D12Device4> device)
 
     //HRESULT res = m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDescAdditive = psoDesc;
+    psoDescAdditive.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+    psoDescAdditive.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
+    psoDescAdditive.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+    psoDescAdditive.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
+    DXCall(m_device->CreateGraphicsPipelineState(&psoDescAdditive, IID_PPV_ARGS(&m_pipelineStateAdditive)));
 
     /*
     const Vertex quadVertices[6] =
@@ -186,9 +193,9 @@ void ParticlesPass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 {
-    shaderAllEmissorsData cameraInfo = { buildImageVP().Transpose(), Vector2(m_depthLinearizeA, m_depthLinearizeB)};
+    ShaderAllEmissorsData cameraInfo = { buildImageVP().Transpose(), Vector2(m_depthLinearizeA, m_depthLinearizeB)};
 
-    commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&cameraInfo, sizeof(shaderAllEmissorsData)) );
+    commandList->SetGraphicsRootConstantBufferView(0, app->getModuleRender()->allocateInRingBuffer(&cameraInfo, sizeof(ShaderAllEmissorsData)) );
 
     //Matrix vp = buildImageVP().Transpose();
     //commandList->SetGraphicsRoot32BitConstants(0, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
@@ -212,7 +219,7 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
             continue;
         }
         const size_t size = command.particles.size();
-        shaderParticleData* particleData = new shaderParticleData[size];
+        ShaderParticleData* particleData = new ShaderParticleData[size];
 
         const std::vector<ParticleSystemComponent*>& particleSystemComponents = app->getModuleScene()->getParticleSystemComponents();
         for (unsigned int i = 0; i < size; ++i)
@@ -227,13 +234,19 @@ void ParticlesPass::renderImages(ID3D12GraphicsCommandList4* commandList)
 
         commandList->SetGraphicsRootShaderResourceView(
             2,
-            app->getModuleRender()->allocateInRingBuffer(particleData, size * sizeof(shaderParticleData) )
+            app->getModuleRender()->allocateInRingBuffer(particleData, size * sizeof(ShaderParticleData) )
         );
 
         delete[] particleData;
 
         commandList->SetGraphicsRootDescriptorTable(3, srv.gpu);
-        commandList->SetGraphicsRoot32BitConstants(1, sizeof(XMFLOAT2) / sizeof(UINT32), &command.uvScale, 0);
+
+        commandList->SetPipelineState(command.blendMode == EmitterRender::BlendMode::ADDITIVE ? m_pipelineStateAdditive.Get() : m_pipelineState.Get());
+
+		ShaderEmissorData emissorData;
+		emissorData.hdrColorAndIntensity = command.HDRColorAndIntensity;
+		emissorData.uvScale = command.uvScale;
+        commandList->SetGraphicsRoot32BitConstants(1, sizeof(ShaderEmissorData) / sizeof(UINT32), &emissorData, 0);
 
         commandList->DrawInstanced(6, command.particles.size(), 0, 0); // last is  first instanceID to consider; here we will take all of them, so 0
 
@@ -272,11 +285,11 @@ Matrix ParticlesPass::buildImageWorldMatrix(const ParticleCommand& command, Emit
 
     case EmitterRender::RenderMode::VERTICAL:
     {
-        // Extraer la posición de la cámara
+        // Extraer la posiciï¿½n de la cï¿½mara
         Matrix invView = view.Invert();
         Vector3 camPos = Vector3(invView._41, invView._42, invView._43);
 
-        // Dirección hacia la cámara (ignorando la altura para que sea cilíndrico)
+        // Direcciï¿½n hacia la cï¿½mara (ignorando la altura para que sea cilï¿½ndrico)
         Vector3 lookAt = command.position - camPos;
         lookAt.y = 0.0f;
 
