@@ -24,7 +24,7 @@ struct ModelData
 enum class RenderMode : UINT
 {
 	DEFAULT = 0,
-	PLAYER = 1,
+	TRANSP = 1,
 	COUNT = 2
 };
 

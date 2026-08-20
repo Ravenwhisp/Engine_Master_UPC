@@ -45,6 +45,7 @@
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
+#include "TransparentPass.h"
 
 #include "OptickProfiler.h"
 
@@ -76,16 +77,14 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
 
-    m_forwardPrepass = new ForwardPrepass(device);
-    m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
+    //m_forwardPrepass = new ForwardPrepass(device);
+    //m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
 
     m_geometryPass = new GeometryPass(device);
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
 
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
-
-    m_renderPasses.push_back(std::make_unique<PlayerPass>(device));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
@@ -99,6 +98,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
+
+    m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
 
     // Resolve the HDR scene into COMPOSITE (exposure, tone mapping, bloom, LUT,
     // outline, etc.) before the overlay passes draw on top.

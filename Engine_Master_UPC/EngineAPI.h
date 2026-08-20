@@ -35,6 +35,7 @@ class DamageHighlightComponent;
 class TrailComponent;
 struct AssetId;
 class DissolveComponent;
+class SpectralComponent;
 
 struct HapticEffectDefinition;
 
@@ -495,6 +496,12 @@ namespace ShadersAPI
     ENGINE_API void    setDissolveColor(DissolveComponent* component, Vector3 value);
     ENGINE_API float   getDissolveThikness(DissolveComponent* component);
     ENGINE_API void    setDissolveThikness(DissolveComponent* component, float value);
+
+    ENGINE_API SpectralComponent* getSpectralComponent(GameObject* gameObject);
+    ENGINE_API const SpectralComponent* getSpectralComponent(const GameObject* gameObject);
+
+    ENGINE_API Vector3 getSpectralColor(SpectralComponent* component);
+    ENGINE_API void    setSpectralColor(SpectralComponent* component, Vector3 value);
 }
 
 namespace PostProcessAPI
