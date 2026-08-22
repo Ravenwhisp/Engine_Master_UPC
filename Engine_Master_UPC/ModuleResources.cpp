@@ -293,35 +293,18 @@ RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 {
 	auto surface = new RenderSurface();
 
-	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
+	auto colorTex = std::shared_ptr<Texture>(createRenderTexture(width, height));
 	colorTex->setName(L"RenderSurface_Color");
 
-	auto hdrTex = std::shared_ptr<Texture>(app->getModuleResources()->createHDRRenderTexture(width, height));
+	auto hdrTex = std::shared_ptr<Texture>(createHDRRenderTexture(width, height));
 	hdrTex->setName(L"RenderSurface_SceneHDR");
 
-	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
+	auto depthTex = std::shared_ptr<Texture>(createDepthBuffer(width, height));
 	depthTex->setName(L"RenderSurface_Depth");
-
-	auto ssaoDepthTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAODepthBuffer(width, height));
-	ssaoDepthTex->setName(L"RenderSurface_SSAO_Depth");
-
-	auto ssaoNormalTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAONormalBuffer(width, height));
-	ssaoNormalTex->setName(L"RenderSurface_SSAO_Normal");
-
-	auto ssaoRawTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
-	ssaoRawTex->setName(L"RenderSurface_SSAO_Raw");
-
-	auto ssaoBlurTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
-	ssaoBlurTex->setName(L"RenderSurface_SSAO_Blur");
 
 	surface->attachTexture(RenderSurface::COMPOSITE, colorTex);
 	surface->attachTexture(RenderSurface::SCENE_HDR, hdrTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
-
-	surface->attachTexture(RenderSurface::SSAO_DEPTH, ssaoDepthTex);
-	surface->attachTexture(RenderSurface::SSAO_NORMAL, ssaoNormalTex);
-	surface->attachTexture(RenderSurface::SSAO_RAW, ssaoRawTex);
-	surface->attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTex);
 
 	return surface;
 }

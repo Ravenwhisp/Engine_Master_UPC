@@ -25,6 +25,16 @@ bool EmitterRender::drawUi()
                 parameterChanged = true;
             }
         }
+
+        {
+            const char* blendOptions[] = { "Alpha Blend", "Additive" };
+            int currentBlendIndex = static_cast<int>(m_blendMode);
+            if (ImGui::Combo("Blend Mode##Render", &currentBlendIndex, blendOptions, IM_ARRAYSIZE(blendOptions)))
+            {
+                m_blendMode = static_cast<BlendMode>(currentBlendIndex);
+                parameterChanged = true;
+            }
+        }
     }
 
     return parameterChanged;
@@ -51,4 +61,18 @@ void EmitterRender::serialize(IArchive& archive)
         });
 
     archive.serialize(m_layer, "RenderLayer");
+
+    archive.serializeStringEnum(m_blendMode, "BlendMode",
+        [](uint32_t v) -> const char* {
+            switch (static_cast<BlendMode>(v)) {
+            case BlendMode::ALPHA:    return "ALPHA";
+            case BlendMode::ADDITIVE: return "ADDITIVE";
+            default: return "ALPHA";
+            }
+        },
+        [](const char* s) -> uint32_t {
+            if (std::strcmp(s, "ALPHA") == 0)    return 0;
+            if (std::strcmp(s, "ADDITIVE") == 0) return 1;
+            return 0;
+        });
 }

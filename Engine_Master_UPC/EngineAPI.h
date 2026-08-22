@@ -35,6 +35,7 @@ class DamageHighlightComponent;
 class TrailComponent;
 struct AssetId;
 class DissolveComponent;
+class SpectralComponent;
 
 struct HapticEffectDefinition;
 
@@ -198,6 +199,8 @@ namespace Input
 
     ENGINE_API Vector2 getMoveAxis(int player = 0);
     ENGINE_API Vector2 getLookAxis(int player = 0);
+
+    ENGINE_API Vector3 getAimDirection(const Vector3& originWorldPos, int player = 0, float gamepadDeadzoneSq = 0.0225f);
 
     ENGINE_API bool isLeftStickPressed(int player = 0);
     ENGINE_API bool isRightStickPressed(int player = 0);
@@ -493,6 +496,12 @@ namespace ShadersAPI
     ENGINE_API void    setDissolveColor(DissolveComponent* component, Vector3 value);
     ENGINE_API float   getDissolveThikness(DissolveComponent* component);
     ENGINE_API void    setDissolveThikness(DissolveComponent* component, float value);
+
+    ENGINE_API SpectralComponent* getSpectralComponent(GameObject* gameObject);
+    ENGINE_API const SpectralComponent* getSpectralComponent(const GameObject* gameObject);
+
+    ENGINE_API Vector3 getSpectralColor(SpectralComponent* component);
+    ENGINE_API void    setSpectralColor(SpectralComponent* component, Vector3 value);
 }
 
 namespace PostProcessAPI

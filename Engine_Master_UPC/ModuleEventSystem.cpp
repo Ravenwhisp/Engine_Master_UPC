@@ -116,9 +116,9 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
 
     // Raw mouse position in screen pixels
     const Vector2 rawMouse = app->getModuleInput()->getMousePosition();
-    
+
     // Viewport top-left in screen pixels
-    
+
     const float winW = size.x;
     const float winH = size.y;
 
@@ -127,7 +127,7 @@ bool ModuleEventSystem::getViewportMousePos(Vector2& outPos) const
         return false;
     }
 
-    // Convert to viewport-local pixels — same space as Rect2D
+    // Convert to viewport-local pixels ï¿½ same space as Rect2D
     const float localX = rawMouse.x - winX;
     const float localY = rawMouse.y - winY;
 

@@ -46,6 +46,7 @@
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
+#include "TransparentPass.h"
 
 #include "OptickProfiler.h"
 
@@ -77,8 +78,8 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
 
-    m_forwardPrepass = new ForwardPrepass(device);
-    m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
+    //m_forwardPrepass = new ForwardPrepass(device);
+    //m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
 
     m_geometryPass = new GeometryPass(device);
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
@@ -87,8 +88,6 @@ bool ModuleRender::init()
 
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
-
-    m_renderPasses.push_back(std::make_unique<PlayerPass>(device));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
@@ -102,6 +101,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
+
+    m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
 
     // Resolve the HDR scene into COMPOSITE (exposure, tone mapping, bloom, LUT,
     // outline, etc.) before the overlay passes draw on top.
@@ -118,7 +119,10 @@ bool ModuleRender::init()
 
 
     #ifdef GAME_RELEASE
-        initViewportGBuffers(d3d12->getSwapChain()->getRenderSurface(), 1920, 1080);
+        //initSceneRenderTargets(d3d12->getSwapChain()->getRenderSurface(), 1920, 1080);
+
+        RenderSurface& gameSurface = d3d12->getSwapChain()->getRenderSurface();
+        createSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
     #endif
 
 
@@ -268,7 +272,7 @@ void ModuleRender::registerViewport(RenderSurface* surface, ViewportType type, f
     uint32_t w = static_cast<uint32_t>(width);
     uint32_t h = static_cast<uint32_t>(height);
 
-    initViewportGBuffers(*surface, w, h);
+    initSceneRenderTargets(*surface, w, h);
     surface->resize(w, h);
     app->getModuleD3D12()->getCommandQueue()->flush();
     m_viewports.push_back({ surface, type, width, height });
@@ -310,20 +314,38 @@ void ModuleRender::unregisterViewport(RenderSurface* surface)
     }
 }
 
-void ModuleRender::initViewportGBuffers(RenderSurface& surface, float width, float height)
+void ModuleRender::createSceneRenderTargets(RenderSurface& surface, float width, float height)
 {
-    ID3D12Device* device = app->getModuleD3D12()->getDevice();
-    DescriptorHeap& srvHeap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    initSceneRenderTargets(surface, width, height);
+    surface.rebuildDescriptorTable();
+}
 
+void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, float height)
+{
     std::wstring bufferNames[] = { L"difusse", L"MRA", L"normal", L"position", L"emissive" };
 
     for (UINT i = 0; i < GeometryPass::GBUFFER_COUNT; ++i)
     {
-        auto tex = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, GeometryPass::GBUFFER_FORMATS[i]));
-        //tex->setName(L"GBuffer_" + std::to_wstring(i));
-        tex->setName(L"GBuffer_" + bufferNames[i]);
-        surface.attachTexture(GeometryPass::kSlots[i], tex);
+        auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, GeometryPass::GBUFFER_FORMATS[i]));
+        texture->setName(L"GBuffer_" + bufferNames[i]);
+        surface.attachTexture(GeometryPass::kSlots[i], texture);
     }
+
+    auto ssaoDepthTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAODepthBuffer(width, height));
+    ssaoDepthTexture->setName(L"RenderSurface_SSAO_Depth");
+    surface.attachTexture(RenderSurface::SSAO_DEPTH, ssaoDepthTexture);
+
+    auto ssaoNormalTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAONormalBuffer(width, height));
+    ssaoNormalTexture->setName(L"RenderSurface_SSAO_Normal");
+    surface.attachTexture(RenderSurface::SSAO_NORMAL, ssaoNormalTexture);
+
+    auto ssaoRawTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+    ssaoRawTexture->setName(L"RenderSurface_SSAO_Raw");
+    surface.attachTexture(RenderSurface::SSAO_RAW, ssaoRawTexture);
+
+    auto ssaoBlurTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+    ssaoBlurTexture->setName(L"RenderSurface_SSAO_Blur");
+    surface.attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTexture);
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)
@@ -585,6 +607,12 @@ void ModuleRender::markDebugDrawCacheDirty()
     {
         m_debugDrawPass->markCacheDirty();
     }
+}
+
+void ModuleRender::resizeGameRenderTargets()
+{
+    RenderSurface& gameSurface = app->getModuleD3D12()->getSwapChain()->getRenderSurface();
+    initSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
 }
 
 int ModuleRender::getTrianglesCount() const { return m_geometryPass->getTriangleCount(); }
