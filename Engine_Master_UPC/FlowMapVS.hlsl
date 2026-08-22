@@ -27,6 +27,9 @@ cbuffer FlowMapData : register(b6)
     float flowStrength;
     uint flowSource;
     uint flowEnabled;
+    uint flowTechnique;
+    float flowPhase;
+    uint flowPaddingScalar;
     float2 flowPadding;
 };
 

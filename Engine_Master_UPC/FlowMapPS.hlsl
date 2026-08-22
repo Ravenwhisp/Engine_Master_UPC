@@ -22,6 +22,9 @@ cbuffer FlowMapData : register(b6)
     float flowStrength;
     uint flowSource;
     uint flowEnabled;
+    uint flowTechnique;
+    float flowPhase;
+    uint flowPaddingScalar;
     float2 flowPadding;
 };
 
@@ -42,17 +45,36 @@ struct PSOutput
     float4 emissive : SV_Target4;
 };
 
+float3 decodeNormal(float4 sampleValue, float normalScale)
+{
+    float3 tangentNormal = normalize(sampleValue.rgb * 2.0f - 1.0f);
+    // Older material assets store an unspecified normal strength as zero.
+    // Treat that value as the standard full-strength normal map.
+    tangentNormal.xy *= normalScale > 0.0f ? normalScale : 1.0f;
+    return normalize(tangentNormal);
+}
+
+float2 getFlowVector(float2 coord)
+{
+    if (flowSource == 1)
+        return flowTexture.Sample(linearWrapSampler, coord).rg * 2.0f - 1.0f;
+
+    return flowDirection;
+}
+
 PSOutput main(float4 position : SV_POSITION, float3 worldPos : TEXCOORD0,
               float2 coord : TEXCOORD1, float3 normal : TEXCOORD2,
               float3 tangent : TEXCOORD3)
 {
     PSOutput output;
-    float2 flowCoord = coord;
-    if (flowEnabled != 0 && flowSource == 1)
-    {
-        float2 flowVector = flowTexture.Sample(linearWrapSampler, coord).rg * 2.0f - 1.0f;
-        flowCoord += flowVector * flowStrength;
-    }
+    const bool waterTechnique = flowTechnique == 1;
+    float2 materialCoord = coord;
+    float2 normalCoord = coord;
+
+    // Directional scroll moves every material texture. Water mode keeps the
+    // material stable and only advects the normal map below.
+    if (!waterTechnique)
+        materialCoord = coord;
 
     float3 albedo = diffuseColor;
     float metallic = metallicFactor;
@@ -63,7 +85,7 @@ PSOutput main(float4 position : SV_POSITION, float3 worldPos : TEXCOORD0,
 
     if (hasDiffuseTex != 0)
     {
-        float4 sampleColor = diffuseTexture.Sample(linearWrapSampler, flowCoord);
+        float4 sampleColor = diffuseTexture.Sample(linearWrapSampler, materialCoord);
         if (sampleColor.a < 0.5f)
             discard;
         albedo *= sampleColor.rgb;
@@ -71,7 +93,7 @@ PSOutput main(float4 position : SV_POSITION, float3 worldPos : TEXCOORD0,
 
     if (hasMetallicRoughnessTex != 0)
     {
-        float4 sampleM = metallicRoughnessTexture.Sample(linearWrapSampler, flowCoord);
+        float4 sampleM = metallicRoughnessTexture.Sample(linearWrapSampler, materialCoord);
         ao = sampleM.r;
         roughness = 1.0f - clamp(sampleM.g, 0.04f, 1.0f);
         metallic = saturate(sampleM.b * metallicFactor);
@@ -79,15 +101,41 @@ PSOutput main(float4 position : SV_POSITION, float3 worldPos : TEXCOORD0,
 
     if (hasNormalTex != 0)
     {
-        float3 tangentNormal = normalTexture.Sample(linearWrapSampler, flowCoord).rgb;
-        tangentNormal = normalize(tangentNormal * 2.0f - 1.0f);
-        float3 tangentVector = normalize(tangent);
-        float3 bitangentVector = normalize(cross(finalNormal, tangentVector));
-        finalNormal = normalize(mul(tangentNormal, float3x3(tangentVector, bitangentVector, finalNormal)));
+        if (waterTechnique && flowEnabled != 0)
+        {
+            float2 flowVector = getFlowVector(coord);
+            float phase0 = frac(flowPhase);
+            float phase1 = frac(flowPhase + 0.5f);
+
+            float3 normal0 = decodeNormal(
+                normalTexture.Sample(linearWrapSampler, coord + flowVector * phase0 * flowStrength),
+                normalFactor);
+            float3 normal1 = decodeNormal(
+                normalTexture.Sample(linearWrapSampler, coord + flowVector * phase1 * flowStrength),
+                normalFactor);
+
+            // Each sample fades out when its phase wraps, hiding the UV jump.
+            float blend = abs(0.5f - phase0) / 0.5f;
+            float3 tangentNormal = normalize(lerp(normal0, normal1, blend));
+
+            float3 tangentVector = normalize(tangent);
+            float3 bitangentVector = normalize(cross(finalNormal, tangentVector));
+            finalNormal = normalize(mul(tangentNormal,
+                float3x3(tangentVector, bitangentVector, finalNormal)));
+        }
+        else
+        {
+            float3 tangentNormal = decodeNormal(
+                normalTexture.Sample(linearWrapSampler, normalCoord), normalFactor);
+            float3 tangentVector = normalize(tangent);
+            float3 bitangentVector = normalize(cross(finalNormal, tangentVector));
+            finalNormal = normalize(mul(tangentNormal,
+                float3x3(tangentVector, bitangentVector, finalNormal)));
+        }
     }
 
     if (hasEmissiveTex != 0)
-        emissive = emissiveTexture.Sample(linearWrapSampler, flowCoord).rgb * emissiveColor;
+        emissive = emissiveTexture.Sample(linearWrapSampler, materialCoord).rgb * emissiveColor;
 
     output.diffuse = float4(albedo, 1.0f);
     output.metalRoughness = float4(ao, roughness, metallic, 0.0f);

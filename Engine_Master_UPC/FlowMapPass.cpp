@@ -212,6 +212,17 @@ void FlowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList,
     flowGpu.strength = data.strength;
     flowGpu.source = data.source;
     flowGpu.enabled = data.enabled;
+    flowGpu.technique = data.technique;
+    flowGpu.phase = flow->getPhase();
+
+#ifdef _DEBUG
+    if ((app->getModuleTime()->frameCount() % 60u) == 0u &&
+        data.technique == static_cast<uint32_t>(FlowMapTechnique::FLOW_MAP_WATER))
+    {
+        DirectX::DebugTrace("[FlowMap] water phase=%.3f source=%u texture=%s\n",
+            flowGpu.phase, data.source, flow->getTexture() ? "YES" : "NO");
+    }
+#endif
 
 #ifdef _DEBUG
     const uint32_t frame = app->getModuleTime()->frameCount();
@@ -222,7 +233,8 @@ void FlowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList,
             data.tiling.x, data.tiling.y, data.enabled);
     }
 #endif
-    if (data.source == static_cast<uint32_t>(FlowMapSource::TEXTURE) && flow->getTexture())
+    if (data.technique == static_cast<uint32_t>(FlowMapTechnique::FLOW_MAP_WATER) &&
+        data.source == static_cast<uint32_t>(FlowMapSource::TEXTURE) && flow->getTexture())
         commandList->SetGraphicsRootDescriptorTable(5, flow->getTexture()->getSRV().gpu);
     else
         flowGpu.source = static_cast<uint32_t>(FlowMapSource::DIRECTION);

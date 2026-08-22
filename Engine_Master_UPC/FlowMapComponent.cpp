@@ -22,6 +22,7 @@ std::unique_ptr<Component> FlowMapComponent::clone(GameObject* newOwner) const
     result->m_textureAssetId = m_textureAssetId;
     result->m_texture = m_texture;
     result->m_textureAsset = m_textureAsset;
+    result->m_phase = m_phase;
     return result;
 }
 
@@ -31,9 +32,17 @@ void FlowMapComponent::update()
         return;
 
     const float dt = app->getModuleTime()->deltaTime();
-    m_data.offset += m_data.direction * (m_data.speed * dt);
-    m_data.offset.x -= std::floor(m_data.offset.x);
-    m_data.offset.y -= std::floor(m_data.offset.y);
+    if (getTechnique() == FlowMapTechnique::FLOW_MAP_WATER)
+    {
+        m_phase += m_data.speed * dt;
+        m_phase -= std::floor(m_phase);
+    }
+    else
+    {
+        m_data.offset += m_data.direction * (m_data.speed * dt);
+        m_data.offset.x -= std::floor(m_data.offset.x);
+        m_data.offset.y -= std::floor(m_data.offset.y);
+    }
 
 #ifdef _DEBUG
     const uint32_t frame = app->getModuleTime()->frameCount();
@@ -51,10 +60,18 @@ void FlowMapComponent::drawUi()
     if (!ImGui::CollapsingHeader("Flow Map Settings", ImGuiTreeNodeFlags_DefaultOpen))
         return;
 
-    int source = static_cast<int>(m_data.source);
-    const char* sources[] = { "Direction", "Texture" };
-    if (ImGui::Combo("Source", &source, sources, 2))
-        m_data.source = static_cast<uint32_t>(source);
+    int technique = static_cast<int>(m_data.technique);
+    const char* techniques[] = { "Directional Scroll", "Flow Map Water" };
+    if (ImGui::Combo("Technique", &technique, techniques, 2))
+        m_data.technique = static_cast<uint32_t>(technique);
+
+    if (getTechnique() == FlowMapTechnique::FLOW_MAP_WATER)
+    {
+        int source = static_cast<int>(m_data.source);
+        const char* sources[] = { "Direction", "Texture" };
+        if (ImGui::Combo("Source", &source, sources, 2))
+            m_data.source = static_cast<uint32_t>(source);
+    }
 
     ImGui::DragFloat2("Direction", &m_data.direction.x, 0.01f, -1.0f, 1.0f);
     ImGui::DragFloat2("Tiling", &m_data.tiling.x, 0.01f, 0.001f, 100.0f);
@@ -93,6 +110,15 @@ void FlowMapComponent::serialize(IArchive& archive)
     archive.serialize(m_data.offset, "Offset");
     archive.serialize(m_data.source, "Source");
     archive.serialize(m_data.enabled, "Enabled");
+    archive.serialize(m_data.technique, "Technique");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        if (m_data.source > static_cast<uint32_t>(FlowMapSource::TEXTURE))
+            m_data.source = static_cast<uint32_t>(FlowMapSource::DIRECTION);
+        if (m_data.technique > static_cast<uint32_t>(FlowMapTechnique::FLOW_MAP_WATER))
+            m_data.technique = static_cast<uint32_t>(FlowMapTechnique::DIRECTIONAL_SCROLL);
+    }
 
     archive.beginObject("TextureAssetId");
     m_textureAssetId.serialize(archive);

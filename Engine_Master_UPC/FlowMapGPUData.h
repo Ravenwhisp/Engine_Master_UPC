@@ -11,5 +11,8 @@ struct FlowMapGPUData
     float strength = 0.0f;
     uint32_t source = 0;
     uint32_t enabled = 0;
+    uint32_t technique = 0;
+    float phase = 0.0f;
+    uint32_t paddingScalar = 0;
     DirectX::SimpleMath::Vector2 padding = DirectX::SimpleMath::Vector2::Zero;
 };
