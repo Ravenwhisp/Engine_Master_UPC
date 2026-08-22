@@ -31,6 +31,7 @@
 #include "GeometryPass.h"
 #include "DeferredShadingPass.h"
 #include "PlayerPass.h"
+#include "FlowMapPass.h"
 #include "TrailPass.h"
 #include "DebugDrawPass.h"
 #include "UIImagePass.h"
@@ -77,11 +78,13 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
 
-    //m_forwardPrepass = new ForwardPrepass(device);
-    //m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
+    m_forwardPrepass = new ForwardPrepass(device);
+    m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
 
     m_geometryPass = new GeometryPass(device);
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
+
+    m_renderPasses.push_back(std::make_unique<FlowMapPass>(device));
 
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
@@ -100,6 +103,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
 
     m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
+
+
 
     // Resolve the HDR scene into COMPOSITE (exposure, tone mapping, bloom, LUT,
     // outline, etc.) before the overlay passes draw on top.

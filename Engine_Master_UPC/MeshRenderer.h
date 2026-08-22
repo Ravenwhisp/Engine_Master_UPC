@@ -24,8 +24,10 @@ struct ModelData
 enum class RenderMode : UINT
 {
 	DEFAULT = 0,
+
 	TRANSP = 1,
-	COUNT = 2
+	FLOW_MAP = 2,
+	COUNT = 3
 };
 
 
