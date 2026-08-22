@@ -849,6 +849,10 @@ void Scene::serialize(IArchive& archive)
     m_ssao.serialize(archive);
     archive.endObject();
 
+    archive.beginObject("VolumetricFog");
+    m_volumetricFog.serialize(archive);
+    archive.endObject();
+
     archive.beginObject("PostProcess");
     m_postProcess.serialize(archive);
     archive.endObject();

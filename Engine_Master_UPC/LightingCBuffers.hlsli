@@ -15,10 +15,13 @@ cbuffer SceneData : register(b1)
 #define MAX_POINT_LIGHTS 112
 #define MAX_SPOT_LIGHTS 16
 
+#define MAX_SHADOW_CASCADES 4
+
 struct DirectionalLight
 {
     float3 direction;
     float pad0;
+
     float3 color;
     float intensity;
 };
@@ -27,6 +30,7 @@ struct PointLight
 {
     float3 position;
     float radius;
+
     float3 color;
     float intensity;
 };
@@ -65,13 +69,21 @@ cbuffer LightsCB : register(b2)
 cbuffer ShadowData : register(b3)
 {
     float4x4 lightViewProjection;
+
     float shadowBias;
     float shadowStrength;
     uint shadowsEnabled;
     float paddingShadow;
-    
-    //PCF
+
     float2 shadowMapTexelSize;
     uint pcfEnabled;
     uint pcfRadius;
+
+    uint cascadeCount;
+    uint cascadeFitMode;
+    float2 cascadePadding;
+
+    float4 cascadeFarDistances;
+
+    float4x4 cascadeLightViewProjection[MAX_SHADOW_CASCADES];
 };
