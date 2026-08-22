@@ -78,8 +78,8 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::make_unique<SkinningComputePass>(device));
 
-    //m_forwardPrepass = new ForwardPrepass(device);
-    //m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
+    m_forwardPrepass = new ForwardPrepass(device);
+    m_renderPasses.push_back(std::unique_ptr<ForwardPrepass>(m_forwardPrepass));
 
     m_geometryPass = new GeometryPass(device);
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
@@ -103,6 +103,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
 
     m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
+
+
 
     // Resolve the HDR scene into COMPOSITE (exposure, tone mapping, bloom, LUT,
     // outline, etc.) before the overlay passes draw on top.
