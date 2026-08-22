@@ -858,6 +858,10 @@
     <ClCompile Include="SpectralComponent.cpp">
       <Filter>Source\Components</Filter>
     </ClCompile>
+    <ClCompile Include="DepthReductionPass.cpp" />
+    <ClCompile Include="ShadowFrustumComputePass.cpp" />
+    <ClCompile Include="VolumetricFogApplyPass.cpp" />
+    <ClCompile Include="VolumetricFogComputePass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1784,6 +1788,12 @@
     <ClInclude Include="SpectralComponent.h">
       <Filter>Source\Components</Filter>
     </ClInclude>
+    <ClInclude Include="DepthReductionPass.h" />
+    <ClInclude Include="ShadowFrustumComputePass.h" />
+    <ClInclude Include="VolumetricFogApplyPass.h" />
+    <ClInclude Include="VolumetricFogComputePass.h" />
+    <ClInclude Include="VolumetricFogSettings.h" />
+    <ClInclude Include="VolumetricFogTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
@@ -1900,6 +1910,13 @@
     <FxCompile Include="TransparentPixelShader.hlsl">
       <Filter>Shaders\Rendering</Filter>
     </FxCompile>
+    <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
+    <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
+    <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
+    <FxCompile Include="VolumetricFogApplyPixelShader.hlsl" />
+    <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
+    <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
+    <FxCompile Include="VolumetricFogLightingCS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
