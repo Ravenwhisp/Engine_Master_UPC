@@ -26,6 +26,7 @@
     X(PREFAB_INSTANCE)      \
     X(PLAYER_RENDER_BUFFER) \
     X(DAMAGE_HIGHLIGHT)     \
+    X(FLOW_MAP)             \
     X(DISSOLVE)             \
     X(SPECTRAL)
 

@@ -105,6 +105,11 @@ void BinaryArchive::serialize(DirectX::SimpleMath::Vector3& val, const char* /*n
     serializeRaw(&val, sizeof(val));
 }
 
+void BinaryArchive::serialize(DirectX::SimpleMath::Vector2& val, const char* /*name*/)
+{
+    serializeRaw(&val, sizeof(val));
+}
+
 void BinaryArchive::serialize(DirectX::SimpleMath::Quaternion& val, const char* /*name*/)
 {
     serializeRaw(&val, sizeof(val));
