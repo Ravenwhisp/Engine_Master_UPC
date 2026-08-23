@@ -862,6 +862,9 @@
     <ClCompile Include="ShadowFrustumComputePass.cpp" />
     <ClCompile Include="VolumetricFogApplyPass.cpp" />
     <ClCompile Include="VolumetricFogComputePass.cpp" />
+    <ClCompile Include="FlowMapComponent.cpp" />
+    <ClCompile Include="FlowMapPass.cpp" />
+    <ClCompile Include="OcclusionTargetComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1794,6 +1797,10 @@
     <ClInclude Include="VolumetricFogComputePass.h" />
     <ClInclude Include="VolumetricFogSettings.h" />
     <ClInclude Include="VolumetricFogTypes.h" />
+    <ClInclude Include="FlowMapComponent.h" />
+    <ClInclude Include="FlowMapGPUData.h" />
+    <ClInclude Include="FlowMapPass.h" />
+    <ClInclude Include="OcclusionTargetComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
@@ -1917,6 +1924,8 @@
     <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
     <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
     <FxCompile Include="VolumetricFogLightingCS.hlsl" />
+    <FxCompile Include="FlowMapPS.hlsl" />
+    <FxCompile Include="FlowMapVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
