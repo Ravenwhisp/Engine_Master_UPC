@@ -1,7 +1,7 @@
 #pragma once
 #include "Resources.h"
 #include "ICacheable.h"
-
+#include <vector>
 
 enum class TextureView : uint8_t
 {
@@ -61,7 +61,7 @@ public:
 
     DescriptorHandle    getSRV()                         const;
     DescriptorHandle    getRTV(uint32_t mip = 0)         const;
-    DescriptorHandle    getDSV()                         const;
+    DescriptorHandle    getDSV(uint32_t arraySlice = 0)  const;
     DescriptorHandle    getUAV(uint32_t mip = 0)         const;
     DescriptorHandle    getContiguousRTV(uint32_t index) const;
 
@@ -111,6 +111,7 @@ private:
     DescriptorHandle    m_srv{};
     DescriptorHandle    m_rtv[MAX_MIPS]{};
     DescriptorHandle    m_dsv{};
+    std::vector<DescriptorHandle> m_dsvArray;
     DescriptorHandle    m_uav[MAX_MIPS]{};
 
     DescriptorHeapBlock* m_contiguousRTV = nullptr;
