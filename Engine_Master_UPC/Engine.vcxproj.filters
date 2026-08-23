@@ -865,6 +865,7 @@
     <ClCompile Include="FlowMapComponent.cpp" />
     <ClCompile Include="FlowMapPass.cpp" />
     <ClCompile Include="OcclusionTargetComponent.cpp" />
+    <ClCompile Include="OcclusionTargetDepthPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1801,6 +1802,7 @@
     <ClInclude Include="FlowMapGPUData.h" />
     <ClInclude Include="FlowMapPass.h" />
     <ClInclude Include="OcclusionTargetComponent.h" />
+    <ClInclude Include="OcclusionTargetDepthPass.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
@@ -1926,6 +1928,8 @@
     <FxCompile Include="VolumetricFogLightingCS.hlsl" />
     <FxCompile Include="FlowMapPS.hlsl" />
     <FxCompile Include="FlowMapVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">

@@ -49,6 +49,7 @@
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
 #include "TransparentPass.h"
+#include "OcclusionTargetDepthPass.h"
 
 #include "OptickProfiler.h"
 
@@ -92,6 +93,7 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
+    m_occlusionTargetDepthPass = std::make_unique<OcclusionTargetDepthPass>(device);
     m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
     m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
@@ -248,6 +250,7 @@ bool ModuleRender::cleanUp()
     m_shadowMapPass.reset();
     m_shadowFrustumComputePass.reset();
     m_depthReductionPass.reset();
+    m_occlusionTargetDepthPass.reset();
     m_skinningComputePass.reset();
 
     m_renderPasses.clear();
@@ -332,26 +335,50 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
 
     for (UINT i = 0; i < GeometryPass::GBUFFER_COUNT; ++i)
     {
-        auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, GeometryPass::GBUFFER_FORMATS[i]));
+        auto texture = std::shared_ptr<Texture>(
+            app->getModuleResources()->createGBuffer(
+                width,
+                height,
+                GeometryPass::GBUFFER_FORMATS[i]
+            )
+        );
+
         texture->setName(L"GBuffer_" + bufferNames[i]);
         surface.attachTexture(GeometryPass::kSlots[i], texture);
     }
 
-    auto ssaoDepthTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAODepthBuffer(width, height));
+    auto ssaoDepthTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createSSAODepthBuffer(width, height)
+    );
     ssaoDepthTexture->setName(L"RenderSurface_SSAO_Depth");
     surface.attachTexture(RenderSurface::SSAO_DEPTH, ssaoDepthTexture);
 
-    auto ssaoNormalTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAONormalBuffer(width, height));
+    auto ssaoNormalTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createSSAONormalBuffer(width, height)
+    );
     ssaoNormalTexture->setName(L"RenderSurface_SSAO_Normal");
     surface.attachTexture(RenderSurface::SSAO_NORMAL, ssaoNormalTexture);
 
-    auto ssaoRawTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+    auto ssaoRawTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createSSAOTexture(width, height)
+    );
     ssaoRawTexture->setName(L"RenderSurface_SSAO_Raw");
     surface.attachTexture(RenderSurface::SSAO_RAW, ssaoRawTexture);
 
-    auto ssaoBlurTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+    auto ssaoBlurTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createSSAOTexture(width, height)
+    );
     ssaoBlurTexture->setName(L"RenderSurface_SSAO_Blur");
     surface.attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTexture);
+
+    auto occlusionTargetDepth = std::shared_ptr<Texture>(
+        app->getModuleResources()->createDepthBuffer(width, height)
+    );
+    occlusionTargetDepth->setName(L"RenderSurface_OcclusionTargetDepth");
+    surface.attachTexture(
+        RenderSurface::OCCLUSION_TARGET_DEPTH,
+        occlusionTargetDepth
+    );
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)
@@ -469,6 +496,15 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         renderBackground(commandList, outputSurface);
     }
 
+    {
+        PERF_RENDER("ModuleRender::renderScene::OcclusionTargetDepthPass");
+
+        if (m_occlusionTargetDepthPass != nullptr)
+        {
+            m_occlusionTargetDepthPass->prepare(ctx);
+            m_occlusionTargetDepthPass->apply(commandList);
+        }
+    }
 
     {
         PERF_RENDER("ModuleRender::renderScene::ForwardPrepass");
