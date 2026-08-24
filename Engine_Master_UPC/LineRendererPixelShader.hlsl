@@ -8,7 +8,11 @@ struct GradientColor
 
 cbuffer GradientConstantBuffer : register(b1)
 {
+    uint hasTexture;
+    float3 padding;
+    
     GradientColor colors[10];
+    
 };
 
 struct PSInput
@@ -19,6 +23,13 @@ struct PSInput
     float3 tangent : TANGENT;
     float percentage : PERCENTAGE;
 };
+
+Texture2D texture : register(t8);
+
+SamplerState linearWrapSample : register(s0);
+SamplerState pointWrapSample : register(s1);
+SamplerState linearClampSample : register(s2);
+SamplerState pointClampSample : register(s3);
 
 float4 main(PSInput input) : SV_TARGET
 {
@@ -51,5 +62,12 @@ float4 main(PSInput input) : SV_TARGET
     float percentage = distancePixel / distance;
     
     float4 result = lerp(previousMark.color, nextMark.color, percentage);
+    
+    if (hasTexture != 0)
+    {
+        float4 texSample = texture.Sample(linearWrapSample, input.texCoord);
+        
+        result *= texSample;
+    }
     return result;
 }

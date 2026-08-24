@@ -19,15 +19,18 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
     m_device = device;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
-    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
+    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
+    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange, vfxRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+    vfxRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, BasicMaterial::SLOT_COUNT, 0);
 
     rootParameters[0].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
+    rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[4].InitAsDescriptorTable(1, &vfxRange, D3D12_SHADER_VISIBILITY_PIXEL); //VFX textures
 
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -110,14 +113,23 @@ void TrailPass::prepare(const RenderContext& ctx)
 
 void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    commandList->SetPipelineState(m_pipelineState.Get());
+    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    Matrix vp = (*m_view * *m_projection).Transpose();
+    commandList->SetGraphicsRoot32BitConstants(2, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
 
     std::vector<UINT> indices;
     std::vector<VertexTrails> vertices;
 
-    uint32_t firstVertex = 0;
+    TextureConstantBuffer cb{};
 
     for (auto& trailComponent : m_trailComponent) 
     {
+        indices.clear();
+        vertices.clear();
 
         GameObject* owner = trailComponent->getOwner();
         if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
@@ -135,6 +147,7 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
             continue;
         }
 
+        float distance = 0.0f;
 
         for (auto point = trailComponent->getTrailPoints().begin(); point != trailComponent->getTrailPoints().end(); point++)
         {
@@ -152,26 +165,30 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
             Vector3 normal = right;
             normal.Cross(tangent).Normalize();
 
+            if (point != trailComponent->getTrailPoints().begin())
+            {
+                distance += Vector3::Distance(prevPos, position);
+            }
 
             VertexTrails leftVertex{};
             leftVertex.position = position - perpendicularVector * halfWidth;
             leftVertex.tangent = tangent;
             leftVertex.normal = normal;
-            leftVertex.texCoord0 = Vector2::Zero;
+            leftVertex.texCoord0 = Vector2(0.0f, distance); //Texture tiling can be implemented. Vector2(0.0f, distance / tileLenght)
             leftVertex.color = point->get()->color;
 
             VertexTrails rightVertex{};
             rightVertex.position = position + perpendicularVector * halfWidth;
             rightVertex.tangent = tangent;
             rightVertex.normal = normal;
-            rightVertex.texCoord0 = Vector2::Zero;
+            rightVertex.texCoord0 = Vector2(1.0f, distance);
             rightVertex.color = point->get()->color;
 
             vertices.push_back(leftVertex);
             vertices.push_back(rightVertex);
         }
 
-        for (uint32_t i = firstVertex; i < vertices.size() - 2; i += 2)
+        for (uint32_t i = 0; i < vertices.size() - 2; i += 2)
         {
 
             indices.push_back(i);
@@ -183,31 +200,32 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
             indices.push_back(i + 3);
         }
 
-        firstVertex = vertices.size();
-
-    }
-
-    D3D12_VERTEX_BUFFER_VIEW vbv;
-    vbv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(vertices.data(), vertices.size() * sizeof(VertexTrails));
-    vbv.SizeInBytes = (UINT)(vertices.size() * sizeof(VertexTrails));
-    vbv.StrideInBytes = sizeof(VertexTrails);
-
-    D3D12_INDEX_BUFFER_VIEW ibv;
-    ibv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(indices.data(), indices.size() * sizeof(uint32_t));
-    ibv.SizeInBytes = (UINT)(indices.size() * sizeof(uint32_t));
-    ibv.Format = DXGI_FORMAT_R32_UINT;
-
-    commandList->SetPipelineState(m_pipelineState.Get());
-    commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-
-    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    commandList->IASetVertexBuffers(0, 1, &vbv);
-    commandList->IASetIndexBuffer(&ibv);
-
-    commandList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
-
-    Matrix vp = (*m_view) * (*m_projection);
-    commandList->SetGraphicsRoot32BitConstants(2, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
+        D3D12_VERTEX_BUFFER_VIEW vbv;
+        vbv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(vertices.data(), vertices.size() * sizeof(VertexTrails));
+        vbv.SizeInBytes = (UINT)(vertices.size() * sizeof(VertexTrails));
+        vbv.StrideInBytes = sizeof(VertexTrails);
     
+        D3D12_INDEX_BUFFER_VIEW ibv;
+        ibv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(indices.data(), indices.size() * sizeof(uint32_t));
+        ibv.SizeInBytes = (UINT)(indices.size() * sizeof(uint32_t));
+        ibv.Format = DXGI_FORMAT_R32_UINT;
+    
+        Texture* texture = trailComponent->getTexture();
+        if (texture != nullptr && texture->getSRV().IsValid())
+        {
+            cb.hasTexture = 1;
+            commandList->SetGraphicsRootDescriptorTable(4, texture->getSRV().gpu);
+        }
+
+        D3D12_GPU_VIRTUAL_ADDRESS cbAdress = app->getModuleRender()->allocateInRingBuffer(&cb, sizeof(cb));
+    
+        commandList->SetGraphicsRootConstantBufferView(3, cbAdress);
+
+        commandList->SetGraphicsRootDescriptorTable(1, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
+        commandList->IASetVertexBuffers(0, 1, &vbv);
+        commandList->IASetIndexBuffer(&ibv);
+
+        commandList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
+    }
 }

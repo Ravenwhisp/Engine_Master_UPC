@@ -23,7 +23,11 @@ struct GradientColor
 
 struct GradientConstantBuffer
 {
+	UINT hasTexture = 0;
+	Vector3 padding;
+
 	GradientColor colors[10];
+
 };
 
 class LineRendererPass : public IRenderPass

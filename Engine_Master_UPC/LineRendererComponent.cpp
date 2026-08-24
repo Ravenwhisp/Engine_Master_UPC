@@ -14,6 +14,9 @@
 
 #include <HierarchyUtils.h>
 
+#include "ModuleAssets.h"
+#include "ModuleResources.h"
+
 class Scene;
 
 LineRendererComponent::LineRendererComponent(UID id, GameObject* owner) : Component(id, ComponentType::LINE_RENDERER, owner)
@@ -181,7 +184,22 @@ void LineRendererComponent::drawUi()
         ImGui::EndPopup();
     }
 
-    
+    ImGui::Checkbox("Bloom", &m_bloom);
+
+    ImGui::Button("Texture");
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+        {
+            UID* data = static_cast<UID*>(payload->Data);
+            LoadTexture(data);
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::SameLine();
+    ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
 }
 
 void LineRendererComponent::update()
@@ -189,6 +207,7 @@ void LineRendererComponent::update()
    
     for (auto point = m_points.begin(); point != m_points.end(); )
     {
+        
         if (point->get()->transformParent != nullptr)
         {
             const Matrix& globalMatrix = point->get()->transformParent->getGlobalMatrix();
@@ -225,6 +244,12 @@ std::unique_ptr<Component> LineRendererComponent::clone(GameObject* newOwner) co
 
     cloned->m_points.clear();
     cloned->m_color = m_color;
+    cloned->m_bloom = m_bloom;
+
+    cloned->m_textureAssetId = m_textureAssetId;
+    cloned->m_texture = m_texture;
+    cloned->m_textureAsset = m_textureAsset;
+    cloned->m_loadRequested = m_loadRequested;
 
     for (auto point = m_points.begin(); point != m_points.end(); )
     {
@@ -248,6 +273,9 @@ void LineRendererComponent::serialize(IArchive& archive)
 
     //TODO: Serialize Points and its values.
 
+    archive.beginObject("TextureAssetId");
+    m_textureAssetId.serialize(archive);
+    archive.endObject();
 
     if (archive.mode() == ArchiveMode::Output)
     {
@@ -273,7 +301,7 @@ void LineRendererComponent::serialize(IArchive& archive)
             float width = point.get()->width;
             archive.serialize(width, "Width");
 
-            uint64_t transformParent = -1; 
+            uint64_t transformParent = 0; 
             if (point.get()->transformParent != nullptr)
             {
                 transformParent = point.get()->transformParent->getOwner()->GetID();
@@ -319,6 +347,8 @@ void LineRendererComponent::serialize(IArchive& archive)
         }
 
         archive.endArray();
+
+        archive.serialize(m_bloom, "Bloom");
 
     }
     else
@@ -392,6 +422,34 @@ void LineRendererComponent::serialize(IArchive& archive)
 
         archive.endArray();
 
+
+        bool bloom = 0.f;
+        archive.serialize(bloom, "Bloom");
+        m_bloom = bloom;
+
+        m_texture = nullptr;
+        m_textureAsset.reset();
+        m_loadRequested = false;
+
+        if (m_textureAssetId.isValid())
+        {
+            m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+            if (m_textureAsset)
+            {
+                m_loadRequested = true;
+
+                auto texture = app->getModuleResources()->createTexture(*m_textureAsset, true);
+
+                if (texture)
+                {
+                    m_texture = texture;
+                }
+                else
+                {
+                    m_texture = nullptr;
+                }
+            }
+        }
     }
 }
 
@@ -399,7 +457,7 @@ void LineRendererComponent::fixReferences(const SceneReferenceResolver& resolver
 {
     for (int i = 0; i < m_points.size(); i++)
     {
-        if (m_points[i]->transformId != -1)
+        if (m_points[i]->transformId != 0)
         {
             Scene* scene = app->getModuleScene()->getScene();
             m_points[i]->transformParent = HierarchyUtils::findByUID(scene, m_points[i]->transformId)->GetComponent(ComponentType::TRANSFORM)->getTransform();
@@ -413,5 +471,58 @@ void LineRendererComponent::debugDraw()
     if (!isActive() || !m_owner->GetActive()) //|| !m_textureAsset.isValid()
     {
         return;
+    }
+}
+
+
+bool LineRendererComponent::consumeLoadRequest()
+{
+    const bool was = m_loadRequested;
+    m_loadRequested = false;
+    return was;
+}
+
+void LineRendererComponent::setTextureAssetId(const AssetId& assetId)
+{
+    m_textureAssetId = assetId;
+    m_texture = nullptr;
+    m_textureAsset.reset();
+    m_loadRequested = false;
+
+    if (m_textureAssetId.isValid())
+    {
+        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+        if (m_textureAsset)
+        {
+            m_loadRequested = true;
+        }
+    }
+}
+
+void LineRendererComponent::LoadTexture(UID* data)
+{
+    AssetId* ref = app->getModuleAssets()->findReference(*data);
+    m_textureAssetId = *ref;
+    m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*ref);
+    if (m_textureAsset)
+    {
+        m_loadRequested = true;
+    }
+
+    if (!m_textureAsset || !m_textureAssetId.isValid())
+    {
+        m_texture = nullptr;
+    }
+    else
+    {
+        auto texture = app->getModuleResources()->createTexture(*m_textureAsset, true);
+        if (texture)
+        {
+            m_texture = texture;
+        }
+        else
+        {
+            m_texture = nullptr;
+        }
     }
 }

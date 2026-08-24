@@ -18,16 +18,19 @@ LineRendererPass::LineRendererPass(ComPtr<ID3D12Device4> device)
 	m_device = device;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[4] = {};
-    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange;
+    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
+    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange, vfxRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+    vfxRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, BasicMaterial::SLOT_COUNT, 0);
 
     rootParameters[0].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
-    rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Lights
+    rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL); 
+    rootParameters[4].InitAsDescriptorTable(1, &vfxRange, D3D12_SHADER_VISIBILITY_PIXEL); //VFX textures
+
 
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -220,6 +223,13 @@ void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
                 continue;
             }
 
+            if (lineRendererComponent->getBloomValue()) 
+            {
+                color.color.x *= 2; 
+                color.color.y *= 2;
+                color.color.z *= 2;
+            }
+
             cb.colors[colorIndex] = color;
             colorIndex++;
         }
@@ -234,9 +244,18 @@ void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
         ibv.SizeInBytes = (UINT)(indices.size() * sizeof(uint32_t));
         ibv.Format = DXGI_FORMAT_R32_UINT;
 
+        Texture* texture = lineRendererComponent->getTexture();
+        if (texture != nullptr && texture->getSRV().IsValid())
+        {
+            cb.hasTexture = 1;
+            commandList->SetGraphicsRootDescriptorTable(4, texture->getSRV().gpu);
+        }
+
         D3D12_GPU_VIRTUAL_ADDRESS cbAdress = app->getModuleRender()->allocateInRingBuffer(&cb, sizeof(cb));
 
         commandList->SetGraphicsRootConstantBufferView(3, cbAdress);
+
+        commandList->SetGraphicsRootDescriptorTable(1, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
         commandList->IASetVertexBuffers(0, 1, &vbv);
         commandList->IASetIndexBuffer(&ibv);
