@@ -379,6 +379,10 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
         RenderSurface::OCCLUSION_TARGET_DEPTH,
         occlusionTargetDepth
     );
+    auto occluderEligibility = std::shared_ptr<Texture>(
+        app->getModuleResources()->createGBuffer(width, height, DXGI_FORMAT_R8_UNORM));
+    occluderEligibility->setName(L"RenderSurface_OccluderEligibility");
+    surface.attachTexture(RenderSurface::OCCLUDER_ELIGIBILITY, occluderEligibility);
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)

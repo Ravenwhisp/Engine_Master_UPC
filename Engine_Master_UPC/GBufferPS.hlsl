@@ -40,6 +40,11 @@ cbuffer VisualEffectsCB : register(b4)
     DissolveCB dissolveCB;
 };
 
+cbuffer OcclusionCB : register(b5)
+{
+    uint gOccluderEligibility;
+};
+
 
 
 // Root param [4]: albedo texture (t0) + sampler (s0)
@@ -71,6 +76,7 @@ struct PSOutput
     float4 normal         : SV_Target2;   // world normal
     float4 position       : SV_Target3;   // world position
     float4 emissive       : SV_Target4;   // emissive
+    float occluderEligibility : SV_Target5;
 };
 
 
@@ -179,6 +185,7 @@ PSOutput main(VSOutput IN)
     // Position
     OUT.position     = float4(IN.worldPos, 0.0f);
 
+    OUT.occluderEligibility = gOccluderEligibility != 0 ? 1.0f : 0.0f;
     
     return OUT;
 }

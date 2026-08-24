@@ -23,7 +23,8 @@ public:
 		SSAO_BLUR = 10,
 		SCENE_HDR = 11,   // HDR scene colour (lit scene before post-processing)
 		OCCLUSION_TARGET_DEPTH = 12,
-		NUM_ATTACHMENT_POINTS = 13
+		OCCLUDER_ELIGIBILITY = 13,
+		NUM_ATTACHMENT_POINTS = 14
 	};
 
 

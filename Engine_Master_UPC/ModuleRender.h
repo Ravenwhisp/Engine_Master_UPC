@@ -31,7 +31,6 @@ class SkyBoxPass;
 class ForwardPrepass;
 class DeferredShadingPass;
 class GeometryPass;
-class OcclusionTargetDepthPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
