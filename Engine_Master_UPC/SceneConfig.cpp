@@ -63,22 +63,36 @@ void SceneConfig::drawLoadSceneSettings()
             m_moduleScene->requestSceneChange(m_loadSceneName);
         }
 
+        ImGui::SameLine();
 
-        /*ImGui::Button("Load");
-        if (ImGui::BeginDragDropTarget())
+        if (ImGui::Button("Async Load"))
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
-            {
-                UID* ref = static_cast<UID*>(payload->Data);
-                AssetReference assetRef(*ref, INVALID_ASSET_ID, AssetType::SCENE);
-                auto scene = app->getModuleAssets()->load<Scene>(assetRef);
-                if (scene)
-                {
-                    m_moduleScene->requestSceneChange(scene);
-                }
-            }
-            ImGui::EndDragDropTarget();
-        }*/
+            m_moduleScene->requestAsyncSceneLoad(m_loadSceneName);
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Apply Async"))
+        {
+            m_moduleScene->requestSceneChange(m_loadSceneName);
+        }
+
+        if (m_moduleScene->isPendingSceneLoad())
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Scene change pending...");
+        }
+        else if (m_moduleScene->isAsyncSceneReady())
+        {
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Async scene ready.");
+        }
+        else if (m_moduleScene->isAsyncSceneLoading())
+        {
+            ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "Async scene loading...");
+        }
+        else
+        {
+            ImGui::TextDisabled("No scene load pending.");
+        }
     }
 }
 

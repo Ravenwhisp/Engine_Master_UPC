@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <filesystem> 
+#include <future>
 
 class Scene;
 class Quadtree;
@@ -104,4 +105,21 @@ public:
     const std::vector<ScriptComponent*>& getScriptComponents();
     const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();
     const std::vector<TrailComponent*>& getTrailComponents();
+
+#pragma region SceneAsyncLoad
+private:
+    std::shared_ptr<Scene> m_asyncLoadedScene;
+    std::future<std::shared_ptr<Scene>> m_asyncLoadFuture;
+    std::string m_asyncSceneName;
+    bool m_asyncSceneReady = false;
+
+private:
+    std::shared_ptr<Scene> loadSceneData(const std::string& sceneName);
+    bool applyLoadedScene(const std::string& sceneName, std::shared_ptr<Scene> loadedScene);
+
+public:
+    void requestAsyncSceneLoad(const std::string& sceneName);
+    bool isAsyncSceneReady() const { return m_asyncSceneReady; }
+    bool isAsyncSceneLoading() const { return m_asyncLoadFuture.valid() && !m_asyncSceneReady; }
+#pragma endregion
 };
