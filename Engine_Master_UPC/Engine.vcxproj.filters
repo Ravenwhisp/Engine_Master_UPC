@@ -867,6 +867,9 @@
     <ClCompile Include="VideoPass.cpp">
       <Filter>Source\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentVideo.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1798,6 +1801,9 @@
     </ClInclude>
     <ClInclude Include="VideoPass.h">
       <Filter>Source\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentVideo.h">
+      <Filter>Source\Video</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -307,6 +307,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandAddGameObject.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="ComponentVideo.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
     <ClInclude Include="DissolveComponent.h" />
     <ClInclude Include="ImporterSoundBank.h" />
@@ -767,6 +768,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="CommandCreateGameObject.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentVideo.cpp" />
     <ClCompile Include="ComponentSoundListener.cpp" />
     <ClCompile Include="ComponentSoundSource.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
