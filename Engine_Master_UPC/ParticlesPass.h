@@ -39,16 +39,17 @@ private:
 
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;
-    ComPtr<ID3D12PipelineState> m_pipelineState;
+    ComPtr<ID3D12PipelineState> m_pipelineState;        
+    ComPtr<ID3D12PipelineState> m_pipelineStateAdditive;  
 
     std::unique_ptr<VertexBuffer> m_quadVertexBuffer;
-    std::vector<shaderParticleData> m_particleDataBuffer;
+    std::vector<ShaderParticleData> m_particleDataBuffer;
 
     RenderSurface* m_gbufferSurface = nullptr; // to check depth buffer
 
     // TEMPORARY
     
-    std::vector<ParticleEmitterCommand> test = { {nullptr, 0, EmitterRender::RenderMode::BILLBOARD, Vector2 (1.f, 1.f),
+    std::vector<ParticleEmitterCommand> test = { {nullptr, 0, EmitterRender::RenderMode::BILLBOARD, Vector2 (1.f, 1.f), Vector3(2.f, 2.f, 2.f),
            {
                {
                    Vector3(0.f, 0.f, 0.f),
@@ -71,7 +72,7 @@ private:
 
 
 /*
-std::vector<ParticleEmitterCommand> test = { {nullptr, 0, Vector2 (1.f, 1.f),
+std::vector<ParticleEmitterCommand> test = { {nullptr, 0, Vector2 (1.f, 1.f), Vector3(2.f, 2.f, 2.f),
           {
               {
                   Vector3(5.f, 1.f, 1.f),

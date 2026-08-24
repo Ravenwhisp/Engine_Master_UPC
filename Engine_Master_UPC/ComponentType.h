@@ -27,7 +27,9 @@
     X(PLAYER_RENDER_BUFFER) \
     X(LINE_RENDERER)        \
     X(DAMAGE_HIGHLIGHT)     \
-    X(DISSOLVE)
+    X(FLOW_MAP)             \
+    X(DISSOLVE)             \
+    X(SPECTRAL)
 
 #define COMP_ENUM(name) name,
 #define COMP_SWITCH(name) case ComponentType::name: return #name;

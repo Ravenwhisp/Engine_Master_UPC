@@ -13,6 +13,7 @@
 
 #include "ParticleEmitter.h"
 #include "EmitterRender.h"
+#include "EmitterColor.h"
 
 
 void ModuleParticleSystem::resetAllParticles()
@@ -221,14 +222,18 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
 
         EmitterAnimation* animationConfig = emitterInstance.getParticleEmitter()->getAnimationModule();
         EmitterRender* renderConfig = emitterInstance.getParticleEmitter()->getRenderModule();
+		EmitterColor* colorConfig = emitterInstance.getParticleEmitter()->getColorModule();
 
         ParticleEmitterCommand command;
 		command.texture = texture;
         command.layer = renderConfig->getLayer();
         command.uvScale = animationConfig->getUVScale();
 
-		command.particles.reserve(aliveParticles.size());
         command.renderMode = renderConfig->getRenderMode();
+        command.blendMode = renderConfig->getBlendMode();
+
+		command.HDRColorAndIntensity = colorConfig->getHDRColorAndIntensity();
+
         command.particles.reserve(aliveParticles.size());
 
 		for (const auto& aliveParticle : aliveParticles)

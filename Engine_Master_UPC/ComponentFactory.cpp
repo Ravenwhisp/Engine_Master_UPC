@@ -21,6 +21,8 @@
 #include "LineRendererComponent.h"
 #include "DamageHighlightComponent.h"
 #include "DissolveComponent.h"
+#include "SpectralComponent.h"
+#include "FlowMapComponent.h"
 
 // Prefab
 #include "PrefabInstanceComponent.h"
@@ -115,6 +117,12 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::DISSOLVE:
         return std::make_unique<DissolveComponent>(id, owner);
+
+    case ComponentType::FLOW_MAP:
+        return std::make_unique<FlowMapComponent>(id, owner);
+
+    case ComponentType::SPECTRAL:
+        return std::make_unique<SpectralComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

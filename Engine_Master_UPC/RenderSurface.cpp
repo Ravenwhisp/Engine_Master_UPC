@@ -42,35 +42,42 @@ void RenderSurface::releaseDescriptorTable()
 
 void RenderSurface::resize(Vector2 size)
 {
-	releaseDescriptorTable();
-	createDescriptorTable();
-
 	m_size = size;
 
-	ID3D12Device* device = app->getModuleD3D12()->getDevice();
-	DescriptorHeap& srvHeap = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-	int i = 0;
 	for (auto texture : m_textures) 
 	{ 
 		if (texture) {
 			texture->resize(static_cast<uint32_t>(m_size.x), static_cast<uint32_t>(m_size.y));
+		}
+	}
 
-			if (!texture.get()->hasDSV())
-			{
-				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-				srvDesc.Format = texture.get()->getDesc().format;
-				srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-				srvDesc.Texture2D.MipLevels = 1;
+	rebuildDescriptorTable();
+}
 
-				device->CreateShaderResourceView(
-					texture.get()->getD3D12Resource().Get(),
-					&srvDesc,
-					getDescriptorTableCPUHandle(i)
-				);
-				i++;
-			}
+void RenderSurface::rebuildDescriptorTable()
+{
+	releaseDescriptorTable();
+	createDescriptorTable();
+
+	ID3D12Device* device = app->getModuleD3D12()->getDevice();
+
+	int i = 0;
+	for (auto texture : m_textures) 
+	{ 
+		if (texture && !texture->hasDSV())
+		{
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+			srvDesc.Format = texture->getDesc().format;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Texture2D.MipLevels = 1;
+
+			device->CreateShaderResourceView(
+				texture->getD3D12Resource().Get(),
+				&srvDesc,
+				getDescriptorTableCPUHandle(i)
+			);
+			i++;
 		}
 	}
 }

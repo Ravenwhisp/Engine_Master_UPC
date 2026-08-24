@@ -40,6 +40,10 @@ public:
 	void             resize(Vector2 size);
     void             resize(uint32_t width, uint32_t height);
 
+	// Rebuilds the contiguous SRV descriptor table for the currently attached
+	// textures without resizing any of the underlying resources.
+	void             rebuildDescriptorTable();
+
 	void setSize(uint32_t width, uint32_t height);
 	Vector2 getSize() const;
 

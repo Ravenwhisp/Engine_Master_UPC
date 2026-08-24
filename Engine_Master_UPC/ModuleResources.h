@@ -56,13 +56,15 @@ public:
 
 
 	Texture* createDepthBuffer(float width, float height);
-	Texture* createShadowMap(uint32_t size);
+	Texture* createShadowMap(uint32_t size, uint32_t arraySize = 1);
+	Texture* createDepthMinMaxTexture(uint32_t width, uint32_t height);
+	Texture* createVolumeTexture(uint32_t width, uint32_t height, uint16_t depth, DXGI_FORMAT format);
 	Texture* createRenderTexture(float width, float height);
 	Texture* createHDRRenderTexture(float width, float height);
 
 	Texture* createSSAODepthBuffer(float width, float height);
 	Texture* createSSAONormalBuffer(float width, float height);
-	Texture* createSSAOTexture(float width, float height);
+	Texture* createSSAOTexture(float width, float height);	
 
 	RenderSurface* createRenderSurface(float width, float height);
 	static constexpr const char* NULL_TEXTURE_HASH = "__NULL_TEXTURE__";

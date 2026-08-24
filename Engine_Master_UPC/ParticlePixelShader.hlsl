@@ -6,6 +6,12 @@ SamplerState depthStencilSampler : register(s1);
 
 // ALL THIS STUFF SHOULD GO ON A SEPARATE FILE (StructuredBuffer probably on an independent one, the other is shared with other shaders)
 
+cbuffer EmitterParams : register(b1)
+{
+    float3 hdrColor;
+    float2 uvScale;
+};
+
 struct ShaderParticleData
 {
     float4x4 worldPosition;
@@ -74,7 +80,7 @@ float4 main(PSInput input) : SV_TARGET
     // Color application //
     
     float4 particleColorInfo = instanceDataBuffer[input.instanceID].colorAndAlpha;
-    float3 resultingColor = LinearToSRGB(Tint(texColor.rgb, particleColorInfo.rgb) );
+    float3 resultingColor = Tint(texColor.rgb, particleColorInfo.rgb) + hdrColor;
     
     return float4(resultingColor, fade * texColor.a * particleColorInfo.a);
 }

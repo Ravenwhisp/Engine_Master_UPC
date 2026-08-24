@@ -20,6 +20,7 @@ public:
 	//const Vector4& getStartColor() const { return m_startColor; }
 
 	ImGradient& getColorGradient() { return m_colorOverTime; }
+	Vector3 getHDRColorAndIntensity() const { return m_hdrColorAndIntensity; }
 
 	bool drawUi() override;
 	void serialize(IArchive& archive) override;
@@ -34,6 +35,17 @@ private:
 
 	float m_colorCurve[4] = { 0.000f, 0.000f, 1.000f, 1.000f };
 
+	// for bloom post-processing, we will have a HDR color + intensity
+	float m_hdrColor[3] = { 0.000f, 0.000f, 0.000f};
+	float m_intensity = 0.f;
+
+	Vector3 m_hdrColorAndIntensity = Vector3(0.f, 0.f, 0.f); //  final value, to be used in the shader
+
+
 	bool drawBezierCurveUI(float* curveData);
+	bool drawHDRColorUI(float* colorData, float* intensity, Vector3* hdrEndColor);
+	Vector3 getFinalHDRColor(float* colorData, float* intensity) const;
+
+
 };
 
