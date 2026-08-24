@@ -1936,6 +1936,8 @@
     <FxCompile Include="OcclusionRevealDebugPS.hlsl" />
     <FxCompile Include="OcclusionRevealVS.hlsl" />
     <FxCompile Include="OcclusionRevealPS.hlsl" />
+    <FxCompile Include="OcclusionBubbleVS.hlsl" />
+    <FxCompile Include="OcclusionBubblePS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">

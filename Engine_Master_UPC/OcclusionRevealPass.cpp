@@ -27,20 +27,24 @@
 
 #include "SkyBoxPass.h"
 #include "SkyBox.h"
+#include "BoundingBox.h"
 
+#include <DirectXMath.h>
+#include <cfloat>
 #include "PlatformHelpers.h"
 
 #include <d3dcompiler.h>
 #include <algorithm>
 #include <cmath>
 
-
 OcclusionRevealPass::OcclusionRevealPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
     createRootSignature();
     createPipelineState();
-}
 
+    createBubbleRootSignature();
+    createBubblePipelineState();
+}
 
 void OcclusionRevealPass::createRootSignature()
 {
@@ -151,16 +155,98 @@ void OcclusionRevealPass::createPipelineState()
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
+void OcclusionRevealPass::createBubbleRootSignature()
+{
+    CD3DX12_ROOT_PARAMETER rootParams[3] = {};
+
+    CD3DX12_DESCRIPTOR_RANGE mainDepthRange;
+    CD3DX12_DESCRIPTOR_RANGE eligibilityRange;
+
+    mainDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    eligibilityRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
+
+    rootParams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[1].InitAsDescriptorTable(1, &mainDepthRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[2].InitAsDescriptorTable(1, &eligibilityRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+    CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
+    rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+    ComPtr<ID3DBlob> signature;
+    ComPtr<ID3DBlob> error;
+
+    DXCall(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+    DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_bubbleRootSignature)));
+}
+
+void OcclusionRevealPass::createBubblePipelineState()
+{
+    ComPtr<ID3DBlob> vertexShaderBlob;
+    ComPtr<ID3DBlob> pixelShaderBlob;
+
+    ThrowIfFailed(D3DReadFileToBlob(L"OcclusionBubbleVS.cso", &vertexShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"OcclusionBubblePS.cso", &pixelShaderBlob));
+
+    D3D12_BLEND_DESC blendDesc = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+
+    // New RGB = Old RGB * shader output alpha.
+    blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_ZERO;
+    blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+
+    // Preserve SCENE_HDR alpha.
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ZERO;
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+
+    psoDesc.pRootSignature = m_bubbleRootSignature.Get();
+    psoDesc.InputLayout = { nullptr, 0 };
+
+    psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
+    psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
+
+    psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+
+    psoDesc.BlendState = blendDesc;
+
+    psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+    psoDesc.DepthStencilState.DepthEnable = FALSE;
+    psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+    psoDesc.DepthStencilState.StencilEnable = FALSE;
+
+    psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+
+    psoDesc.NumRenderTargets = 1;
+    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+    psoDesc.SampleMask = UINT_MAX;
+    psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    psoDesc.SampleDesc = { 1, 0 };
+
+    DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_bubblePipelineState)));
+}
 
 void OcclusionRevealPass::prepare(const RenderContext& ctx)
 {
     m_view = &ctx.view;
     m_projection = &ctx.projection;
+
     m_viewport = ctx.viewport;
     m_scissorRect = ctx.scissorRect;
+
     m_renderSurface = &ctx.renderSurface;
 
     m_meshRenderers.clear();
+    m_bubbleCB = {};
+
+    UINT bubbleIndex = 0;
 
     const auto& targets = app->getModuleScene()->getOcclusionTargetComponents();
 
@@ -175,7 +261,13 @@ void OcclusionRevealPass::prepare(const RenderContext& ctx)
             continue;
 
         collectMeshRenderers(owner);
+
+        if (bubbleIndex < MAX_OCCLUSION_BUBBLES && buildBubbleForTarget(owner, bubbleIndex))
+            ++bubbleIndex;
     }
+
+    m_bubbleCB.settings = DirectX::SimpleMath::Vector4(m_depthBias, 0.0f, 0.0f, 0.0f);
+    m_bubbleCBAddress = ctx.ringBuffer->allocate(&m_bubbleCB, sizeof(OcclusionBubbleCB), app->getModuleD3D12()->getCurrentFrame());
 
     SceneDataCB sceneData{};
     sceneData.viewPos = ctx.cameraPosition;
@@ -259,6 +351,11 @@ void OcclusionRevealPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->ResourceBarrier(1, &mainDepthToSRV);
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtv = sceneHDR->getRTV(0).cpu;
+
+    // First weaken the eligible occluder around the projected target region.
+    renderBubble(commandList, mainDepth.get(), eligibility.get(), rtv);
+
+    // Then draw the actual PBR target exactly as in Commit 5.
     D3D12_CPU_DESCRIPTOR_HANDLE dsv = targetDepth->getDSV().cpu;
 
     commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
@@ -422,6 +519,141 @@ void OcclusionRevealPass::renderMeshRenderer(ID3D12GraphicsCommandList4* command
     }
 }
 
+bool OcclusionRevealPass::buildBubbleForTarget(GameObject* targetRoot, UINT bubbleIndex)
+{
+    if (targetRoot == nullptr || bubbleIndex >= MAX_OCCLUSION_BUBBLES)
+        return false;
+
+    float minX = FLT_MAX;
+    float minY = FLT_MAX;
+    float maxX = -FLT_MAX;
+    float maxY = -FLT_MAX;
+
+    float minDepth = FLT_MAX;
+    float maxDepth = -FLT_MAX;
+
+    bool hasProjectedPoint = false;
+
+    accumulateProjectedBounds(targetRoot, minX, minY, maxX, maxY, minDepth, maxDepth, hasProjectedPoint);
+
+    if (!hasProjectedPoint)
+        return false;
+
+    float centerX = (minX + maxX) * 0.5f;
+    float centerY = (minY + maxY) * 0.5f;
+
+    float radiusX = std::max((maxX - minX) * 0.5f * m_bubbleScale, 1.0f);
+    float radiusY = std::max((maxY - minY) * 0.5f * m_bubbleScale, 1.0f);
+
+    // Representative depth for the complete target.
+    // This is intentionally an artistic single-depth approximation for the bubble,
+    // not a replacement for TARGET_DEPTH used by the actual player reveal.
+    float targetDepth = std::clamp((minDepth + maxDepth) * 0.5f, 0.0f, 1.0f);
+
+    m_bubbleCB.centerRadius[bubbleIndex] = DirectX::SimpleMath::Vector4(centerX, centerY, radiusX, radiusY);
+    m_bubbleCB.depthParams[bubbleIndex] = DirectX::SimpleMath::Vector4(targetDepth, m_bubbleSoftness, m_occluderOpacity, 1.0f);
+
+    return true;
+}
+
+void OcclusionRevealPass::accumulateProjectedBounds(
+    GameObject* gameObject,
+    float& minX,
+    float& minY,
+    float& maxX,
+    float& maxY,
+    float& minDepth,
+    float& maxDepth,
+    bool& hasProjectedPoint) const
+{
+    if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy())
+        return;
+
+    MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+
+    if (renderer != nullptr && renderer->isActive() && renderer->hasMesh())
+    {
+        const Vector3* points = renderer->getBoundingBox().getPoints();
+
+        Matrix viewProjection = *m_view * *m_projection;
+        DirectX::XMMATRIX viewProjectionXM = DirectX::XMLoadFloat4x4(&viewProjection);
+
+        for (UINT i = 0; i < 8; ++i)
+        {
+            const Vector3& point = points[i];
+
+            DirectX::XMVECTOR worldPoint = DirectX::XMVectorSet(point.x, point.y, point.z, 1.0f);
+            DirectX::XMVECTOR clipPoint = DirectX::XMVector4Transform(worldPoint, viewProjectionXM);
+
+            DirectX::XMFLOAT4 clip;
+            DirectX::XMStoreFloat4(&clip, clipPoint);
+
+            if (clip.w <= 0.0001f)
+                continue;
+
+            float ndcX = clip.x / clip.w;
+            float ndcY = clip.y / clip.w;
+            float ndcZ = clip.z / clip.w;
+
+            if (ndcZ < 0.0f || ndcZ > 1.0f)
+                continue;
+
+            float screenX = m_viewport.TopLeftX + (ndcX * 0.5f + 0.5f) * m_viewport.Width;
+            float screenY = m_viewport.TopLeftY + (-ndcY * 0.5f + 0.5f) * m_viewport.Height;
+
+            minX = std::min(minX, screenX);
+            minY = std::min(minY, screenY);
+
+            maxX = std::max(maxX, screenX);
+            maxY = std::max(maxY, screenY);
+
+            minDepth = std::min(minDepth, ndcZ);
+            maxDepth = std::max(maxDepth, ndcZ);
+
+            hasProjectedPoint = true;
+        }
+    }
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+        return;
+
+    for (GameObject* child : transform->getAllChildren())
+        accumulateProjectedBounds(child, minX, minY, maxX, maxY, minDepth, maxDepth, hasProjectedPoint);
+}
+
+void OcclusionRevealPass::renderBubble(
+    ID3D12GraphicsCommandList4* commandList,
+    Texture* mainDepth,
+    Texture* eligibility,
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv)
+{
+    if (mainDepth == nullptr || eligibility == nullptr || m_bubbleCBAddress == 0)
+        return;
+
+    commandList->OMSetRenderTargets(1, &rtv, FALSE, nullptr);
+
+    commandList->RSSetViewports(1, &m_viewport);
+    commandList->RSSetScissorRects(1, &m_scissorRect);
+
+    commandList->SetPipelineState(m_bubblePipelineState.Get());
+    commandList->SetGraphicsRootSignature(m_bubbleRootSignature.Get());
+
+    ID3D12DescriptorHeap* heaps[] =
+    {
+        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap()
+    };
+
+    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
+    commandList->SetGraphicsRootConstantBufferView(0, m_bubbleCBAddress);
+    commandList->SetGraphicsRootDescriptorTable(1, mainDepth->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(2, eligibility->getSRV().gpu);
+
+    commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    commandList->DrawInstanced(3, 1, 0, 0);
+}
 
 GPULightsConstantBuffer OcclusionRevealPass::packLightsForGPU(const std::vector<LightComponent*>& lights, const Vector3& ambientColor, float ambientIntensity) const
 {
