@@ -9,14 +9,33 @@
 
 #include <vector>
 #include <memory>
+#include <cstdint>
 
 class GameObject;
 class MeshRenderer;
 class RenderSurface;
 class LightComponent;
 class Texture;
+class VolumetricFogComputePass;
 
 static constexpr UINT MAX_OCCLUSION_BUBBLES = 2;
+
+struct OcclusionRevealSettings
+{
+    float depthBias = 0.00001f;
+    float revealAlpha = 0.65f;
+
+    float fogNearDistance = 0.0f;
+    float fogMaxDistance = 0.0f;
+
+    float fogProjectionA = 0.0f;
+    float fogProjectionB = 0.0f;
+
+    uint32_t fogGridDepth = 0;
+    uint32_t fogEnabled = 0;
+};
+
+static_assert(sizeof(OcclusionRevealSettings) == 32);
 
 struct OcclusionRevealVisualEffectsCB
 {
@@ -34,7 +53,7 @@ struct OcclusionBubbleCB
 class OcclusionRevealPass : public IRenderPass
 {
 public:
-    OcclusionRevealPass(ComPtr<ID3D12Device4> device);
+    OcclusionRevealPass(ComPtr<ID3D12Device4> device, VolumetricFogComputePass* fogComputePass);
 
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
@@ -83,6 +102,11 @@ private:
 
     OcclusionBubbleCB m_bubbleCB{};
     D3D12_GPU_VIRTUAL_ADDRESS m_bubbleCBAddress = 0;
+
+    VolumetricFogComputePass* m_fogComputePass = nullptr;
+    Texture* m_integratedFogVolume = nullptr;
+
+    OcclusionRevealSettings m_revealSettings{};
 
     float m_depthBias = 0.00001f;
     float m_revealAlpha = 0.65f;

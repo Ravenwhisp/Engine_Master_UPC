@@ -14,6 +14,7 @@
 #include "RingBuffer.h"
 
 #include "OcclusionTargetComponent.h"
+#include "VolumetricFogComputePass.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -37,7 +38,8 @@
 #include <algorithm>
 #include <cmath>
 
-OcclusionRevealPass::OcclusionRevealPass(ComPtr<ID3D12Device4> device) : m_device(device)
+OcclusionRevealPass::OcclusionRevealPass(ComPtr<ID3D12Device4> device, VolumetricFogComputePass* fogComputePass)
+    : m_device(device), m_fogComputePass(fogComputePass)
 {
     createRootSignature();
     createPipelineState();
@@ -48,7 +50,7 @@ OcclusionRevealPass::OcclusionRevealPass(ComPtr<ID3D12Device4> device) : m_devic
 
 void OcclusionRevealPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParams[16] = {};
+    CD3DX12_ROOT_PARAMETER rootParams[17] = {};
 
     CD3DX12_DESCRIPTOR_RANGE materialRange;
     CD3DX12_DESCRIPTOR_RANGE irradianceRange;
@@ -59,6 +61,7 @@ void OcclusionRevealPass::createRootSignature()
     CD3DX12_DESCRIPTOR_RANGE eligibilityRange;
     CD3DX12_DESCRIPTOR_RANGE dissolveRange;
     CD3DX12_DESCRIPTOR_RANGE samplerRange;
+    CD3DX12_DESCRIPTOR_RANGE integratedFogRange;
 
     materialRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
@@ -69,6 +72,7 @@ void OcclusionRevealPass::createRootSignature()
     eligibilityRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 13, 0);
     dissolveRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 14, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+    integratedFogRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 15, 0);
 
     rootParams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);               // b0 MVP
     rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);                  // b1 Scene
@@ -76,7 +80,7 @@ void OcclusionRevealPass::createRootSignature()
     rootParams[3].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL);                // b3 Shadows
     rootParams[4].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_ALL);                  // b4 Model
     rootParams[5].InitAsConstantBufferView(5, 0, D3D12_SHADER_VISIBILITY_PIXEL);                // b5 VFX
-    rootParams[6].InitAsConstants(2, 6, 0, D3D12_SHADER_VISIBILITY_PIXEL);                      // b6 Reveal settings
+    rootParams[6].InitAsConstants(sizeof(OcclusionRevealSettings) / sizeof(uint32_t), 6, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
     rootParams[7].InitAsDescriptorTable(1, &materialRange, D3D12_SHADER_VISIBILITY_PIXEL);      // t0..t7
     rootParams[8].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL);    // t8
@@ -87,6 +91,7 @@ void OcclusionRevealPass::createRootSignature()
     rootParams[13].InitAsDescriptorTable(1, &eligibilityRange, D3D12_SHADER_VISIBILITY_PIXEL);  // t13
     rootParams[14].InitAsDescriptorTable(1, &dissolveRange, D3D12_SHADER_VISIBILITY_PIXEL);     // t14
     rootParams[15].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);      // s0...
+    rootParams[16].InitAsDescriptorTable(1, &integratedFogRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -301,6 +306,34 @@ void OcclusionRevealPass::prepare(const RenderContext& ctx)
         m_shadowCBAddress = 0;
         m_cascadeShadowMapSRV = {};
     }
+
+    m_integratedFogVolume = nullptr;
+
+    m_revealSettings = {};
+    m_revealSettings.depthBias = m_depthBias;
+    m_revealSettings.revealAlpha = m_revealAlpha;
+    m_revealSettings.fogProjectionA = ctx.projection._33;
+    m_revealSettings.fogProjectionB = ctx.projection._43;
+
+    if (m_fogComputePass != nullptr && m_fogComputePass->isEnabled())
+    {
+        Texture* integratedVolume = m_fogComputePass->getIntegratedVolume();
+
+        if (integratedVolume != nullptr && integratedVolume->getSRV().IsValid())
+        {
+            const VolumetricFog::GridConstants& grid = m_fogComputePass->getGridConstants();
+
+            if (grid.gridDepth > 0)
+            {
+                m_integratedFogVolume = integratedVolume;
+
+                m_revealSettings.fogNearDistance = grid.nearDistance;
+                m_revealSettings.fogMaxDistance = grid.maxDistance;
+                m_revealSettings.fogGridDepth = grid.gridDepth;
+                m_revealSettings.fogEnabled = 1;
+            }
+        }
+    }
 }
 
 
@@ -376,8 +409,7 @@ void OcclusionRevealPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootConstantBufferView(2, m_lightsAddress);
 
-    float revealSettings[2] = { m_depthBias, m_revealAlpha };
-    commandList->SetGraphicsRoot32BitConstants(6, 2, revealSettings, 0);
+    commandList->SetGraphicsRoot32BitConstants(6, sizeof(OcclusionRevealSettings) / sizeof(uint32_t), &m_revealSettings, 0);
 
     commandList->SetGraphicsRootDescriptorTable(8, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(9, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
@@ -391,8 +423,12 @@ void OcclusionRevealPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetGraphicsRootDescriptorTable(12, mainDepth->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(13, eligibility->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(15, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
+    if (m_revealSettings.fogEnabled != 0 && m_integratedFogVolume != nullptr)
+        commandList->SetGraphicsRootDescriptorTable(16, m_integratedFogVolume->getSRV().gpu);
+
+    commandList->SetGraphicsRootDescriptorTable(15, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+   
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     for (MeshRenderer* renderer : m_meshRenderers)

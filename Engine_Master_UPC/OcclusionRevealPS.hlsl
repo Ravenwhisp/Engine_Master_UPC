@@ -1,4 +1,5 @@
 #include "PBRLighting.hlsli"
+#include "VolumetricFogCommon.hlsli"
 
 
 struct MaterialData
@@ -70,6 +71,15 @@ cbuffer RevealSettings : register(b6)
 {
     float depthBias;
     float revealAlpha;
+
+    float fogNearDistance;
+    float fogMaxDistance;
+
+    float fogProjectionA;
+    float fogProjectionB;
+
+    uint fogGridDepth;
+    uint fogEnabled;
 };
 
 
@@ -81,7 +91,7 @@ Texture2D emissiveTex : register(t3);
 Texture2D<float> mainDepth : register(t12);
 Texture2D<float> occluderEligibility : register(t13);
 Texture2D dissolveNoise : register(t14);
-
+Texture3D<float4> integratedFogVolume : register(t15);
 
 struct PSInput
 {
@@ -107,6 +117,65 @@ float3 CalculateDamageHighlight(float3 normalVector, float3 viewDirection, float
     return fresnelColor * damageHighlightCB.damageHighlightData.damageHighlight;
 }
 
+float4 SampleRevealIntegratedFog(float2 uv, float normalizedDepth)
+{
+    float depthInSlices = normalizedDepth * float(fogGridDepth);
+
+    if (depthInSlices <= 1.0f)
+    {
+        float firstSliceZ = 0.5f / float(fogGridDepth);
+        float4 firstSlice = integratedFogVolume.SampleLevel(linearClampSample, float3(uv, firstSliceZ), 0.0f);
+
+        return lerp(
+            float4(0.0f, 0.0f, 0.0f, 1.0f),
+            firstSlice,
+            saturate(depthInSlices)
+        );
+    }
+
+    float volumeZ = (depthInSlices - 0.5f) / float(fogGridDepth);
+
+    return integratedFogVolume.SampleLevel(
+        linearClampSample,
+        float3(uv, saturate(volumeZ)),
+        0.0f
+    );
+}
+
+
+float3 ApplyRevealVolumetricFog(float3 color, float4 screenPosition)
+{
+    if (fogEnabled == 0 || fogGridDepth == 0)
+        return color;
+
+    // SV_POSITION.z here is the DEVICE DEPTH OF THE PLAYER FRAGMENT,
+    // not the depth of the occluding wall.
+    float playerDeviceDepth = screenPosition.z;
+
+    float playerViewDepth = LinearizeVolumetricViewDepth(
+        playerDeviceDepth,
+        fogProjectionA,
+        fogProjectionB
+    );
+
+    float normalizedDepth = GetNormalizedVolumetricDepth(
+        playerViewDepth,
+        fogNearDistance,
+        fogMaxDistance
+    );
+
+    float2 screenUV = screenPosition.xy * invScreenSize;
+
+    float4 integratedFog = SampleRevealIntegratedFog(
+        screenUV,
+        normalizedDepth
+    );
+
+    float transmittance = saturate(integratedFog.a);
+    float3 scattering = integratedFog.rgb;
+
+    return scattering + color * transmittance;
+}
 
 float4 main(PSInput input) : SV_Target0
 {
@@ -274,6 +343,8 @@ float4 main(PSInput input) : SV_Target0
 
     if (cascadePadding.x > 0.5f && selectedCascadeIndex < MAX_SHADOW_CASCADES)
         finalColor = lerp(finalColor, GetCascadeDebugColor(selectedCascadeIndex), 0.35f);
+
+    finalColor = ApplyRevealVolumetricFog(finalColor, input.clipPos);
 
     return float4(finalColor, revealAlpha);
 }
