@@ -242,13 +242,11 @@ void OcclusionRevealPass::prepare(const RenderContext& ctx)
 {
     m_view = &ctx.view;
     m_projection = &ctx.projection;
-
     m_viewport = ctx.viewport;
     m_scissorRect = ctx.scissorRect;
-
     m_renderSurface = &ctx.renderSurface;
 
-    m_meshRenderers.clear();
+    m_targets.clear();
     m_bubbleCB = {};
 
     UINT bubbleIndex = 0;
@@ -257,18 +255,18 @@ void OcclusionRevealPass::prepare(const RenderContext& ctx)
 
     for (OcclusionTargetComponent* target : targets)
     {
-        if (target == nullptr || !target->isActive())
-            continue;
+        if (target == nullptr || !target->isActive()) continue;
 
         GameObject* owner = target->getOwner();
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy()) continue;
 
-        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
-            continue;
+        OcclusionTargetRenderData renderData{};
+        renderData.target = target;
+        collectMeshRenderers(owner, renderData.meshRenderers);
 
-        collectMeshRenderers(owner);
+        if (!renderData.meshRenderers.empty()) m_targets.push_back(std::move(renderData));
 
-        if (bubbleIndex < MAX_OCCLUSION_BUBBLES && buildBubbleForTarget(owner, bubbleIndex))
-            ++bubbleIndex;
+        if (bubbleIndex < MAX_OCCLUSION_BUBBLES && buildBubbleForTarget(owner, *target, bubbleIndex)) ++bubbleIndex;
     }
 
     m_bubbleCB.settings = DirectX::SimpleMath::Vector4(m_depthBias, 0.0f, 0.0f, 0.0f);
@@ -286,12 +284,7 @@ void OcclusionRevealPass::prepare(const RenderContext& ctx)
 
     m_sceneDataCBAddress = ctx.ringBuffer->allocate(&sceneData, sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
 
-    GPULightsConstantBuffer lightsCB = packLightsForGPU(
-        app->getModuleScene()->getLightComponents(),
-        LightDefaults::DEFAULT_AMBIENT_COLOR,
-        LightDefaults::DEFAULT_AMBIENT_INTENSITY
-    );
-
+    GPULightsConstantBuffer lightsCB = packLightsForGPU(app->getModuleScene()->getLightComponents(), LightDefaults::DEFAULT_AMBIENT_COLOR, LightDefaults::DEFAULT_AMBIENT_INTENSITY);
     m_lightsAddress = ctx.ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
 
     m_hasShadowData = ctx.shadowData != nullptr;
@@ -311,7 +304,6 @@ void OcclusionRevealPass::prepare(const RenderContext& ctx)
 
     m_revealSettings = {};
     m_revealSettings.depthBias = m_depthBias;
-    m_revealSettings.revealAlpha = m_revealAlpha;
     m_revealSettings.fogProjectionA = ctx.projection._33;
     m_revealSettings.fogProjectionB = ctx.projection._43;
 
@@ -326,7 +318,6 @@ void OcclusionRevealPass::prepare(const RenderContext& ctx)
             if (grid.gridDepth > 0)
             {
                 m_integratedFogVolume = integratedVolume;
-
                 m_revealSettings.fogNearDistance = grid.nearDistance;
                 m_revealSettings.fogMaxDistance = grid.maxDistance;
                 m_revealSettings.fogGridDepth = grid.gridDepth;
@@ -337,28 +328,19 @@ void OcclusionRevealPass::prepare(const RenderContext& ctx)
 }
 
 
-void OcclusionRevealPass::collectMeshRenderers(GameObject* gameObject)
+void OcclusionRevealPass::collectMeshRenderers(GameObject* gameObject, std::vector<MeshRenderer*>& output)
 {
-    if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy())
-        return;
+    if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy()) return;
 
     MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
-    if (renderer != nullptr && renderer->isActive())
-    {
-        if (std::find(m_meshRenderers.begin(), m_meshRenderers.end(), renderer) == m_meshRenderers.end())
-            m_meshRenderers.push_back(renderer);
-    }
+    if (renderer != nullptr && renderer->isActive() && std::find(output.begin(), output.end(), renderer) == output.end()) output.push_back(renderer);
 
     Transform* transform = gameObject->GetTransform();
+    if (transform == nullptr) return;
 
-    if (transform == nullptr)
-        return;
-
-    for (GameObject* child : transform->getAllChildren())
-        collectMeshRenderers(child);
+    for (GameObject* child : transform->getAllChildren()) collectMeshRenderers(child, output);
 }
-
 
 void OcclusionRevealPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
@@ -409,8 +391,6 @@ void OcclusionRevealPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootConstantBufferView(2, m_lightsAddress);
 
-    commandList->SetGraphicsRoot32BitConstants(6, sizeof(OcclusionRevealSettings) / sizeof(uint32_t), &m_revealSettings, 0);
-
     commandList->SetGraphicsRootDescriptorTable(8, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(9, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(10, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
@@ -431,8 +411,15 @@ void OcclusionRevealPass::apply(ID3D12GraphicsCommandList4* commandList)
    
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    for (MeshRenderer* renderer : m_meshRenderers)
-        renderMeshRenderer(commandList, renderer);
+    for (const OcclusionTargetRenderData& targetData : m_targets)
+    {
+        if (targetData.target == nullptr) continue;
+
+        m_revealSettings.revealAlpha = std::clamp(targetData.target->getRevealStrength(), 0.0f, 1.0f);
+        commandList->SetGraphicsRoot32BitConstants(6, sizeof(OcclusionRevealSettings) / sizeof(uint32_t), &m_revealSettings, 0);
+
+        for (MeshRenderer* renderer : targetData.meshRenderers) renderMeshRenderer(commandList, renderer);
+    }
 
     CD3DX12_RESOURCE_BARRIER mainDepthToDSV = CD3DX12_RESOURCE_BARRIER::Transition(
         mainDepth->getD3D12Resource().Get(),
@@ -555,39 +542,34 @@ void OcclusionRevealPass::renderMeshRenderer(ID3D12GraphicsCommandList4* command
     }
 }
 
-bool OcclusionRevealPass::buildBubbleForTarget(GameObject* targetRoot, UINT bubbleIndex)
+bool OcclusionRevealPass::buildBubbleForTarget(GameObject* targetRoot, const OcclusionTargetComponent& target, UINT bubbleIndex)
 {
-    if (targetRoot == nullptr || bubbleIndex >= MAX_OCCLUSION_BUBBLES)
-        return false;
+    if (targetRoot == nullptr || bubbleIndex >= MAX_OCCLUSION_BUBBLES) return false;
 
     float minX = FLT_MAX;
     float minY = FLT_MAX;
     float maxX = -FLT_MAX;
     float maxY = -FLT_MAX;
-
     float minDepth = FLT_MAX;
     float maxDepth = -FLT_MAX;
-
     bool hasProjectedPoint = false;
 
     accumulateProjectedBounds(targetRoot, minX, minY, maxX, maxY, minDepth, maxDepth, hasProjectedPoint);
 
-    if (!hasProjectedPoint)
-        return false;
+    if (!hasProjectedPoint) return false;
 
-    float centerX = (minX + maxX) * 0.5f;
-    float centerY = (minY + maxY) * 0.5f;
+    const float bubbleScale = std::clamp(target.getBubbleScale(), 0.5f, 3.0f);
+    const float bubbleSoftness = std::clamp(target.getBubbleSoftness(), 0.0f, 1.0f);
+    const float occluderOpacity = std::clamp(target.getOccluderOpacity(), 0.0f, 1.0f);
 
-    float radiusX = std::max((maxX - minX) * 0.5f * m_bubbleScale, 1.0f);
-    float radiusY = std::max((maxY - minY) * 0.5f * m_bubbleScale, 1.0f);
-
-    // Representative depth for the complete target.
-    // This is intentionally an artistic single-depth approximation for the bubble,
-    // not a replacement for TARGET_DEPTH used by the actual player reveal.
-    float targetDepth = std::clamp((minDepth + maxDepth) * 0.5f, 0.0f, 1.0f);
+    const float centerX = (minX + maxX) * 0.5f;
+    const float centerY = (minY + maxY) * 0.5f;
+    const float radiusX = std::max((maxX - minX) * 0.5f * bubbleScale, 1.0f);
+    const float radiusY = std::max((maxY - minY) * 0.5f * bubbleScale, 1.0f);
+    const float targetDepth = std::clamp((minDepth + maxDepth) * 0.5f, 0.0f, 1.0f);
 
     m_bubbleCB.centerRadius[bubbleIndex] = DirectX::SimpleMath::Vector4(centerX, centerY, radiusX, radiusY);
-    m_bubbleCB.depthParams[bubbleIndex] = DirectX::SimpleMath::Vector4(targetDepth, m_bubbleSoftness, m_occluderOpacity, 1.0f);
+    m_bubbleCB.depthParams[bubbleIndex] = DirectX::SimpleMath::Vector4(targetDepth, bubbleSoftness, occluderOpacity, 1.0f);
 
     return true;
 }

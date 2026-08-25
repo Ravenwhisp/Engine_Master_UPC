@@ -17,8 +17,15 @@ class RenderSurface;
 class LightComponent;
 class Texture;
 class VolumetricFogComputePass;
+class OcclusionTargetComponent;
 
 static constexpr UINT MAX_OCCLUSION_BUBBLES = 2;
+
+struct OcclusionTargetRenderData
+{
+    OcclusionTargetComponent* target = nullptr;
+    std::vector<MeshRenderer*> meshRenderers;
+};
 
 struct OcclusionRevealSettings
 {
@@ -65,10 +72,9 @@ private:
     void createBubbleRootSignature();
     void createBubblePipelineState();
 
-    void collectMeshRenderers(GameObject* gameObject);
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer);
-
-    bool buildBubbleForTarget(GameObject* targetRoot, UINT bubbleIndex);
+    void collectMeshRenderers(GameObject* gameObject, std::vector<MeshRenderer*>& output);
+    bool buildBubbleForTarget(GameObject* targetRoot, const OcclusionTargetComponent& target, UINT bubbleIndex);
     void accumulateProjectedBounds(GameObject* gameObject, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, float& maxDepth, bool& hasProjectedPoint) const;
     void renderBubble(ID3D12GraphicsCommandList4* commandList, Texture* mainDepth, Texture* eligibility, D3D12_CPU_DESCRIPTOR_HANDLE rtv);
 
@@ -83,7 +89,7 @@ private:
     ComPtr<ID3D12RootSignature> m_bubbleRootSignature;
     ComPtr<ID3D12PipelineState> m_bubblePipelineState;
 
-    std::vector<MeshRenderer*> m_meshRenderers;
+    std::vector<OcclusionTargetRenderData> m_targets;
 
     D3D12_VIEWPORT m_viewport = {};
     D3D12_RECT m_scissorRect = {};
@@ -109,11 +115,5 @@ private:
     OcclusionRevealSettings m_revealSettings{};
 
     float m_depthBias = 0.00001f;
-    float m_revealAlpha = 0.65f;
 
-    // Temporary artistic values.
-    // These move to OcclusionTargetComponent/settings in the final polish commit.
-    float m_bubbleScale = 1.35f;
-    float m_bubbleSoftness = 0.35f;
-    float m_occluderOpacity = 0.65f;
 };
