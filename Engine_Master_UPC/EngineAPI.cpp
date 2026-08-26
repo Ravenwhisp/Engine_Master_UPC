@@ -12,6 +12,8 @@
 
 #include "PrefabManager.h"
 #include "Quadtree.h"
+#include "AssetIndex.h"
+#include "VideoAsset.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -3321,13 +3323,47 @@ namespace VideoAPI
             return;
         }
 
-        component->setPath(path);
+        auto* moduleAssets = app->getModuleAssets();
+        if (!moduleAssets)
+        {
+            return;
+        }
+
+        const UID uid = moduleAssets->getIndex().findUID(std::filesystem::path(path));
+        AssetId* ref = moduleAssets->findReference(uid);
+        if (!ref)
+        {
+            return;
+        }
+
+        VideoRef videoRef;
+        videoRef.m_id = *ref;
+        auto loaded = moduleAssets->load<VideoAsset>(*ref);
+        if (loaded)
+        {
+            videoRef.m_data = loaded;
+        }
+        component->setAsset(videoRef);
+        delete ref;
     }
 
     const char* getPath(const ComponentVideo* component)
     {
+        static std::string result;
+        result.clear();
+
+        if (component)
         {
-            return component ? component->getPath().c_str() : "";
+            const VideoRef& ref = component->getAsset();
+            if (ref)
+            {
+                if (const AssetIndexEntry* entry = app->getModuleAssets()->getIndex().findEntry(ref.m_id.m_uid))
+                {
+                    result = entry->sourcePath.string();
+                }
+            }
         }
+
+        return result.c_str();
     }
 }

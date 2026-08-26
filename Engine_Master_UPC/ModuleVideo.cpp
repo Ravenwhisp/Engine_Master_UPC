@@ -63,6 +63,25 @@ bool ModuleVideo::cleanUp()
 #pragma endregion
 
 #pragma region API
+VideoPlayback* ModuleVideo::playVideo(const std::vector<uint8_t>& data)
+{
+	if (!m_xAudio)
+		return nullptr;
+
+	auto video = std::make_unique<VideoPlayback>(m_xAudio);
+
+	if (!video->loadFromBuffer(data.data(), data.size()))
+		return nullptr;
+
+	if (!video->play())
+		return nullptr;
+
+	VideoPlayback* result = video.get();
+	m_activeVideos.push_back(std::move(video));
+
+	return result;
+}
+
 VideoPlayback* ModuleVideo::playVideo(const std::filesystem::path& path)
 {
 	if (!m_xAudio)

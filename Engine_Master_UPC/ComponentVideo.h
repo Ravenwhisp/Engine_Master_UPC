@@ -1,7 +1,7 @@
 #pragma once
 #include "Component.h"
-
-#include <string>
+#include "AssetReference.h"
+#include "VideoAsset.h"
 
 class ModuleVideo;
 class VideoPlayback;
@@ -12,7 +12,7 @@ private:
 	ModuleVideo* m_moduleVideo = nullptr;
 	VideoPlayback* m_playback = nullptr;
 
-	std::string m_path;
+	VideoRef m_asset;
 
 public:
 	ComponentVideo(UID id, GameObject* gameObject);
@@ -26,8 +26,8 @@ public:
 	bool isPlaying() const;
 	bool isPaused() const;
 
-	void setPath(const std::string& newPath) noexcept { m_path = newPath; }
-	const std::string& getPath() const noexcept { return m_path; }
+	void setAsset(const VideoRef& ref) noexcept { m_asset = ref; }
+	const VideoRef& getAsset() const noexcept { return m_asset; }
 
 	void drawUi();
 

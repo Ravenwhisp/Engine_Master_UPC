@@ -4,6 +4,9 @@
 #include "Application.h"
 #include "ModuleTime.h"
 
+#include <cstdio>
+#include <cstring>
+
 extern "C"
 {
 #include <libavutil/error.h>
@@ -17,6 +20,64 @@ namespace
 		av_strerror(errorCode, buffer, sizeof(buffer));
 
 		DEBUG_LOG("[Video playback|%s] %s: %s", path.string().c_str(), message, buffer);
+	}
+
+	struct AvioBuffer
+	{
+		const uint8_t* data = nullptr;
+		size_t size = 0;
+		size_t offset = 0;
+	};
+
+	int avioRead(void* opaque, uint8_t* buf, int bufSize)
+	{
+		auto* ctx = static_cast<AvioBuffer*>(opaque);
+
+		if (!ctx || ctx->offset >= ctx->size)
+			return AVERROR_EOF;
+
+		int toRead = bufSize;
+		if (ctx->offset + static_cast<size_t>(toRead) > ctx->size)
+			toRead = static_cast<int>(ctx->size - ctx->offset);
+
+		std::memcpy(buf, ctx->data + ctx->offset, static_cast<size_t>(toRead));
+		ctx->offset += static_cast<size_t>(toRead);
+
+		return toRead;
+	}
+
+	int64_t avioSeek(void* opaque, int64_t offset, int whence)
+	{
+		auto* ctx = static_cast<AvioBuffer*>(opaque);
+		if (!ctx)
+			return -1;
+
+		if ((whence & ~AVSEEK_FORCE) == AVSEEK_SIZE)
+			return static_cast<int64_t>(ctx->size);
+
+		const int seekMode = whence & ~AVSEEK_FORCE;
+		int64_t newOffset = 0;
+
+		switch (seekMode)
+		{
+		case SEEK_SET:
+			newOffset = offset;
+			break;
+		case SEEK_CUR:
+			newOffset = static_cast<int64_t>(ctx->offset) + offset;
+			break;
+		case SEEK_END:
+			newOffset = static_cast<int64_t>(ctx->size) + offset;
+			break;
+		default:
+			return -1;
+		}
+
+		if (newOffset < 0 || newOffset > static_cast<int64_t>(ctx->size))
+			return -1;
+
+		ctx->offset = static_cast<size_t>(newOffset);
+		return newOffset;
 	}
 }
 
@@ -49,7 +110,63 @@ bool VideoPlayback::load(const std::filesystem::path& path)
 		return false;
 	}
 
-	result = avformat_find_stream_info(m_formatContext, nullptr);
+	return finalizeLoad();
+}
+
+bool VideoPlayback::loadFromBuffer(const uint8_t* data, size_t size)
+{
+	unload();
+
+	if (!data || size == 0)
+		return false;
+
+	m_buffer.assign(data, data + size);
+	m_avioOpaque = new AvioBuffer{ m_buffer.data(), m_buffer.size(), 0 };
+
+	constexpr int kBufferSize = 4096;
+	uint8_t* avioBuffer = static_cast<uint8_t*>(av_malloc(kBufferSize));
+	if (!avioBuffer)
+	{
+		delete static_cast<AvioBuffer*>(m_avioOpaque);
+		m_avioOpaque = nullptr;
+		return false;
+	}
+
+	m_avioContext = avio_alloc_context(avioBuffer, kBufferSize, 0, m_avioOpaque, &avioRead, nullptr, &avioSeek);
+	if (!m_avioContext)
+	{
+		av_free(avioBuffer);
+		delete static_cast<AvioBuffer*>(m_avioOpaque);
+		m_avioOpaque = nullptr;
+		return false;
+	}
+	m_avioContext->seekable = AVIO_SEEKABLE_NORMAL;
+
+	m_formatContext = avformat_alloc_context();
+	if (!m_formatContext)
+	{
+		unload();
+		return false;
+	}
+
+	m_formatContext->pb = m_avioContext;
+	m_formatContext->flags |= AVFMT_FLAG_CUSTOM_IO;
+
+	int result = avformat_open_input(&m_formatContext, nullptr, nullptr, nullptr);
+
+	if (result < 0)
+	{
+		printFFmpegError("Could not open video", result, m_path);
+		unload();
+		return false;
+	}
+
+	return finalizeLoad();
+}
+
+bool VideoPlayback::finalizeLoad()
+{
+	int result = avformat_find_stream_info(m_formatContext, nullptr);
 
 	if (result < 0)
 	{
@@ -701,6 +818,22 @@ void VideoPlayback::unload()
 
 	if (m_formatContext)
 		avformat_close_input(&m_formatContext);
+
+	if (m_avioContext)
+	{
+		av_free(m_avioContext->buffer);
+		avio_context_free(&m_avioContext);
+		m_avioContext = nullptr;
+	}
+
+	if (m_avioOpaque)
+	{
+		delete static_cast<AvioBuffer*>(m_avioOpaque);
+		m_avioOpaque = nullptr;
+	}
+
+	m_buffer.clear();
+	m_displayName.clear();
 
 	m_videoStreamIndex = -1;
 	m_audioStreamIndex = -1;

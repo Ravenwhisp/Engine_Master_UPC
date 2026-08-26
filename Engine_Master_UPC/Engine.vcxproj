@@ -308,9 +308,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="ComponentVideo.h" />
+    <ClInclude Include="VideoAsset.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
     <ClInclude Include="DissolveComponent.h" />
     <ClInclude Include="ImporterSoundBank.h" />
+    <ClInclude Include="ImporterVideo.h" />
     <ClInclude Include="ForwardPrepass.h" />
     <ClInclude Include="EmitterAnimation.h" />
     <ClInclude Include="EmitterRender.h" />
@@ -769,6 +771,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandCreateGameObject.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentVideo.cpp" />
+    <ClCompile Include="VideoAsset.cpp" />
     <ClCompile Include="ComponentSoundListener.cpp" />
     <ClCompile Include="ComponentSoundSource.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
@@ -809,6 +812,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
     <ClCompile Include="ImporterSoundBank.cpp" />
+    <ClCompile Include="ImporterVideo.cpp" />
     <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />

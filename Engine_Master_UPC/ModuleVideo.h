@@ -30,6 +30,7 @@ public:
 
 #pragma region API
 	VideoPlayback* playVideo(const std::filesystem::path& path);
+	VideoPlayback* playVideo(const std::vector<uint8_t>& data);
 	void stopVideo(VideoPlayback* video);
 	void stopAllVideos();
 #pragma endregion

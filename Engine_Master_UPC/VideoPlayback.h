@@ -48,6 +48,12 @@ private:
 
 	std::filesystem::path m_path;
 
+	std::string m_displayName;
+
+	std::vector<uint8_t> m_buffer;
+	AVIOContext* m_avioContext = nullptr;
+	void* m_avioOpaque = nullptr;
+
 	AVFormatContext* m_formatContext = nullptr;
 
 	AVCodecContext* m_videoCodecContext = nullptr;
@@ -94,6 +100,7 @@ public:
 	VideoPlayback& operator=(const VideoPlayback&) = delete;
 
 	bool load(const std::filesystem::path& path);
+	bool loadFromBuffer(const uint8_t* data, size_t size);
 	void unload();
 
 	bool play();
@@ -107,6 +114,8 @@ public:
 	bool isFinished() const;
 
 	const std::filesystem::path& getPath() const;
+	void setName(const std::string& name) { m_displayName = name; }
+	const std::string& getName() const { return m_displayName; }
 
 	AVFrame* getVideoFrame() const;
 
@@ -123,6 +132,8 @@ private:
 	bool openVideoDecoder();
 	bool openAudioDecoder();
 	bool openDecoder(int streamIndex, AVCodecContext** codecContext);
+
+	bool finalizeLoad();
 
 	bool initAudio();
 	void cleanUpAudio();

@@ -3,8 +3,12 @@
 
 #include "Application.h"
 #include "ModuleVideo.h"
+#include "ModuleAssets.h"
+#include "VideoAsset.h"
 #include "VideoPlayback.h"
 #include "IArchive.h"
+
+#include "imgui.h"
 
 #include <cstring>
 
@@ -17,7 +21,7 @@ ComponentVideo::~ComponentVideo() = default;
 
 void ComponentVideo::play()
 {
-	if (!m_moduleVideo || m_path.empty())
+	if (!m_moduleVideo || !m_asset.m_id.isValid())
 		return;
 
 	if (m_playback)
@@ -26,7 +30,22 @@ void ComponentVideo::play()
 		return;
 	}
 
-	m_playback = m_moduleVideo->playVideo(m_path);
+	const VideoAsset* asset = m_asset.get();
+
+	if (!asset)
+	{
+		auto loaded = app->getModuleAssets()->load<VideoAsset>(m_asset.m_id);
+		if (loaded)
+		{
+			m_asset.m_data = loaded;
+			asset = loaded.get();
+		}
+	}
+
+	if (!asset || asset->getVideoData().empty())
+		return;
+
+	m_playback = m_moduleVideo->playVideo(asset->getVideoData());
 }
 
 void ComponentVideo::pause()
@@ -66,11 +85,42 @@ bool ComponentVideo::isPaused() const
 
 void ComponentVideo::drawUi()
 {
-	char pathBuffer[512] = {};
-	strcpy_s(pathBuffer, m_path.c_str());
+	ImGui::Text("Video Asset:");
+	ImGui::SameLine();
 
-	if (ImGui::InputText("Video Path", pathBuffer, sizeof(pathBuffer)))
-		m_path = pathBuffer;
+	if (m_asset.m_id.isValid())
+		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Assigned (UID %llu)", m_asset.m_id.m_uid);
+	else
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
+
+	ImGui::Button("Drop Video Asset Here");
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+		{
+			const UID droppedUID = *static_cast<const UID*>(payload->Data);
+			AssetId* resolved = app->getModuleAssets()->findReference(droppedUID);
+			if (resolved)
+			{
+				if (resolved->m_type == AssetType::VIDEO)
+				{
+					m_asset.m_id = *resolved;
+					auto loaded = app->getModuleAssets()->load<VideoAsset>(*resolved);
+					if (loaded)
+						m_asset.m_data = loaded;
+				}
+				delete resolved;
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	if (m_asset.m_id.isValid())
+	{
+		ImGui::SameLine();
+		if (ImGui::Button("Clear"))
+			m_asset = VideoRef();
+	}
 
 	if (!m_playback)
 	{
@@ -107,7 +157,7 @@ std::unique_ptr<Component> ComponentVideo::clone(GameObject* newOwner) const
 	auto cloned = std::make_unique<ComponentVideo>(m_uuid, newOwner);
 
 	cloned->setActive(isActive());
-	cloned->setPath(m_path);
+	cloned->setAsset(m_asset);
 
 	return cloned;
 }
@@ -115,5 +165,7 @@ std::unique_ptr<Component> ComponentVideo::clone(GameObject* newOwner) const
 void ComponentVideo::serialize(IArchive& archive)
 {
 	Component::serialize(archive);
-	archive.serialize(m_path, "path");
+	archive.beginObject("asset");
+	m_asset.serialize(archive);
+	archive.endObject();
 }

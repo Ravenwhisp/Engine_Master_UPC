@@ -3,6 +3,9 @@
 
 #include "Application.h"
 #include "ModuleVideo.h"
+#include "ModuleAssets.h"
+#include "AssetIndex.h"
+#include "VideoAsset.h"
 #include "VideoPlayback.h"
 
 #include <filesystem>
@@ -21,14 +24,67 @@ void WindowVideoDebug::drawInternal()
 	ImGui::Text("Video Tester");
 	ImGui::Separator();
 
-	static char videoPath[512] = "";
+	if (m_videoAsset.m_id.isValid())
+		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Assigned (UID %llu)", m_videoAsset.m_id.m_uid);
+	else
+		ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
 
-	ImGui::InputText("Video Path", videoPath, IM_ARRAYSIZE(videoPath));
+	ImGui::Button("Drop Video Asset Here");
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+		{
+			const UID droppedUID = *static_cast<const UID*>(payload->Data);
+			AssetId* resolved = app->getModuleAssets()->findReference(droppedUID);
+			if (resolved)
+			{
+				if (resolved->m_type == AssetType::VIDEO)
+				{
+					m_videoAsset.m_id = *resolved;
+					auto loaded = app->getModuleAssets()->load<VideoAsset>(*resolved);
+					if (loaded)
+						m_videoAsset.m_data = loaded;
+				}
+				delete resolved;
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	if (m_videoAsset.m_id.isValid())
+	{
+		ImGui::SameLine();
+		if (ImGui::Button("Clear"))
+			m_videoAsset = VideoRef();
+	}
 
 	if (ImGui::Button("Play Video", ImVec2(-1.0f, 0.0f)))
 	{
-		if (videoPath[0] != '\0')
-			m_moduleVideo->playVideo(videoPath);
+		if (m_videoAsset.m_id.isValid())
+		{
+			const VideoAsset* asset = m_videoAsset.get();
+			if (!asset)
+			{
+				auto loaded = app->getModuleAssets()->load<VideoAsset>(m_videoAsset.m_id);
+				if (loaded)
+				{
+					m_videoAsset.m_data = loaded;
+					asset = loaded.get();
+				}
+			}
+
+			if (asset && !asset->getVideoData().empty())
+			{
+				VideoPlayback* video = m_moduleVideo->playVideo(asset->getVideoData());
+				if (video)
+				{
+					if (const AssetIndexEntry* entry = app->getModuleAssets()->getIndex().findEntry(m_videoAsset.m_id.m_uid))
+						video->setName(entry->sourcePath.filename().string());
+					else
+						video->setName("UID " + std::to_string(m_videoAsset.m_id.m_uid));
+				}
+			}
+		}
 	}
 
 	ImGui::Spacing();
@@ -74,14 +130,13 @@ void WindowVideoDebug::drawInternal()
 
 			ImGui::TableSetColumnIndex(0);
 
-			const std::filesystem::path& path = video->getPath();
-			const std::string filename = path.filename().string();
+			const std::string filename = !video->getName().empty() ? video->getName() : video->getPath().filename().string();
 
 			ImGui::TextUnformatted(filename.c_str());
 
 			if (ImGui::IsItemHovered())
 			{
-				ImGui::SetTooltip("%s", path.string().c_str());
+				ImGui::SetTooltip("%s", (!video->getName().empty() ? video->getName() : video->getPath().string()).c_str());
 			}
 
 			ImGui::TableSetColumnIndex(1);
