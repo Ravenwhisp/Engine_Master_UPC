@@ -19,7 +19,7 @@ class GeometryPass : public IRenderPass
 {
 public:
     static constexpr UINT GBUFFER_COUNT = 5;
-    static constexpr UINT RENDER_TARGET_COUNT = GBUFFER_COUNT + 1;
+    static constexpr UINT RENDER_TARGET_COUNT = GBUFFER_COUNT;
 
     static constexpr DXGI_FORMAT GBUFFER_FORMATS[GBUFFER_COUNT] =
     {
@@ -38,8 +38,6 @@ public:
         RenderSurface::GBUFFER_POSITION,
         RenderSurface::GBUFFER_EMISSIVE
     };
-
-    static constexpr DXGI_FORMAT OCCLUDER_ELIGIBILITY_FORMAT = DXGI_FORMAT_R8_UNORM;
 
     GeometryPass(ComPtr<ID3D12Device4> device);
 

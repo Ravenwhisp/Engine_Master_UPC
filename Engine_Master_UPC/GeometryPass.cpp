@@ -42,7 +42,7 @@ GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void GeometryPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParams[8] = {};
+    CD3DX12_ROOT_PARAMETER rootParams[7] = {};
     CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange, vfxRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
@@ -56,9 +56,6 @@ void GeometryPass::createRootSignature()
     rootParams[4].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[5].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[6].InitAsDescriptorTable(1, &vfxRange, D3D12_SHADER_VISIBILITY_PIXEL);
-
-    // b5 - 1 when the current surface may occlude/reveal a player.
-    rootParams[7].InitAsConstants(1, 5, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -111,8 +108,6 @@ void GeometryPass::createPipelineState()
 
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
         psoDesc.RTVFormats[i] = GBUFFER_FORMATS[i];
-
-    psoDesc.RTVFormats[GBUFFER_COUNT] = OCCLUDER_ELIGIBILITY_FORMAT;
 
     psoDesc.SampleDesc = { 1, 0 };
 
@@ -175,11 +170,6 @@ void GeometryPass::transitionAndClearTargets(ID3D12GraphicsCommandList4* command
         commandList->ClearRenderTargetView(rtvHandles[i], gbufferClearColour, 0, nullptr);
     }
 
-    const float eligibilityClearColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-    rtvHandles[GBUFFER_COUNT] = m_gbufferSurface->getTexture(RenderSurface::OCCLUDER_ELIGIBILITY)->getRTV(0).cpu;
-    commandList->ClearRenderTargetView(rtvHandles[GBUFFER_COUNT], eligibilityClearColour, 0, nullptr);
-
     *dsvHandle = m_gbufferSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu;
 
     commandList->OMSetRenderTargets(RENDER_TARGET_COUNT, rtvHandles, FALSE, dsvHandle);
@@ -215,9 +205,6 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
     {
         return;
     }
-
-    const UINT occluderEligibility = owner->GetLayer() == Layer::ENVIRONMENT ? 1u : 0u;
-    commandList->SetGraphicsRoot32BitConstant(7, occluderEligibility, 0);
 
     VisualEffectsCB visualEffectsCB{};
     
@@ -328,16 +315,10 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
 
 void GeometryPass::transitionRenderTargets(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const
 {
-    CD3DX12_RESOURCE_BARRIER barriers[RENDER_TARGET_COUNT];
+    CD3DX12_RESOURCE_BARRIER barriers[GBUFFER_COUNT];
 
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
         barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(m_gbufferSurface->getTexture(kSlots[i])->getD3D12Resource().Get(), before, after);
 
-    barriers[GBUFFER_COUNT] = CD3DX12_RESOURCE_BARRIER::Transition(
-        m_gbufferSurface->getTexture(RenderSurface::OCCLUDER_ELIGIBILITY)->getD3D12Resource().Get(),
-        before,
-        after
-    );
-
-    commandList->ResourceBarrier(RENDER_TARGET_COUNT, barriers);
+    commandList->ResourceBarrier(GBUFFER_COUNT, barriers);
 }

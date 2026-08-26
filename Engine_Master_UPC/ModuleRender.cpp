@@ -50,6 +50,7 @@
 #include "WindowSceneEditor.h"
 #include "TransparentPass.h"
 #include "OcclusionTargetDepthPass.h"
+#include "DynamicTransparencyMaskPass.h"
 
 #include "OptickProfiler.h"
 
@@ -94,6 +95,7 @@ bool ModuleRender::init()
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_occlusionTargetDepthPass = std::make_unique<OcclusionTargetDepthPass>(device);
+    m_dynamicTransparencyMaskPass = std::make_unique<DynamicTransparencyMaskPass>(device);
     m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
     m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
@@ -250,6 +252,7 @@ bool ModuleRender::cleanUp()
     m_shadowMapPass.reset();
     m_shadowFrustumComputePass.reset();
     m_depthReductionPass.reset();
+    m_dynamicTransparencyMaskPass.reset();
     m_occlusionTargetDepthPass.reset();
     m_skinningComputePass.reset();
 
@@ -379,10 +382,9 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
         RenderSurface::OCCLUSION_TARGET_DEPTH,
         occlusionTargetDepth
     );
-    auto occluderEligibility = std::shared_ptr<Texture>(
-        app->getModuleResources()->createGBuffer(width, height, DXGI_FORMAT_R8_UNORM));
-    occluderEligibility->setName(L"RenderSurface_OccluderEligibility");
-    surface.attachTexture(RenderSurface::OCCLUDER_ELIGIBILITY, occluderEligibility);
+    auto dynamicTransparencyMask = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, DXGI_FORMAT_R16G16_FLOAT));
+    dynamicTransparencyMask->setName(L"RenderSurface_DynamicTransparencyMask");
+    surface.attachTexture(RenderSurface::DYNAMIC_TRANSPARENCY_MASK, dynamicTransparencyMask);
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)
@@ -507,6 +509,16 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         {
             m_occlusionTargetDepthPass->prepare(ctx);
             m_occlusionTargetDepthPass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::DynamicTransparencyMaskPass");
+
+        if (m_dynamicTransparencyMaskPass != nullptr)
+        {
+            m_dynamicTransparencyMaskPass->prepare(ctx);
+            m_dynamicTransparencyMaskPass->apply(commandList);
         }
     }
 
