@@ -50,7 +50,6 @@
 #include "WindowSceneEditor.h"
 #include "TransparentPass.h"
 #include "OcclusionTargetDepthPass.h"
-#include "OcclusionRevealPass.h"
 
 #include "OptickProfiler.h"
 
@@ -109,7 +108,6 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<VolumetricFogApplyPass>(device, m_volumetricFogComputePass.get()));
-    m_renderPasses.push_back(std::make_unique<OcclusionRevealPass>(device, m_volumetricFogComputePass.get()));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
 
