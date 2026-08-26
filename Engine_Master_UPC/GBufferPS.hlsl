@@ -94,17 +94,24 @@ PSOutput main(VSOutput IN)
 {
     PSOutput OUT;
     
+    float dynamicTransparencyDebugInfluence = 0.0f;
+
     if (gIsOcclusionOccluder != 0)
     {
         int2 pixelCoord = int2(IN.clipPos.xy);
         float2 transparencyData = dynamicTransparencyMask.Load(int3(pixelCoord, 0));
 
+        dynamicTransparencyDebugInfluence = transparencyData.r;
+
         float influence = transparencyData.r;
         float targetDepth = transparencyData.g;
-        const float depthBias = 0.0001f;
 
-        if (influence > 0.0f && IN.clipPos.z < targetDepth - depthBias)
-            discard;
+        const float depthBias = 0.0001f;
+        const float coreInfluenceThreshold = 0.999f;
+
+    // TEMPORARILY DISABLED FOR MASK DEBUG
+    // if (influence >= coreInfluenceThreshold && IN.clipPos.z < targetDepth - depthBias)
+    //     discard;
     }
     
     float metallic = gMaterial.metallicFactor;
@@ -194,6 +201,16 @@ PSOutput main(VSOutput IN)
     
     // Position
     OUT.position     = float4(IN.worldPos, 0.0f);
+    
+    
+    if (gIsOcclusionOccluder != 0)
+    {
+        float influence = saturate(dynamicTransparencyDebugInfluence);
+
+        OUT.diffuse = float4(0.0f, 0.0f, 0.0f, 1.0f);
+        OUT.metalRoughness = float4(1.0f, 1.0f, 0.0f, 0.0f);
+        OUT.emissive = float4(influence, influence, influence, 0.0f);
+    }
     
     return OUT;
 }
