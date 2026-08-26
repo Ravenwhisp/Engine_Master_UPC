@@ -6,6 +6,9 @@
 #include "DamageHighlightComponent.h"
 #include "DissolveComponent.h"
 
+#include <unordered_set>
+
+class GameObject;
 class MeshRenderer;
 struct RenderContext;
 
@@ -57,12 +60,14 @@ private:
     void transitionAndClearTargets(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles, D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle) const;
     void setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList) const;
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer);
+    void collectOccluderMeshRenderers(GameObject* gameObject);
 
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;
 
     std::vector<MeshRenderer*> m_meshRenderers;
+    std::unordered_set<MeshRenderer*> m_occlusionOccluderRenderers;
 
     D3D12_VIEWPORT m_viewport = {};
     D3D12_RECT m_scissorRect = {};

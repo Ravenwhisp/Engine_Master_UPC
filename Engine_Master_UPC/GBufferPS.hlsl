@@ -40,6 +40,10 @@ cbuffer VisualEffectsCB : register(b4)
     DissolveCB dissolveCB;
 };
 
+cbuffer DynamicTransparencyObjectCB : register(b5)
+{
+    uint gIsOcclusionOccluder;
+};
 
 // Root param [4]: albedo texture (t0) + sampler (s0)
 Texture2D diffuseTex : register(t0);
@@ -48,6 +52,7 @@ Texture2D normalTex : register(t2);
 Texture2D emissiveTex : register(t3);
 
 Texture2D dissolveNoise : register(t8);
+Texture2D<float2> dynamicTransparencyMask : register(t9);
 
 SamplerState linearWrapSample : register(s0);
 SamplerState pointWrapSample : register(s1);
@@ -89,6 +94,18 @@ PSOutput main(VSOutput IN)
 {
     PSOutput OUT;
     
+    if (gIsOcclusionOccluder != 0)
+    {
+        int2 pixelCoord = int2(IN.clipPos.xy);
+        float2 transparencyData = dynamicTransparencyMask.Load(int3(pixelCoord, 0));
+
+        float influence = transparencyData.r;
+        float targetDepth = transparencyData.g;
+        const float depthBias = 0.0001f;
+
+        if (influence > 0.0f && IN.clipPos.z < targetDepth - depthBias)
+            discard;
+    }
     
     float metallic = gMaterial.metallicFactor;
     float alphaRoughness = gMaterial.roughnessFactor;

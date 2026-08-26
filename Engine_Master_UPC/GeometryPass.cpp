@@ -24,6 +24,7 @@
 #include "Texture.h"
 #include "BasicMesh.h"
 #include "SkyBox.h"
+#include "OcclusionOccluderComponent.h"
 
 
 #include "SimpleMath.h"
@@ -42,12 +43,13 @@ GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void GeometryPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParams[7] = {};
-    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange, vfxRange;
+    CD3DX12_ROOT_PARAMETER rootParams[9] = {};
+    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange, vfxRange, dynamicTransparencyRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
     vfxRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, BasicMaterial::SLOT_COUNT, 0);
+    dynamicTransparencyRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
 
     rootParams[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
@@ -56,6 +58,8 @@ void GeometryPass::createRootSignature()
     rootParams[4].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[5].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[6].InitAsDescriptorTable(1, &vfxRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[7].InitAsDescriptorTable(1, &dynamicTransparencyRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[8].InitAsConstants(1, 5, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -124,6 +128,22 @@ void GeometryPass::prepare(const RenderContext& ctx)
 
     // Collect visible mesh renderers
     m_meshRenderers = app->getModuleScene()->getVisibleDeferredMeshRenderers();
+    m_occlusionOccluderRenderers.clear();
+
+    const auto& occluders = app->getModuleScene()->getOcclusionOccluderComponents();
+
+    for (OcclusionOccluderComponent* occluder : occluders)
+    {
+        if (occluder == nullptr || !occluder->isActive())
+            continue;
+
+        GameObject* owner = occluder->getOwner();
+
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
+            continue;
+
+        collectOccluderMeshRenderers(owner);
+    }
 
     // Upload SceneDataCB (camera position) to the ring buffer
     SceneDataCB sceneData{};
@@ -191,6 +211,11 @@ void GeometryPass::setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList
 
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
+    std::shared_ptr<Texture> dynamicTransparencyMask = m_gbufferSurface->getTexture(RenderSurface::DYNAMIC_TRANSPARENCY_MASK);
+
+    if (dynamicTransparencyMask && dynamicTransparencyMask->getSRV().IsValid())
+        commandList->SetGraphicsRootDescriptorTable(7, dynamicTransparencyMask->getSRV().gpu);
 }
 
 void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
@@ -205,6 +230,9 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
     {
         return;
     }
+
+    const UINT isOcclusionOccluder = m_occlusionOccluderRenderers.find(renderer) != m_occlusionOccluderRenderers.end() ? 1u : 0u;
+    commandList->SetGraphicsRoot32BitConstant(8, isOcclusionOccluder, 0);
 
     VisualEffectsCB visualEffectsCB{};
     
@@ -310,6 +338,25 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
             }
         }
     }
+}
+
+void GeometryPass::collectOccluderMeshRenderers(GameObject* gameObject)
+{
+    if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy())
+        return;
+
+    MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+
+    if (renderer != nullptr && renderer->isActive())
+        m_occlusionOccluderRenderers.insert(renderer);
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+        return;
+
+    for (GameObject* child : transform->getAllChildren())
+        collectOccluderMeshRenderers(child);
 }
 
 
