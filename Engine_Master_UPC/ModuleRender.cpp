@@ -51,6 +51,7 @@
 #include "TransparentPass.h"
 #include "OcclusionTargetDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
+#include "DynamicTransparencyFalloffPass.h"
 
 #include "OptickProfiler.h"
 
@@ -110,6 +111,7 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<VolumetricFogApplyPass>(device, m_volumetricFogComputePass.get()));
+    m_renderPasses.push_back(std::make_unique<DynamicTransparencyFalloffPass>(device));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
 

@@ -168,6 +168,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </Link>
     <FxCompile>
       <ObjectFileOutput>$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel>6.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -247,6 +248,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </Link>
     <FxCompile>
       <ObjectFileOutput>$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel>6.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">
@@ -274,6 +276,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </Link>
     <FxCompile>
       <ObjectFileOutput>$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel>6.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -307,6 +310,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DamageHighlightComponent.h" />
     <ClInclude Include="DepthReductionPass.h" />
     <ClInclude Include="DissolveComponent.h" />
+    <ClInclude Include="DynamicTransparencyFalloffPass.h" />
     <ClInclude Include="DynamicTransparencyMaskPass.h" />
     <ClInclude Include="ImporterSoundBank.h" />
     <ClInclude Include="ForwardPrepass.h" />
@@ -789,6 +793,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="DissolveComponent.cpp" />
+    <ClCompile Include="DynamicTransparencyFalloffPass.cpp" />
     <ClCompile Include="DynamicTransparencyMaskPass.cpp" />
     <ClCompile Include="FlowMapComponent.cpp" />
     <ClCompile Include="FlowMapPass.cpp" />
@@ -1065,6 +1070,28 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="DynamicTransparencyMaskPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

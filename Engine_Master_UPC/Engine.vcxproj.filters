@@ -868,6 +868,7 @@
     <ClCompile Include="OcclusionTargetDepthPass.cpp" />
     <ClCompile Include="OcclusionOccluderComponent.cpp" />
     <ClCompile Include="DynamicTransparencyMaskPass.cpp" />
+    <ClCompile Include="DynamicTransparencyFalloffPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1807,6 +1808,7 @@
     <ClInclude Include="OcclusionTargetDepthPass.h" />
     <ClInclude Include="OcclusionOccluderComponent.h" />
     <ClInclude Include="DynamicTransparencyMaskPass.h" />
+    <ClInclude Include="DynamicTransparencyFalloffPass.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
@@ -1937,6 +1939,8 @@
     <FxCompile Include="OcclusionBubbleVS.hlsl" />
     <FxCompile Include="OcclusionBubblePS.hlsl" />
     <FxCompile Include="DynamicTransparencyMaskPS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
