@@ -29,7 +29,8 @@
     X(FLOW_MAP)             \
     X(DISSOLVE)             \
     X(SPECTRAL)             \
-    X(OCCLUSION_TARGET)
+    X(OCCLUSION_TARGET)     \
+    X(OCCLUSION_OCCLUDER)
 
 #define COMP_ENUM(name) name,
 #define COMP_SWITCH(name) case ComponentType::name: return #name;

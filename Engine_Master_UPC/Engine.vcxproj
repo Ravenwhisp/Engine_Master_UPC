@@ -314,6 +314,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ImportSettings.h" />
     <ClInclude Include="NavMeshBuildSettings.h" />
     <ClInclude Include="NavRuntimeBlockerComponent.h" />
+    <ClInclude Include="OcclusionOccluderComponent.h" />
     <ClInclude Include="OcclusionTargetComponent.h" />
     <ClInclude Include="OcclusionTargetDepthPass.h" />
     <ClInclude Include="PdbPatcher.h" />
@@ -827,6 +828,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="NavMeshAsset.cpp" />
     <ClCompile Include="NavMeshBuildSettings.cpp" />
     <ClCompile Include="NavRuntimeBlockerComponent.cpp" />
+    <ClCompile Include="OcclusionOccluderComponent.cpp" />
     <ClCompile Include="OcclusionTargetComponent.cpp" />
     <ClCompile Include="OcclusionTargetDepthPass.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />

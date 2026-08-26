@@ -21,6 +21,7 @@
 #include "ParticleSystemComponent.h"
 #include "TrailComponent.h"
 #include "OcclusionTargetComponent.h"
+#include "OcclusionOccluderComponent.h"
 
 #include "ScenePicking.h"
 
@@ -99,6 +100,7 @@ void ModuleScene::clearComponentCaches()
     m_lightComponents.clear();
     m_scriptComponents.clear();
     m_occlusionTargetComponents.clear();
+    m_occlusionOccluderComponents.clear();
 }
 
 void ModuleScene::rebuildComponentCaches()
@@ -109,6 +111,7 @@ void ModuleScene::rebuildComponentCaches()
     m_particleSystemComponents.clear();
     m_trailComponents.clear();
     m_occlusionTargetComponents.clear();
+    m_occlusionOccluderComponents.clear();
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
@@ -145,6 +148,10 @@ void ModuleScene::rebuildComponentCaches()
             {
                 m_occlusionTargetComponents.push_back(
                     static_cast<OcclusionTargetComponent*>(component));
+            }
+            else if (component->getType() == ComponentType::OCCLUSION_OCCLUDER)
+            {
+                m_occlusionOccluderComponents.push_back(static_cast<OcclusionOccluderComponent*>(component));
             }
         }
     }
@@ -372,6 +379,16 @@ const std::vector<OcclusionTargetComponent*>& ModuleScene::getOcclusionTargetCom
     }
 
     return m_occlusionTargetComponents;
+}
+
+const std::vector<OcclusionOccluderComponent*>& ModuleScene::getOcclusionOccluderComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_occlusionOccluderComponents;
 }
 
 #pragma endregion
