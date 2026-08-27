@@ -26,6 +26,8 @@
 #include <PlatformHelpers.h>
 #include "MD5Fwd.h"
 
+#include <algorithm>
+
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
 {
@@ -146,7 +148,7 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ModuleResources::createShadowMap(uint32_t size)
+Texture* ModuleResources::createShadowMap(uint32_t size, uint32_t arraySize)
 {
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R32_TYPELESS;
@@ -154,6 +156,7 @@ Texture* ModuleResources::createShadowMap(uint32_t size)
 	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
 	desc.width = size;
 	desc.height = size;
+	desc.arraySize = static_cast<uint16_t>(std::max(1u, arraySize));
 	desc.views = TextureView::DSV | TextureView::SRV;
 	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	desc.hasClearValue = true;
@@ -164,6 +167,55 @@ Texture* ModuleResources::createShadowMap(uint32_t size)
 	shadowMap->setName(L"ShadowMap");
 
 	return shadowMap;
+}
+
+Texture* ModuleResources::createDepthMinMaxTexture(uint32_t width, uint32_t height)
+{
+	TextureDesc desc{};
+
+	desc.format = DXGI_FORMAT_R32G32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32G32_FLOAT;
+	desc.uavFormat = DXGI_FORMAT_R32G32_FLOAT;
+
+	desc.width = std::max(1u, width);
+	desc.height = std::max(1u, height);
+
+	desc.views = TextureView::SRV | TextureView::UAV;
+
+	desc.initialState =
+		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture =
+		new Texture(GenerateUID(), *m_device.Get(), desc);
+
+	texture->setName(L"DepthMinMaxReduction");
+
+	return texture;
+}
+
+Texture* ModuleResources::createVolumeTexture(uint32_t width, uint32_t height, uint16_t depth, DXGI_FORMAT format)
+{
+	TextureDesc desc{};
+
+	desc.format = format;
+	desc.srvFormat = format;
+	desc.uavFormat = format;
+
+	desc.width = std::max(1u, width);
+	desc.height = std::max(1u, height);
+	desc.depth = std::max<uint16_t>(1u, depth);
+
+	desc.mipLevels = 1;
+
+	desc.views = TextureView::SRV | TextureView::UAV;
+
+	desc.initialState = D3D12_RESOURCE_STATE_COMMON;
+
+	desc.shaderVisibleSRV = true;
+
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
 Texture* ModuleResources::createRenderTexture(float width, float height)
@@ -293,35 +345,18 @@ RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 {
 	auto surface = new RenderSurface();
 
-	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
+	auto colorTex = std::shared_ptr<Texture>(createRenderTexture(width, height));
 	colorTex->setName(L"RenderSurface_Color");
 
-	auto hdrTex = std::shared_ptr<Texture>(app->getModuleResources()->createHDRRenderTexture(width, height));
+	auto hdrTex = std::shared_ptr<Texture>(createHDRRenderTexture(width, height));
 	hdrTex->setName(L"RenderSurface_SceneHDR");
 
-	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
+	auto depthTex = std::shared_ptr<Texture>(createDepthBuffer(width, height));
 	depthTex->setName(L"RenderSurface_Depth");
-
-	auto ssaoDepthTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAODepthBuffer(width, height));
-	ssaoDepthTex->setName(L"RenderSurface_SSAO_Depth");
-
-	auto ssaoNormalTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAONormalBuffer(width, height));
-	ssaoNormalTex->setName(L"RenderSurface_SSAO_Normal");
-
-	auto ssaoRawTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
-	ssaoRawTex->setName(L"RenderSurface_SSAO_Raw");
-
-	auto ssaoBlurTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
-	ssaoBlurTex->setName(L"RenderSurface_SSAO_Blur");
 
 	surface->attachTexture(RenderSurface::COMPOSITE, colorTex);
 	surface->attachTexture(RenderSurface::SCENE_HDR, hdrTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
-
-	surface->attachTexture(RenderSurface::SSAO_DEPTH, ssaoDepthTex);
-	surface->attachTexture(RenderSurface::SSAO_NORMAL, ssaoNormalTex);
-	surface->attachTexture(RenderSurface::SSAO_RAW, ssaoRawTex);
-	surface->attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTex);
 
 	return surface;
 }

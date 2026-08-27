@@ -24,6 +24,8 @@ private:
 	float m_initialVelocity2 = 5.0f; // Si no es constante
 	float m_velocityCurve[4] = { 0.000f, 0.000f, 1.000f, 1.000f }; // Si es CURVE
 
+	float m_gravity = 0.0f;
+
 	bool drawVelocityUI();
 };
 

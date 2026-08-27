@@ -4,6 +4,7 @@
 #include "ModuleResources.h"
 #include "ModuleCamera.h"
 #include "ModuleD3D12.h"
+#include "ModuleRender.h"
 #include "CommandQueue.h"
 #include "Texture.h"
 
@@ -128,6 +129,15 @@ void SwapChain::resize()
         m_renderSurface.attachTexture(RenderSurface::SCENE_HDR, std::shared_ptr<Texture>(hdrTexture));
 
         m_renderSurface.setSize(m_windowWidth, m_windowHeight);
+
+#ifdef GAME_RELEASE
+        // Keep the GBuffer/SSAO attachments and their SRV descriptor table in
+        // sync with the new window size.
+        app->getModuleRender()->createSceneRenderTargets(
+            m_renderSurface,
+            static_cast<float>(m_windowWidth),
+            static_cast<float>(m_windowHeight));
+#endif
     }
 }
 

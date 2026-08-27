@@ -155,12 +155,12 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
     if (m_hasShadowData)
     {
         m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
-        m_shadowMapSRV = ctx.shadowData->shadowMapSRV;
+        m_cascadeShadowMapSRV = ctx.shadowData->cascadeShadowMapSRV;
     }
     else
     {
         m_shadowCBAddress = 0;
-        m_shadowMapSRV = {};
+        m_cascadeShadowMapSRV = {};
     }
 
     m_renderSurface = &ctx.renderSurface;
@@ -234,10 +234,10 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetGraphicsRootDescriptorTable(6, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
-    if (m_hasShadowData && m_shadowCBAddress != 0 && m_shadowMapSRV.ptr != 0)
+    if (m_hasShadowData && m_shadowCBAddress != 0 && m_cascadeShadowMapSRV.ptr != 0)
     {
         commandList->SetGraphicsRootConstantBufferView(7, m_shadowCBAddress);
-        commandList->SetGraphicsRootDescriptorTable(8, m_shadowMapSRV);
+        commandList->SetGraphicsRootDescriptorTable(8, m_cascadeShadowMapSRV);
     }
 
     if (m_hasSSAOData && m_ssaoSRV.ptr != 0)

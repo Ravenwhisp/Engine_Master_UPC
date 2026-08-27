@@ -852,6 +852,16 @@
     <ClCompile Include="PostProcessCommon.cpp">
       <Filter>Source\Rendering\Post Processing</Filter>
     </ClCompile>
+    <ClCompile Include="TransparentPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SpectralComponent.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthReductionPass.cpp" />
+    <ClCompile Include="ShadowFrustumComputePass.cpp" />
+    <ClCompile Include="VolumetricFogApplyPass.cpp" />
+    <ClCompile Include="VolumetricFogComputePass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1772,6 +1782,18 @@
     <ClInclude Include="PostProcessCommon.h">
       <Filter>Source\Rendering\Post Processing</Filter>
     </ClInclude>
+    <ClInclude Include="TransparentPass.h">
+      <Filter>Source\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="SpectralComponent.h">
+      <Filter>Source\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthReductionPass.h" />
+    <ClInclude Include="ShadowFrustumComputePass.h" />
+    <ClInclude Include="VolumetricFogApplyPass.h" />
+    <ClInclude Include="VolumetricFogComputePass.h" />
+    <ClInclude Include="VolumetricFogSettings.h" />
+    <ClInclude Include="VolumetricFogTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
@@ -1882,6 +1904,19 @@
     <FxCompile Include="BloomUpsamplePixelShader.hlsl">
       <Filter>Shaders\Post Processing</Filter>
     </FxCompile>
+    <FxCompile Include="TransparentVertexShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="TransparentPixelShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
+    <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
+    <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
+    <FxCompile Include="VolumetricFogApplyPixelShader.hlsl" />
+    <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
+    <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
+    <FxCompile Include="VolumetricFogLightingCS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
@@ -1920,6 +1955,7 @@
     <None Include="SimpleMath.inl">
       <Filter>Source\Inline</Filter>
     </None>
+    <None Include="VolumetricFogCommon.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">

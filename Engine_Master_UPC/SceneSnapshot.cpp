@@ -46,6 +46,7 @@ void SceneSnapshot::init(const Scene& scene)
     m_lighting = scene.m_lighting;
     m_skybox = scene.m_skybox;
     m_ssao = scene.m_ssao;
+    m_volumetricFog = scene.m_volumetricFog;
 }
 
 std::unique_ptr<GameObject> SceneSnapshot::cloneRecursive(GameObject* original)
@@ -118,6 +119,7 @@ void SceneSnapshot::applyTo(Scene& scene)
     scene.m_lighting = m_lighting;
     scene.m_skybox = m_skybox;
     scene.m_ssao = m_ssao;
+    scene.m_volumetricFog = m_volumetricFog;
 
     for (size_t i = 0; i < scene.m_allObjects.size(); ++i)
         scene.m_objectIndexMap[scene.m_allObjects[i].get()] = i;

@@ -8,6 +8,7 @@
 
 #include "Application.h"
 #include "ModuleD3D12.h"
+#include "ModuleRender.h"
 
 #include <shellapi.h>
 
@@ -243,6 +244,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         else {
             app->setPaused(false);
             app->getModuleD3D12()->getSwapChain()->resize();
+
+
         }
         break;
     case WM_SYSKEYDOWN:

@@ -14,6 +14,7 @@ using Microsoft::WRL::ComPtr;
 
 class LightComponent;
 class MeshRenderer;
+class ShadowFrustumComputePass;
 
 class ShadowMapPass : public IRenderPass
 {
@@ -21,11 +22,11 @@ public:
 
     struct ShadowDrawConstants
     {
-        Matrix mvp = Matrix::Identity;
+        Matrix model = Matrix::Identity;
     };
 
 public:
-    explicit ShadowMapPass(ComPtr<ID3D12Device4> device);
+    explicit ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass);
     ~ShadowMapPass() override = default;
 
     void prepare(const RenderContext& ctx) override;
@@ -33,6 +34,9 @@ public:
 
     const Texture* getShadowMap() const { return m_shadowMap.get(); }
     Texture* getShadowMap() { return m_shadowMap.get(); }
+
+    const Texture* getCascadeShadowMap() const { return m_cascadeShadowMap.get(); }
+    Texture* getCascadeShadowMap() { return m_cascadeShadowMap.get(); }
 
     const ShadowFrameData& getFrameData() const { return m_frameData; }
 
@@ -44,13 +48,6 @@ private:
     void prepareDisabledShadowData(const RenderContext& ctx);
     void prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light);
 
-    bool computeVisibleWorldBounds(Vector3& outMin, Vector3& outMax) const;
-
-    void computeLightMatricesFromBounds(
-        const Vector3& lightDirection,
-        const Vector3& boundsMin,
-        const Vector3& boundsMax);
-
     void renderCasters(ID3D12GraphicsCommandList4* commandList);
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
     void transitionShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
@@ -60,12 +57,12 @@ private:
     void updateShadowViewportAndScissor(uint32_t size);
     uint32_t getCurrentShadowMapSize() const { return m_currentShadowMapSize; }
 
+    void createCascadeShadowMap( uint32_t size, uint32_t cascadeCount);
+    void resizeCascadeShadowMapIfNeeded( uint32_t size, uint32_t cascadeCount);
+    void transitionCascadeShadowMap( ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
+
 private:
     static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 4096;
-    static constexpr float SHADOW_MIN_ORTHO_SIZE = 10.0f;
-    static constexpr float SHADOW_BOUNDS_PADDING = 10.0f;
-    static constexpr float SHADOW_LIGHT_DISTANCE_PADDING = 20.0f;
-    static constexpr float SHADOW_MIN_NEAR_PLANE = 0.1f;
 
     static constexpr float SHADOW_BIAS = 0.0005f;
     static constexpr float SHADOW_STRENGTH = 1.0f;
@@ -73,9 +70,19 @@ private:
 private:
     ComPtr<ID3D12Device4> m_device;
 
+    ShadowFrustumComputePass* m_shadowFrustumComputePass = nullptr;
+
     std::unique_ptr<Texture> m_shadowMap;
     D3D12_RESOURCE_STATES m_shadowMapState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
     uint32_t m_currentShadowMapSize = DEFAULT_SHADOW_MAP_SIZE;
+
+    std::unique_ptr<Texture> m_cascadeShadowMap;
+
+    D3D12_RESOURCE_STATES m_cascadeShadowMapState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
+    uint32_t m_currentCascadeShadowMapSize = 0;
+    uint32_t m_currentCascadeArraySize = 0;
+    uint32_t m_activeCascadeCount = 0;
 
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;
