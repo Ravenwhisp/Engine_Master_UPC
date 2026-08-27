@@ -7,18 +7,33 @@ class GameObject;
 class MeshRenderer;
 class RenderSurface;
 class DeferredShadingPass;
+class Texture;
+class VolumetricFogComputePass;
 
 struct DynamicTransparencyFalloffSettingsCB
 {
+    // x = depthBias
+    // y = hasDissolve
+    // z = dissolveAmount
+    // w = fogEnabled
     DirectX::SimpleMath::Vector4 settings = DirectX::SimpleMath::Vector4::Zero;
+
+    // x = nearDistance
+    // y = maxDistance
+    // z = projectionA
+    // w = projectionB
+    DirectX::SimpleMath::Vector4 fogDepthParams = DirectX::SimpleMath::Vector4::Zero;
+
+    // x = gridDepth
+    DirectX::SimpleMath::Vector4 fogGridParams = DirectX::SimpleMath::Vector4::Zero;
 };
 
-static_assert(sizeof(DynamicTransparencyFalloffSettingsCB) == 16);
+static_assert(sizeof(DynamicTransparencyFalloffSettingsCB) == 48);
 
 class DynamicTransparencyFalloffPass : public IRenderPass
 {
 public:
-    DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device, DeferredShadingPass* deferredShadingPass);
+    DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device, DeferredShadingPass* deferredShadingPass, VolumetricFogComputePass* fogComputePass);
 
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
@@ -43,6 +58,16 @@ private:
     const Matrix* m_projection = nullptr;
     RenderSurface* m_renderSurface = nullptr;
     DeferredShadingPass* m_deferredShadingPass = nullptr;
+    VolumetricFogComputePass* m_fogComputePass = nullptr;
+    Texture* m_integratedFogVolume = nullptr;
+
+    float m_fogNearDistance = 0.0f;
+    float m_fogMaxDistance = 0.0f;
+    float m_fogProjectionA = 0.0f;
+    float m_fogProjectionB = 0.0f;
+    uint32_t m_fogGridDepth = 0;
+
+    bool m_fogEnabled = false;
 
     D3D12_GPU_VIRTUAL_ADDRESS m_sceneDataCBAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS m_lightsCBAddress = 0;

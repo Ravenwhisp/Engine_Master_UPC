@@ -4,6 +4,8 @@
 cbuffer FalloffSettingsCB : register(b5)
 {
     float4 falloffSettings;
+    float4 fogDepthParams;
+    float4 fogGridParams;
 };
 
 Texture2D diffuseTex : register(t0);
@@ -13,6 +15,7 @@ Texture2D emissiveTex : register(t3);
 
 Texture2D<float2> dynamicTransparencyMask : register(t12);
 Texture2D dissolveNoise : register(t13);
+Texture3D<float4> integratedFogVolume : register(t14);
 
 struct PSInput
 {
@@ -22,6 +25,52 @@ struct PSInput
     float3 normal : TEXCOORD2;
     float3 tangent : TEXCOORD3;
 };
+
+float LinearizeFogViewDepth(float deviceDepth)
+{
+    float projectionA = fogDepthParams.z;
+    float projectionB = fogDepthParams.w;
+
+    float denominator = deviceDepth + projectionA;
+
+    if (abs(denominator) < 0.000001f)
+        denominator = denominator < 0.0f ? -0.000001f : 0.000001f;
+
+    float viewZ = -projectionB / denominator;
+
+    return max(-viewZ, 0.0f);
+}
+
+float GetNormalizedFogDepth(float viewDepth)
+{
+    float nearDistance = fogDepthParams.x;
+    float maxDistance = fogDepthParams.y;
+
+    float safeNear = max(nearDistance, 0.001f);
+    float safeFar = max(maxDistance, safeNear + 0.001f);
+    float depth = clamp(viewDepth, safeNear, safeFar);
+
+    return saturate(log(depth / safeNear) / log(safeFar / safeNear));
+}
+
+float4 SampleIntegratedFog(float2 uv, float normalizedDepth)
+{
+    uint gridDepth = max((uint) fogGridParams.x, 1u);
+    float depthInSlices = normalizedDepth * float(gridDepth);
+
+    if (depthInSlices <= 1.0f)
+    {
+        float firstSliceZ = 0.5f / float(gridDepth);
+
+        float4 firstSlice = integratedFogVolume.SampleLevel(linearClampSample, float3(uv, firstSliceZ), 0.0f);
+
+        return lerp(float4(0.0f, 0.0f, 0.0f, 1.0f), firstSlice, saturate(depthInSlices));
+    }
+
+    float volumeZ = (depthInSlices - 0.5f) / float(gridDepth);
+
+    return integratedFogVolume.SampleLevel(linearClampSample, float3(uv, saturate(volumeZ)), 0.0f);
+}
 
 float4 main(PSInput input) : SV_Target
 {
@@ -101,7 +150,23 @@ float4 main(PSInput input) : SV_Target
 
     // Do NOT use screen-space SSAO here.
     // MainDepth belongs to the real scene behind the transparent occluder.
-    float3 finalColor = ComputePBRSurfaceLighting(input.worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, 1.0f);
+    float3 finalColor = ComputePBRSurfaceLighting(input.worldPos, albedo, metallic, alphaRoughness,ao, emissive, finalWorldNormal, 1.0f);
+
+    bool fogEnabled = falloffSettings.w > 0.5f;
+
+    if (fogEnabled)
+    {
+    // IMPORTANT:
+    // input.position.z is the device depth of the transparent WALL fragment,
+    // not MainDepth, which belongs to the real scene behind it.
+        float wallViewDepth = LinearizeFogViewDepth(input.position.z);
+        float normalizedFogDepth = GetNormalizedFogDepth(wallViewDepth);
+
+        float2 fogUV = input.position.xy * invScreenSize;
+        float4 integratedFog = SampleIntegratedFog(fogUV, normalizedFogDepth);
+
+        finalColor = integratedFog.rgb + finalColor * saturate(integratedFog.a);
+    }
 
     float wallOpacity = saturate(1.0f - influence);
 

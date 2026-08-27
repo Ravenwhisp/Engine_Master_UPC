@@ -18,6 +18,7 @@
 #include "Transform.h"
 #include "MeshRenderer.h"
 #include "DeferredShadingPass.h"
+#include "VolumetricFogComputePass.h"
 #include "SkyBoxPass.h"
 #include "SkyBox.h"
 #include "ShadowTypes.h"
@@ -32,8 +33,8 @@
 #include <d3dcompiler.h>
 #include <algorithm>
 
-DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device, DeferredShadingPass* deferredShadingPass) 
-    : m_device(device), m_deferredShadingPass(deferredShadingPass)
+DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device, DeferredShadingPass* deferredShadingPass, VolumetricFogComputePass* fogComputePass)
+    : m_device(device), m_deferredShadingPass(deferredShadingPass), m_fogComputePass(fogComputePass)
 {
     createRootSignature();
     createPipelineState();
@@ -41,9 +42,9 @@ DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Devi
 
 void DynamicTransparencyFalloffPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParams[14] = {};
+    CD3DX12_ROOT_PARAMETER rootParams[15] = {};
 
-    CD3DX12_DESCRIPTOR_RANGE materialRange, irradianceRange, environmentRange, brdfRange, shadowRange, maskRange, dissolveRange, samplerRange;
+    CD3DX12_DESCRIPTOR_RANGE materialRange, irradianceRange, environmentRange, brdfRange, shadowRange, maskRange, dissolveRange, samplerRange, integratedFogRange;
 
     materialRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
@@ -53,6 +54,7 @@ void DynamicTransparencyFalloffPass::createRootSignature()
     maskRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12, 0);
     dissolveRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 13, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
+    integratedFogRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 14, 0);
 
     rootParams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -68,6 +70,7 @@ void DynamicTransparencyFalloffPass::createRootSignature()
     rootParams[11].InitAsDescriptorTable(1, &maskRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[12].InitAsDescriptorTable(1, &dissolveRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[13].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[14].InitAsDescriptorTable(1, &integratedFogRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -155,6 +158,33 @@ void DynamicTransparencyFalloffPass::prepare(const RenderContext& ctx)
         m_cascadeShadowMapSRV = {};
     }
 
+    m_integratedFogVolume = nullptr;
+    m_fogNearDistance = 0.0f;
+    m_fogMaxDistance = 0.0f;
+    m_fogProjectionA = ctx.projection._33;
+    m_fogProjectionB = ctx.projection._43;
+    m_fogGridDepth = 0;
+    m_fogEnabled = false;
+
+    if (m_fogComputePass != nullptr && m_fogComputePass->isEnabled())
+    {
+        Texture* integratedVolume = m_fogComputePass->getIntegratedVolume();
+
+        if (integratedVolume != nullptr && integratedVolume->getSRV().IsValid())
+        {
+            const VolumetricFog::GridConstants& grid = m_fogComputePass->getGridConstants();
+
+            if (grid.gridDepth > 0)
+            {
+                m_integratedFogVolume = integratedVolume;
+                m_fogNearDistance = grid.nearDistance;
+                m_fogMaxDistance = grid.maxDistance;
+                m_fogGridDepth = grid.gridDepth;
+                m_fogEnabled = true;
+            }
+        }
+    }
+
     m_meshRenderers.clear();
 
     const auto& occluders = app->getModuleScene()->getOcclusionOccluderComponents();
@@ -233,6 +263,9 @@ void DynamicTransparencyFalloffPass::apply(ID3D12GraphicsCommandList4* commandLi
     commandList->SetGraphicsRootDescriptorTable(9, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(11, mask->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(13, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
+    if (m_fogEnabled && m_integratedFogVolume != nullptr)
+        commandList->SetGraphicsRootDescriptorTable(14, m_integratedFogVolume->getSRV().gpu);
 
     ID3D12DescriptorHeap* heaps[] =
     {
@@ -333,11 +366,13 @@ void DynamicTransparencyFalloffPass::renderMeshRenderer(ID3D12GraphicsCommandLis
         modelData.material = material->getMaterial();
 
         DynamicTransparencyFalloffSettingsCB falloffCB{};
-        falloffCB.settings = DirectX::SimpleMath::Vector4(0.0001f, dissolve != nullptr ? 1.0f : 0.0f, dissolve != nullptr ? dissolve->getDissolveAmount() : 0.0f, 0.0f);
+
+        falloffCB.settings = DirectX::SimpleMath::Vector4(0.0001f, dissolve != nullptr ? 1.0f : 0.0f, dissolve != nullptr ? dissolve->getDissolveAmount() : 0.0f, m_fogEnabled ? 1.0f : 0.0f);
+        falloffCB.fogDepthParams = DirectX::SimpleMath::Vector4(m_fogNearDistance, m_fogMaxDistance, m_fogProjectionA, m_fogProjectionB);
+        falloffCB.fogGridParams = DirectX::SimpleMath::Vector4(static_cast<float>(m_fogGridDepth), 0.0f, 0.0f, 0.0f);
 
         commandList->SetGraphicsRootConstantBufferView(4, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
         commandList->SetGraphicsRootConstantBufferView(5, app->getModuleRender()->allocateInRingBuffer(&falloffCB, sizeof(DynamicTransparencyFalloffSettingsCB)));
-
         commandList->SetGraphicsRootDescriptorTable(6, material->getTableGPUHandle());
 
         if (dissolveTexture != nullptr)
