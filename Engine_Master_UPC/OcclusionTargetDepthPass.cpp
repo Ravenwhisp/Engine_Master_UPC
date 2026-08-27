@@ -93,7 +93,7 @@ void OcclusionTargetDepthPass::createPipelineState()
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState.DepthEnable = TRUE;
     psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-    psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+    psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
     psoDesc.DepthStencilState.StencilEnable = FALSE;
 
     psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
@@ -170,7 +170,7 @@ void OcclusionTargetDepthPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     D3D12_CPU_DESCRIPTOR_HANDLE dsv = targetDepth->getDSV().cpu;
 
-    commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+    commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
     commandList->OMSetRenderTargets(0, nullptr, FALSE, &dsv);
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);

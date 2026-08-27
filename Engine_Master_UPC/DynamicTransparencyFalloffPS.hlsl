@@ -1,5 +1,6 @@
 #include "PBRLighting.hlsli"
 #include "DynamicTransparencyFalloffCommon.hlsli"
+#include "DynamicTransparencyCommon.hlsli"
 
 cbuffer FalloffSettingsCB : register(b5)
 {
@@ -13,7 +14,7 @@ Texture2D metallicRoughnessTex : register(t1);
 Texture2D normalTex : register(t2);
 Texture2D emissiveTex : register(t3);
 
-Texture2D<float2> dynamicTransparencyMask : register(t12);
+Texture2D<float4> dynamicTransparencyMask : register(t12);
 Texture2D dissolveNoise : register(t13);
 Texture3D<float4> integratedFogVolume : register(t14);
 
@@ -75,26 +76,19 @@ float4 SampleIntegratedFog(float2 uv, float normalizedDepth)
 float4 main(PSInput input) : SV_Target
 {
     int2 pixelCoord = int2(input.position.xy);
-    float2 transparencyData = dynamicTransparencyMask.Load(int3(pixelCoord, 0));
-
-    float influence = transparencyData.r;
-    float targetDepth = transparencyData.g;
-
-    const float coreThreshold = 0.999f;
+    float4 transparencyData = dynamicTransparencyMask.Load(int3(pixelCoord, 0));
 
     float depthBias = falloffSettings.x;
+    float influence = EvaluateDynamicTransparencyInfluence(transparencyData, input.position.z, depthBias);
+
     bool hasDissolveComponent = falloffSettings.y > 0.5f;
     float dissolveAmount = falloffSettings.z;
 
     if (influence <= 0.0f)
         discard;
-
-    if (influence >= coreThreshold)
+    if (influence >= DYNAMIC_TRANSPARENCY_CORE_THRESHOLD)
         discard;
-
-    if (input.position.z >= targetDepth - depthBias)
-        discard;
-
+    
     float metallic = material.metallicFactor;
     float alphaRoughness = material.roughnessFactor;
     float ao = 1.0f;

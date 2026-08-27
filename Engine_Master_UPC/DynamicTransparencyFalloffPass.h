@@ -43,6 +43,7 @@ private:
     void createPipelineState();
     void collectMeshRenderers(GameObject* gameObject);
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer);
+    float getRendererSortDepth(MeshRenderer* renderer) const;
 
 private:
     ComPtr<ID3D12Device4> m_device;

@@ -260,17 +260,27 @@ bool ModuleRender::cleanUp()
 
     m_renderPasses.clear();
 
+    m_forwardPrepass = nullptr;
+    m_geometryPass = nullptr;
     m_meshRenderPass = nullptr;
     m_debugDrawPass = nullptr;
     m_skyBoxPass = nullptr;
+
+    m_ssaoBlurPass.reset();
+    m_ssaoPass.reset();
+    m_ssaoGeometryPass.reset();
+    m_volumetricFogComputePass.reset();
+    m_shadowMapPass.reset();
+    m_shadowFrustumComputePass.reset();
+    m_depthReductionPass.reset();
+    m_dynamicTransparencyMaskPass.reset();
+    m_occlusionTargetDepthPass.reset();
+    m_skinningComputePass.reset();
 
     m_imGuiPass.reset();
 
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
-    //delete m_structuredRingBuffer;
-    //m_structuredRingBuffer = nullptr;
-
 
     return true;
 }
@@ -384,7 +394,7 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
         RenderSurface::OCCLUSION_TARGET_DEPTH,
         occlusionTargetDepth
     );
-    auto dynamicTransparencyMask = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, DXGI_FORMAT_R16G16_FLOAT));
+    auto dynamicTransparencyMask = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT));
     dynamicTransparencyMask->setName(L"RenderSurface_DynamicTransparencyMask");
     surface.attachTexture(RenderSurface::DYNAMIC_TRANSPARENCY_MASK, dynamicTransparencyMask);
 }
@@ -723,7 +733,7 @@ void ModuleRender::markDebugDrawCacheDirty()
 void ModuleRender::resizeGameRenderTargets()
 {
     RenderSurface& gameSurface = app->getModuleD3D12()->getSwapChain()->getRenderSurface();
-    initSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
+    createSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
 }
 
 int ModuleRender::getTrianglesCount() const { return m_geometryPass->getTriangleCount(); }

@@ -347,7 +347,7 @@ void GeometryPass::collectOccluderMeshRenderers(GameObject* gameObject)
 
     MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
-    if (renderer != nullptr && renderer->isActive())
+    if (renderer != nullptr && renderer->isActive() && renderer->getRenderMode() == RenderMode::DEFAULT) 
         m_occlusionOccluderRenderers.insert(renderer);
 
     Transform* transform = gameObject->GetTransform();

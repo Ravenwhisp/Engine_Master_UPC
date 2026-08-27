@@ -31,7 +31,7 @@ private:
     void createPipelineState();
 
     bool buildRegionForTarget(OcclusionTargetComponent* target, UINT targetIndex);
-    void accumulateProjectedBounds(GameObject* gameObject, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, float& maxDepth, bool& hasProjectedPoint) const;
+    void accumulateProjectedBounds(GameObject* gameObject, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, bool& hasProjectedPoint) const;
 
 private:
     ComPtr<ID3D12Device4> m_device;

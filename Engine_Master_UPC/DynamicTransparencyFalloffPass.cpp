@@ -25,13 +25,16 @@
 
 #include "BasicMaterial.h"
 #include "BasicMesh.h"
+#include "BoundingBox.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 
+#include <DirectXMath.h>
 #include "PlatformHelpers.h"
 
 #include <d3dcompiler.h>
 #include <algorithm>
+#include <cfloat>
 
 DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device, DeferredShadingPass* deferredShadingPass, VolumetricFogComputePass* fogComputePass)
     : m_device(device), m_deferredShadingPass(deferredShadingPass), m_fogComputePass(fogComputePass)
@@ -201,6 +204,9 @@ void DynamicTransparencyFalloffPass::prepare(const RenderContext& ctx)
 
         collectMeshRenderers(owner);
     }
+
+    std::stable_sort(m_meshRenderers.begin(), m_meshRenderers.end(), [this](MeshRenderer* a, MeshRenderer* b) { return getRendererSortDepth(a) > getRendererSortDepth(b); });
+
 }
 
 void DynamicTransparencyFalloffPass::collectMeshRenderers(GameObject* gameObject)
@@ -210,7 +216,7 @@ void DynamicTransparencyFalloffPass::collectMeshRenderers(GameObject* gameObject
 
     MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
-    if (renderer != nullptr && renderer->isActive())
+    if (renderer != nullptr && renderer->isActive() && renderer->getRenderMode() == RenderMode::DEFAULT)
     {
         if (std::find(m_meshRenderers.begin(), m_meshRenderers.end(), renderer) == m_meshRenderers.end())
             m_meshRenderers.push_back(renderer);
@@ -249,6 +255,9 @@ void DynamicTransparencyFalloffPass::apply(ID3D12GraphicsCommandList4* commandLi
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
+    ID3D12DescriptorHeap* heaps[] = { app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
+    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootConstantBufferView(2, m_lightsCBAddress);
 
@@ -266,14 +275,6 @@ void DynamicTransparencyFalloffPass::apply(ID3D12GraphicsCommandList4* commandLi
 
     if (m_fogEnabled && m_integratedFogVolume != nullptr)
         commandList->SetGraphicsRootDescriptorTable(14, m_integratedFogVolume->getSRV().gpu);
-
-    ID3D12DescriptorHeap* heaps[] =
-    {
-        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(),
-        app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap()
-    };
-
-    commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -382,4 +383,23 @@ void DynamicTransparencyFalloffPass::renderMeshRenderer(ID3D12GraphicsCommandLis
 
         commandList->DrawIndexedInstanced(submeshes[i].indexCount, 1, submeshes[i].indexStart, 0, 0);
     }
+}
+
+float DynamicTransparencyFalloffPass::getRendererSortDepth(MeshRenderer* renderer) const
+{
+    if (renderer == nullptr || m_view == nullptr || m_projection == nullptr) return -FLT_MAX;
+
+    const Vector3* points = renderer->getBoundingBox().getPoints();
+    DirectX::SimpleMath::Vector3 center = DirectX::SimpleMath::Vector3::Zero;
+    for (UINT i = 0; i < 8; ++i) center += points[i];
+    center /= 8.0f;
+
+    Matrix viewProjection = *m_view * *m_projection;
+    DirectX::XMMATRIX viewProjectionXM = DirectX::XMLoadFloat4x4(&viewProjection);
+    DirectX::XMVECTOR clipPoint = DirectX::XMVector4Transform(DirectX::XMVectorSet(center.x, center.y, center.z, 1.0f), viewProjectionXM);
+
+    DirectX::XMFLOAT4 clip{};
+    DirectX::XMStoreFloat4(&clip, clipPoint);
+
+    return clip.w > 0.0001f ? clip.z / clip.w : -FLT_MAX;
 }

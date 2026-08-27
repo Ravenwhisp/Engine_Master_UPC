@@ -1982,6 +1982,7 @@
     <None Include="VolumetricFogCommon.hlsli" />
     <None Include="PBRLighting.hlsli" />
     <None Include="DynamicTransparencyFalloffCommon.hlsli" />
+    <None Include="DynamicTransparencyCommon.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">

@@ -74,7 +74,7 @@ void DynamicTransparencyMaskPass::createPipelineState()
 
     psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
     psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16_FLOAT;
+    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.SampleDesc = { 1, 0 };
@@ -98,11 +98,10 @@ bool DynamicTransparencyMaskPass::buildRegionForTarget(OcclusionTargetComponent*
     float maxY = -FLT_MAX;
 
     float minDepth = FLT_MAX;
-    float maxDepth = -FLT_MAX;
 
     bool hasProjectedPoint = false;
 
-    accumulateProjectedBounds(targetRoot, minX, minY, maxX, maxY, minDepth, maxDepth, hasProjectedPoint);
+    accumulateProjectedBounds(targetRoot, minX, minY, maxX, maxY, minDepth, hasProjectedPoint);
 
     if (!hasProjectedPoint)
         return false;
@@ -123,7 +122,7 @@ bool DynamicTransparencyMaskPass::buildRegionForTarget(OcclusionTargetComponent*
     return true;
 }
 
-void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObject, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, float& maxDepth, bool& hasProjectedPoint) const
+void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObject, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, bool& hasProjectedPoint) const
 {
     if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy())
         return;
@@ -166,7 +165,6 @@ void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObje
             maxY = std::max(maxY, screenY);
 
             minDepth = std::min(minDepth, ndcZ);
-            maxDepth = std::max(maxDepth, ndcZ);
 
             hasProjectedPoint = true;
         }
@@ -178,7 +176,7 @@ void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObje
         return;
 
     for (GameObject* child : transform->getAllChildren())
-        accumulateProjectedBounds(child, minX, minY, maxX, maxY, minDepth, maxDepth, hasProjectedPoint);
+        accumulateProjectedBounds(child, minX, minY, maxX, maxY, minDepth, hasProjectedPoint);
 }
 
 void DynamicTransparencyMaskPass::prepare(const RenderContext& ctx)
