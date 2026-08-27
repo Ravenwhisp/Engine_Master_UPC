@@ -229,8 +229,14 @@ bool GameObject::IsActiveInWindowHierarchy() const
 
 void GameObject::SetActive(bool newActive)
 {
+    const bool wasActive = m_active;
     m_active = newActive;
     app->getModuleScene()->getScene()->markDirty();
+
+    if (newActive && !wasActive)
+    {
+        app->getModuleScene()->moveGameObjectInQuadtrees(*this);
+    }
 }
 
 #pragma endregion
