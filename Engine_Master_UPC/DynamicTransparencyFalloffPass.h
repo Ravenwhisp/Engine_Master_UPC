@@ -6,19 +6,19 @@
 class GameObject;
 class MeshRenderer;
 class RenderSurface;
+class DeferredShadingPass;
 
-struct DynamicTransparencyFalloffCB
+struct DynamicTransparencyFalloffSettingsCB
 {
-    DirectX::SimpleMath::Vector4 baseColorDepthBias = DirectX::SimpleMath::Vector4::Zero;
-    DirectX::SimpleMath::Vector4 coverage = DirectX::SimpleMath::Vector4::Zero;
+    DirectX::SimpleMath::Vector4 settings = DirectX::SimpleMath::Vector4::Zero;
 };
 
-static_assert(sizeof(DynamicTransparencyFalloffCB) == 32);
+static_assert(sizeof(DynamicTransparencyFalloffSettingsCB) == 16);
 
 class DynamicTransparencyFalloffPass : public IRenderPass
 {
 public:
-    explicit DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device);
+    DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device, DeferredShadingPass* deferredShadingPass);
 
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
@@ -41,6 +41,13 @@ private:
 
     const Matrix* m_view = nullptr;
     const Matrix* m_projection = nullptr;
-
     RenderSurface* m_renderSurface = nullptr;
+    DeferredShadingPass* m_deferredShadingPass = nullptr;
+
+    D3D12_GPU_VIRTUAL_ADDRESS m_sceneDataCBAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS m_lightsCBAddress = 0;
+
+    D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowMapSRV{};
+    bool m_hasShadowData = false;
 };

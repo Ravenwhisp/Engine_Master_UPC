@@ -5,6 +5,7 @@
 #include "ModuleDescriptors.h"
 #include "ModuleRender.h"
 #include "ModuleScene.h"
+#include "ModuleResources.h"
 
 #include "RenderContext.h"
 #include "RenderSurface.h"
@@ -16,6 +17,10 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
+#include "DeferredShadingPass.h"
+#include "SkyBoxPass.h"
+#include "SkyBox.h"
+#include "ShadowTypes.h"
 
 #include "BasicMaterial.h"
 #include "BasicMesh.h"
@@ -27,7 +32,8 @@
 #include <d3dcompiler.h>
 #include <algorithm>
 
-DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device) : m_device(device)
+DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Device4> device, DeferredShadingPass* deferredShadingPass) 
+    : m_device(device), m_deferredShadingPass(deferredShadingPass)
 {
     createRootSignature();
     createPipelineState();
@@ -35,24 +41,33 @@ DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Devi
 
 void DynamicTransparencyFalloffPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParams[6] = {};
+    CD3DX12_ROOT_PARAMETER rootParams[14] = {};
 
-    CD3DX12_DESCRIPTOR_RANGE diffuseRange;
-    CD3DX12_DESCRIPTOR_RANGE dissolveRange;
-    CD3DX12_DESCRIPTOR_RANGE maskRange;
-    CD3DX12_DESCRIPTOR_RANGE samplerRange;
+    CD3DX12_DESCRIPTOR_RANGE materialRange, irradianceRange, environmentRange, brdfRange, shadowRange, maskRange, dissolveRange, samplerRange;
 
-    diffuseRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
-    dissolveRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
-    maskRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
+    materialRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
+    irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
+    environmentRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
+    brdfRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 10, 0);
+    shadowRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11, 0);
+    maskRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12, 0);
+    dissolveRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 13, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
     rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[2].InitAsDescriptorTable(1, &diffuseRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[3].InitAsDescriptorTable(1, &dissolveRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[4].InitAsDescriptorTable(1, &maskRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[5].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[3].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[4].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParams[5].InitAsConstantBufferView(5, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[6].InitAsDescriptorTable(1, &materialRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[7].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[8].InitAsDescriptorTable(1, &environmentRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[9].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[10].InitAsDescriptorTable(1, &shadowRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[11].InitAsDescriptorTable(1, &maskRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[12].InitAsDescriptorTable(1, &dissolveRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[13].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -75,7 +90,9 @@ void DynamicTransparencyFalloffPass::createPipelineState()
     D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     D3D12_BLEND_DESC blendDesc = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -121,6 +138,22 @@ void DynamicTransparencyFalloffPass::prepare(const RenderContext& ctx)
     m_viewport = ctx.viewport;
     m_scissorRect = ctx.scissorRect;
     m_renderSurface = &ctx.renderSurface;
+
+    m_sceneDataCBAddress = m_deferredShadingPass != nullptr ? m_deferredShadingPass->getSceneDataCBAddress() : 0;
+    m_lightsCBAddress = m_deferredShadingPass != nullptr ? m_deferredShadingPass->getLightsCBAddress() : 0;
+
+    m_hasShadowData = ctx.shadowData != nullptr;
+
+    if (m_hasShadowData)
+    {
+        m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
+        m_cascadeShadowMapSRV = ctx.shadowData->cascadeShadowMapSRV;
+    }
+    else
+    {
+        m_shadowCBAddress = 0;
+        m_cascadeShadowMapSRV = {};
+    }
 
     m_meshRenderers.clear();
 
@@ -170,7 +203,7 @@ void DynamicTransparencyFalloffPass::apply(ID3D12GraphicsCommandList4* commandLi
     std::shared_ptr<Texture> mainDepth = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL);
     std::shared_ptr<Texture> mask = m_renderSurface->getTexture(RenderSurface::DYNAMIC_TRANSPARENCY_MASK);
 
-    if (!sceneHDR || !mainDepth || !mask)
+    if (!sceneHDR || !mainDepth || !mask || m_sceneDataCBAddress == 0 || m_lightsCBAddress == 0)
     {
         END_EVENT(commandList);
         return;
@@ -186,6 +219,21 @@ void DynamicTransparencyFalloffPass::apply(ID3D12GraphicsCommandList4* commandLi
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 
+    commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
+    commandList->SetGraphicsRootConstantBufferView(2, m_lightsCBAddress);
+
+    if (m_hasShadowData && m_shadowCBAddress != 0 && m_cascadeShadowMapSRV.ptr != 0)
+    {
+        commandList->SetGraphicsRootConstantBufferView(3, m_shadowCBAddress);
+        commandList->SetGraphicsRootDescriptorTable(10, m_cascadeShadowMapSRV);
+    }
+
+    commandList->SetGraphicsRootDescriptorTable(7, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(8, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getEnvironment()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(9, app->getModuleResources()->getEnvironmentBrdfTexture()->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(11, mask->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(13, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
     ID3D12DescriptorHeap* heaps[] =
     {
         app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getHeap(),
@@ -193,9 +241,6 @@ void DynamicTransparencyFalloffPass::apply(ID3D12GraphicsCommandList4* commandLi
     };
 
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
-
-    commandList->SetGraphicsRootDescriptorTable(4, mask->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -282,17 +327,23 @@ void DynamicTransparencyFalloffPass::renderMeshRenderer(ID3D12GraphicsCommandLis
 
         const auto& materialData = material->getMaterial();
 
-        DynamicTransparencyFalloffCB falloffCB{};
-        falloffCB.baseColorDepthBias = DirectX::SimpleMath::Vector4(materialData.diffuseColour.x, materialData.diffuseColour.y, materialData.diffuseColour.z, 0.0001f);
-        falloffCB.coverage = DirectX::SimpleMath::Vector4(materialData.hasDiffuseTex != 0 ? 1.0f : 0.0f, dissolve != nullptr ? 1.0f : 0.0f, dissolve != nullptr ? dissolve->getDissolveAmount() : 0.0f, 0.0f);
+        ModelData modelData{};
+        modelData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
+        modelData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
+        modelData.material = material->getMaterial();
 
-        commandList->SetGraphicsRootConstantBufferView(1, app->getModuleRender()->allocateInRingBuffer(&falloffCB, sizeof(DynamicTransparencyFalloffCB)));
-        commandList->SetGraphicsRootDescriptorTable(2, material->getTableGPUHandle());
+        DynamicTransparencyFalloffSettingsCB falloffCB{};
+        falloffCB.settings = DirectX::SimpleMath::Vector4(0.0001f, dissolve != nullptr ? 1.0f : 0.0f, dissolve != nullptr ? dissolve->getDissolveAmount() : 0.0f, 0.0f);
+
+        commandList->SetGraphicsRootConstantBufferView(4, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
+        commandList->SetGraphicsRootConstantBufferView(5, app->getModuleRender()->allocateInRingBuffer(&falloffCB, sizeof(DynamicTransparencyFalloffSettingsCB)));
+
+        commandList->SetGraphicsRootDescriptorTable(6, material->getTableGPUHandle());
 
         if (dissolveTexture != nullptr)
-            commandList->SetGraphicsRootDescriptorTable(3, dissolveTexture->getSRV().gpu);
+            commandList->SetGraphicsRootDescriptorTable(12, dissolveTexture->getSRV().gpu);
         else
-            commandList->SetGraphicsRootDescriptorTable(3, material->getTableGPUHandle());
+            commandList->SetGraphicsRootDescriptorTable(12, material->getTableGPUHandle());
 
         commandList->DrawIndexedInstanced(submeshes[i].indexCount, 1, submeshes[i].indexStart, 0, 0);
     }

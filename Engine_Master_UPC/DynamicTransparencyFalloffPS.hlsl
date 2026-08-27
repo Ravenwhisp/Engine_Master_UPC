@@ -1,19 +1,26 @@
-cbuffer FalloffCB : register(b1)
+#include "PBRLighting.hlsli"
+#include "DynamicTransparencyFalloffCommon.hlsli"
+
+cbuffer FalloffSettingsCB : register(b5)
 {
-    float4 baseColorDepthBias;
-    float4 coverage;
+    float4 falloffSettings;
 };
 
 Texture2D diffuseTex : register(t0);
-Texture2D dissolveNoise : register(t8);
-Texture2D<float2> dynamicTransparencyMask : register(t9);
+Texture2D metallicRoughnessTex : register(t1);
+Texture2D normalTex : register(t2);
+Texture2D emissiveTex : register(t3);
 
-SamplerState linearWrapSample : register(s0);
+Texture2D<float2> dynamicTransparencyMask : register(t12);
+Texture2D dissolveNoise : register(t13);
 
 struct PSInput
 {
     float4 position : SV_POSITION;
-    float2 texCoord : TEXCOORD0;
+    float3 worldPos : TEXCOORD0;
+    float2 texCoord : TEXCOORD1;
+    float3 normal : TEXCOORD2;
+    float3 tangent : TEXCOORD3;
 };
 
 float4 main(PSInput input) : SV_Target
@@ -25,27 +32,29 @@ float4 main(PSInput input) : SV_Target
     float targetDepth = transparencyData.g;
 
     const float coreThreshold = 0.999f;
-    float depthBias = baseColorDepthBias.w;
 
-    // OUTSIDE: the normal opaque GBuffer wall already exists here.
+    float depthBias = falloffSettings.x;
+    bool hasDissolveComponent = falloffSettings.y > 0.5f;
+    float dissolveAmount = falloffSettings.z;
+
     if (influence <= 0.0f)
         discard;
 
-    // CORE: this MUST remain completely free of wall.
     if (influence >= coreThreshold)
         discard;
 
-    // Only render an occluder that is actually in front of the target.
     if (input.position.z >= targetDepth - depthBias)
         discard;
 
-    float3 albedo = baseColorDepthBias.rgb;
+    float metallic = material.metallicFactor;
+    float alphaRoughness = material.roughnessFactor;
+    float ao = 1.0f;
+    float3 emissive = 0.0f;
+    float3 finalWorldNormal = normalize(input.normal);
 
-    bool hasDiffuseTex = coverage.x > 0.5f;
-    bool hasDissolveComponent = coverage.y > 0.5f;
-    float dissolveAmount = coverage.z;
+    float3 albedo = material.diffuseColour;
 
-    if (hasDiffuseTex)
+    if (material.hasDiffuseTex != 0)
     {
         float4 diffuseSample = diffuseTex.Sample(linearWrapSample, input.texCoord);
 
@@ -63,7 +72,38 @@ float4 main(PSInput input) : SV_Target
             discard;
     }
 
+    if (material.hasMetallicRoughnessTex != 0)
+    {
+        float4 metallicRoughnessSample = metallicRoughnessTex.Sample(linearWrapSample, input.texCoord);
+
+        metallic = saturate(metallicRoughnessSample.b * material.metallicFactor);
+        ao = metallicRoughnessSample.r;
+        alphaRoughness = 1.0f - clamp(metallicRoughnessSample.g, 0.04f, 1.0f);
+    }
+
+    if (material.hasNormalTex != 0)
+    {
+        float3 tangentNormal = normalTex.Sample(linearWrapSample, input.texCoord).rgb;
+        tangentNormal = normalize(tangentNormal * 2.0f - 1.0f);
+
+        float3 tangentVector = normalize(input.tangent);
+        float3 bitangentVector = cross(finalWorldNormal, tangentVector);
+        float3x3 TBN = float3x3(tangentVector, bitangentVector, finalWorldNormal);
+
+        finalWorldNormal = mul(tangentNormal, TBN);
+    }
+
+    if (material.hasEmissiveTex != 0)
+    {
+        float3 emissiveSample = emissiveTex.Sample(linearWrapSample, input.texCoord).rgb;
+        emissive = emissiveSample * material.emmisiveColour;
+    }
+
+    // Do NOT use screen-space SSAO here.
+    // MainDepth belongs to the real scene behind the transparent occluder.
+    float3 finalColor = ComputePBRSurfaceLighting(input.worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, 1.0f);
+
     float wallOpacity = saturate(1.0f - influence);
 
-    return float4(albedo, wallOpacity);
+    return float4(finalColor, wallOpacity);
 }
