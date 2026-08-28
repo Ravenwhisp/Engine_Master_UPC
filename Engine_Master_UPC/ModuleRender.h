@@ -18,6 +18,8 @@
 #include "DepthReductionPass.h"
 #include "ShadowFrustumComputePass.h"
 #include "VolumetricFogComputePass.h"
+#include "OcclusionTargetDepthPass.h"
+#include "DynamicTransparencyMaskPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -90,6 +92,8 @@ private:
     SkyBoxPass* m_skyBoxPass;
 
     std::unique_ptr<SkinningComputePass> m_skinningComputePass;
+    std::unique_ptr<OcclusionTargetDepthPass> m_occlusionTargetDepthPass;
+    std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
     std::unique_ptr<DepthReductionPass> m_depthReductionPass;
     std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;

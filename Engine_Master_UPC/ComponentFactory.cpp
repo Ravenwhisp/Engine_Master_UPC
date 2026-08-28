@@ -22,6 +22,8 @@
 #include "DissolveComponent.h"
 #include "SpectralComponent.h"
 #include "FlowMapComponent.h"
+#include "OcclusionTargetComponent.h"
+#include "OcclusionOccluderComponent.h"
 
 // Prefab
 #include "PrefabInstanceComponent.h"
@@ -119,6 +121,12 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::SPECTRAL:
         return std::make_unique<SpectralComponent>(id, owner);
+
+    case ComponentType::OCCLUSION_TARGET:
+        return std::make_unique<OcclusionTargetComponent>(id, owner);
+
+    case ComponentType::OCCLUSION_OCCLUDER:
+        return std::make_unique<OcclusionOccluderComponent>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

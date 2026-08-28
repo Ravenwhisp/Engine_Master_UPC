@@ -24,6 +24,7 @@
 #include "Texture.h"
 #include "BasicMesh.h"
 #include "SkyBox.h"
+#include "OcclusionOccluderComponent.h"
 
 
 #include "SimpleMath.h"
@@ -42,26 +43,29 @@ GeometryPass::GeometryPass(ComPtr<ID3D12Device4> device): m_device(device)
 
 void GeometryPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER   rootParams[7] = {};
-    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange, vfxRange;
+    CD3DX12_ROOT_PARAMETER rootParams[9] = {};
+    CD3DX12_DESCRIPTOR_RANGE srvRange, sampRange, vfxRange, dynamicTransparencyRange;
 
     srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
     vfxRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, BasicMaterial::SLOT_COUNT, 0);
+    dynamicTransparencyRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
 
     rootParams[0].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-    rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); //MVP
-    rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL); //Model data
-    rootParams[3].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_PIXEL); //Damage Highlight Data
-    rootParams[4].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL); //Materials
-    rootParams[5].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL); //Samplers
-    rootParams[6].InitAsDescriptorTable(1, &vfxRange, D3D12_SHADER_VISIBILITY_PIXEL); //VFX textures
-
+    rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParams[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParams[3].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[4].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[5].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[6].InitAsDescriptorTable(1, &vfxRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[7].InitAsDescriptorTable(1, &dynamicTransparencyRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[8].InitAsConstants(1, 5, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> sigBlob, errorBlob;
+
     DXCall(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, &sigBlob, &errorBlob));
     DXCall(m_device->CreateRootSignature(0, sigBlob->GetBufferPointer(), sigBlob->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 }
@@ -69,15 +73,16 @@ void GeometryPass::createRootSignature()
 void GeometryPass::createPipelineState()
 {
     ComPtr<ID3DBlob> vsBlob, psBlob;
+
     ThrowIfFailed(D3DReadFileToBlob(L"GBufferVS.cso", &vsBlob));
     ThrowIfFailed(D3DReadFileToBlob(L"GBufferPS.cso", &psBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,                            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TANGENT",  0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
@@ -85,9 +90,12 @@ void GeometryPass::createPipelineState()
     psoDesc.pRootSignature = m_rootSignature.Get();
     psoDesc.VS = CD3DX12_SHADER_BYTECODE(vsBlob.Get());
     psoDesc.PS = CD3DX12_SHADER_BYTECODE(psBlob.Get());
+
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
     psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
+
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState.StencilEnable = TRUE;
     psoDesc.DepthStencilState.StencilReadMask = 0xFF;
@@ -95,15 +103,15 @@ void GeometryPass::createPipelineState()
     psoDesc.DepthStencilState.FrontFace.StencilFunc = D3D12_COMPARISON_FUNC_EQUAL;
     psoDesc.DepthStencilState.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
     psoDesc.DepthStencilState.BackFace = psoDesc.DepthStencilState.FrontFace;
+
     psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-    psoDesc.NumRenderTargets = GBUFFER_COUNT;
+    psoDesc.NumRenderTargets = RENDER_TARGET_COUNT;
+
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
-    {
         psoDesc.RTVFormats[i] = GBUFFER_FORMATS[i];
-    }
 
     psoDesc.SampleDesc = { 1, 0 };
 
@@ -120,6 +128,22 @@ void GeometryPass::prepare(const RenderContext& ctx)
 
     // Collect visible mesh renderers
     m_meshRenderers = app->getModuleScene()->getVisibleDeferredMeshRenderers();
+    m_occlusionOccluderRenderers.clear();
+
+    const auto& occluders = app->getModuleScene()->getOcclusionOccluderComponents();
+
+    for (OcclusionOccluderComponent* occluder : occluders)
+    {
+        if (occluder == nullptr || !occluder->isActive())
+            continue;
+
+        GameObject* owner = occluder->getOwner();
+
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
+            continue;
+
+        collectOccluderMeshRenderers(owner);
+    }
 
     // Upload SceneDataCB (camera position) to the ring buffer
     SceneDataCB sceneData{};
@@ -137,7 +161,7 @@ void GeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "Geometry Pass");
 
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[GBUFFER_COUNT];
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[RENDER_TARGET_COUNT];
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
 
     transitionAndClearTargets(commandList, rtvHandles, &dsvHandle);
@@ -147,31 +171,28 @@ void GeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     for (auto* renderer : m_meshRenderers)
-    {
         renderMeshRenderer(commandList, renderer);
-    }
 
-    transitionGBuffer(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    transitionRenderTargets(commandList, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     END_EVENT(commandList);
 }
 
 void GeometryPass::transitionAndClearTargets(ID3D12GraphicsCommandList4* commandList, D3D12_CPU_DESCRIPTOR_HANDLE* rtvHandles, D3D12_CPU_DESCRIPTOR_HANDLE* dsvHandle) const
 {
-    transitionGBuffer(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    transitionRenderTargets(commandList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-    //const float clearColour[GBUFFER_COUNT] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    const float clearColour[GBUFFER_COUNT] = { 0.0f, 0.2f, 0.4f, 1.0f };
+    const float gbufferClearColour[4] = { 0.0f, 0.2f, 0.4f, 1.0f };
+
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
     {
         rtvHandles[i] = m_gbufferSurface->getTexture(kSlots[i])->getRTV(0).cpu;
-        commandList->ClearRenderTargetView(rtvHandles[i], clearColour, 0, nullptr);
+        commandList->ClearRenderTargetView(rtvHandles[i], gbufferClearColour, 0, nullptr);
     }
 
     *dsvHandle = m_gbufferSurface->getTexture(RenderSurface::DEPTH_STENCIL)->getDSV().cpu;
-    //commandList->ClearDepthStencilView(*dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-    commandList->OMSetRenderTargets(GBUFFER_COUNT, rtvHandles,FALSE, dsvHandle);
+    commandList->OMSetRenderTargets(RENDER_TARGET_COUNT, rtvHandles, FALSE, dsvHandle);
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);
 }
@@ -190,6 +211,11 @@ void GeometryPass::setupPipelineAndHeaps(ID3D12GraphicsCommandList4* commandList
 
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
+
+    std::shared_ptr<Texture> dynamicTransparencyMask = m_gbufferSurface->getTexture(RenderSurface::DYNAMIC_TRANSPARENCY_MASK);
+
+    if (dynamicTransparencyMask && dynamicTransparencyMask->getSRV().IsValid())
+        commandList->SetGraphicsRootDescriptorTable(7, dynamicTransparencyMask->getSRV().gpu);
 }
 
 void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
@@ -205,7 +231,8 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
         return;
     }
 
-
+    const UINT isOcclusionOccluder = m_occlusionOccluderRenderers.find(renderer) != m_occlusionOccluderRenderers.end() ? 1u : 0u;
+    commandList->SetGraphicsRoot32BitConstant(8, isOcclusionOccluder, 0);
 
     VisualEffectsCB visualEffectsCB{};
     
@@ -313,13 +340,32 @@ void GeometryPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, M
     }
 }
 
+void GeometryPass::collectOccluderMeshRenderers(GameObject* gameObject)
+{
+    if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy())
+        return;
 
-void GeometryPass::transitionGBuffer(ID3D12GraphicsCommandList4* cmdList, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const
+    MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+
+    if (renderer != nullptr && renderer->isActive() && renderer->getRenderMode() == RenderMode::DEFAULT) 
+        m_occlusionOccluderRenderers.insert(renderer);
+
+    Transform* transform = gameObject->GetTransform();
+
+    if (transform == nullptr)
+        return;
+
+    for (GameObject* child : transform->getAllChildren())
+        collectOccluderMeshRenderers(child);
+}
+
+
+void GeometryPass::transitionRenderTargets(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) const
 {
     CD3DX12_RESOURCE_BARRIER barriers[GBUFFER_COUNT];
+
     for (UINT i = 0; i < GBUFFER_COUNT; ++i)
-    {
         barriers[i] = CD3DX12_RESOURCE_BARRIER::Transition(m_gbufferSurface->getTexture(kSlots[i])->getD3D12Resource().Get(), before, after);
-    }
-    cmdList->ResourceBarrier(GBUFFER_COUNT, barriers);
+
+    commandList->ResourceBarrier(GBUFFER_COUNT, barriers);
 }

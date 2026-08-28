@@ -1,3 +1,5 @@
+#include "VolumetricFogCommon.hlsli"
+
 cbuffer ApplyConstants : register(b0)
 {
     float nearDistance;
@@ -23,25 +25,6 @@ static const uint DEBUG_LIGHTING = 2;
 static const uint DEBUG_LIGHTING_NO_SHADOWS = 3;
 static const uint DEBUG_SCATTERING = 4;
 static const uint DEBUG_TRANSMITTANCE = 5;
-
-float LinearizeViewDepth(float deviceDepth)
-{
-    float denominator = deviceDepth + projectionA;
-
-    if (abs(denominator) < 0.000001f)
-        denominator = denominator < 0.0f ? -0.000001f : 0.000001f;
-
-    float viewZ = -projectionB / denominator;
-    return max(-viewZ, 0.0f);
-}
-
-float GetNormalizedVolumeDepth(float viewDepth)
-{
-    float safeNear = max(nearDistance, 0.001f);
-    float safeFar = max(maxDistance, safeNear + 0.001f);
-    float depth = clamp(viewDepth, safeNear, safeFar);
-    return saturate(log(depth / safeNear) / log(safeFar / safeNear));
-}
 
 float4 SampleIntegratedVolume(float2 uv, float normalizedDepth)
 {
@@ -85,8 +68,8 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     }
 
     float deviceDepth = depthTexture.Load(int3(int2(position.xy), 0));
-    float viewDepth = LinearizeViewDepth(deviceDepth);
-    float normalizedDepth = GetNormalizedVolumeDepth(viewDepth);
+    float viewDepth = LinearizeVolumetricViewDepth(deviceDepth, projectionA, projectionB);
+    float normalizedDepth = GetNormalizedVolumetricDepth(viewDepth, nearDistance, maxDistance);
     float4 integrated = SampleIntegratedVolume(coord, normalizedDepth);
 
     if (debugView == DEBUG_SCATTERING)
