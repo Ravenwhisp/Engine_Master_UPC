@@ -25,6 +25,8 @@
 #include "OcclusionTargetComponent.h"
 #include "OcclusionOccluderComponent.h"
 
+#include "ComponentVideo.h"
+
 // Prefab
 #include "PrefabInstanceComponent.h"
 
@@ -127,6 +129,9 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::OCCLUSION_OCCLUDER:
         return std::make_unique<OcclusionOccluderComponent>(id, owner);
+
+    case ComponentType::VIDEO:
+        return std::make_unique<ComponentVideo>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

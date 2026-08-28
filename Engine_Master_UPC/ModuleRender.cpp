@@ -53,6 +53,9 @@
 #include "DynamicTransparencyMaskPass.h"
 #include "DynamicTransparencyFalloffPass.h"
 
+#include "ModuleVideo.h"
+#include "VideoPlayback.h"
+
 #include "OptickProfiler.h"
 
 #pragma region GameLoop
@@ -131,6 +134,7 @@ bool ModuleRender::init()
     // bracket the entire editor render, not just the scene render.
     m_imGuiPass = std::make_unique<ImGuiPass>(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
 
+    m_videoPass = std::make_unique<VideoPass>(device);
 
 
     #ifdef GAME_RELEASE
@@ -257,6 +261,7 @@ bool ModuleRender::cleanUp()
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionTargetDepthPass.reset();
     m_skinningComputePass.reset();
+    m_videoPass.reset();
 
     m_renderPasses.clear();
 
@@ -694,6 +699,36 @@ void ModuleRender::renderBackground(ID3D12GraphicsCommandList4* commandList, con
     commandList->RSSetScissorRects(1, &sr);
 }
 
+bool ModuleRender::renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface)
+{
+    VideoPlayback* video = app->getModuleVideo()->getPlayingVideo();
+
+    if (!video)
+    {
+        //DEBUG_LOG("[Module Render] No playing video");
+        return false;
+    }
+
+    if (!m_videoPass)
+    {
+        //DEBUG_ERROR("[Module Render] VideoPass is null");
+        return false;
+    }
+
+    //DEBUG_LOG("[Module Render] Playing video found");
+
+    const float width = static_cast<float>(outputSurface.getWidth());
+    const float height = static_cast<float>(outputSurface.getHeight());
+
+    D3D12_VIEWPORT viewport = { 0.0f, 0.0f, width, height, 0.0f, 1.0f };
+    D3D12_RECT scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+
+    m_videoPass->setVideo(video);
+    m_videoPass->prepare(outputSurface, viewport, scissorRect);
+
+    return m_videoPass->render(commandList);
+}
+
 #pragma region Wrappers
 
 void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList,
@@ -702,20 +737,32 @@ void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList,
     renderScene(commandList, getEditorCamera(), outputSurface, /*renderDebug=*/true, RenderViewType::Editor);
 }
 
-void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList,
-    RenderSurface& outputSurface)
+void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface)
 {
+    if (renderVideo(commandList, outputSurface))
+    {
+        return;
+    }
+
     const RenderCamera camera = getGameCamera();
-    if (!camera.valid) return;
+
+    if (!camera.valid)
+    {
+        return;
+    }
 
     renderScene(commandList, camera, outputSurface, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
 
-void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList,
-    RenderSurface& outputSurface)
+void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface)
 {
+    if (renderVideo(commandList, outputSurface))
+        return;
+
     const RenderCamera camera = getGameCamera();
-    if (!camera.valid) return;
+
+    if (!camera.valid)
+        return;
 
     renderScene(commandList, camera, outputSurface, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }

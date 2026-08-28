@@ -36,6 +36,7 @@ class TrailComponent;
 struct AssetId;
 class DissolveComponent;
 class SpectralComponent;
+class ComponentVideo;
 
 struct HapticEffectDefinition;
 
@@ -562,4 +563,20 @@ namespace PostProcessAPI
     ENGINE_API float   getOutlineBreakup();
 }
 
+namespace VideoAPI
+{
+    ENGINE_API ComponentVideo* getVideoComponent(GameObject* gameObject);
+    ENGINE_API const ComponentVideo* getVideoComponent(const GameObject* gameObject);
+
+    ENGINE_API void play(ComponentVideo* component);
+    ENGINE_API void pause(ComponentVideo* component);
+    ENGINE_API void resume(ComponentVideo* component);
+    ENGINE_API void stop(ComponentVideo* component);
+
+    ENGINE_API bool isPlaying(const ComponentVideo* component);
+    ENGINE_API bool isPaused(const ComponentVideo* component);
+
+    ENGINE_API void setPath(ComponentVideo* component, const char* path);
+    ENGINE_API const char* getPath(const ComponentVideo* component);
+}
 #include "EngineAPI.inl"

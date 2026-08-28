@@ -30,7 +30,8 @@
     X(DISSOLVE)             \
     X(SPECTRAL)             \
     X(OCCLUSION_TARGET)     \
-    X(OCCLUSION_OCCLUDER)
+    X(OCCLUSION_OCCLUDER)   \
+    X(VIDEO)
 
 #define COMP_ENUM(name) name,
 #define COMP_SWITCH(name) case ComponentType::name: return #name;

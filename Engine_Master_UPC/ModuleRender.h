@@ -20,6 +20,7 @@
 #include "VolumetricFogComputePass.h"
 #include "OcclusionTargetDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
+#include "VideoPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -101,6 +102,7 @@ private:
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;
     std::unique_ptr<SSAOPass> m_ssaoPass;
     std::unique_ptr<SSAOBlurPass> m_ssaoBlurPass;
+    std::unique_ptr<VideoPass> m_videoPass;
 
     SSAOFrameData m_currentSSAOData{};
 
@@ -157,4 +159,6 @@ private:
 
     // D3D12 helpers
     void transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState,  D3D12_RESOURCE_STATES afterState);
+
+    bool renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface);
 };

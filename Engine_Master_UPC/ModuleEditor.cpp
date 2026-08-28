@@ -24,6 +24,7 @@
 #include "WindowAnimationStateMachine.h"
 #include "PrefabManager.h"
 #include "WindowMusicDebug.h"
+#include "WindowVideoDebug.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -155,6 +156,7 @@ bool ModuleEditor::init()
     registerWindowType<WindowAnimationStateMachine>("Animation State Machine");
     registerWindowType<WindowMusicDebug>("Music Library");
     registerWindowType<WindowDataContainerManager>("Data Container Manager");
+    registerWindowType<WindowVideoDebug>("Video debug");
 
     // ---- Spawn the default set of windows (one each) ----
     openWindow("Console");

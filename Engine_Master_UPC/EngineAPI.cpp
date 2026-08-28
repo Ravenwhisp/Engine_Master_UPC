@@ -14,6 +14,8 @@
 
 #include "PrefabManager.h"
 #include "Quadtree.h"
+#include "AssetIndex.h"
+#include "VideoAsset.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
@@ -37,6 +39,7 @@
 #include "DamageHighlightComponent.h"
 #include "TrailComponent.h"
 #include "DissolveComponent.h"
+#include "ComponentVideo.h"
 #include "SpectralComponent.h"
 
 #include "CameraComponent.h"
@@ -3494,4 +3497,120 @@ namespace PostProcessAPI
     float getOutlineNoiseScale()        { auto* pp = getSettings(); return pp ? pp->outlineNoiseScale : 0.0f; }
     void  setOutlineBreakup(float b)    { if (auto* pp = getSettings()) pp->outlineBreakup = b; }
     float getOutlineBreakup()           { auto* pp = getSettings(); return pp ? pp->outlineBreakup : 0.0f; }
+}
+
+namespace VideoAPI
+{
+    ComponentVideo* getVideoComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<ComponentVideo>(ComponentType::VIDEO);
+    }
+
+    const ComponentVideo* getVideoComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<ComponentVideo>(ComponentType::VIDEO);
+    }
+
+    void play(ComponentVideo* component)
+    {
+        if (component)
+        {
+            component->play();
+        }
+    }
+
+    void pause(ComponentVideo* component)
+    {
+        if (component)
+        {
+            component->pause();
+        }
+    }
+
+    void resume(ComponentVideo* component)
+    {
+        if (component)
+        {
+            component->resume();
+        }
+    }
+
+    void stop(ComponentVideo* component)
+    {
+        if (component)
+        {
+            component->stop();
+        }
+    }
+
+    bool isPlaying(const ComponentVideo* component)
+    {
+        return component ? component->isPlaying() : false;
+    }
+
+    bool isPaused(const ComponentVideo* component)
+    {
+        return component ? component->isPaused() : false;
+    }
+
+    void setPath(ComponentVideo* component, const char* path)
+    {
+        if (!component || !path)
+        {
+            return;
+        }
+
+        auto* moduleAssets = app->getModuleAssets();
+        if (!moduleAssets)
+        {
+            return;
+        }
+
+        const UID uid = moduleAssets->getIndex().findUID(std::filesystem::path(path));
+        AssetId* ref = moduleAssets->findReference(uid);
+        if (!ref)
+        {
+            return;
+        }
+
+        VideoRef videoRef;
+        videoRef.m_id = *ref;
+        auto loaded = moduleAssets->load<VideoAsset>(*ref);
+        if (loaded)
+        {
+            videoRef.m_data = loaded;
+        }
+        component->setAsset(videoRef);
+        delete ref;
+    }
+
+    const char* getPath(const ComponentVideo* component)
+    {
+        static std::string result;
+        result.clear();
+
+        if (component)
+        {
+            const VideoRef& ref = component->getAsset();
+            if (ref)
+            {
+                if (const AssetIndexEntry* entry = app->getModuleAssets()->getIndex().findEntry(ref.m_id.m_uid))
+                {
+                    result = entry->sourcePath.string();
+                }
+            }
+        }
+
+        return result.c_str();
+    }
 }
