@@ -60,7 +60,8 @@ private:
 	AVCodecContext* m_audioCodecContext = nullptr;
 
 	AVPacket* m_packet = nullptr;
-	AVPacket* m_pendingPacket = nullptr;
+	std::deque<std::unique_ptr<AVPacket>> m_pendingAudioPackets;
+	std::deque<std::unique_ptr<AVPacket>> m_pendingVideoPackets;
 
 	AVFrame* m_decodeVideoFrame = nullptr;
 	AVFrame* m_videoFrame = nullptr;
@@ -86,7 +87,6 @@ private:
 
 	bool m_hasVideoFrame = false;
 	bool m_videoFrameReady = false;
-	bool m_hasPendingPacket = false;
 
 	double m_playbackTime = 0.0;
 	double m_currentVideoTime = 0.0;
@@ -151,7 +151,7 @@ private:
 	void updateVideoFrame();
 
 	void clearVideoFrames();
-	void clearPendingPacket();
+	void clearPendingPackets();
 
 	void flushDecoders();
 	void flushDelayedFrames();

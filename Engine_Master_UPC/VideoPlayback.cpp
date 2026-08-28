@@ -198,7 +198,6 @@ bool VideoPlayback::finalizeLoad()
 	}
 
 	m_packet = av_packet_alloc();
-	m_pendingPacket = av_packet_alloc();
 
 	m_decodeVideoFrame = av_frame_alloc();
 	m_videoFrame = av_frame_alloc();
@@ -206,7 +205,7 @@ bool VideoPlayback::finalizeLoad()
 	if (m_audioStreamIndex >= 0)
 		m_audioFrame = av_frame_alloc();
 
-	if (!m_packet || !m_pendingPacket || !m_decodeVideoFrame || !m_videoFrame || (m_audioStreamIndex >= 0 && !m_audioFrame))
+	if (!m_packet || !m_decodeVideoFrame || !m_videoFrame || (m_audioStreamIndex >= 0 && !m_audioFrame))
 	{
 		DEBUG_ERROR("[Video playback|%s] Could not allocate FFmpeg packet/frame", m_path.string().c_str());
 		unload();
@@ -230,7 +229,6 @@ bool VideoPlayback::finalizeLoad()
 
 	m_videoFrameReady = false;
 	m_hasVideoFrame = false;
-	m_hasPendingPacket = false;
 
 	m_playbackTime = 0.0;
 	m_currentVideoTime = 0.0;
@@ -406,7 +404,7 @@ void VideoPlayback::stop()
 	m_currentVideoTime = 0.0;
 
 	clearVideoFrames();
-	clearPendingPacket();
+	clearPendingPackets();
 
 	if (m_videoFrame)
 		av_frame_unref(m_videoFrame);
@@ -452,19 +450,41 @@ void VideoPlayback::update()
 
 void VideoPlayback::fillDecodeQueues()
 {
-	if (m_endOfFile)
+	if (m_endOfFile && m_pendingAudioPackets.empty() && m_pendingVideoPackets.empty())
 		return;
 
-	while (m_videoFrames.size() < MAX_VIDEO_FRAMES || canQueueAudio())
+	// Audio and video have independent queues. Previously one blocked audio packet stopped the
+	// demuxer, which also stopped video decoding and made current video time wait for XAudio.
+	while (true)
 	{
 		AVPacket* packet = nullptr;
+		std::deque<std::unique_ptr<AVPacket>>* pendingQueue = nullptr;
+		const bool videoHasRoom = m_videoFrames.size() < MAX_VIDEO_FRAMES;
+		const bool audioHasRoom = canQueueAudio();
 
-		if (m_hasPendingPacket)
+		// Consume whichever pending stream can currently make progress. Video is preferred so its
+		// presentation queue remains ahead of the playback clock.
+		if (videoHasRoom && !m_pendingVideoPackets.empty())
 		{
-			packet = m_pendingPacket;
+			pendingQueue = &m_pendingVideoPackets;
+			packet = pendingQueue->front().get();
+		}
+		else if (audioHasRoom && !m_pendingAudioPackets.empty())
+		{
+			pendingQueue = &m_pendingAudioPackets;
+			packet = pendingQueue->front().get();
 		}
 		else
 		{
+			if (!videoHasRoom && !audioHasRoom)
+				break;
+
+			if (m_endOfFile)
+			{
+				flushDelayedFrames();
+				break;
+			}
+
 			const int result = av_read_frame(m_formatContext, m_packet);
 
 			if (result < 0)
@@ -479,56 +499,49 @@ void VideoPlayback::fillDecodeQueues()
 				}
 
 				if (m_endOfFile)
+				{
 					flushDelayedFrames();
+					if (m_pendingAudioPackets.empty() && m_pendingVideoPackets.empty())
+						break;
+					continue;
+				}
 
 				break;
 			}
 
 			packet = m_packet;
-		}
 
-		// Backpressure for video: do not feed a video packet while the decoded-frame queue is
-		// already full. Defer it as the pending packet (same mechanism used for audio below) and
-		// stop reading until the display consumes some frames. This prevents feeding the decoder
-		// when it cannot make progress and avoids the AVERROR(EAGAIN) send failure.
-		if (packet->stream_index == m_videoStreamIndex && m_videoFrames.size() >= MAX_VIDEO_FRAMES)
-		{
-			if (!m_hasPendingPacket)
+			// Preserve blocked packets instead of stopping the other stream. Each stream has its own
+			// pending queue, so an audio backlog can never prevent video from being decoded.
+			if (packet->stream_index == m_videoStreamIndex && !videoHasRoom)
 			{
-				const int result = av_packet_ref(m_pendingPacket, packet);
-
-				if (result < 0)
+				auto pending = std::make_unique<AVPacket>();
+				const int refResult = av_packet_ref(pending.get(), packet);
+				if (refResult < 0)
 				{
-					printFFmpegError("Could not store pending video packet", result, m_path);
+					printFFmpegError("Could not store pending video packet", refResult, m_path);
 					av_packet_unref(m_packet);
 					return;
 				}
-
-				m_hasPendingPacket = true;
+				m_pendingVideoPackets.push_back(std::move(pending));
 				av_packet_unref(m_packet);
+				continue;
 			}
 
-			break;
-		}
-
-		if (packet->stream_index == m_audioStreamIndex && !canQueueAudio())
-		{
-			if (!m_hasPendingPacket)
+			if (packet->stream_index == m_audioStreamIndex && !audioHasRoom)
 			{
-				const int result = av_packet_ref(m_pendingPacket, packet);
-
-				if (result < 0)
+				auto pending = std::make_unique<AVPacket>();
+				const int refResult = av_packet_ref(pending.get(), packet);
+				if (refResult < 0)
 				{
-					printFFmpegError("Could not store pending audio packet", result, m_path);
+					printFFmpegError("Could not store pending audio packet", refResult, m_path);
 					av_packet_unref(m_packet);
 					return;
 				}
-
-				m_hasPendingPacket = true;
+				m_pendingAudioPackets.push_back(std::move(pending));
 				av_packet_unref(m_packet);
+				continue;
 			}
-
-			break;
 		}
 
 		bool decoded = true;
@@ -538,8 +551,11 @@ void VideoPlayback::fillDecodeQueues()
 		else if (packet->stream_index == m_audioStreamIndex)
 			decoded = decodeAudioPacket(packet);
 
-		if (m_hasPendingPacket)
-			clearPendingPacket();
+		if (pendingQueue)
+		{
+			av_packet_unref(pendingQueue->front().get());
+			pendingQueue->pop_front();
+		}
 		else
 			av_packet_unref(m_packet);
 
@@ -550,8 +566,6 @@ void VideoPlayback::fillDecodeQueues()
 			return;
 		}
 
-		if (m_videoFrames.size() >= MAX_VIDEO_FRAMES && !canQueueAudio())
-			break;
 	}
 }
 
@@ -775,13 +789,15 @@ void VideoPlayback::clearVideoFrames()
 	m_videoFrames.clear();
 }
 
-void VideoPlayback::clearPendingPacket()
+void VideoPlayback::clearPendingPackets()
 {
-	if (!m_pendingPacket)
-		return;
+	for (auto& packet : m_pendingAudioPackets)
+		av_packet_unref(packet.get());
+	m_pendingAudioPackets.clear();
 
-	av_packet_unref(m_pendingPacket);
-	m_hasPendingPacket = false;
+	for (auto& packet : m_pendingVideoPackets)
+		av_packet_unref(packet.get());
+	m_pendingVideoPackets.clear();
 }
 
 void VideoPlayback::flushDecoders()
@@ -827,13 +843,10 @@ void VideoPlayback::unload()
 	cleanUpAudio();
 
 	clearVideoFrames();
-	clearPendingPacket();
+	clearPendingPackets();
 
 	if (m_packet)
 		av_packet_free(&m_packet);
-
-	if (m_pendingPacket)
-		av_packet_free(&m_pendingPacket);
 
 	if (m_decodeVideoFrame)
 		av_frame_free(&m_decodeVideoFrame);
@@ -880,7 +893,6 @@ void VideoPlayback::unload()
 
 	m_videoFrameReady = false;
 	m_hasVideoFrame = false;
-	m_hasPendingPacket = false;
 
 	m_playbackTime = 0.0;
 	m_currentVideoTime = 0.0;
