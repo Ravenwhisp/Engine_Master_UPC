@@ -51,18 +51,22 @@ namespace
     static void sanitizeShadowSettings(LightShadowSettings& shadow)
     {
         shadow.shadowMapSize = sanitizeShadowMapSize(shadow.shadowMapSize);
-
-        shadow.pcfRadius = std::clamp(
-            shadow.pcfRadius,
-            1u,
-            2u);
-
+        shadow.pcfRadius = std::clamp(shadow.pcfRadius, 1u, 2u);
         shadow.shadowBias = std::max(0.0f, shadow.shadowBias);
+        shadow.shadowStrength = std::clamp(shadow.shadowStrength, 0.0f, 1.0f);
 
-        shadow.shadowStrength = std::clamp(
-            shadow.shadowStrength,
-            0.0f,
-            1.0f);
+        shadow.cascadeCount = std::clamp(shadow.cascadeCount, 1u, MAX_SHADOW_CASCADES);
+
+        constexpr float MIN_CASCADE_SPLIT_DELTA = 0.001f;
+
+        shadow.cascadeSplit0 = std::clamp(shadow.cascadeSplit0, MIN_CASCADE_SPLIT_DELTA, 1.0f - 3.0f * MIN_CASCADE_SPLIT_DELTA);
+        shadow.cascadeSplit1 = std::clamp(shadow.cascadeSplit1, shadow.cascadeSplit0 + MIN_CASCADE_SPLIT_DELTA, 1.0f - 2.0f * MIN_CASCADE_SPLIT_DELTA);
+        shadow.cascadeSplit2 = std::clamp(shadow.cascadeSplit2, shadow.cascadeSplit1 + MIN_CASCADE_SPLIT_DELTA, 1.0f - MIN_CASCADE_SPLIT_DELTA);
+
+        if (shadow.cascadeFitMode != ShadowCascadeFitMode::FIT_TO_SCENE && shadow.cascadeFitMode != ShadowCascadeFitMode::FIT_TO_CASCADE)
+        {
+            shadow.cascadeFitMode = LightDefaults::DEFAULT_SHADOW_CASCADE_FIT_MODE;
+        }
     }
 
 }
@@ -78,7 +82,7 @@ std::unique_ptr<Component> LightComponent::clone(GameObject* newOwner) const
 
     newComponent->m_data = m_data;
 
-	return newComponent;
+    return newComponent;
 }
 
 void LightComponent::setTypeDirectional()
@@ -136,15 +140,15 @@ void LightComponent::drawUi()
         {
             const LightType newType = static_cast<LightType>(typeIndex);
 
-            if (newType == LightType::DIRECTIONAL) 
+            if (newType == LightType::DIRECTIONAL)
             {
                 setTypeDirectional();
             }
-            else if (newType == LightType::POINT) 
+            else if (newType == LightType::POINT)
             {
                 setTypePoint(m_data.parameters.point.radius);
             }
-            else if (newType == LightType::SPOT) 
+            else if (newType == LightType::SPOT)
             {
                 setTypeSpot(m_data.parameters.spot.radius, m_data.parameters.spot.innerAngleDegrees, m_data.parameters.spot.outerAngleDegrees);
             }
@@ -190,12 +194,12 @@ void LightComponent::drawUi()
             lightChanged = true;
         }
 
-        if (ImGui::DragFloat("Inner Angle##Spot", &m_data.parameters.spot.innerAngleDegrees, 0.1f, 0.0f, 179.0f)) 
+        if (ImGui::DragFloat("Inner Angle##Spot", &m_data.parameters.spot.innerAngleDegrees, 0.1f, 0.0f, 179.0f))
         {
             lightChanged = true;
         }
 
-        if (ImGui::DragFloat("Outer Angle##Spot", &m_data.parameters.spot.outerAngleDegrees, 0.1f, 0.0f, 179.0f)) 
+        if (ImGui::DragFloat("Outer Angle##Spot", &m_data.parameters.spot.outerAngleDegrees, 0.1f, 0.0f, 179.0f))
         {
             lightChanged = true;
         }
@@ -280,13 +284,76 @@ void LightComponent::drawUi()
             lightChanged = true;
         }
 
+        if (m_data.type == LightType::DIRECTIONAL)
+        {
+            ImGui::Separator();
+            ImGui::Text("Cascaded Shadow Maps");
+
+            int cascadeCount = static_cast<int>(m_data.shadow.cascadeCount);
+
+            if (ImGui::SliderInt("Cascade Count", &cascadeCount, 1, static_cast<int>(MAX_SHADOW_CASCADES)))
+            {
+                m_data.shadow.cascadeCount = static_cast<uint32_t>(cascadeCount);
+                lightChanged = true;
+            }
+
+            static const char* CASCADE_FIT_MODE_NAMES[] = { "Fit to Scene", "Fit to Cascade" };
+            int cascadeFitMode = static_cast<int>(m_data.shadow.cascadeFitMode);
+
+            if (ImGui::Combo("Cascade Fit", &cascadeFitMode, CASCADE_FIT_MODE_NAMES, IM_ARRAYSIZE(CASCADE_FIT_MODE_NAMES)))
+            {
+                m_data.shadow.cascadeFitMode = static_cast<ShadowCascadeFitMode>(cascadeFitMode);
+                lightChanged = true;
+            }
+
+            if (ImGui::Checkbox("Debug Cascade Tint", &m_data.shadow.cascadeDebugEnabled))
+            {
+                lightChanged = true;
+            }
+
+            if (m_data.shadow.cascadeCount > 1)
+            {
+                float splitPercent = m_data.shadow.cascadeSplit0 * 100.0f;
+
+                if (ImGui::DragFloat("Cascade 1 End (%)", &splitPercent, 1.0f, 1.0f, 99.0f, "%.1f"))
+                {
+                    m_data.shadow.cascadeSplit0 = splitPercent / 100.0f;
+                    lightChanged = true;
+                }
+            }
+
+            if (m_data.shadow.cascadeCount > 2)
+            {
+                float splitPercent = m_data.shadow.cascadeSplit1 * 100.0f;
+
+                if (ImGui::DragFloat("Cascade 2 End (%)", &splitPercent, 1.0f, 1.0f, 99.0f, "%.1f"))
+                {
+                    m_data.shadow.cascadeSplit1 = splitPercent / 100.0f;
+                    lightChanged = true;
+                }
+            }
+
+            if (m_data.shadow.cascadeCount > 3)
+            {
+                float splitPercent = m_data.shadow.cascadeSplit2 * 100.0f;
+
+                if (ImGui::DragFloat("Cascade 3 End (%)", &splitPercent, 1.0f, 1.0f, 99.0f, "%.1f"))
+                {
+                    m_data.shadow.cascadeSplit2 = splitPercent / 100.0f;
+                    lightChanged = true;
+                }
+            }
+
+            ImGui::TextDisabled("Final cascade always ends at 100%%.");
+        }
+
         if (m_data.type != LightType::DIRECTIONAL)
         {
             ImGui::TextDisabled("Shadow rendering for this light type is not implemented yet.");
         }
     }
 
-    if (lightChanged) 
+    if (lightChanged)
     {
         sanitize();
     }
@@ -320,6 +387,32 @@ void LightComponent::serialize(IArchive& archive)
 
     archive.serialize(m_data.shadow.shadowBias, "ShadowBias");
     archive.serialize(m_data.shadow.shadowStrength, "ShadowStrength");
+
+    uint32_t shadowCascadeCount = m_data.shadow.cascadeCount;
+
+    archive.serialize(shadowCascadeCount, "ShadowCascadeCount");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_data.shadow.cascadeCount = shadowCascadeCount;
+    }
+
+    archive.serialize(m_data.shadow.cascadeSplit0, "ShadowCascadeSplit0");
+
+    archive.serialize(m_data.shadow.cascadeSplit1, "ShadowCascadeSplit1");
+
+    archive.serialize(m_data.shadow.cascadeSplit2, "ShadowCascadeSplit2");
+
+    uint32_t shadowCascadeFitMode = static_cast<uint32_t>(m_data.shadow.cascadeFitMode);
+
+    archive.serialize(shadowCascadeFitMode, "ShadowCascadeFitMode");
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_data.shadow.cascadeFitMode = static_cast<ShadowCascadeFitMode>(shadowCascadeFitMode);
+    }
+
+    archive.serialize(m_data.shadow.cascadeDebugEnabled, "ShadowCascadeDebugEnabled");
 
     float radius = 0.0f;
     float innerAngle = 0.0f;
@@ -370,7 +463,7 @@ void LightComponent::serialize(IArchive& archive)
 }
 void LightComponent::debugDraw()
 {
-    if ( !isActive() || !m_owner->GetActive())
+    if (!isActive() || !m_owner->GetActive())
     {
         return;
     }
@@ -444,4 +537,3 @@ void LightComponent::debugDraw()
         break;
     }
 }
-

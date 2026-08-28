@@ -10,9 +10,14 @@ float3 SchlickFresnel(float3 F0, float NdotH)
     return F0 + (1 - F0) * pow(1.0 - NdotH, 5);
 }
 
+float SchlickFresnelIntensity(float NdotV, float power)
+{
+    return pow(1.0 - saturate(NdotV), power);
+}
+
 float3 ColoredSchlickFresnel(float3 centerColor, float3 rimColor, float NdotV, float power)
 {
-    float intensity = pow(1.0 - saturate(NdotV), power);
+    float intensity = SchlickFresnelIntensity(NdotV, power);
     return lerp(centerColor, rimColor, intensity);
 }
 

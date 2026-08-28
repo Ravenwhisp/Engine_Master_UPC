@@ -26,7 +26,11 @@ ParticleEmitter::ParticleEmitter()
 	m_particleModules.push_back(std::move(emitterLifeTime));
 
 	m_particleModules.push_back(std::make_unique<EmitterArea>());
-	m_particleModules.push_back(std::make_unique<EmitterColor>());
+
+	auto emitterColor = std::make_unique<EmitterColor>();
+	m_colorModule = emitterColor.get();
+	m_particleModules.push_back(std::move(emitterColor));
+
 	m_particleModules.push_back(std::make_unique<EmitterVelocity>());
 	m_particleModules.push_back(std::make_unique<EmitterSize>());
 	m_particleModules.push_back(std::make_unique<EmitterRotation>());
@@ -56,7 +60,11 @@ ParticleEmitter::ParticleEmitter(const ParticleEmitter& particleEmitter)
 	m_particleModules.push_back(std::move(emitterLifetime));
 
 	m_particleModules.push_back(particleEmitter.m_particleModules[2]->clone());
-	m_particleModules.push_back(particleEmitter.m_particleModules[3]->clone());
+
+	auto emitterColor = particleEmitter.m_particleModules[3]->clone();
+	m_colorModule = static_cast<EmitterColor*>(emitterColor.get());
+	m_particleModules.push_back(std::move(emitterColor));
+
 	m_particleModules.push_back(particleEmitter.m_particleModules[4]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[5]->clone());
 	m_particleModules.push_back(particleEmitter.m_particleModules[6]->clone());

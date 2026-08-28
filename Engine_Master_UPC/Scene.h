@@ -9,6 +9,7 @@
 #include "SkyBoxSettings.h"
 #include "PostProcessSettings.h"
 #include "SceneReferenceResolver.h"
+#include "VolumetricFogSettings.h"
 #include "AssetId.h"
 #include "UID.h"
 
@@ -36,6 +37,7 @@ private:
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
     PostProcessSettings m_postProcess;
+    VolumetricFogSettings m_volumetricFog;
     AssetId m_navMesh;
     SSAOSettings m_ssao;
 
@@ -107,6 +109,8 @@ public:
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
     SSAOSettings& getSSAOSettings() { return m_ssao; }
     const SSAOSettings& getSSAOSettings() const { return m_ssao; }
+    VolumetricFogSettings& getVolumetricFogSettings() { return m_volumetricFog; }
+    const VolumetricFogSettings& getVolumetricFogSettings() const { return m_volumetricFog; }
     PostProcessSettings& getPostProcessSettings() { return m_postProcess; }
     const PostProcessSettings& getPostProcessSettings() const { return m_postProcess; }
 

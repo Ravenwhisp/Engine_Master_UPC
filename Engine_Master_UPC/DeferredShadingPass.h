@@ -46,6 +46,9 @@ public:
 	int getTriangleCount() const { return m_trianglesCount; }
 	int getMeshCount() const { return m_meshCount; }
 
+    D3D12_GPU_VIRTUAL_ADDRESS getSceneDataCBAddress() const { return m_sceneDataCBAddress; }
+    D3D12_GPU_VIRTUAL_ADDRESS getLightsCBAddress() const { return m_lightsAddress; }
+
 private:
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;
@@ -69,7 +72,7 @@ private:
 
     // ShadowMap
     D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_shadowMapSRV{};
+    D3D12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowMapSRV{};
     bool m_hasShadowData = false;
 
     // SSAO

@@ -9,6 +9,8 @@
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
 #include "ModuleMusic.h"
+#include "ModuleD3D12.h"
+#include "WindowGame.h"
 
 #include "PrefabManager.h"
 #include "Quadtree.h"
@@ -38,6 +40,7 @@
 #include "TrailComponent.h"
 #include "DissolveComponent.h"
 #include "ComponentVideo.h"
+#include "SpectralComponent.h"
 
 #include "CameraComponent.h"
 
@@ -1476,11 +1479,59 @@ namespace Input
         {
         case DeviceType::Keyboard:
         {
-            float deltaX = 0.0f;
-            float deltaY = 0.0f;
-            input->getMouseDelta(deltaX, deltaY);
+#ifdef GAME_RELEASE
+            const auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+            const float winX = viewport.TopLeftX;
+            const float winY = viewport.TopLeftY;
+            const float winW = viewport.Width;
+            const float winH = viewport.Height;
+#else
+            WindowGame* gameWindow = app->getModuleEditor()->getWindowGame();
+            if (gameWindow == nullptr)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
 
-            return Vector2(deltaX, deltaY);
+            const float winX = gameWindow->getViewportX();
+            const float winY = gameWindow->getViewportY();
+            const ImVec2 gameViewportSize = gameWindow->getSize();
+            const float winW = gameViewportSize.x;
+            const float winH = gameViewportSize.y;
+#endif // GAME_RELEASE
+
+            if (winW <= 0.0f || winH <= 0.0f)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            const Vector2 rawMouse = input->getMousePosition();
+            const float localX = rawMouse.x - winX;
+            const float localY = rawMouse.y - winY;
+
+            if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            const float halfWidth = winW * 0.5f;
+            const float halfHeight = winH * 0.5f;
+
+            Vector2 stick(
+                (localX - halfWidth) / halfWidth,
+                (localY - halfHeight) / halfHeight);
+
+            if (stick.LengthSquared() > 1.0f)
+            {
+                stick.Normalize();
+            }
+
+            const float deadzone = 0.15f;
+            if (stick.LengthSquared() < deadzone * deadzone)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            return stick;
         }
 
         case DeviceType::Gamepad:
@@ -1489,6 +1540,172 @@ namespace Input
         case DeviceType::None:
         default:
             return Vector2(0.0f, 0.0f);
+        }
+    }
+
+    static Vector3 resolveKeyboardMouseAimDirection(const Vector3& originWorldPos)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (input == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
+        if (cameraObject == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        CameraComponent* camera = CameraAPI::getCameraComponent(cameraObject);
+        if (camera == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+#ifdef GAME_RELEASE
+        const auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+        const float winX = viewport.TopLeftX;
+        const float winY = viewport.TopLeftY;
+        const float winW = viewport.Width;
+        const float winH = viewport.Height;
+#else
+        WindowGame* gameWindow = app->getModuleEditor()->getWindowGame();
+        if (gameWindow == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        const float winX = gameWindow->getViewportX();
+        const float winY = gameWindow->getViewportY();
+        const ImVec2 gameViewportSize = gameWindow->getSize();
+        const float winW = gameViewportSize.x;
+        const float winH = gameViewportSize.y;
+#endif // GAME_RELEASE
+
+        if (winW <= 0.0f || winH <= 0.0f)
+        {
+            return Vector3::Zero;
+        }
+
+        const Vector2 rawMouse = input->getMousePosition();
+        const float localX = rawMouse.x - winX;
+        const float localY = rawMouse.y - winY;
+
+        if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
+        {
+            return Vector3::Zero;
+        }
+
+        const float normalizedX = (2.0f * localX / winW) - 1.0f;
+        const float normalizedY = 1.0f - (2.0f * localY / winH);
+
+        const Matrix inverseViewProjection = (camera->getViewMatrix() * camera->getProjectionMatrix()).Invert();
+
+        const Vector3 nearPoint = Vector3::Transform(Vector3(normalizedX, normalizedY, 0.0f), inverseViewProjection);
+        const Vector3 farPoint  = Vector3::Transform(Vector3(normalizedX, normalizedY, 1.0f), inverseViewProjection);
+
+        Vector3 rayDirection = farPoint - nearPoint;
+        if (rayDirection.LengthSquared() <= 0.0001f)
+        {
+            return Vector3::Zero;
+        }
+        rayDirection.Normalize();
+
+        const Ray mouseRay(nearPoint, rayDirection);
+        const Plane groundPlane(Vector3(0.0f, originWorldPos.y, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
+
+        float hitDistance = 0.0f;
+        if (!mouseRay.Intersects(groundPlane, hitDistance) || hitDistance <= 0.0f)
+        {
+            return Vector3::Zero;
+        }
+
+        const Vector3 hitPoint = nearPoint + rayDirection * hitDistance;
+
+        Vector3 aimDirection = hitPoint - originWorldPos;
+        aimDirection.y = 0.0f;
+
+        if (aimDirection.LengthSquared() <= 0.0001f)
+        {
+            return Vector3::Zero;
+        }
+
+        aimDirection.Normalize();
+        return aimDirection;
+    }
+
+    Vector3 getAimDirection(const Vector3& originWorldPos, int player, float gamepadDeadzoneSq)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return Vector3::Zero;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return resolveKeyboardMouseAimDirection(originWorldPos);
+
+        case DeviceType::Gamepad:
+        {
+            const Vector2 lookAxis = input->getRightStick(binding.deviceIndex);
+            const float magSq = lookAxis.x * lookAxis.x + lookAxis.y * lookAxis.y;
+
+            if (magSq < gamepadDeadzoneSq)
+            {
+                return Vector3::Zero;
+            }
+
+            GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
+            Vector3 fallbackDirection(lookAxis.x, 0.0f, lookAxis.y);
+            if (fallbackDirection.LengthSquared() > 0.0001f)
+            {
+                fallbackDirection.Normalize();
+            }
+
+            if (cameraObject == nullptr)
+            {
+                return fallbackDirection;
+            }
+
+            Transform* cameraTransform = GameObjectAPI::getTransform(cameraObject);
+            if (cameraTransform == nullptr)
+            {
+                return fallbackDirection;
+            }
+
+            Vector3 cameraForward = TransformAPI::getForward(cameraTransform);
+            Vector3 cameraRight = TransformAPI::getRight(cameraTransform);
+
+            cameraForward.y = 0.0f;
+            cameraRight.y = 0.0f;
+
+            if (cameraForward.LengthSquared() <= 0.0001f || cameraRight.LengthSquared() <= 0.0001f)
+            {
+                return fallbackDirection;
+            }
+
+            cameraForward.Normalize();
+            cameraRight.Normalize();
+
+            Vector3 aimDirection = -cameraRight * lookAxis.x - cameraForward * lookAxis.y;
+
+            if (aimDirection.LengthSquared() <= 0.0001f)
+            {
+                return Vector3::Zero;
+            }
+
+            aimDirection.Normalize();
+            return aimDirection;
+        }
+
+        case DeviceType::None:
+        default:
+            return Vector3::Zero;
         }
     }
 
@@ -3163,6 +3380,36 @@ namespace ShadersAPI
     void setDissolveThikness(DissolveComponent* component, float value)
     {
         component->setDissolveThikness(value);
+    }
+
+    SpectralComponent* getSpectralComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<SpectralComponent>(ComponentType::SPECTRAL);
+    }
+
+    const SpectralComponent* getSpectralComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<SpectralComponent>(ComponentType::SPECTRAL);
+    }
+
+    Vector3 getSpectralColor(SpectralComponent* component)
+    {
+        return component->getSpectralColor();
+    }
+
+    void setSpectralColor(SpectralComponent* component, Vector3 value)
+    {
+        return component->setSpectralColor(value);
     }
 }
 

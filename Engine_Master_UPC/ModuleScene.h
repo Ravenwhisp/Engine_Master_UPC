@@ -23,6 +23,8 @@ class LightComponent;
 class IDebugDrawable;
 class ParticleSystemComponent;
 class TrailComponent;
+class OcclusionTargetComponent;
+class OcclusionOccluderComponent;
 
 struct ID3D12GraphicsCommandList;
 
@@ -42,6 +44,8 @@ private:
     std::vector<ScriptComponent*>         m_scriptComponents;
     std::vector<ParticleSystemComponent*> m_particleSystemComponents;
     std::vector<TrailComponent*>          m_trailComponents;
+    std::vector<OcclusionTargetComponent*> m_occlusionTargetComponents;
+    std::vector<OcclusionOccluderComponent*> m_occlusionOccluderComponents;
 
     const std::vector<Layer> m_staticLayers = { Layer::ENVIRONMENT, Layer::NAVMESH };
     const std::vector<Layer> m_dynamicLayers = { Layer::DEFAULT, Layer::PLAYER, Layer::ENEMY, Layer::PROJECTILE, Layer::BREAKABLE, Layer::PICKUP };
@@ -111,4 +115,6 @@ public:
     const std::vector<ScriptComponent*>& getScriptComponents();
     const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();
     const std::vector<TrailComponent*>& getTrailComponents();
+    const std::vector<OcclusionTargetComponent*>& getOcclusionTargetComponents();
+    const std::vector<OcclusionOccluderComponent*>& getOcclusionOccluderComponents();
 };

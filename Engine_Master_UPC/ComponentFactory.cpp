@@ -20,6 +20,10 @@
 #include "PlayerRenderBufferComponent.h"
 #include "DamageHighlightComponent.h"
 #include "DissolveComponent.h"
+#include "SpectralComponent.h"
+#include "FlowMapComponent.h"
+#include "OcclusionTargetComponent.h"
+#include "OcclusionOccluderComponent.h"
 
 #include "ComponentVideo.h"
 
@@ -113,6 +117,18 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::DISSOLVE:
         return std::make_unique<DissolveComponent>(id, owner);
+
+    case ComponentType::FLOW_MAP:
+        return std::make_unique<FlowMapComponent>(id, owner);
+
+    case ComponentType::SPECTRAL:
+        return std::make_unique<SpectralComponent>(id, owner);
+
+    case ComponentType::OCCLUSION_TARGET:
+        return std::make_unique<OcclusionTargetComponent>(id, owner);
+
+    case ComponentType::OCCLUSION_OCCLUDER:
+        return std::make_unique<OcclusionOccluderComponent>(id, owner);
 
     case ComponentType::VIDEO:
         return std::make_unique<ComponentVideo>(id, owner);

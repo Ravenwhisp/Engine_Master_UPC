@@ -10,6 +10,7 @@
 class EmitterSpawn;
 class EmitterLifetime;
 class EmitterAnimation;
+class EmitterColor;
 
 class ParticleEmitter
 {
@@ -28,6 +29,7 @@ public:
 	EmitterLifetime* getLifetimeModule() { return m_lifetimeModule; }
 	EmitterAnimation* getAnimationModule() { return m_animationModule;  }
 	EmitterRender* getRenderModule() { return m_renderModule; }
+	EmitterColor* getColorModule() { return m_colorModule; }
 
 	void serialize(IArchive& archive);
 
@@ -40,5 +42,6 @@ private:
 	EmitterLifetime* m_lifetimeModule;
 	EmitterAnimation* m_animationModule;
 	EmitterRender* m_renderModule;
+	EmitterColor* m_colorModule;
 };
 

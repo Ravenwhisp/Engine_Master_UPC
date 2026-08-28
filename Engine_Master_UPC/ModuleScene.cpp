@@ -20,6 +20,8 @@
 #include "ScriptComponent.h"
 #include "ParticleSystemComponent.h"
 #include "TrailComponent.h"
+#include "OcclusionTargetComponent.h"
+#include "OcclusionOccluderComponent.h"
 
 #include "ScenePicking.h"
 
@@ -97,6 +99,8 @@ void ModuleScene::clearComponentCaches()
     m_meshRenderers.clear();
     m_lightComponents.clear();
     m_scriptComponents.clear();
+    m_occlusionTargetComponents.clear();
+    m_occlusionOccluderComponents.clear();
 }
 
 void ModuleScene::rebuildComponentCaches()
@@ -106,6 +110,8 @@ void ModuleScene::rebuildComponentCaches()
     m_scriptComponents.clear();
     m_particleSystemComponents.clear();
     m_trailComponents.clear();
+    m_occlusionTargetComponents.clear();
+    m_occlusionOccluderComponents.clear();
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
@@ -113,37 +119,44 @@ void ModuleScene::rebuildComponentCaches()
         {
             continue;
         }
+
         for (Component* component : go->GetAllComponents())
         {
             if (component->getType() == ComponentType::MODEL)
             {
                 m_meshRenderers.push_back(static_cast<MeshRenderer*>(component));
             }
-
             else if (component->getType() == ComponentType::LIGHT)
             {
                 m_lightComponents.push_back(static_cast<LightComponent*>(component));
             }
-
             else if (component->getType() == ComponentType::SCRIPT)
             {
                 m_scriptComponents.push_back(static_cast<ScriptComponent*>(component));
             }
-
             else if (component->getType() == ComponentType::PARTICLE_SYSTEM)
             {
-                m_particleSystemComponents.push_back(static_cast<ParticleSystemComponent*>(component));
+                m_particleSystemComponents.push_back(
+                    static_cast<ParticleSystemComponent*>(component));
             }
-
             else if (component->getType() == ComponentType::TRAIL)
             {
-                m_trailComponents.push_back(static_cast<TrailComponent*>(component));
+                m_trailComponents.push_back(
+                    static_cast<TrailComponent*>(component));
+            }
+            else if (component->getType() == ComponentType::OCCLUSION_TARGET)
+            {
+                m_occlusionTargetComponents.push_back(
+                    static_cast<OcclusionTargetComponent*>(component));
+            }
+            else if (component->getType() == ComponentType::OCCLUSION_OCCLUDER)
+            {
+                m_occlusionOccluderComponents.push_back(static_cast<OcclusionOccluderComponent*>(component));
             }
         }
     }
 
     m_scene->clearDirty();
-
 }
 
 const std::vector<MeshRenderer*>& ModuleScene::getMeshRenderers()
@@ -356,6 +369,26 @@ const std::vector<TrailComponent*>& ModuleScene::getTrailComponents()
     }
 
     return m_trailComponents;
+}
+
+const std::vector<OcclusionTargetComponent*>& ModuleScene::getOcclusionTargetComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_occlusionTargetComponents;
+}
+
+const std::vector<OcclusionOccluderComponent*>& ModuleScene::getOcclusionOccluderComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_occlusionOccluderComponents;
 }
 
 #pragma endregion

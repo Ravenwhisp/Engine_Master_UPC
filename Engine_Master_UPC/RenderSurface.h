@@ -22,7 +22,9 @@ public:
 		SSAO_RAW = 9,
 		SSAO_BLUR = 10,
 		SCENE_HDR = 11,   // HDR scene colour (lit scene before post-processing)
-		NUM_ATTACHMENT_POINTS = 12
+		OCCLUSION_TARGET_DEPTH = 12,
+		DYNAMIC_TRANSPARENCY_MASK = 13,
+		NUM_ATTACHMENT_POINTS = 14
 	};
 
 
@@ -39,6 +41,10 @@ public:
 
 	void             resize(Vector2 size);
     void             resize(uint32_t width, uint32_t height);
+
+	// Rebuilds the contiguous SRV descriptor table for the currently attached
+	// textures without resizing any of the underlying resources.
+	void             rebuildDescriptorTable();
 
 	void setSize(uint32_t width, uint32_t height);
 	Vector2 getSize() const;

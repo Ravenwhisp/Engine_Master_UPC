@@ -193,26 +193,39 @@ void WindowEditorSettings::drawBuildSettings()
         return;
     }
 
-    ImGui::Text("Scene: %s", scene->getName());
+    ImGui::Button("Drop Scene Here");
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+        {
+            UID* ref = static_cast<UID*>(payload->Data);
+            m_sceneBuildSceneId = app->getModuleAssets()->findReference(*ref);
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    if (!m_sceneBuildSceneId)
+    {
+        ImGui::Text("Scene: None");
+    }
+    else {
+        ImGui::Text("Scene:");
+        ImGui::BulletText("%s", m_sceneBuildSceneId->m_libId.c_str());
+    }
 
     if (ImGui::Button("Export Build Config"))
     {
-        app->getModuleScene()->saveScene();
 
-        const UID uid = scene->getUID();
-        AssetId* ref = app->getModuleAssets()->findReference(uid);
-
-        if (ref && !ref->m_libId.empty())
+        if (m_sceneBuildSceneId && !m_sceneBuildSceneId->m_libId.empty())
         {
-            std::string configStr = ref->m_libId + "\n";
+            std::string configStr = m_sceneBuildSceneId->m_libId + "\n";
 
             AssetId initBnkRef = app->getModuleMusic()->findBankRef("Init.bnk");
             if (initBnkRef.isValid())
             {
                 configStr += initBnkRef.m_libId + "\n";
             }
-
-            const std::filesystem::path outPath = "../Engine_OUT/build.cfg";
+            const std::filesystem::path outPath = std::filesystem::current_path() / "build.cfg";
             FileIO::write(outPath, configStr.c_str(), configStr.size());
             DEBUG_LOG("[WindowEditorSettings] Build config exported to %s", outPath.string().c_str());
         }
@@ -222,7 +235,6 @@ void WindowEditorSettings::drawBuildSettings()
 
         }
 
-        delete ref;
     }
 }
 

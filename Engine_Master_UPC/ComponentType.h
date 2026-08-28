@@ -26,7 +26,11 @@
     X(PREFAB_INSTANCE)      \
     X(PLAYER_RENDER_BUFFER) \
     X(DAMAGE_HIGHLIGHT)     \
+    X(FLOW_MAP)             \
     X(DISSOLVE)             \
+    X(SPECTRAL)             \
+    X(OCCLUSION_TARGET)     \
+    X(OCCLUSION_OCCLUDER)   \
     X(VIDEO)
 
 #define COMP_ENUM(name) name,
