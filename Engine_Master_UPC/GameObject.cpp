@@ -235,7 +235,12 @@ void GameObject::SetActive(bool newActive)
 
     if (newActive && !wasActive)
     {
-        app->getModuleScene()->moveGameObjectInQuadtrees(*this);
+        ModuleScene* moduleScene = app->getModuleScene();
+
+        if (moduleScene->getScene()->findGameObjectByUID(GetID()) == this)
+        {
+            moduleScene->moveGameObjectInQuadtrees(*this);
+        }
     }
 }
 
