@@ -38,6 +38,7 @@ private:
 
     std::string m_pendingSceneLoad;
     std::shared_ptr<Scene> m_pendingScene;
+    AssetId m_pendingSceneAssetId;
 
     std::vector<MeshRenderer*>            m_meshRenderers;
     std::vector<LightComponent*>          m_lightComponents;
@@ -71,6 +72,7 @@ public:
 
     void requestSceneChange(const std::string& sceneName);
     void requestSceneChange(std::shared_ptr<Scene> scene);
+    void requestSceneChange(const AssetId& ref);
 
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 

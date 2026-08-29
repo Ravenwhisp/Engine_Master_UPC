@@ -234,6 +234,12 @@ void UIButton::executeBindings(std::vector<ButtonEventBinding>& bindings)
 					binding.paramFunc(script, &binding.paramString);
 				}
 				break;
+			case ScriptMethodParamType::AssetId:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramAssetId);
+				}
+				break;
 			case ScriptMethodParamType::Unsupported:
 				break;
 			}
@@ -477,9 +483,10 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 												binding.paramFloat = 0.0f;
 												binding.paramInt = 0;
 												binding.paramBool = false;
-												binding.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
-												binding.paramString.clear();
-											}
+								binding.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+								binding.paramString.clear();
+								binding.paramAssetId = AssetId();
+							}
 										}
 										if (selected)
 											ImGui::SetItemDefaultFocus();
@@ -519,6 +526,28 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 						if (ImGui::InputText(paramLabel, buffer, sizeof(buffer)))
 						{
 							binding.paramString = buffer;
+						}
+						break;
+					}
+					case ScriptMethodParamType::AssetId:
+					{
+						ImGui::Button(binding.paramAssetId.isValid() ? "Assigned Asset" : "Drop Asset");
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+							{
+								const UID droppedUid = *static_cast<const UID*>(payload->Data);
+								if (AssetId* assetId = app->getModuleAssets()->findReference(droppedUid))
+								{
+									binding.paramAssetId = *assetId;
+								}
+							}
+							ImGui::EndDragDropTarget();
+						}
+						ImGui::SameLine();
+						if (ImGui::SmallButton("Clear##AssetId"))
+						{
+							binding.paramAssetId = AssetId();
 						}
 						break;
 					}
@@ -632,6 +661,11 @@ void UIButton::serialize(IArchive& archive)
 				break;
 			case ScriptMethodParamType::String:
 				archive.serialize(b.paramString, "ParamValue");
+				break;
+			case ScriptMethodParamType::AssetId:
+				archive.beginObject("ParamValue");
+				b.paramAssetId.serialize(archive);
+				archive.endObject();
 				break;
 			}
 			archive.endObject();

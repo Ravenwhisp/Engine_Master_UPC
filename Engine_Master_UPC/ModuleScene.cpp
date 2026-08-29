@@ -46,6 +46,11 @@ void ModuleScene::requestSceneChange(std::shared_ptr<Scene> scene)
     m_pendingScene = std::move(scene);
 }
 
+void ModuleScene::requestSceneChange(const AssetId& ref)
+{
+    m_pendingSceneAssetId = ref;
+}
+
 void ModuleScene::onGameStop()
 {
     m_scene->onGameStop();
@@ -73,6 +78,12 @@ void ModuleScene::update()
     {
         loadScene(m_pendingScene);
         m_pendingScene.reset();
+    }
+
+    if (m_pendingSceneAssetId.isValid())
+    {
+        loadScene(m_pendingSceneAssetId);
+        m_pendingSceneAssetId = AssetId();
     }
 
     m_scene->update();

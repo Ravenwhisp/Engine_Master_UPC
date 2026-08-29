@@ -880,13 +880,23 @@ void Scene::serialize(IArchive& archive)
         {
             uint32_t bankCount = 0;
             archive.beginArray(bankCount, "banks");
-            m_loadedBankRefs.resize(bankCount);
+
+            m_loadedBankRefs.clear();
+            m_loadedBankNameCache.clear();
+
+
             for (uint32_t i = 0; i < bankCount; ++i)
             {
                 archive.beginObject();
-                m_loadedBankRefs[i].serialize(archive);
+                AssetId ref;
+                ref.serialize(archive);
+                if (ref.hasUID())
+                {
+                    m_loadedBankRefs.push_back(ref);
+                }
                 archive.endObject();
             }
+
             archive.endArray();
 
             m_loadedBankRefs.erase(
