@@ -28,6 +28,7 @@ struct FlowMapData
     uint32_t enabled = 1;
     uint32_t technique = static_cast<uint32_t>(FlowMapTechnique::DIRECTIONAL_SCROLL);
     float exaggeration = 1.0f;
+    float textureStrength = 1.0f;
 };
 
 class FlowMapComponent : public Component

@@ -78,7 +78,10 @@ void FlowMapComponent::drawUi()
     ImGui::DragFloat("Speed", &m_data.speed, 0.01f, -100.0f, 100.0f);
     ImGui::DragFloat("Strength", &m_data.strength, 0.01f, 0.0f, 10.0f);
     if (getTechnique() == FlowMapTechnique::FLOW_MAP_WATER)
+    {
         ImGui::DragFloat("Exaggeration", &m_data.exaggeration, 0.01f, 1.0f, 10.0f);
+        ImGui::DragFloat("Texture Strength", &m_data.textureStrength, 0.01f, 0.0f, 10.0f);
+    }
     bool enabled = m_data.enabled != 0;
     if (ImGui::Checkbox("Enabled", &enabled))
         m_data.enabled = enabled ? 1u : 0u;
@@ -114,6 +117,7 @@ void FlowMapComponent::serialize(IArchive& archive)
     archive.serialize(m_data.enabled, "Enabled");
     archive.serialize(m_data.technique, "Technique");
     archive.serialize(m_data.exaggeration, "Exaggeration");
+    archive.serialize(m_data.textureStrength, "Texture Strength");
 
     if (archive.mode() == ArchiveMode::Input)
     {

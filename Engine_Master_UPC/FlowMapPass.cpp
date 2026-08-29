@@ -215,6 +215,7 @@ void FlowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList,
     flowGpu.technique = data.technique;
     flowGpu.phase = flow->getPhase();
     flowGpu.exaggeration = data.exaggeration;
+    flowGpu.textureStrength = data.textureStrength;
 
 #ifdef _DEBUG
     if ((app->getModuleTime()->frameCount() % 60u) == 0u &&

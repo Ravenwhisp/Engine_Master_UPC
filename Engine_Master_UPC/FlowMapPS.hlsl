@@ -25,6 +25,7 @@ cbuffer FlowMapData : register(b6)
     uint flowTechnique;
     float flowPhase;
     float flowExaggeration;
+    float flowTextureStrength;
     uint flowPaddingScalar;
     float2 flowPadding;
 };
@@ -76,6 +77,7 @@ PSOutput main(float4 position : SV_POSITION, float3 worldPos : TEXCOORD0,
     float phase1 = 0.0f;
     float blend = 0.0f;
     float strength = flowStrength * flowExaggeration;
+    float textureStrength = strength * flowTextureStrength;
 
     if (waterActive)
     {
@@ -88,8 +90,8 @@ PSOutput main(float4 position : SV_POSITION, float3 worldPos : TEXCOORD0,
 
     // In water mode every material texture is advected along the flow vector
     // using two phase-shifted samples that cross-fade to avoid popping.
-    float2 matUV0 = coord + (waterActive ? flowVector * phase0 * strength : 0.0f);
-    float2 matUV1 = coord + (waterActive ? flowVector * phase1 * strength : 0.0f);
+    float2 matUV0 = coord + (waterActive ? flowVector * phase0 * textureStrength : 0.0f);
+    float2 matUV1 = coord + (waterActive ? flowVector * phase1 * textureStrength : 0.0f);
 
     float3 albedo = diffuseColor;
     float metallic = metallicFactor;
@@ -132,18 +134,15 @@ PSOutput main(float4 position : SV_POSITION, float3 worldPos : TEXCOORD0,
             tangentNormal = normalize(lerp(normal0, normal1, blend));
         }
         else
-        {
-            // No material normal map (for example a flat purple normal), so
-            // synthesize animated ripple detail directly from the flow vector.
-            // This makes the flow effect visible even on a static normal.
-            float wave0 = sin((coord.x * flowVector.x + coord.y * flowVector.y) * 40.0f + phase0 * 6.2831853f);
-            float wave1 = sin((coord.x * flowVector.x + coord.y * flowVector.y) * 40.0f + phase1 * 6.2831853f);
-            float wave = lerp(wave0, wave1, blend);
+            tangentNormal = float3(0.0f, 0.0f, 1.0f);
 
-            float3 ripple = float3(flowVector.y, -flowVector.x, 0.0f) * wave;
-            ripple *= strength;
-            tangentNormal = normalize(float3(ripple.x, ripple.y, 1.0f));
-        }
+        // Always add procedural ripple detail. This keeps water animated even
+        // when the material uses a flat purple normal map.
+        float wave0 = sin((coord.x * flowVector.x + coord.y * flowVector.y) * 40.0f + phase0 * 6.2831853f);
+        float wave1 = sin((coord.x * flowVector.x + coord.y * flowVector.y) * 40.0f + phase1 * 6.2831853f);
+        float wave = lerp(wave0, wave1, blend);
+        float3 ripple = float3(flowVector.y, -flowVector.x, 0.0f) * wave * strength;
+        tangentNormal = normalize(float3(tangentNormal.xy + ripple.xy, tangentNormal.z));
 
         float3 tangentVector = normalize(tangent);
         float3 bitangentVector = normalize(cross(finalNormal, tangentVector));
