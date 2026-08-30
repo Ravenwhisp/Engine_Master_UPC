@@ -184,6 +184,7 @@ namespace SceneAPI
     ENGINE_API void setDefaultCameraByGameObject(GameObject* gameObject);
 
     ENGINE_API void requestSceneChange(const char* sceneName);
+    ENGINE_API void requestSceneChange(const AssetId& ref);
 }
 
 namespace Time

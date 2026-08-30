@@ -1012,6 +1012,16 @@ namespace SceneAPI
 
         app->getModuleScene()->requestSceneChange(sceneName);
     }
+
+    void requestSceneChange(const AssetId& ref)
+    {
+        if (!app || !app->getModuleScene() || !ref.isValid())
+        {
+            return;
+        }
+
+        app->getModuleScene()->requestSceneChange(ref);
+    }
 }
 
 namespace Input
