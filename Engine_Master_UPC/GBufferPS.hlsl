@@ -1,5 +1,6 @@
 #include "GBufferCommon.hlsli"
 #include "General.hlsli"
+#include "DynamicTransparencyCommon.hlsli"
 
 struct DamageHighlightData
 {
@@ -40,7 +41,10 @@ cbuffer VisualEffectsCB : register(b4)
     DissolveCB dissolveCB;
 };
 
-
+cbuffer DynamicTransparencyObjectCB : register(b5)
+{
+    uint gIsOcclusionOccluder;
+};
 
 // Root param [4]: albedo texture (t0) + sampler (s0)
 Texture2D diffuseTex : register(t0);
@@ -49,6 +53,7 @@ Texture2D normalTex : register(t2);
 Texture2D emissiveTex : register(t3);
 
 Texture2D dissolveNoise : register(t8);
+Texture2D<float4> dynamicTransparencyMask : register(t9);
 
 SamplerState linearWrapSample : register(s0);
 SamplerState pointWrapSample : register(s1);
@@ -90,6 +95,17 @@ PSOutput main(VSOutput IN)
 {
     PSOutput OUT;
     
+    if (gIsOcclusionOccluder != 0)
+    {
+        int2 pixelCoord = int2(IN.clipPos.xy);
+        float4 transparencyData = dynamicTransparencyMask.Load(int3(pixelCoord, 0));
+
+        const float depthBias = 0.0001f;
+        float influence = EvaluateDynamicTransparencyInfluence(transparencyData, IN.clipPos.z, depthBias);
+
+        if (influence > 0.0f)
+            discard;
+    }
     
     float metallic = gMaterial.metallicFactor;
     float alphaRoughness = gMaterial.roughnessFactor;
@@ -178,7 +194,6 @@ PSOutput main(VSOutput IN)
     
     // Position
     OUT.position     = float4(IN.worldPos, 0.0f);
-
     
     return OUT;
 }

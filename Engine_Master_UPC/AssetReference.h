@@ -52,3 +52,4 @@ using PrefabRef = AssetReference<class Prefab>;
 using SceneRef = AssetReference<class Scene>;
 using MaterialRef = AssetReference<class BasicMaterial>;
 using DataContainerRef = AssetReference<DataContainer>;
+using VideoRef = AssetReference<class VideoAsset>;

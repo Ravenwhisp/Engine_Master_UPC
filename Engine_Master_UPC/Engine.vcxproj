@@ -154,7 +154,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <AdditionalIncludeDirectories>3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;.</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ProjectDir)3rdParty\imgui-node-editor-master;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)3rdParty\imgui-node-editor-master;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;%(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty\SDL3-3.4.2\include;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome;3rdParty\ffmpeg\include</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -163,11 +163,13 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;OptickCore.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;CommunicationCentral.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\3rdParty\WinPixEventRunTime\bin\x64;.\3rdParty\DirectXTex\Bin\Desktop_2022_Win10\x64\Debug;.\3rdParty\DirectXTK12;.\3rdParty\DirectXTK12\x64\Debug;.\3rdParty\SDL3-3.4.2\lib\x64;.\3rdParty\Optick\lib\x64\debug;.\3rdParty\Wwise\lib\x64\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;OptickCore.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;CommunicationCentral.lib;ws2_32.lib;avformat.lib;avcodec.lib;avutil.lib;swresample.lib
+;xaudio2.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\3rdParty\WinPixEventRunTime\bin\x64;.\3rdParty\DirectXTex\Bin\Desktop_2022_Win10\x64\Debug;.\3rdParty\DirectXTK12;.\3rdParty\DirectXTK12\x64\Debug;.\3rdParty\SDL3-3.4.2\lib\x64;.\3rdParty\Optick\lib\x64\debug;.\3rdParty\Wwise\lib\x64\Debug;.\3rdParty\ffmpeg\lib</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <ObjectFileOutput>$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel>6.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -232,7 +234,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;
 $(SolutionDir)3rdParty\RecastNavigation\Recast\Include;
 $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
 %(AdditionalIncludeDirectories);.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/simdjson;3rdParty/pcg;3rdParty/rapidjson/include</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;%(AdditionalIncludeDirectories);3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;%(AdditionalIncludeDirectories);3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome;3rdParty\ffmpeg\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -242,11 +244,13 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;CommunicationCentral.lib;ws2_32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\3rdParty\WinPixEventRunTime\bin\x64;.\3rdParty\DirectXTex\Bin\Desktop_2022_Win10\x64\Release;.\3rdParty\DirectXTK12;.\3rdParty\DirectXTK12\x64\Release;.\3rdParty\SDL3-3.4.2\lib\x64;.\3rdParty\Optick\lib\x64\release;.\3rdParty\Wwise\lib\x64\Profile</AdditionalLibraryDirectories>
+      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;CommunicationCentral.lib;ws2_32.lib;avformat.lib;avcodec.lib;avutil.lib;swresample.lib
+;xaudio2.lib;swscale.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\3rdParty\WinPixEventRunTime\bin\x64;.\3rdParty\DirectXTex\Bin\Desktop_2022_Win10\x64\Release;.\3rdParty\DirectXTK12;.\3rdParty\DirectXTK12\x64\Release;.\3rdParty\SDL3-3.4.2\lib\x64;.\3rdParty\Optick\lib\x64\release;.\3rdParty\Wwise\lib\x64\Profile;.\3rdParty\ffmpeg\lib</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <ObjectFileOutput>$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel>6.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">
@@ -259,7 +263,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <PreprocessorDefinitions>GAME_RELEASE;AK_OPTIMIZED;_WINDOWS;ENGINE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;3rdParty/WinPixEventRunTime/Include;3rdParty/ImGuizmo;3rdParty/DirectXTex;3rdParty/tinygltf;3rdParty/mikktspace;3rdParty/imgui-docking;3rdParty/directX;3rdParty/pcg;3rdParty/rapidjson/include;3rdParty/DirectXTK12;$(SolutionDir)3rdParty\RecastNavigation\Detour\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourCrowd\Include;$(SolutionDir)3rdParty\RecastNavigation\DetourTileCache\Include;$(SolutionDir)3rdParty\RecastNavigation\Recast\Include;$(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;3rdParty\SDL3-3.4.2\include;$(ProjectDir)3rdParty\imgui-node-editor-master;3rdParty/Optick/include;3rdParty\ImGuiColorGradient;3rdParty\ImGuiBezier;3rdParty\Wwise\include;3rdParty\Wwise\samples\SoundEngine\Common;3rdParty\Wwise\samples\SoundEngine\Win32;3rdParty/FontAwesome;3rdParty\ffmpeg\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeaderFile>Globals.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -269,11 +273,13 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;OptickCore.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\3rdParty\WinPixEventRunTime\bin\x64;.\3rdParty\DirectXTex\Bin\Desktop_2022_Win10\x64\Release;.\3rdParty\DirectXTK12;.\3rdParty\DirectXTK12\x64\Release;.\3rdParty\SDL3-3.4.2\lib\x64;.\3rdParty\Optick\lib\x64\release;.\3rdParty\Wwise\lib\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>WinPixEventRuntime.lib;DirectXTex.lib;DirectXTK12.lib;D3DCompiler.lib;dxgi.lib;d3d12.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;SDL3.lib;OptickCore.lib;AkSoundEngine.lib;AkMemoryMgr.lib;AkStreamMgr.lib;AkVorbisDecoder.lib;ws2_32.lib;avformat.lib;avcodec.lib;avutil.lib;swresample.lib
+;xaudio2.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\3rdParty\WinPixEventRunTime\bin\x64;.\3rdParty\DirectXTex\Bin\Desktop_2022_Win10\x64\Release;.\3rdParty\DirectXTK12;.\3rdParty\DirectXTK12\x64\Release;.\3rdParty\SDL3-3.4.2\lib\x64;.\3rdParty\Optick\lib\x64\release;.\3rdParty\Wwise\lib\x64\Release;.\3rdParty\ffmpeg\lib</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <ObjectFileOutput>$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel>6.0</ShaderModel>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -304,16 +310,25 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="CommandAddGameObject.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
+    <ClInclude Include="ComponentVideo.h" />
+    <ClInclude Include="VideoAsset.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
     <ClInclude Include="DepthReductionPass.h" />
     <ClInclude Include="DissolveComponent.h" />
+    <ClInclude Include="DynamicTransparencyFalloffPass.h" />
+    <ClInclude Include="DynamicTransparencyMaskPass.h" />
     <ClInclude Include="ImporterSoundBank.h" />
+    <ClInclude Include="ImporterVideo.h" />
     <ClInclude Include="ForwardPrepass.h" />
     <ClInclude Include="EmitterAnimation.h" />
     <ClInclude Include="EmitterRender.h" />
     <ClInclude Include="ImportSettings.h" />
+    <ClInclude Include="ModuleVideo.h" />
     <ClInclude Include="NavMeshBuildSettings.h" />
     <ClInclude Include="NavRuntimeBlockerComponent.h" />
+    <ClInclude Include="OcclusionOccluderComponent.h" />
+    <ClInclude Include="OcclusionTargetComponent.h" />
+    <ClInclude Include="OcclusionTargetDepthPass.h" />
     <ClInclude Include="PdbPatcher.h" />
     <ClInclude Include="PlayerPass.h" />
     <ClInclude Include="FlowMapComponent.h" />
@@ -468,6 +483,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="UISheet.h" />
     <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIParams.h" />
+    <ClInclude Include="VideoPass.h" />
+    <ClInclude Include="VideoPlayback.h" />
     <ClInclude Include="ViewHierarchyDialog.h" />
     <ClInclude Include="VolumetricFogApplyPass.h" />
     <ClInclude Include="VolumetricFogComputePass.h" />
@@ -601,6 +618,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="WindowGameDebug.h" />
     <ClInclude Include="WeakCache.h" />
+    <ClInclude Include="WindowVideoDebug.h" />
     <ClInclude Include="WwiseBank.h" />
     <ClInclude Include="WwiseEvent.h" />
     <ClInclude Include="WwiseManager.h" />
@@ -771,6 +789,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="CommandCreateGameObject.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentVideo.cpp" />
+    <ClCompile Include="VideoAsset.cpp" />
     <ClCompile Include="ComponentSoundListener.cpp" />
     <ClCompile Include="ComponentSoundSource.cpp" />
     <ClCompile Include="ContentRegistry.cpp" />
@@ -785,6 +805,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandDeleteAsset.cpp" />
     <ClCompile Include="CommandDeleteFolder.cpp" />
     <ClCompile Include="DissolveComponent.cpp" />
+    <ClCompile Include="DynamicTransparencyFalloffPass.cpp" />
+    <ClCompile Include="DynamicTransparencyMaskPass.cpp" />
     <ClCompile Include="FlowMapComponent.cpp" />
     <ClCompile Include="FlowMapPass.cpp" />
     <ClCompile Include="EmitterAnimation.cpp" />
@@ -814,6 +836,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ImporterPrefab.cpp" />
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
     <ClCompile Include="ImporterSoundBank.cpp" />
+    <ClCompile Include="ImporterVideo.cpp" />
     <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />
@@ -821,10 +844,14 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="ModuleHaptics.cpp" />
     <ClCompile Include="ModuleMusic.cpp" />
     <ClCompile Include="ModuleScripting.cpp" />
+    <ClCompile Include="ModuleVideo.cpp" />
     <ClCompile Include="MusicPlaybackTracker.cpp" />
     <ClCompile Include="NavMeshAsset.cpp" />
     <ClCompile Include="NavMeshBuildSettings.cpp" />
     <ClCompile Include="NavRuntimeBlockerComponent.cpp" />
+    <ClCompile Include="OcclusionOccluderComponent.cpp" />
+    <ClCompile Include="OcclusionTargetComponent.cpp" />
+    <ClCompile Include="OcclusionTargetDepthPass.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="PlayerPass.cpp" />
     <ClCompile Include="PlayerRenderBufferComponent.cpp" />
@@ -889,6 +916,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="UISheet.cpp" />
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="SkinningComputePass.cpp" />
+    <ClCompile Include="VideoPass.cpp" />
+    <ClCompile Include="VideoPlayback.cpp" />
     <ClCompile Include="ViewHierarchyDialog.cpp" />
     <ClCompile Include="VolumetricFogApplyPass.cpp" />
     <ClCompile Include="VolumetricFogComputePass.cpp" />
@@ -1003,6 +1032,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="UtilityGLFT.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="WindowGameDebug.cpp" />
+    <ClCompile Include="WindowVideoDebug.cpp" />
     <ClCompile Include="WwiseBank.cpp" />
     <ClCompile Include="WwiseManager.cpp" />
   </ItemGroup>
@@ -1017,6 +1047,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl" />
     <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl" />
+    <None Include="DynamicTransparencyCommon.hlsli" />
+    <None Include="DynamicTransparencyFalloffCommon.hlsli" />
     <None Include="ForwardCommon.hlsli" />
     <None Include="GBufferCommon.hlsli" />
     <None Include="General.hlsli" />
@@ -1025,6 +1057,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="MakeSpriteFont.exe" />
     <None Include="PBRGeneral.hlsli" />
     <None Include="GeometryCBuffers.hlsli" />
+    <None Include="PBRLighting.hlsli" />
     <None Include="SimpleMath.inl" />
     <None Include="VolumetricFogCommon.hlsli" />
   </ItemGroup>
@@ -1056,6 +1089,39 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="DynamicTransparencyMaskPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
@@ -1132,6 +1198,50 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="OcclusionBubblePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="OcclusionBubbleVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="OcclusionTargetDepthPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="OcclusionTargetDepthVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="PostProcessPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -1425,6 +1535,28 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)..\Engine_OUT\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="VideoPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="VideoVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="VolumetricFogApplyPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

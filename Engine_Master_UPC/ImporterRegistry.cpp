@@ -8,6 +8,7 @@
 #include "ImporterFont.h"
 #include "ImporterNavMesh.h"
 #include "ImporterSoundBank.h"
+#include "ImporterVideo.h"
 
 #include "Scene.h"
 #include "Prefab.h"
@@ -42,7 +43,8 @@ ImporterRegistry::ImporterRegistry()
     m_importers.push_back(std::make_unique<ImporterFont>());
     m_importers.push_back(std::make_unique<ImporterNative<Scene, AssetType::SCENE>>(std::initializer_list<const char*>{SCENE_EXTENSION}));
     m_importers.push_back(std::make_unique<ImporterNavMesh>());
-    m_importers.push_back(std::make_unique<ImporterSoundBank>());
+	m_importers.push_back(std::make_unique<ImporterSoundBank>());
+	m_importers.push_back(std::make_unique<ImporterVideo>());
     m_importers.push_back(std::make_unique<ImporterNative<DataContainer, AssetType::DATA_CONTAINER>>(std::initializer_list<const char*>{DATA_CONTAINER_EXTENSION}));
 }
 

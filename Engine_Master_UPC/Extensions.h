@@ -22,3 +22,5 @@ constexpr const char* GLTF_EXTENSION = ".gltf";
 constexpr const char* CPP_EXTENSION = ".cpp";
 constexpr const char* H_EXTENSION = ".h";
 constexpr const char* BNK_EXTENSION = ".bnk";
+
+constexpr const char* VIDEO_EXTENSION = ".mp4";

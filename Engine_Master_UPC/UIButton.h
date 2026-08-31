@@ -11,6 +11,7 @@
 #include "SimpleMath.h"
 
 #include "AssetReference.h"
+#include "AssetId.h"
 
 using Vector3 = DirectX::SimpleMath::Vector3;
 
@@ -43,6 +44,7 @@ private:
 		bool paramBool = false;
 		Vector3 paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
 		std::string paramString;
+		AssetId paramAssetId;
 	};
 
 public:

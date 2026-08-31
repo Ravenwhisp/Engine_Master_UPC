@@ -47,4 +47,24 @@ float3 GetFroxelWorldPosition(uint3 froxel, uint3 gridSize, float2 projectionSca
     return worldPosition.xyz / worldPosition.w;
 }
 
+float LinearizeVolumetricViewDepth(float deviceDepth, float projectionA, float projectionB)
+{
+    float denominator = deviceDepth + projectionA;
+
+    if (abs(denominator) < 0.000001f)
+        denominator = denominator < 0.0f ? -0.000001f : 0.000001f;
+
+    float viewZ = -projectionB / denominator;
+    return max(-viewZ, 0.0f);
+}
+
+float GetNormalizedVolumetricDepth(float viewDepth, float nearDistance, float maxDistance)
+{
+    float safeNear = max(nearDistance, VOLUMETRIC_FOG_MIN_DEPTH_RANGE);
+    float safeFar = max(maxDistance, safeNear + VOLUMETRIC_FOG_MIN_DEPTH_RANGE);
+    float depth = clamp(viewDepth, safeNear, safeFar);
+
+    return saturate(log(depth / safeNear) / log(safeFar / safeNear));
+}
+
 #endif
