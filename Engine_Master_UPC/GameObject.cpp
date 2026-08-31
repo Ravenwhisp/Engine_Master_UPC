@@ -47,6 +47,7 @@ GameObject::~GameObject()
 std::unique_ptr<GameObject> GameObject::clone() const
 {
     auto newGameObject = std::make_unique<GameObject>(m_uuid);
+    newGameObject->m_isSnapshotClone = true;
 
     newGameObject->SetName(GetName());
     newGameObject->SetActive(GetActive());
@@ -229,8 +230,14 @@ bool GameObject::IsActiveInWindowHierarchy() const
 
 void GameObject::SetActive(bool newActive)
 {
+    const bool wasActive = m_active;
     m_active = newActive;
     app->getModuleScene()->getScene()->markDirty();
+
+    if (newActive && !wasActive)
+    {
+        app->getModuleScene()->moveGameObjectInQuadtrees(*this);
+    }
 }
 
 #pragma endregion

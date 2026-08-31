@@ -17,6 +17,7 @@
     <ClCompile Include="DebugDamageTrigger.cpp" />
     <ClCompile Include="DebugDrawTest.cpp" />
     <ClCompile Include="DefeatConditionManager.cpp" />
+    <ClCompile Include="FrustumTestTrigger.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EnemyDamageable.cpp" />
     <ClCompile Include="EnemyDeathState.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="DebugDamageTrigger.h" />
     <ClInclude Include="DebugDrawTest.h" />
     <ClInclude Include="DefeatConditionManager.h" />
+    <ClInclude Include="FrustumTestTrigger.h" />
     <ClInclude Include="EnemyDamageable.h" />
     <ClInclude Include="EnemyDeathState.h" />
     <ClInclude Include="EnemyDetectionAggro.h" />
