@@ -15,8 +15,8 @@ cbuffer SceneData : register(b1)
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4
-#define MAX_POINT_LIGHTS 112
-#define MAX_SPOT_LIGHTS 16
+#define MAX_POINT_LIGHTS 256
+#define MAX_SPOT_LIGHTS 64
 
 #define MAX_SHADOW_CASCADES 4
 
