@@ -29,16 +29,17 @@ groupshared float gFarViewZ;
 groupshared uint gPointCount;
 groupshared uint gSpotCount;
 
+// camera projection is right-handed (SimpleMath default) - forward is -Z, viewZ is negative in front of camera
 float GetViewZ(float ndcDepth)
 {
-    return proj43 / (ndcDepth - proj33);
+    return -proj43 / (ndcDepth + proj33);
 }
 
 float3 GetViewPosition(float2 ndc, float viewZ)
 {
     float3 viewPos;
-    viewPos.x = ndc.x * viewZ / xScale;
-    viewPos.y = ndc.y * viewZ / yScale;
+    viewPos.x = -ndc.x * viewZ / xScale;
+    viewPos.y = -ndc.y * viewZ / yScale;
     viewPos.z = viewZ;
     return viewPos;
 }
@@ -70,7 +71,8 @@ bool SphereIntersectsTile(float3 viewSpaceCenter, float radius)
         }
     }
 
-    return (viewSpaceCenter.z + radius >= gNearViewZ) && (viewSpaceCenter.z - radius <= gFarViewZ);
+    // RH: both near/far viewZ are negative, near closer to 0 than far
+    return (viewSpaceCenter.z - radius <= gNearViewZ) && (viewSpaceCenter.z + radius >= gFarViewZ);
 }
 
 [numthreads(TILE_SIZE, TILE_SIZE, 1)]
@@ -125,10 +127,11 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupID : SV_Group
             viewPoints[i] = GetViewPosition(ndc, nearViewZ);
         }
 
+        // swapped cross order vs. the LH derivation - RH viewZ sign flip inverts winding
         [unroll]
         for (uint p = 0; p < 4; ++p)
         {
-            gSidePlanes[p] = normalize(cross(viewPoints[p], viewPoints[(p + 1) & 3]));
+            gSidePlanes[p] = normalize(cross(viewPoints[(p + 1) & 3], viewPoints[p]));
         }
 
         gNearViewZ = nearViewZ;

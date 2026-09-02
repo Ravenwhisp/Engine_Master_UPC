@@ -9,6 +9,7 @@
 
 #include "DeferredShadingPass.h"
 #include "RenderContext.h"
+#include "SceneLightingSettings.h"
 #include "RenderSurface.h"
 #include "RingBuffer.h"
 #include "Texture.h"
@@ -144,6 +145,12 @@ void LightCullingPass::prepare(const RenderContext& ctx)
         sizeof(GPULightsConstantBuffer),
         app->getModuleD3D12()->getCurrentFrame());
 
+    if (m_lightsCBAddress == 0)
+    {
+        DEBUG_ERROR("[LightCullingPass] ringBuffer->allocate() failed for LightsCB (pointCount=%u, spotCount=%u) - skipping tile culling this frame", lightsCB.pointCount, lightsCB.spotCount);
+        return;
+    }
+
     m_constants.view = ctx.view.Transpose();
     m_constants.xScale = ctx.projection._11;
     m_constants.yScale = ctx.projection._22;
@@ -153,6 +160,17 @@ void LightCullingPass::prepare(const RenderContext& ctx)
     m_constants.tileCountY = tileCountY;
     m_constants.screenWidth = depthDesc.width;
     m_constants.screenHeight = depthDesc.height;
+
+    if (ctx.lightingSettings && ctx.lightingSettings->tileDebugView)
+    {
+        const Vector3 camPos = ctx.view.Invert().Translation();
+
+        DEBUG_ERROR("[LightCullingPass DIAG] cam=(%.1f,%.1f,%.1f) pointCount=%u spotCount=%u tiles=%ux%u xScale=%.4f yScale=%.4f proj33=%.6f proj43=%.4f",
+            camPos.x, camPos.y, camPos.z,
+            lightsCB.pointCount, lightsCB.spotCount,
+            tileCountX, tileCountY,
+            m_constants.xScale, m_constants.yScale, m_constants.proj33, m_constants.proj43);
+    }
 
     m_hasValidInput = true;
 }
