@@ -51,6 +51,37 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
     }
 }
 
+std::shared_ptr<BasicMesh>& MeshRenderer::getMesh()
+{
+    if (!m_mesh && m_meshAsset.isValid())
+    {
+        m_meshAsset.m_type = AssetType::MESH;
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        if (meshAsset)
+            addMesh(*meshAsset);
+    }
+    return m_mesh;
+}
+
+std::vector<std::shared_ptr<BasicMaterial>>& MeshRenderer::getMaterials()
+{
+    if (m_materials.size() != m_materialAssets.size())
+    {
+        m_materials.clear();
+        for (auto& matRef : m_materialAssets)
+        {
+            if (matRef.isValid())
+            {
+                matRef.m_type = AssetType::MATERIAL;
+                auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+                if (matAsset)
+                    addMaterial(*matAsset);
+            }
+        }
+    }
+    return m_materials;
+}
+
 void MeshRenderer::recompute()
 {
     m_triangles = 0;
