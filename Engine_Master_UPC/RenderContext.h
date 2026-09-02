@@ -13,6 +13,7 @@ struct UIImageCommand;
 struct SkyBoxSettings;
 struct ParticleEmitterCommand;
 class RenderSurface;
+struct SceneLightingSettings;
 
 struct RenderContext
 {
@@ -45,5 +46,7 @@ struct RenderContext
     D3D12_GPU_VIRTUAL_ADDRESS lightCullingSpotListAddress = 0;
     uint32_t lightCullingTileCountX = 0;
     uint32_t lightCullingTileCountY = 0;
+
+    const SceneLightingSettings* lightingSettings = nullptr;
 
 };

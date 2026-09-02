@@ -505,6 +505,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .ssaoBlurTexture = ssaoBlurTexture,
         .ssaoSettings = ssaoSettings,
         .ssaoData = nullptr,
+        .lightingSettings = &app->getModuleScene()->getScene()->getLightingSettings(),
     };
 
     {

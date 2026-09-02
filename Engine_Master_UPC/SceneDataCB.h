@@ -11,7 +11,8 @@ struct SceneDataCB
 
     // x = ssaoEnabled
     // y = ssaoDebugView
-    // zw = unused
+    // z = lightTileDebugView
+    // w = unused
     DirectX::SimpleMath::Vector4 renderFlags;
 
     // tile grid LightCullingPass sized its index buffers for this frame

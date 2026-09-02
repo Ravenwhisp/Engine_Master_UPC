@@ -188,6 +188,10 @@ void SceneConfig::drawLightSettings()
     {
         ImGui::ColorEdit3("Ambient Color###AmbientColor", &light.ambientColor.x);
         ImGui::DragFloat("Ambient Intensity###AmbientIntensity", &light.ambientIntensity, 0.01f, 0.0f, 50.0f);
+
+        ImGui::Separator();
+        ImGui::Checkbox("Light Tile Debug View###LightTileDebugView", &light.tileDebugView);
+        ImGui::TextDisabled("Colours each pixel by how many lights its tile has.");
     }
 }
 

@@ -22,6 +22,41 @@ float SampleSSAO(float4 screenPosition)
     return ssaoTexture.Sample(pointClampSample, ssaoUV).r;
 }
 
+// blue = few lights in this tile, red = a lot
+float3 GetLightCountHeatmap(uint count)
+{
+    if (count == 0)
+        return 0.0f;
+
+    const float3 ramp[5] =
+    {
+        float3(0.0f, 0.0f, 1.0f),
+        float3(0.0f, 1.0f, 1.0f),
+        float3(0.0f, 1.0f, 0.0f),
+        float3(1.0f, 1.0f, 0.0f),
+        float3(1.0f, 0.0f, 0.0f)
+    };
+
+    const float t = saturate(count / 32.0f) * 4.0f;
+    const uint i0 = (uint) floor(t);
+    const uint i1 = min(i0 + 1, 4);
+    return lerp(ramp[i0], ramp[i1], frac(t));
+}
+
+uint CountTileLights(uint tileIndex)
+{
+    const uint tileBase = tileIndex * MAX_LIGHTS_PER_TILE;
+    uint count = 0;
+
+    for (uint i = 0; i < MAX_LIGHTS_PER_TILE && pointLightIndices[tileBase + i] >= 0; ++i)
+        count++;
+
+    for (uint j = 0; j < MAX_LIGHTS_PER_TILE && spotLightIndices[tileBase + j] >= 0; ++j)
+        count++;
+
+    return count;
+}
+
 float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
 {
     float3 worldPos = positionTex.Sample(linearWrapSample, coord);
@@ -41,6 +76,9 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
         return float4(ssao.xxx, 1.0f);
 
     const uint tileIndex = GetTileIndex(uint2(position.xy), tileCount);
+
+    if (renderFlags.z > 0.5f)
+        return float4(GetLightCountHeatmap(CountTileLights(tileIndex)), 1.0f);
 
     float3 finalColor = ComputePBRSurfaceLightingTiled(worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, ssao, tileIndex, pointLightIndices, spotLightIndices);
     return float4(finalColor, 1.0f);

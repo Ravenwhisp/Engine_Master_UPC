@@ -178,10 +178,12 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
     const SSAOSettings defaultSSAOSettings{};
     const SSAOSettings& ssaoSettings = ctx.ssaoSettings ? *ctx.ssaoSettings : defaultSSAOSettings;
 
+    const bool tileDebugView = ctx.lightingSettings && ctx.lightingSettings->tileDebugView;
+
     m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(
         ssaoSettings.enabled ? 1.0f : 0.0f,
         ssaoSettings.enabled && ssaoSettings.debugView ? 1.0f : 0.0f,
-        0.0f,
+        tileDebugView ? 1.0f : 0.0f,
         0.0f);
 
     m_hasSSAOData = false;
