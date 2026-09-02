@@ -307,42 +307,7 @@ float3 ComputePBRSurfaceLightingCommon(float3 worldPos, float3 albedo, float met
     return finalColor;
 }
 
-// for forward passes that don't have a tile light list bound (e.g. DynamicTransparencyFalloffPS.hlsl)
-float3 ComputePBRSurfaceLighting(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO)
-{
-    float3 F0Metallic = albedo;
-    float3 F0NonMetallic = 0.04f;
-
-    float3 diffuseColorMetallic = 0.0f;
-    float3 diffuseColorNonMetallic = albedo / PI;
-
-    float3 viewDirection = normalize(viewPos - worldPos);
-    float3 reflection = normalize(reflect(-viewDirection, finalWorldNormal));
-    float NdotV = abs(dot(finalWorldNormal, viewDirection)) + 0.001f;
-    float horizon = min(1.0f + dot(reflection, finalWorldNormal), 1.0f);
-
-    alphaRoughness *= alphaRoughness;
-
-    float3 otherMetallic = 0.0f;
-    float3 otherNonMetallic = 0.0f;
-
-    for (uint i = 0; i < pointCount; ++i)
-    {
-        otherMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        otherNonMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
-    }
-
-    for (uint j = 0; j < spotCount; ++j)
-    {
-        otherMetallic += ComputeSpotLight(j, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        otherNonMetallic += ComputeSpotLight(j, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
-    }
-
-    return ComputePBRSurfaceLightingCommon(worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, screenSpaceAO,
-        F0Metallic, F0NonMetallic, viewDirection, NdotV, horizon, otherMetallic, otherNonMetallic);
-}
-
-// for DeferredShadingPass - walks the per-tile light lists LightCullingPass built
+// walks the per-tile light lists LightCullingPass built - used by every pixel shader now
 float3 ComputePBRSurfaceLightingTiled(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO,
     uint tileIndex, StructuredBuffer<int> pointLightIndices, StructuredBuffer<int> spotLightIndices)
 {

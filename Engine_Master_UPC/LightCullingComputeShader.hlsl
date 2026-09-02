@@ -43,6 +43,22 @@ float3 GetViewPosition(float2 ndc, float viewZ)
     return viewPos;
 }
 
+// tight bounding sphere of the spot cone, so culling doesn't over-include on wide-angle lights
+float4 GetSpotBoundingSphere(float3 position, float3 direction, float range, float outerCosine)
+{
+    const float COS_45_DEG = 0.70710678f;
+
+    if (outerCosine < COS_45_DEG)
+    {
+        const float sinAngle = sqrt(saturate(1.0f - outerCosine * outerCosine));
+        const float radius = range * sinAngle / max(outerCosine, 1e-4f);
+        return float4(position + direction * range, radius);
+    }
+
+    const float radius = range * 0.5f / (outerCosine * outerCosine);
+    return float4(position + direction * radius, radius);
+}
+
 bool SphereIntersectsTile(float3 viewSpaceCenter, float radius)
 {
     [unroll]
@@ -143,10 +159,11 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupID : SV_Group
 
     for (uint spotIndex = groupIndex; spotIndex < spotCount; spotIndex += threadsPerTile)
     {
-        const float3 viewSpacePos = mul(float4(spotLights[spotIndex].position, 1.0f), view).xyz;
+        const float4 bound = GetSpotBoundingSphere(spotLights[spotIndex].position, spotLights[spotIndex].direction,
+            spotLights[spotIndex].radius, spotLights[spotIndex].cosineOuterAngle);
+        const float3 viewSpacePos = mul(float4(bound.xyz, 1.0f), view).xyz;
 
-        // using the full range as a sphere here instead of a tighter cone fit - good enough for now
-        if (SphereIntersectsTile(viewSpacePos, spotLights[spotIndex].radius))
+        if (SphereIntersectsTile(viewSpacePos, bound.w))
         {
             uint slot;
             InterlockedAdd(gSpotCount, 1, slot);
