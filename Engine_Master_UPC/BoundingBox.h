@@ -7,7 +7,6 @@ namespace Engine
     class BoundingBox : public BoundingVolume
     {
     public:
-
         BoundingBox() = default;
         BoundingBox(const Vector3& min, const Vector3& max);
         BoundingBox(const Vector3& min, const Vector3& max, const Vector3 points[8]);
@@ -18,6 +17,11 @@ namespace Engine
 
         void setMin(const Vector3& min) { m_min = min; }
         void setMax(const Vector3& max) { m_max = max; }
+        void setBounds(const Vector3& min, const Vector3& max)
+        {
+            m_min = min;
+            m_max = max;
+        }
 
         const Vector3& getMin() const { return m_min; }
         const Vector3& getMax() const { return m_max; }
@@ -28,16 +32,17 @@ namespace Engine
         void update(const Matrix& world);
         void render() override;
 
-        const bool isCulled() { return m_isCulled; }
+        bool isCulled() const { return m_isCulled; }
         void setIsCulled(bool culled) { m_isCulled = culled; }
-    private:
 
+    private:
         bool isPointInsidePlane(const Vector3& point, const Plane& plane) const;
         bool isFullyOutsideOfPlane(const Plane& plane) const;
 
         Vector3 m_min;
         Vector3 m_max;
         Vector3 m_points[8];
+
         bool m_isCulled = false;
     };
 }

@@ -20,8 +20,7 @@ namespace Engine
 
     bool BoundingBox::isPointInsidePlane(const Vector3& point, const Plane& plane) const
     {
-        bool testRes = plane.Normal().Dot(point) + plane.D() >= -EPSILON;
-        return testRes;
+        return plane.Normal().Dot(point) + plane.D() >= -EPSILON;
     }
 
     bool BoundingBox::isFullyOutsideOfPlane(const Plane& plane) const
@@ -33,6 +32,7 @@ namespace Engine
                 return false;
             }
         }
+
         return true;
     }
 
@@ -64,13 +64,14 @@ namespace Engine
     void BoundingBox::render()
     {
         float color[3];
+
         if (m_isCulled)
         {
             color[0] = 1.0f;
             color[1] = 0.8f;
             color[2] = 0.0f;
         }
-        else 
+        else
         {
             color[0] = 0.1f;
             color[1] = 1.0f;
@@ -78,14 +79,16 @@ namespace Engine
         }
 
         const Vector3* c = getPoints();
+
         ddVec3 pts[8];
+
         for (int i = 0; i < 8; ++i)
         {
             pts[i][0] = c[i].x;
             pts[i][1] = c[i].y;
             pts[i][2] = c[i].z;
         }
+
         dd::box(pts, color, 0, false);
     }
-
 }

@@ -12,94 +12,107 @@
 
 class MaterialAsset;
 
-namespace tinygltf { class Model; }
+namespace tinygltf
+{
+    class Model;
+}
 
 struct ModelData
 {
-	Matrix model;
-	Matrix normalMat;
-	BasicMaterial::PbrMetallicRoughnessData material;
+    Matrix model;
+    Matrix normalMat;
+    BasicMaterial::PbrMetallicRoughnessData material;
 };
 
 enum class RenderMode : UINT
 {
-	DEFAULT = 0,
-
-	TRANSP = 1,
-	FLOW_MAP = 2,
-	COUNT = 3
+    DEFAULT = 0,
+    TRANSP = 1,
+    FLOW_MAP = 2,
+    COUNT = 3
 };
-
 
 class MeshRenderer : public Component
 {
 public:
-	MeshRenderer(UID id, GameObject* gameObject) : Component(id, ComponentType::MODEL, gameObject) {};
-	~MeshRenderer() override;
+    MeshRenderer(UID id, GameObject* gameObject)
+        : Component(id, ComponentType::MODEL, gameObject)
+    {
+    }
 
-	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
+    ~MeshRenderer() override;
 
-	void addMesh(MeshAsset& model);
-	void addMaterial(MaterialAsset& material);
+    std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
-	std::shared_ptr<BasicMesh>& getMesh() { return m_mesh; }
-	std::vector<std::shared_ptr<BasicMaterial>>& getMaterials() { return m_materials; }
+    void addMesh(MeshAsset& model, bool recalculateBounds = true);
+    void addMaterial(MaterialAsset& material);
 
-	bool									hasMesh() const { return m_mesh != nullptr; }
+    std::shared_ptr<BasicMesh>& getMesh() { return m_mesh; }
+    std::vector<std::shared_ptr<BasicMaterial>>& getMaterials() { return m_materials; }
 
-	Engine::BoundingBox& getBoundingBox() const { return m_boundingBox; }
+    bool hasMesh() const { return m_mesh != nullptr; }
 
-	void drawUi() override;
-	void debugDraw() override;
-	void onTransformChange() override;
-	void update() override;
+    Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
+    const Engine::BoundingBox& getBoundingBox() const { return m_boundingBox; }
 
-	void serialize(IArchive& archive) override;
-	void fixReferences(const SceneReferenceResolver& resolver) override;
+    void drawUi() override;
+    void debugDraw() override;
+    void onTransformChange() override;
+    void update() override;
 
-	int getTriangles() const { return m_triangles; }
+    void serialize(IArchive& archive) override;
+    void fixReferences(const SceneReferenceResolver& resolver) override;
 
-	void setMeshReference(AssetId& meshRef);
-	AssetId& getMeshReference() { return m_meshAsset; }
-	void addMaterialReference(AssetId& materialRef);
-	std::vector<AssetId>& getMaterialsReference() { return m_materialAssets; }
+    int getTriangles() const { return m_triangles; }
 
-	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
- 
-	// Legacy only: used to migrate old prefabs/scenes that stored SkinAssetId inside MeshRenderer.
-	AssetId& getSkinReference() { return m_skinAsset; }
-	void setSkinReference(AssetId& skinUID) { m_skinAsset = skinUID; }
+    void setMeshReference(AssetId& meshRef);
+    AssetId& getMeshReference() { return m_meshAsset; }
 
-	bool hasSkin() const { return m_skin != nullptr; }
+    void addMaterialReference(AssetId& materialRef);
+    std::vector<AssetId>& getMaterialsReference() { return m_materialAssets; }
 
-	Skin* getSkin() { return m_skin.get(); }
-	const Skin* getSkin() const { return m_skin.get(); }
+    IDebugDrawable* getAsDebugDrawable()
+    {
+        return static_cast<IDebugDrawable*>(this);
+    }
 
-	Skin& ensureSkin();
-	void clearSkin();
+    AssetId& getSkinReference() { return m_skinAsset; }
+    void setSkinReference(AssetId& skinUID) { m_skinAsset = skinUID; }
 
-	const bool isCulled() { return m_isCulled; }
-	void setIsCulled(bool culled) { m_isCulled = culled; }
+    bool hasSkin() const { return m_skin != nullptr; }
 
-	RenderMode getRenderMode() { return m_renderMode; }
+    Skin* getSkin() { return m_skin.get(); }
+    const Skin* getSkin() const { return m_skin.get(); }
+
+    Skin& ensureSkin();
+    void clearSkin();
+
+    bool isCulled() const { return m_isCulled; }
+    void setIsCulled(bool culled) { m_isCulled = culled; }
+
+    RenderMode getRenderMode() const { return m_renderMode; }
 
 private:
-	void recompute();
+    void recompute();
+    void recalculateBoundingBox();
+    void updateBoundingBoxWorld();
 
-	std::shared_ptr<BasicMesh>		m_mesh;
-	std::unique_ptr<Skin>			m_skin;
-	// The position of the material corresponds to the submesh number
-	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
+    std::shared_ptr<BasicMesh> m_mesh;
+    std::unique_ptr<Skin> m_skin;
 
-	AssetId m_meshAsset{};
-	AssetId m_skinAsset{};
-	std::vector<AssetId> m_materialAssets{};
+    std::vector<std::shared_ptr<BasicMaterial>> m_materials;
 
-	mutable Engine::BoundingBox				m_boundingBox;
+    AssetId m_meshAsset{};
+    AssetId m_skinAsset{};
+    std::vector<AssetId> m_materialAssets{};
 
-	int m_triangles = 0;
+    Engine::BoundingBox m_boundingBox;
 
-	bool m_isCulled = false;
+    bool m_customBoundingBox = false;
 
-	RenderMode m_renderMode = RenderMode::DEFAULT;
+    int m_triangles = 0;
+
+    bool m_isCulled = false;
+
+    RenderMode m_renderMode = RenderMode::DEFAULT;
 };
