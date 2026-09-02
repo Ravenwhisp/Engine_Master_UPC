@@ -79,4 +79,8 @@ private:
     D3D12_GPU_DESCRIPTOR_HANDLE m_ssaoSRV{};
     bool m_hasSSAOData = false;
 
+    // Tiled light culling (LightCullingPass output)
+    D3D12_GPU_VIRTUAL_ADDRESS m_pointLightIndexBufferAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS m_spotLightIndexBufferAddress = 0;
+
 };

@@ -1,4 +1,5 @@
 #include "PBRLighting.hlsli"
+#include "LightTileCullingCommon.hlsli"
 
 Texture2D baseColorTex : register(t0);
 Texture2D metallicRoughnessTex : register(t1);
@@ -7,6 +8,9 @@ Texture2D positionTex : register(t3);
 Texture2D emissiveTex : register(t4);
 
 Texture2D ssaoTexture : register(t12);
+
+StructuredBuffer<int> pointLightIndices : register(t5);
+StructuredBuffer<int> spotLightIndices : register(t6);
 
 
 float SampleSSAO(float4 screenPosition)
@@ -36,6 +40,8 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     if (renderFlags.y > 0.5f)
         return float4(ssao.xxx, 1.0f);
 
-    float3 finalColor = ComputePBRSurfaceLighting(worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, ssao);
+    const uint tileIndex = GetTileIndex(uint2(position.xy), tileCount);
+
+    float3 finalColor = ComputePBRSurfaceLightingTiled(worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, ssao, tileIndex, pointLightIndices, spotLightIndices);
     return float4(finalColor, 1.0f);
 }

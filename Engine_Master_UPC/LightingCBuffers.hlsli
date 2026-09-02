@@ -9,6 +9,9 @@ cbuffer SceneData : register(b1)
     // x = ssaoEnabled
     // y = ssaoDebugView
     float4 renderFlags;
+
+    // Exact tile grid LightCullingPass sized its index buffers for.
+    uint2 tileCount;
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4

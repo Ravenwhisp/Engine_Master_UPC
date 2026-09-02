@@ -314,6 +314,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="VideoAsset.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
     <ClInclude Include="DepthReductionPass.h" />
+    <ClInclude Include="LightCullingPass.h" />
     <ClInclude Include="DissolveComponent.h" />
     <ClInclude Include="DynamicTransparencyFalloffPass.h" />
     <ClInclude Include="DynamicTransparencyMaskPass.h" />
@@ -798,6 +799,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="DamageHighlightComponent.cpp" />
     <ClCompile Include="DataContainerExporter.cpp" />
     <ClCompile Include="DepthReductionPass.cpp" />
+    <ClCompile Include="LightCullingPass.cpp" />
     <ClCompile Include="DescriptorHeapBlock.cpp" />
     <ClCompile Include="CommandCreateFolder.cpp" />
     <ClCompile Include="CommandCreateDataContainer.cpp" />
@@ -1053,6 +1055,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="GBufferCommon.hlsli" />
     <None Include="General.hlsli" />
     <None Include="LightingCBuffers.hlsli" />
+    <None Include="LightTileCullingCommon.hlsli" />
     <None Include="EngineAPI.inl" />
     <None Include="MakeSpriteFont.exe" />
     <None Include="PBRGeneral.hlsli" />
@@ -1062,6 +1065,20 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="VolumetricFogCommon.hlsli" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="LightCullingComputeShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">4.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>

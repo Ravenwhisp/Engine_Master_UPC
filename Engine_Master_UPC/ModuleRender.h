@@ -17,6 +17,7 @@
 #include "SSAOBlurPass.h"
 #include "DepthReductionPass.h"
 #include "ShadowFrustumComputePass.h"
+#include "LightCullingPass.h"
 #include "VolumetricFogComputePass.h"
 #include "OcclusionTargetDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
@@ -97,6 +98,7 @@ private:
     std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
     std::unique_ptr<DepthReductionPass> m_depthReductionPass;
     std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
+    std::unique_ptr<LightCullingPass> m_lightCullingPass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<VolumetricFogComputePass> m_volumetricFogComputePass;
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;

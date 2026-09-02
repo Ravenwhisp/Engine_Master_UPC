@@ -862,6 +862,7 @@
       <Filter>Source\Components</Filter>
     </ClCompile>
     <ClCompile Include="DepthReductionPass.cpp" />
+    <ClCompile Include="LightCullingPass.cpp" />
     <ClCompile Include="ShadowFrustumComputePass.cpp" />
     <ClCompile Include="VolumetricFogApplyPass.cpp" />
     <ClCompile Include="VolumetricFogComputePass.cpp" />
@@ -1814,6 +1815,7 @@
       <Filter>Source\Components</Filter>
     </ClInclude>
     <ClInclude Include="DepthReductionPass.h" />
+    <ClInclude Include="LightCullingPass.h" />
     <ClInclude Include="ShadowFrustumComputePass.h" />
     <ClInclude Include="VolumetricFogApplyPass.h" />
     <ClInclude Include="VolumetricFogComputePass.h" />
@@ -1959,6 +1961,7 @@
       <Filter>Shaders\Rendering</Filter>
     </FxCompile>
     <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
+    <FxCompile Include="LightCullingComputeShader.hlsl" />
     <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
     <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
     <FxCompile Include="VolumetricFogApplyPixelShader.hlsl" />
@@ -2001,6 +2004,9 @@
       <Filter>Shaders\Includes</Filter>
     </None>
     <None Include="LightingCBuffers.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="LightTileCullingCommon.hlsli">
       <Filter>Shaders\Includes</Filter>
     </None>
     <None Include="EngineAPI.inl">
