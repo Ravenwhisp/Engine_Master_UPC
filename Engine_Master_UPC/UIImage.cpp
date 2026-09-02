@@ -193,7 +193,3 @@ void UIImage::serialize(IArchive& archive)
 
 	archive.serializeStringEnum(m_stretchDrawMode, "StretchDrawMode", StretchDrawModeToString, StringToStretchDrawMode);
 }
-
-void UIImage::fixReferences(const SceneReferenceResolver& resolver)
-{
-}

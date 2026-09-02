@@ -214,6 +214,24 @@ void MeshRenderer::serialize(IArchive& archive)
         UINT renderMode = static_cast<UINT>(m_renderMode);
         archive.serialize(renderMode, "Render Mode");
         m_renderMode = static_cast<RenderMode>(renderMode);
+
+        m_meshAsset.m_type = AssetType::MESH;
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        if (meshAsset)
+        {
+            addMesh(*meshAsset);
+        }
+
+        for (auto& matRef : m_materialAssets)
+        {
+            if (matRef.isValid())
+            {
+                matRef.m_type = AssetType::MATERIAL;
+                auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+                if (matAsset)
+                    addMaterial(*matAsset);
+            }
+        }
     }
     else
     {
@@ -273,31 +291,13 @@ void MeshRenderer::clearSkin()
     m_skin.reset();
 }
 
-void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
+
+std::shared_ptr<BasicMesh>& MeshRenderer::getMesh()
 {
+    return m_mesh;
+}
 
-    m_mesh = nullptr;
-    m_materials.clear();
-
-
-    if (m_meshAsset.isValid())
-    {
-        m_meshAsset.m_type = AssetType::MESH;
-        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
-        if (meshAsset)
-            addMesh(*meshAsset);
-    }
-
-    for (auto& matRef : m_materialAssets)
-    {
-        if (matRef.isValid())
-        {
-            matRef.m_type = AssetType::MATERIAL;
-            auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
-            if (matAsset)
-                addMaterial(*matAsset);
-        }
-    }
-
-    recompute();
+std::vector<std::shared_ptr<BasicMaterial>>& MeshRenderer::getMaterials()
+{
+    return m_materials;
 }

@@ -641,7 +641,7 @@ std::shared_ptr<Scene> ModuleScene::loadSceneData(const std::string& sceneName)
     newScene->serialize(archive);
     newScene->setName(sceneName.c_str());
     newScene->FixReferences();
-
+    
     auto t1 = std::chrono::high_resolution_clock::now();
 
     DEBUG_LOG(
