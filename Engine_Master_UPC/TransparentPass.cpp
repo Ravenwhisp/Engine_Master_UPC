@@ -78,6 +78,12 @@ void TransparentPass::prepare(const RenderContext& ctx)
 
     m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(ssaoSettings.enabled ? 1.0f : 0.0f, ssaoSettings.enabled && ssaoSettings.debugView ? 1.0f : 0.0f, 0.0f, 0.0f);
 
+    m_sceneDataCB->tileCountX = ctx.lightCullingTileCountX;
+    m_sceneDataCB->tileCountY = ctx.lightCullingTileCountY;
+
+    m_pointLightIndexBufferAddress = ctx.lightCullingPointListAddress;
+    m_spotLightIndexBufferAddress = ctx.lightCullingSpotListAddress;
+
     m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
 
     m_hasSSAOData = false;
@@ -133,6 +139,9 @@ void TransparentPass::apply(ID3D12GraphicsCommandList4* commandList)
     {
         commandList->SetGraphicsRootDescriptorTable(12, m_ssaoSRV);
     }
+
+    commandList->SetGraphicsRootShaderResourceView(13, m_pointLightIndexBufferAddress);
+    commandList->SetGraphicsRootShaderResourceView(14, m_spotLightIndexBufferAddress);
 
     for (auto* renderer : m_meshRenderers)
     {
@@ -214,7 +223,7 @@ GPULightsConstantBuffer TransparentPass::packLightsForGPU(const std::vector<Ligh
 
 void TransparentPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER		rootParams[13] = {};
+    CD3DX12_ROOT_PARAMETER		rootParams[15] = {};
     CD3DX12_DESCRIPTOR_RANGE	materialsRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange, ssaoRange;
 
     materialsRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
@@ -238,6 +247,10 @@ void TransparentPass::createRootSignature()
     rootParams[10].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL); //Texture samples
     rootParams[11].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL); //Shadow map texture
     rootParams[12].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL); //SSAO texture
+
+    // t13/t14 free - materials take t0-t7 (SLOT_COUNT), t8-t12 taken above
+    rootParams[13].InitAsShaderResourceView(13, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[14].InitAsShaderResourceView(14, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
