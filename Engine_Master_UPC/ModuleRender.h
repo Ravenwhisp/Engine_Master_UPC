@@ -21,6 +21,7 @@
 #include "OcclusionTargetDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
 #include "VideoPass.h"
+#include "LightCullingPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -103,6 +104,7 @@ private:
     std::unique_ptr<SSAOPass> m_ssaoPass;
     std::unique_ptr<SSAOBlurPass> m_ssaoBlurPass;
     std::unique_ptr<VideoPass> m_videoPass;
+    std::unique_ptr<LightCullingPass> m_lightCullingPass;
 
     SSAOFrameData m_currentSSAOData{};
 
@@ -119,6 +121,7 @@ public:
 
     GeometryPass* getGeometryPass() { return m_geometryPass; }
     SkyBoxPass* getSkyBoxPass() { return m_skyBoxPass; }
+    LightCullingPass* getLightCullingPass() const { return m_lightCullingPass.get(); }
 
     // (Re)creates the GBuffer/SSAO attachments for `surface` and rebuilds its
     // contiguous SRV descriptor table. Used for the swap-chain surface in

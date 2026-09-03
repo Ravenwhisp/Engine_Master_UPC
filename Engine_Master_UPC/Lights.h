@@ -163,6 +163,8 @@ struct GPUSpotLight
     float cosineInnerAngle = 0.0f;
     float cosineOuterAngle = 0.0f;
     float padding1[2] = { 0.0f, 0.0f };
+
+    Vector4 boundingSphere{};
 };
 
 struct GPULightsConstantBuffer

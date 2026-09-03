@@ -10,6 +10,7 @@
 #include "ModuleRender.h"
 #include "ModuleScene.h"
 #include "SkyBoxPass.h"
+#include "LightCullingPass.h"
 
 #include "Scene.h"
 #include "SceneLightingSettings.h"
@@ -43,7 +44,7 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[10] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[11] = {};
     CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange, ssaoRange;
 
     gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GeometryPass::GBUFFER_COUNT, 0, 0);
@@ -65,6 +66,8 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     rootParameters[7].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[8].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[9].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    
+    rootParameters[10].InitAsUnorderedAccessView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
@@ -244,6 +247,8 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
     {
         commandList->SetGraphicsRootDescriptorTable(9, m_ssaoSRV);
     }
+
+    commandList->SetGraphicsRootUnorderedAccessView(0, app->getModuleRender()->getLightCullingPass()->getLightIndexesAddress());
 
     commandList->DrawInstanced(3, 1, 0, 0);
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <Filter Include="Resources">
@@ -1530,79 +1530,79 @@
     </ClInclude>
     <ClInclude Include="Engine.h">
       <Filter>Source\Core</Filter>
-    </ClInclude>
+      <Filter>Inputs</Filter>
     <ClInclude Include="FileIO.h">
       <Filter>Source\Utilities</Filter>
-    </ClInclude>
+      <Filter>Core\Scripting</Filter>
     <ClInclude Include="FontPass.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+      <Filter>Core\Scripting</Filter>
     <ClInclude Include="framework.h">
       <Filter>Source\Core</Filter>
-    </ClInclude>
+    <ClInclude Include="CanvasRenderMode.h">
     <ClInclude Include="Frustum.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+    <ClInclude Include="ParticleSystemComponent.h">
     <ClInclude Include="GameObject.h">
       <Filter>Source\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Importer.h">
       <Filter>Source\Assets\Importers</Filter>
-    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-node-editor-master\crude_json.h">
     <ClInclude Include="IPointerEventHandler.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+      <Filter>D3D12\Rendering\Pass</Filter>
     <ClInclude Include="IRenderPass.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+      <Filter>ParticleSystem</Filter>
     <ClInclude Include="Layer.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+    <ClInclude Include="ModuleParticleSystem.h">
     <ClInclude Include="LightComponent.h">
       <Filter>Source\Components</Filter>
-    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
     <ClInclude Include="Lights.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="EmitterInstance.h">
     <ClInclude Include="ModuleNavigation.h">
       <Filter>Source\Navigation</Filter>
-    </ClInclude>
+    <ClInclude Include="EmitterLifetime.h">
     <ClInclude Include="NavMeshBuilder.h">
       <Filter>Source\Navigation</Filter>
-    </ClInclude>
+    <ClInclude Include="ParticleModule.h">
     <ClInclude Include="NavMeshGeometryExtractor.h">
       <Filter>Source\Navigation</Filter>
-    </ClInclude>
+    <ClInclude Include="ICommand.h" />
     <ClInclude Include="NavMeshResource.h">
       <Filter>Source\Navigation</Filter>
-    </ClInclude>
+    <ClInclude Include="AnimationComponent.h">
     <ClInclude Include="NavMeshAsset.h">
       <Filter>Source\Assets</Filter>
-    </ClInclude>
+      <Filter>ParticleSystem\Properties</Filter>
     <ClInclude Include="MeshRenderer.h">
       <Filter>Source\Miscellaneous</Filter>
-    </ClInclude>
+      <Filter>ParticleSystem\Properties</Filter>
     <ClInclude Include="DeferredShadingPass.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="Transform.h">
     <ClInclude Include="PlayToolbar.h">
       <Filter>Source\Editor\Windows</Filter>
-    </ClInclude>
+    <ClInclude Include="EmitterArea.h">
     <ClInclude Include="PointerEventData.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+    <ClInclude Include="EmitterSpawn.h">
     <ClInclude Include="PrefabEditSession.h">
       <Filter>Source\Scene\Prefabs</Filter>
-    </ClInclude>
+    <ClInclude Include="EmitterSize.h">
     <ClInclude Include="PrefabUI.h">
       <Filter>Source\Editor\Windows</Filter>
-    </ClInclude>
+    <ClInclude Include="EquirectangularPass.h">
     <ClInclude Include="QuadNode.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+    <ClInclude Include="PrefabEditSession.h">
     <ClInclude Include="Quadtree.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+      <Filter>Core\Commands</Filter>
     <ClInclude Include="SceneConfig.h">
       <Filter>Source\Scene</Filter>
     </ClInclude>
@@ -1611,19 +1611,19 @@
     </ClInclude>
     <ClInclude Include="GamePad.h">
       <Filter>Source\Input</Filter>
-    </ClInclude>
+      <Filter>Core\Commands</Filter>
     <ClInclude Include="Globals.h">
       <Filter>Source\Core</Filter>
-    </ClInclude>
+      <Filter>MusicSystem</Filter>
     <ClInclude Include="WindowHardware.h">
       <Filter>Source\Editor\Windows</Filter>
-    </ClInclude>
+      <Filter>MusicSystem</Filter>
     <ClInclude Include="WindowHierarchy.h">
       <Filter>Source\Editor\Windows</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiPass.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="WwiseManager.h">
     <ClInclude Include="IndexBuffer.h">
       <Filter>Source\Rendering</Filter>
     </ClInclude>
@@ -1680,106 +1680,106 @@
     </ClInclude>
     <ClInclude Include="WindowSceneEditor.h">
       <Filter>Source\Editor\Windows</Filter>
-    </ClInclude>
+    <ClInclude Include="WindowDataContainerManager.h">
     <ClInclude Include="SceneSnapshot.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+    <ClInclude Include="OptickProfiler.h">
     <ClInclude Include="Script.h">
       <Filter>Source\Scripting</Filter>
-    </ClInclude>
+      <Filter>D3D12\Rendering\Pass</Filter>
     <ClInclude Include="ScriptComponent.h">
       <Filter>Source\Scripting</Filter>
-    </ClInclude>
+    <ClInclude Include="SSAOSettings.h">
     <ClInclude Include="ScriptFactory.h">
       <Filter>Source\Scripting</Filter>
-    </ClInclude>
+    <ClInclude Include="SSAOTypes.h">
     <ClInclude Include="Settings.h">
       <Filter>Source\Core</Filter>
-    </ClInclude>
+    <ClInclude Include="ShadowTypes.h">
     <ClInclude Include="SimpleMath.h">
       <Filter>Source\Utilities</Filter>
-    </ClInclude>
+    <ClInclude Include="3rdParty\ImGuiBezier\imgui_bezier.h">
     <ClInclude Include="SkyBox.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="3rdParty\ImguiColorGradient\imgui_color_gradient.h">
     <ClInclude Include="SkyBoxPass.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="UISheet.h">
     <ClInclude Include="Tag.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+    <ClInclude Include="FieldMacros.h">
     <ClInclude Include="Texture.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="FieldTypeTraits.h">
     <ClInclude Include="TextureAsset.h">
       <Filter>Source\Assets</Filter>
-    </ClInclude>
+    <ClInclude Include="FieldUtils.h">
     <ClInclude Include="ImporterTexture.h">
       <Filter>Source\Assets\Importers</Filter>
-    </ClInclude>
+      <Filter>Persistence\Importers\External</Filter>
     <ClInclude Include="ModuleTime.h">
       <Filter>Source\Modules</Filter>
-    </ClInclude>
+      <Filter>Core</Filter>
     <ClInclude Include="Transform.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+      <Filter>GameEntity\Components</Filter>
     <ClInclude Include="Transform2D.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+      <Filter>Core\Application</Filter>
     <ClInclude Include="ImporterSource.h">
       <Filter>Source\Assets\Importers</Filter>
-    </ClInclude>
+    <ClInclude Include="CommandCreateGameObject.h">
     <ClInclude Include="UIButton.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
     <ClInclude Include="UIImage.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+    <ClInclude Include="Component.h">
     <ClInclude Include="UIImagePass.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+    <ClInclude Include="Engine.h">
     <ClInclude Include="ModuleUI.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+    <ClInclude Include="DescriptorHeap.h">
     <ClInclude Include="UICommands.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+    <ClInclude Include="DeferredShadingPass.h">
     <ClInclude Include="UIRect.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+    <ClInclude Include="Buffer.h">
     <ClInclude Include="UIText.h">
       <Filter>Source\UI</Filter>
-    </ClInclude>
+    <ClInclude Include="BasicMaterial.h">
     <ClInclude Include="UtilityGLFT.h">
       <Filter>Source\Utilities</Filter>
-    </ClInclude>
+    <ClInclude Include="BasicMesh.h">
     <ClInclude Include="SwapChain.h">
       <Filter>Source\D3D12</Filter>
-    </ClInclude>
+    <ClInclude Include="EditorWindow.h">
     <ClInclude Include="targetver.h">
       <Filter>Source\Core</Filter>
-    </ClInclude>
+    <ClInclude Include="WindowSceneEditor.h">
     <ClInclude Include="Timer.h">
       <Filter>Source\Utilities</Filter>
-    </ClInclude>
+    <ClInclude Include="ScriptComponent.h">
     <ClInclude Include="UID.h">
       <Filter>Source\Scene</Filter>
-    </ClInclude>
+    <ClInclude Include="IndexBuffer.h">
     <ClInclude Include="Vertex.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="RingBuffer.h">
     <ClInclude Include="VertexBuffer.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
     <ClInclude Include="WindowGameDebug.h">
       <Filter>Source\Editor\Windows</Filter>
-    </ClInclude>
+    <ClInclude Include="TrailComponent.h">
     <ClInclude Include="WeakCache.h">
       <Filter>Source\Utilities</Filter>
-    </ClInclude>
+      <Filter>ParticleSystem\Properties</Filter>
     <ClInclude Include="WwiseBank.h">
       <Filter>Source\Audio</Filter>
-    </ClInclude>
+    <ClInclude Include="3rdParty\ImGuiBezier\imgui_bezier.h" />
     <ClInclude Include="WwiseEvent.h">
       <Filter>Source\Audio</Filter>
     </ClInclude>
@@ -1797,7 +1797,7 @@
     </ClInclude>
     <ClInclude Include="PostProcessSettings.h">
       <Filter>Source\Rendering\Post Processing</Filter>
-    </ClInclude>
+    <ClInclude Include="GamePad.h">
     <ClInclude Include="BloomPass.h">
       <Filter>Source\Rendering\Post Processing</Filter>
     </ClInclude>
@@ -1812,7 +1812,7 @@
     </ClInclude>
     <ClInclude Include="SpectralComponent.h">
       <Filter>Source\Components</Filter>
-    </ClInclude>
+    <ClInclude Include="AssetReference.h">
     <ClInclude Include="DepthReductionPass.h" />
     <ClInclude Include="ShadowFrustumComputePass.h" />
     <ClInclude Include="VolumetricFogApplyPass.h" />
@@ -1829,30 +1829,156 @@
     <ClInclude Include="DynamicTransparencyFalloffPass.h" />
     <ClInclude Include="ModuleVideo.h">
       <Filter>Source\Video</Filter>
-    </ClInclude>
+      <Filter>Editor\imgui</Filter>
     <ClInclude Include="VideoPlayback.h">
       <Filter>Source\Video</Filter>
-    </ClInclude>
+      <Filter>Editor\imgui</Filter>
     <ClInclude Include="WindowVideoDebug.h">
       <Filter>Source\Editor\Windows</Filter>
-    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.h">
     <ClInclude Include="VideoPass.h">
       <Filter>Source\Rendering</Filter>
-    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-1.89.8\backends\imgui_impl_win32.h">
     <ClInclude Include="ComponentVideo.h">
       <Filter>Source\Video</Filter>
+    <ClInclude Include="3rdParty\imgui-docking\backends\imgui_impl_win32.h">
+      <Filter>Editor\imgui</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="3rdParty\imgui-docking\imgui_internal.h">
+      <Filter>Editor\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleInput.h">
+      <Filter>Inputs</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowHierarchy.h">
+      <Filter>Editor\Views\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowInspector.h">
+      <Filter>Editor\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleResources.h">
+      <Filter>D3D12\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleD3D12.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleRender.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleDescriptors.h">
+      <Filter>D3D12\Wrappers\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>D3D12\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleMath.h">
+      <Filter>Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources.h">
+      <Filter>D3D12\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleCamera.h">
+      <Filter>D3D12\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleEditor.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Core\Timers</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleTime.h">
+      <Filter>Core\Timers</Filter>
+    </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="UtilityGLFT.h">
+      <Filter>Persistence\Importers\External\Gltf</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
+      <Filter>D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="debug_draw.hpp">
+      <Filter>D3D12\Rendering\DebugDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>Inputs\Mouse</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadData.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="ImportSettings.h">
+      <Filter>Persistence\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="cvector.h">
+      <Filter>Maths</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="PlatformHelpers.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ForwardPrepass.h" />
+    <ClInclude Include="PlayerPass.h" />
+    <ClInclude Include="PlayerRenderBufferComponent.h" />
+    <ClInclude Include="UILayoutUtils.h">
+      <Filter>Persistence\Importers\External\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
+      <Filter>Shaders\SSAO</Filter>
+    </FxCompile>
+    <FxCompile Include="UIPixelShader.hlsl">
+      <Filter>Shaders\UI</Filter>
+    </FxCompile>
+    <FxCompile Include="UIVertexShader.hlsl">
+      <Filter>Shaders\UI</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
+      <Filter>Shaders\General</Filter>
+    </FxCompile>
+    <FxCompile Include="PostProcessPixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomThresholdPixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomDownsamplePixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomUpsamplePixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </ClInclude>
+    <FxCompile Include="TransparentVertexShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
+    <FxCompile Include="TransparentPixelShader.hlsl">
       <Filter>Shaders\Rendering</Filter>
-    </FxCompile>
     <FxCompile Include="GBufferPS.hlsl">
-      <Filter>Shaders\Rendering</Filter>
-    </FxCompile>
+    <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
+    <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
+    <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
+    <FxCompile Include="VolumetricFogApplyPixelShader.hlsl" />
+    <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
+    <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
+    <FxCompile Include="VolumetricFogLightingCS.hlsl" />
+    <FxCompile Include="FlowMapPS.hlsl" />
+    <FxCompile Include="FlowMapVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthPS.hlsl" />
+    <FxCompile Include="OcclusionBubbleVS.hlsl" />
+    <FxCompile Include="OcclusionBubblePS.hlsl" />
+    <FxCompile Include="DynamicTransparencyMaskPS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl" />
+    <FxCompile Include="VideoVertexShader.hlsl">
+      <Filter>Shaders\Video</Filter>
     <FxCompile Include="GBufferVS.hlsl">
-      <Filter>Shaders\Rendering</Filter>
-    </FxCompile>
+    <FxCompile Include="VideoPixelShader.hlsl">
+      <Filter>Shaders\Video</Filter>
     <FxCompile Include="BRDFPixelShader.hlsl">
       <Filter>Shaders\Rendering</Filter>
     </FxCompile>
@@ -1892,8 +2018,10 @@
     <FxCompile Include="SkyboxEnvironmentVertexShader.hlsl">
       <Filter>Shaders\Environment</Filter>
     </FxCompile>
-    <FxCompile Include="SkyboxIrradiancePixelShader.hlsl">
-      <Filter>Shaders\Environment</Filter>
+    <None Include="VolumetricFogCommon.hlsli" />
+    <None Include="PBRLighting.hlsli" />
+    <None Include="DynamicTransparencyFalloffCommon.hlsli" />
+    <None Include="DynamicTransparencyCommon.hlsli" />
     </FxCompile>
     <FxCompile Include="SkyboxIrradianceVertexShader.hlsl">
       <Filter>Shaders\Environment</Filter>
@@ -1929,56 +2057,19 @@
       <Filter>Shaders\SSAO</Filter>
     </FxCompile>
     <FxCompile Include="SSAONormalVS.hlsl">
-      <Filter>Shaders\SSAO</Filter>
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="UIPixelShader.hlsl">
-      <Filter>Shaders\UI</Filter>
+    <FxCompile Include="GBufferPS.hlsl">
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="UIVertexShader.hlsl">
-      <Filter>Shaders\UI</Filter>
+    <FxCompile Include="GBufferVS.hlsl">
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
-      <Filter>Shaders\General</Filter>
+    <FxCompile Include="TrailPixelShader.hlsl">
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PostProcessPixelShader.hlsl">
-      <Filter>Shaders\Post Processing</Filter>
-    </FxCompile>
-    <FxCompile Include="BloomThresholdPixelShader.hlsl">
-      <Filter>Shaders\Post Processing</Filter>
-    </FxCompile>
-    <FxCompile Include="BloomDownsamplePixelShader.hlsl">
-      <Filter>Shaders\Post Processing</Filter>
-    </FxCompile>
-    <FxCompile Include="BloomUpsamplePixelShader.hlsl">
-      <Filter>Shaders\Post Processing</Filter>
-    </FxCompile>
-    <FxCompile Include="TransparentVertexShader.hlsl">
-      <Filter>Shaders\Rendering</Filter>
-    </FxCompile>
-    <FxCompile Include="TransparentPixelShader.hlsl">
-      <Filter>Shaders\Rendering</Filter>
-    </FxCompile>
-    <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
-    <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
-    <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
-    <FxCompile Include="VolumetricFogApplyPixelShader.hlsl" />
-    <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
-    <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
-    <FxCompile Include="VolumetricFogLightingCS.hlsl" />
-    <FxCompile Include="FlowMapPS.hlsl" />
-    <FxCompile Include="FlowMapVS.hlsl" />
-    <FxCompile Include="OcclusionTargetDepthVS.hlsl" />
-    <FxCompile Include="OcclusionTargetDepthPS.hlsl" />
-    <FxCompile Include="OcclusionBubbleVS.hlsl" />
-    <FxCompile Include="OcclusionBubblePS.hlsl" />
-    <FxCompile Include="DynamicTransparencyMaskPS.hlsl" />
-    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl" />
-    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl" />
-    <FxCompile Include="VideoVertexShader.hlsl">
-      <Filter>Shaders\Video</Filter>
-    </FxCompile>
-    <FxCompile Include="VideoPixelShader.hlsl">
-      <Filter>Shaders\Video</Filter>
+    <FxCompile Include="TrailVertexShader.hlsl">
+      <Filter>D3D12\Rendering\Pass\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2018,10 +2109,8 @@
     <None Include="SimpleMath.inl">
       <Filter>Source\Inline</Filter>
     </None>
-    <None Include="VolumetricFogCommon.hlsli" />
-    <None Include="PBRLighting.hlsli" />
-    <None Include="DynamicTransparencyFalloffCommon.hlsli" />
-    <None Include="DynamicTransparencyCommon.hlsli" />
+    <None Include="ForwardCommon.hlsli" />
+    <None Include="General.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">

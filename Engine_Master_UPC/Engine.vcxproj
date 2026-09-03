@@ -324,6 +324,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="EmitterRender.h" />
     <ClInclude Include="ImportSettings.h" />
     <ClInclude Include="ModuleVideo.h" />
+    <ClInclude Include="LightCullingPass.h" />
     <ClInclude Include="NavMeshBuildSettings.h" />
     <ClInclude Include="NavRuntimeBlockerComponent.h" />
     <ClInclude Include="OcclusionOccluderComponent.h" />
@@ -837,6 +838,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandInstantiatePrefab.cpp" />
     <ClCompile Include="ImporterSoundBank.cpp" />
     <ClCompile Include="ImporterVideo.cpp" />
+    <ClCompile Include="LightCullingPass.cpp" />
     <ClCompile Include="LightingPass.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MeshAsset.cpp" />

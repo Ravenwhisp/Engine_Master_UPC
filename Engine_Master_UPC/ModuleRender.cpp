@@ -45,6 +45,7 @@
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
+#include "LightCullingPass.h"
 #include "Quadtree.h"
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
@@ -93,6 +94,9 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::unique_ptr<GeometryPass>(m_geometryPass));
 
     m_renderPasses.push_back(std::make_unique<FlowMapPass>(device));
+
+    m_lightCullingPass = std::make_unique<LightCullingPass>(device);
+    m_renderPasses.push_back(std::move(m_lightCullingPass));
 
     m_meshRenderPass = new DeferredShadingPass(device);
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
@@ -182,6 +186,7 @@ void ModuleRender::preRender()
             app->getModuleD3D12()->getCommandQueue()->flush();
             entry.surface->resize(entry.width, entry.height);
             entry.pendingResize = false;
+            app->getModuleRender()->getLightCullingPass()->resize(entry.pendingResizeWidth, entry.pendingResizeHeight); // Not ideal but LightCullingPass::resize is not expensive
         }
     }
 
