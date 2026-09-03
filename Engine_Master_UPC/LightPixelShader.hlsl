@@ -36,6 +36,6 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     if (renderFlags.y > 0.5f)
         return float4(ssao.xxx, 1.0f);
 
-    float3 finalColor = ComputePBRSurfaceLighting(worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, ssao);
+    float3 finalColor = ComputePBRSurfaceLighting(worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, ssao, position);
     return float4(finalColor, 1.0f);
 }

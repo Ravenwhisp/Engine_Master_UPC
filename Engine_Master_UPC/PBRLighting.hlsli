@@ -15,6 +15,9 @@ SamplerState pointWrapSample : register(s1);
 SamplerState linearClampSample : register(s2);
 SamplerState pointClampSample : register(s3);
 
+RWStructuredBuffer<int> lightIndexes : register(u0);
+#define TILE_SIZE 8
+#define MAX_LIGHTS_PER_TILE_PER_TYPE 32
 
 // ---------- DIRECT LIGHTING ----------
 
@@ -268,7 +271,7 @@ float3 GetCascadeDebugColor(uint cascadeIndex)
     return float3(1.0f, 0.8f, 0.2f);
 }
 
-float3 ComputePBRSurfaceLighting(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO)
+float3 ComputePBRSurfaceLighting(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO, float4 position)
 {
     float3 F0Metallic = albedo;
     float3 F0NonMetallic = 0.04f;
@@ -291,6 +294,13 @@ float3 ComputePBRSurfaceLighting(float3 worldPos, float3 albedo, float metallic,
         directionalMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
         directionalNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
+    
+    uint tilesX = (screenSize.x + TILE_SIZE - 1) / TILE_SIZE;
+    uint2 tileIndex2d;
+    tileIndex2d.x = position.x / TILE_SIZE;
+    tileIndex2d.y = position.y / TILE_SIZE;
+    uint tileIndex = tileIndex2d.y * tilesX + tileIndex2d.x;
+    uint lightBufferIndex = tileIndex * MAX_LIGHTS_PER_TILE_PER_TYPE * 2;
 
     float3 otherMetallic = 0.0f;
     float3 otherNonMetallic = 0.0f;

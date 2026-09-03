@@ -1,0 +1,94 @@
+{
+    "effects": [
+        {
+            "id": "Impact",
+            "duration": 0.11999999731779099,
+            "attack": 0.004999999888241291,
+            "release": 0.0,
+            "delay": 0.0,
+            "curve": "Punch",
+            "priority": "Normal",
+            "peak": {
+                "leftMotor": 1.0,
+                "rightMotor": 1.0,
+                "leftTrigger": 0.0,
+                "rightTrigger": 0.0
+            }
+        },
+        {
+            "id": "Continuous",
+            "duration": 1.0,
+            "attack": 0.0,
+            "release": 0.0,
+            "delay": 0.0,
+            "curve": "Sustain",
+            "priority": "Low",
+            "peak": {
+                "leftMotor": 0.30000001192092896,
+                "rightMotor": 0.15000000596046448,
+                "leftTrigger": 0.0,
+                "rightTrigger": 0.0
+            }
+        },
+        {
+            "id": "Explosion",
+            "duration": 0.6000000238418579,
+            "attack": 0.019999999552965164,
+            "release": 0.15000000596046448,
+            "delay": 0.0,
+            "curve": "Exponential",
+            "priority": "High",
+            "peak": {
+                "leftMotor": 1.0,
+                "rightMotor": 0.5,
+                "leftTrigger": 0.30000001192092896,
+                "rightTrigger": 0.30000001192092896
+            }
+        },
+        {
+            "id": "ArrowShot",
+            "duration": 0.07999999821186066,
+            "attack": 0.004999999888241291,
+            "release": 0.0,
+            "delay": 0.0,
+            "curve": "Punch",
+            "priority": "High",
+            "peak": {
+                "leftMotor": 0.809999942779541,
+                "rightMotor": 0.6299999952316284,
+                "leftTrigger": 0.7199999690055847,
+                "rightTrigger": 0.08999999612569809
+            }
+        },
+        {
+            "id": "UIClick",
+            "duration": 0.03999999910593033,
+            "attack": 0.0,
+            "release": 0.0,
+            "delay": 0.0,
+            "curve": "Punch",
+            "priority": "Low",
+            "peak": {
+                "leftMotor": 0.0,
+                "rightMotor": 0.15000000596046448,
+                "leftTrigger": 0.0,
+                "rightTrigger": 0.10000000149011612
+            }
+        },
+        {
+            "id": "EngineHum",
+            "duration": 1.0,
+            "attack": 0.0,
+            "release": 0.0,
+            "delay": 0.0,
+            "curve": "Sustain",
+            "priority": "Low",
+            "peak": {
+                "leftMotor": 0.04500000178813934,
+                "rightMotor": 0.029999999329447746,
+                "leftTrigger": 0.0,
+                "rightTrigger": 0.0
+            }
+        }
+    ]
+}

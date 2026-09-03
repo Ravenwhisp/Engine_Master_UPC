@@ -144,7 +144,7 @@ float4 main(PSInput input) : SV_Target
 
     // Do NOT use screen-space SSAO here.
     // MainDepth belongs to the real scene behind the transparent occluder.
-    float3 finalColor = ComputePBRSurfaceLighting(input.worldPos, albedo, metallic, alphaRoughness,ao, emissive, finalWorldNormal, 1.0f);
+    float3 finalColor = ComputePBRSurfaceLighting(input.worldPos, albedo, metallic, alphaRoughness,ao, emissive, finalWorldNormal, 1.0f, input.position);
 
     bool fogEnabled = falloffSettings.w > 0.5f;
 

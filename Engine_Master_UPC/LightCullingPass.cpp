@@ -6,6 +6,7 @@
 #include "LightComponent.h"
 #include "Transform.h"
 #include "Lights.h"
+#include "GameObject.h"
 
 #include "ModuleScene.h"
 #include "ModuleD3D12.h"
