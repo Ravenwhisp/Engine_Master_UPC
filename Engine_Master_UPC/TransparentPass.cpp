@@ -248,7 +248,6 @@ void TransparentPass::createRootSignature()
     rootParams[11].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL); //Shadow map texture
     rootParams[12].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL); //SSAO texture
 
-    // t13/t14 free - materials take t0-t7 (SLOT_COUNT), t8-t12 taken above
     rootParams[13].InitAsShaderResourceView(13, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[14].InitAsShaderResourceView(14, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 

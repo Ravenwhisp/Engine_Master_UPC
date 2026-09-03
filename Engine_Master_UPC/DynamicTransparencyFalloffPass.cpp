@@ -75,7 +75,6 @@ void DynamicTransparencyFalloffPass::createRootSignature()
     rootParams[13].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[14].InitAsDescriptorTable(1, &integratedFogRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    // t15/t16 free - t0-t7 are the material table (BasicMaterial::SLOT_COUNT), t8-t14 taken above
     rootParams[15].InitAsShaderResourceView(15, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[16].InitAsShaderResourceView(16, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 

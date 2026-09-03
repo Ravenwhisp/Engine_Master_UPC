@@ -66,7 +66,6 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     rootParameters[8].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[9].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    // t5/t6 free - LightCullingPass's point/spot index lists
     rootParameters[10].InitAsShaderResourceView(5, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[11].InitAsShaderResourceView(6, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -201,7 +200,6 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
     }
 
     {
-        // must come after all the m_sceneDataCB-> writes above, or tileCountX/Y goes stale
         PERF_RENDER("DeferredShadingPass::prepare::UploadSceneDataCB");
         m_sceneDataCBAddress = ctx.ringBuffer->allocate(
             m_sceneDataCB.get(),

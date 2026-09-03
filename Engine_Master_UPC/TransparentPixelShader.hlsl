@@ -391,7 +391,6 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
 
     
     
-    //Calculate point and spot direct lighting - walks this pixel's tile light list instead of every light
     float3 otherMetallic = 0.0f;
     float3 otherNonMetallic = 0.0f;
 

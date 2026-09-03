@@ -12,7 +12,6 @@ using Microsoft::WRL::ComPtr;
 class Texture;
 class DeferredShadingPass;
 
-// builds per-tile point/spot light index lists (tiled deferred light culling)
 class LightCullingPass final : public IRenderPass
 {
 public:
@@ -41,7 +40,6 @@ public:
     D3D12_GPU_VIRTUAL_ADDRESS getPointLightIndexBufferAddress() const;
     D3D12_GPU_VIRTUAL_ADDRESS getSpotLightIndexBufferAddress() const;
 
-    // stays in sync with the buffer addresses above
     uint32_t getTileCountX() const { return m_constants.tileCountX; }
     uint32_t getTileCountY() const { return m_constants.tileCountY; }
 
@@ -69,8 +67,6 @@ private:
     ComPtr<ID3D12Resource> m_spotLightIndexBuffer;
     D3D12_RESOURCE_STATES m_bufferState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
-    // only grows, never shrinks - editor/game share this pass at different sizes,
-    // so reallocating on every switch would free a buffer still in use elsewhere
     uint32_t m_allocatedTileCapacity = 0;
 
     Texture* m_inputDepthTexture = nullptr;

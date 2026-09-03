@@ -43,11 +43,11 @@ void LightCullingPass::createRootSignature()
 
     CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
 
-    rootParameters[0].InitAsDescriptorTable(1, &depthRange, D3D12_SHADER_VISIBILITY_ALL); // t0: depth texture
-    rootParameters[1].InitAsUnorderedAccessView(0, 0);                                    // u0: point light index list
-    rootParameters[2].InitAsUnorderedAccessView(1, 0);                                    // u1: spot light index list
-    rootParameters[3].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);        // b2: LightsCB (shared layout with DeferredShadingPass)
-    rootParameters[4].InitAsConstants(sizeof(TileCullingConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL); // b0
+    rootParameters[0].InitAsDescriptorTable(1, &depthRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[1].InitAsUnorderedAccessView(0, 0);
+    rootParameters[2].InitAsUnorderedAccessView(1, 0);
+    rootParameters[3].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[4].InitAsConstants(sizeof(TileCullingConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
@@ -82,7 +82,6 @@ void LightCullingPass::ensureTileListBuffers(uint32_t requiredTileCount)
         return;
     }
 
-    // flush before growing - another viewport's command list might still reference the old buffer
     app->getModuleD3D12()->getCommandQueue()->flush();
 
     const size_t bufferSize = static_cast<size_t>(requiredTileCount) * MAX_LIGHTS_PER_TILE * sizeof(int32_t);
@@ -134,7 +133,6 @@ void LightCullingPass::prepare(const RenderContext& ctx)
 
     ensureTileListBuffers(tileCountX * tileCountY);
 
-    // own copy - we run before DeferredShadingPass::prepare(), so its address isn't valid yet
     GPULightsConstantBuffer lightsCB = m_deferredShadingPass->packLightsForGPU(
         app->getModuleScene()->getLightComponents(),
         LightDefaults::DEFAULT_AMBIENT_COLOR,

@@ -269,7 +269,6 @@ float3 GetCascadeDebugColor(uint cascadeIndex)
     return float3(1.0f, 0.8f, 0.2f);
 }
 
-// directional stays untiled (only 4 max); otherMetallic/otherNonMetallic come pre-accumulated
 float3 ComputePBRSurfaceLightingCommon(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO,
     float3 F0Metallic, float3 F0NonMetallic, float3 viewDirection, float NdotV, float horizon, float3 otherMetallic, float3 otherNonMetallic)
 {
@@ -307,7 +306,6 @@ float3 ComputePBRSurfaceLightingCommon(float3 worldPos, float3 albedo, float met
     return finalColor;
 }
 
-// walks the per-tile light lists LightCullingPass built - used by every pixel shader now
 float3 ComputePBRSurfaceLightingTiled(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO,
     uint tileIndex, StructuredBuffer<int> pointLightIndices, StructuredBuffer<int> spotLightIndices)
 {

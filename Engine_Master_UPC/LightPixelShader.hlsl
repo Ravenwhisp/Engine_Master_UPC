@@ -22,7 +22,6 @@ float SampleSSAO(float4 screenPosition)
     return ssaoTexture.Sample(pointClampSample, ssaoUV).r;
 }
 
-// blue = few lights in this tile, red = a lot
 float3 GetLightCountHeatmap(uint count)
 {
     if (count == 0)

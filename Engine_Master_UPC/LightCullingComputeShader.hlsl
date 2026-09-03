@@ -23,13 +23,12 @@ cbuffer TileCullingConstants : register(b0)
 
 groupshared uint gMinDepth;
 groupshared uint gMaxDepth;
-groupshared float3 gSidePlanes[4]; // left, right, top, bottom - all pass through the origin, so D=0
+groupshared float3 gSidePlanes[4];
 groupshared float gNearViewZ;
 groupshared float gFarViewZ;
 groupshared uint gPointCount;
 groupshared uint gSpotCount;
 
-// camera projection is right-handed (SimpleMath default) - forward is -Z, viewZ is negative in front of camera
 float GetViewZ(float ndcDepth)
 {
     return -proj43 / (ndcDepth + proj33);
@@ -44,7 +43,6 @@ float3 GetViewPosition(float2 ndc, float viewZ)
     return viewPos;
 }
 
-// tight bounding sphere of the spot cone, so culling doesn't over-include on wide-angle lights
 float4 GetSpotBoundingSphere(float3 position, float3 direction, float range, float outerCosine)
 {
     const float COS_45_DEG = 0.70710678f;
@@ -71,7 +69,6 @@ bool SphereIntersectsTile(float3 viewSpaceCenter, float radius)
         }
     }
 
-    // RH: both near/far viewZ are negative, near closer to 0 than far
     return (viewSpaceCenter.z - radius <= gNearViewZ) && (viewSpaceCenter.z + radius >= gFarViewZ);
 }
 
@@ -127,7 +124,6 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupID : SV_Group
             viewPoints[i] = GetViewPosition(ndc, nearViewZ);
         }
 
-        // swapped cross order vs. the LH derivation - RH viewZ sign flip inverts winding
         [unroll]
         for (uint p = 0; p < 4; ++p)
         {
