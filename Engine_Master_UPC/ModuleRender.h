@@ -18,6 +18,9 @@
 #include "DepthReductionPass.h"
 #include "ShadowFrustumComputePass.h"
 #include "VolumetricFogComputePass.h"
+#include "OcclusionTargetDepthPass.h"
+#include "DynamicTransparencyMaskPass.h"
+#include "VideoPass.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -90,6 +93,8 @@ private:
     SkyBoxPass* m_skyBoxPass;
 
     std::unique_ptr<SkinningComputePass> m_skinningComputePass;
+    std::unique_ptr<OcclusionTargetDepthPass> m_occlusionTargetDepthPass;
+    std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
     std::unique_ptr<DepthReductionPass> m_depthReductionPass;
     std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
@@ -97,6 +102,7 @@ private:
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;
     std::unique_ptr<SSAOPass> m_ssaoPass;
     std::unique_ptr<SSAOBlurPass> m_ssaoBlurPass;
+    std::unique_ptr<VideoPass> m_videoPass;
 
     SSAOFrameData m_currentSSAOData{};
 
@@ -153,4 +159,6 @@ private:
 
     // D3D12 helpers
     void transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState,  D3D12_RESOURCE_STATES afterState);
+
+    bool renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface);
 };

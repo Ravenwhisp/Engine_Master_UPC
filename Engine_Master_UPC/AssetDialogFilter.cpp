@@ -13,7 +13,9 @@ AssetDialogFilter getDialogFilter(AssetType type)
     case AssetType::ANIMATION:
         return { "Animation Files (*.anim)\0*.anim\0All Files\0*.*\0",  "anim" };
     case AssetType::SCENE:
-        return { "Scene Files (*.scene)\0*.scene\0All Files\0*.*\0",    "scene" };  
+        return { "Scene Files (*.scene)\0*.scene\0All Files\0*.*\0",    "scene" };
+    case AssetType::VIDEO:
+        return { "Video Files (*.mp4)\0*.mp4\0*.avi\0*.mkv\0*.webm\0*.mov\0All Files\0*.*\0", "mp4" };
     default:
         return { "Asset Files (*.asset)\0*.asset\0All Files\0*.*\0",    "asset" };
     }

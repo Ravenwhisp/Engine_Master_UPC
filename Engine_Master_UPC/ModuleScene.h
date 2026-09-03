@@ -24,6 +24,8 @@ class IDebugDrawable;
 class ParticleSystemComponent;
 class TrailComponent;
 class LineRendererComponent;
+class OcclusionTargetComponent;
+class OcclusionOccluderComponent;
 
 struct ID3D12GraphicsCommandList;
 
@@ -37,6 +39,7 @@ private:
 
     std::string m_pendingSceneLoad;
     std::shared_ptr<Scene> m_pendingScene;
+    AssetId m_pendingSceneAssetId;
 
     std::vector<MeshRenderer*>            m_meshRenderers;
     std::vector<LightComponent*>          m_lightComponents;
@@ -44,6 +47,8 @@ private:
     std::vector<ParticleSystemComponent*> m_particleSystemComponents;
     std::vector<TrailComponent*>          m_trailComponents;
     std::vector<LineRendererComponent*>   m_lineRendererComponents;
+    std::vector<OcclusionTargetComponent*> m_occlusionTargetComponents;
+    std::vector<OcclusionOccluderComponent*> m_occlusionOccluderComponents;
 
     const std::vector<Layer> m_staticLayers = { Layer::ENVIRONMENT, Layer::NAVMESH };
     const std::vector<Layer> m_dynamicLayers = { Layer::DEFAULT, Layer::PLAYER, Layer::ENEMY, Layer::PROJECTILE, Layer::BREAKABLE, Layer::PICKUP };
@@ -69,6 +74,7 @@ public:
 
     void requestSceneChange(const std::string& sceneName);
     void requestSceneChange(std::shared_ptr<Scene> scene);
+    void requestSceneChange(const AssetId& ref);
 
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 
@@ -114,4 +120,6 @@ public:
     const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();
     const std::vector<TrailComponent*>& getTrailComponents();
     const std::vector<LineRendererComponent*>& getLineRendererComponents();
+    const std::vector<OcclusionTargetComponent*>& getOcclusionTargetComponents();
+    const std::vector<OcclusionOccluderComponent*>& getOcclusionOccluderComponents();
 };

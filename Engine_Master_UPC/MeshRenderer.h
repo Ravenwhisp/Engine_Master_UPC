@@ -42,8 +42,8 @@ public:
 	void addMesh(MeshAsset& model);
 	void addMaterial(MaterialAsset& material);
 
-	std::shared_ptr<BasicMesh>& getMesh() { return m_mesh; }
-	std::vector<std::shared_ptr<BasicMaterial>>& getMaterials() { return m_materials; }
+	std::shared_ptr<BasicMesh>& getMesh();
+	std::vector<std::shared_ptr<BasicMaterial>>& getMaterials();
 
 	bool									hasMesh() const { return m_mesh != nullptr; }
 

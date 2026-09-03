@@ -50,6 +50,12 @@
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
 #include "TransparentPass.h"
+#include "OcclusionTargetDepthPass.h"
+#include "DynamicTransparencyMaskPass.h"
+#include "DynamicTransparencyFalloffPass.h"
+
+#include "ModuleVideo.h"
+#include "VideoPlayback.h"
 
 #include "OptickProfiler.h"
 
@@ -93,6 +99,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
+    m_occlusionTargetDepthPass = std::make_unique<OcclusionTargetDepthPass>(device);
+    m_dynamicTransparencyMaskPass = std::make_unique<DynamicTransparencyMaskPass>(device);
     m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
     m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
@@ -107,6 +115,7 @@ bool ModuleRender::init()
 
     m_renderPasses.push_back(std::move(skyBoxPass));
     m_renderPasses.push_back(std::make_unique<VolumetricFogApplyPass>(device, m_volumetricFogComputePass.get()));
+    m_renderPasses.push_back(std::make_unique<DynamicTransparencyFalloffPass>(device, m_meshRenderPass, m_volumetricFogComputePass.get()));
     m_renderPasses.push_back(std::make_unique<ParticlesPass>(device));
     m_renderPasses.push_back(std::make_unique<TrailPass>(device));
     m_renderPasses.push_back(std::make_unique<LineRendererPass>(device));
@@ -127,6 +136,7 @@ bool ModuleRender::init()
     // bracket the entire editor render, not just the scene render.
     m_imGuiPass = std::make_unique<ImGuiPass>(device, d3d12->getWindowHandle(), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getCPUHandle(0), app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).getGPUHandle(0));
 
+    m_videoPass = std::make_unique<VideoPass>(device);
 
 
     #ifdef GAME_RELEASE
@@ -250,21 +260,34 @@ bool ModuleRender::cleanUp()
     m_shadowMapPass.reset();
     m_shadowFrustumComputePass.reset();
     m_depthReductionPass.reset();
+    m_dynamicTransparencyMaskPass.reset();
+    m_occlusionTargetDepthPass.reset();
     m_skinningComputePass.reset();
+    m_videoPass.reset();
 
     m_renderPasses.clear();
 
+    m_forwardPrepass = nullptr;
+    m_geometryPass = nullptr;
     m_meshRenderPass = nullptr;
     m_debugDrawPass = nullptr;
     m_skyBoxPass = nullptr;
+
+    m_ssaoBlurPass.reset();
+    m_ssaoPass.reset();
+    m_ssaoGeometryPass.reset();
+    m_volumetricFogComputePass.reset();
+    m_shadowMapPass.reset();
+    m_shadowFrustumComputePass.reset();
+    m_depthReductionPass.reset();
+    m_dynamicTransparencyMaskPass.reset();
+    m_occlusionTargetDepthPass.reset();
+    m_skinningComputePass.reset();
 
     m_imGuiPass.reset();
 
     delete m_ringBuffer;
     m_ringBuffer = nullptr;
-    //delete m_structuredRingBuffer;
-    //m_structuredRingBuffer = nullptr;
-
 
     return true;
 }
@@ -334,26 +357,53 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
 
     for (UINT i = 0; i < GeometryPass::GBUFFER_COUNT; ++i)
     {
-        auto texture = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, GeometryPass::GBUFFER_FORMATS[i]));
+        auto texture = std::shared_ptr<Texture>(
+            app->getModuleResources()->createGBuffer(
+                width,
+                height,
+                GeometryPass::GBUFFER_FORMATS[i]
+            )
+        );
+
         texture->setName(L"GBuffer_" + bufferNames[i]);
         surface.attachTexture(GeometryPass::kSlots[i], texture);
     }
 
-    auto ssaoDepthTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAODepthBuffer(width, height));
+    auto ssaoDepthTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createSSAODepthBuffer(width, height)
+    );
     ssaoDepthTexture->setName(L"RenderSurface_SSAO_Depth");
     surface.attachTexture(RenderSurface::SSAO_DEPTH, ssaoDepthTexture);
 
-    auto ssaoNormalTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAONormalBuffer(width, height));
+    auto ssaoNormalTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createSSAONormalBuffer(width, height)
+    );
     ssaoNormalTexture->setName(L"RenderSurface_SSAO_Normal");
     surface.attachTexture(RenderSurface::SSAO_NORMAL, ssaoNormalTexture);
 
-    auto ssaoRawTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+    auto ssaoRawTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createSSAOTexture(width, height)
+    );
     ssaoRawTexture->setName(L"RenderSurface_SSAO_Raw");
     surface.attachTexture(RenderSurface::SSAO_RAW, ssaoRawTexture);
 
-    auto ssaoBlurTexture = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
+    auto ssaoBlurTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createSSAOTexture(width, height)
+    );
     ssaoBlurTexture->setName(L"RenderSurface_SSAO_Blur");
     surface.attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTexture);
+
+    auto occlusionTargetDepth = std::shared_ptr<Texture>(
+        app->getModuleResources()->createDepthBuffer(width, height)
+    );
+    occlusionTargetDepth->setName(L"RenderSurface_OcclusionTargetDepth");
+    surface.attachTexture(
+        RenderSurface::OCCLUSION_TARGET_DEPTH,
+        occlusionTargetDepth
+    );
+    auto dynamicTransparencyMask = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT));
+    dynamicTransparencyMask->setName(L"RenderSurface_DynamicTransparencyMask");
+    surface.attachTexture(RenderSurface::DYNAMIC_TRANSPARENCY_MASK, dynamicTransparencyMask);
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)
@@ -471,6 +521,25 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         renderBackground(commandList, outputSurface);
     }
 
+    {
+        PERF_RENDER("ModuleRender::renderScene::OcclusionTargetDepthPass");
+
+        if (m_occlusionTargetDepthPass != nullptr)
+        {
+            m_occlusionTargetDepthPass->prepare(ctx);
+            m_occlusionTargetDepthPass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::DynamicTransparencyMaskPass");
+
+        if (m_dynamicTransparencyMaskPass != nullptr)
+        {
+            m_dynamicTransparencyMaskPass->prepare(ctx);
+            m_dynamicTransparencyMaskPass->apply(commandList);
+        }
+    }
 
     {
         PERF_RENDER("ModuleRender::renderScene::ForwardPrepass");
@@ -632,6 +701,36 @@ void ModuleRender::renderBackground(ID3D12GraphicsCommandList4* commandList, con
     commandList->RSSetScissorRects(1, &sr);
 }
 
+bool ModuleRender::renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface)
+{
+    VideoPlayback* video = app->getModuleVideo()->getPlayingVideo();
+
+    if (!video)
+    {
+        //DEBUG_LOG("[Module Render] No playing video");
+        return false;
+    }
+
+    if (!m_videoPass)
+    {
+        //DEBUG_ERROR("[Module Render] VideoPass is null");
+        return false;
+    }
+
+    //DEBUG_LOG("[Module Render] Playing video found");
+
+    const float width = static_cast<float>(outputSurface.getWidth());
+    const float height = static_cast<float>(outputSurface.getHeight());
+
+    D3D12_VIEWPORT viewport = { 0.0f, 0.0f, width, height, 0.0f, 1.0f };
+    D3D12_RECT scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+
+    m_videoPass->setVideo(video);
+    m_videoPass->prepare(outputSurface, viewport, scissorRect);
+
+    return m_videoPass->render(commandList);
+}
+
 #pragma region Wrappers
 
 void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList,
@@ -640,20 +739,32 @@ void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList,
     renderScene(commandList, getEditorCamera(), outputSurface, /*renderDebug=*/true, RenderViewType::Editor);
 }
 
-void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList,
-    RenderSurface& outputSurface)
+void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface)
 {
+    if (renderVideo(commandList, outputSurface))
+    {
+        return;
+    }
+
     const RenderCamera camera = getGameCamera();
-    if (!camera.valid) return;
+
+    if (!camera.valid)
+    {
+        return;
+    }
 
     renderScene(commandList, camera, outputSurface, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
 
-void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList,
-    RenderSurface& outputSurface)
+void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface)
 {
+    if (renderVideo(commandList, outputSurface))
+        return;
+
     const RenderCamera camera = getGameCamera();
-    if (!camera.valid) return;
+
+    if (!camera.valid)
+        return;
 
     renderScene(commandList, camera, outputSurface, m_moduleGameView->getShowDebugWindow(), RenderViewType::Game);
 }
@@ -671,7 +782,7 @@ void ModuleRender::markDebugDrawCacheDirty()
 void ModuleRender::resizeGameRenderTargets()
 {
     RenderSurface& gameSurface = app->getModuleD3D12()->getSwapChain()->getRenderSurface();
-    initSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
+    createSceneRenderTargets(gameSurface, static_cast<float>(gameSurface.getWidth()), static_cast<float>(gameSurface.getHeight()));
 }
 
 int ModuleRender::getTrianglesCount() const { return m_geometryPass->getTriangleCount(); }

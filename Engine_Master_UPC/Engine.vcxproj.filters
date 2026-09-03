@@ -166,6 +166,9 @@
     <Filter Include="Source\Video">
       <UniqueIdentifier>{5e09d6bc-b135-4232-8390-a78215e7633d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Video">
+      <UniqueIdentifier>{7ffa8667-55c9-44d9-996e-fc36a33fa233}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
@@ -877,6 +880,28 @@
     <ClCompile Include="ShadowFrustumComputePass.cpp" />
     <ClCompile Include="VolumetricFogApplyPass.cpp" />
     <ClCompile Include="VolumetricFogComputePass.cpp" />
+    <ClCompile Include="FlowMapComponent.cpp" />
+    <ClCompile Include="FlowMapPass.cpp" />
+    <ClCompile Include="OcclusionTargetComponent.cpp" />
+    <ClCompile Include="OcclusionTargetDepthPass.cpp" />
+    <ClCompile Include="OcclusionOccluderComponent.cpp" />
+    <ClCompile Include="DynamicTransparencyMaskPass.cpp" />
+    <ClCompile Include="DynamicTransparencyFalloffPass.cpp" />
+    <ClCompile Include="ModuleVideo.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPlayback.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowVideoDebug.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentVideo.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1823,6 +1848,29 @@
     <ClInclude Include="VolumetricFogComputePass.h" />
     <ClInclude Include="VolumetricFogSettings.h" />
     <ClInclude Include="VolumetricFogTypes.h" />
+    <ClInclude Include="FlowMapComponent.h" />
+    <ClInclude Include="FlowMapGPUData.h" />
+    <ClInclude Include="FlowMapPass.h" />
+    <ClInclude Include="OcclusionTargetComponent.h" />
+    <ClInclude Include="OcclusionTargetDepthPass.h" />
+    <ClInclude Include="OcclusionOccluderComponent.h" />
+    <ClInclude Include="DynamicTransparencyMaskPass.h" />
+    <ClInclude Include="DynamicTransparencyFalloffPass.h" />
+    <ClInclude Include="ModuleVideo.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPlayback.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowVideoDebug.h">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPass.h">
+      <Filter>Source\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentVideo.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
@@ -1946,6 +1994,21 @@
     <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
     <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
     <FxCompile Include="VolumetricFogLightingCS.hlsl" />
+    <FxCompile Include="FlowMapPS.hlsl" />
+    <FxCompile Include="FlowMapVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthPS.hlsl" />
+    <FxCompile Include="OcclusionBubbleVS.hlsl" />
+    <FxCompile Include="OcclusionBubblePS.hlsl" />
+    <FxCompile Include="DynamicTransparencyMaskPS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl" />
+    <FxCompile Include="VideoVertexShader.hlsl">
+      <Filter>Shaders\Video</Filter>
+    </FxCompile>
+    <FxCompile Include="VideoPixelShader.hlsl">
+      <Filter>Shaders\Video</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
@@ -1985,6 +2048,9 @@
       <Filter>Source\Inline</Filter>
     </None>
     <None Include="VolumetricFogCommon.hlsli" />
+    <None Include="PBRLighting.hlsli" />
+    <None Include="DynamicTransparencyFalloffCommon.hlsli" />
+    <None Include="DynamicTransparencyCommon.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc">

@@ -23,6 +23,7 @@
 #include "ModuleHaptics.h"
 #include "ModuleMusic.h"
 #include "ModuleScripting.h"
+#include "ModuleVideo.h"
 
 #include "GenericTypeFactory.h"
 
@@ -66,6 +67,7 @@ Application::Application(int argc, wchar_t** argv, void* hWnd)
     modules.push_back(m_moduleScene = new ModuleScene());
 
     modules.push_back(m_moduleMusic = new ModuleMusic());
+    modules.push_back(m_moduleVideo = new ModuleVideo());
 
 }
 
