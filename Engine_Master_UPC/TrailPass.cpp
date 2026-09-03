@@ -124,10 +124,10 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
     std::vector<UINT> indices;
     std::vector<VertexTrails> vertices;
 
-    TextureConstantBuffer cb{};
-
     for (auto& trailComponent : m_trailComponent) 
     {
+        TextureConstantBuffer cb{};
+
         indices.clear();
         vertices.clear();
 

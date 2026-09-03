@@ -121,10 +121,11 @@ void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     std::vector<UINT> indices;
     std::vector<VertexLineRenderer> vertices;
-    GradientConstantBuffer cb{};
 
     for (auto& lineRendererComponent : m_lineRendererComponent)
     {
+        GradientConstantBuffer cb{};
+
         indices.clear();
         vertices.clear();
         for (auto& color : cb.colors)
