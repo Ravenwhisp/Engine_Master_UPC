@@ -33,6 +33,7 @@ IMPLEMENT_SCRIPT_FIELDS(ObjectiveEvent,
 ObjectiveEvent::ObjectiveEvent(GameObject* owner)
     : GameplayEventAction(owner)
 {
+    m_isPersistent = true;
 }
 
 void ObjectiveEvent::executeEvent(GameplayEventTrigger* trigger)

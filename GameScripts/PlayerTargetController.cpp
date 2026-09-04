@@ -9,6 +9,7 @@
 #include "EnemyDamageable.h"
 #include "BreakableDamageable.h"
 #include "BreakableObject.h"
+#include "CrystalShadowMark.h"
 
 IMPLEMENT_SCRIPT_FIELDS(PlayerTargetController,
     SERIALIZED_FLOAT(m_targetRange, "Target Range", 0.0f, 20.0f, 0.05f),
@@ -132,7 +133,7 @@ void PlayerTargetController::updateTargetsInRange()
             continue;
         }
 
-        if (isTargetInRange(enemy) && isTargetAlive(enemy))
+        if (isTargetInRange(enemy) && isTargetAlive(enemy) && isTargetable(enemy))
         {
             m_targetsInRange.push_back(enemy);
             hasEnemyInRange = true;
@@ -146,7 +147,7 @@ void PlayerTargetController::updateTargetsInRange()
             continue;
         }
 
-        if (!isTargetInRange(breakable) || !isTargetAlive(breakable))
+        if (!isTargetInRange(breakable) || !isTargetAlive(breakable) || !isTargetable(breakable))
         {
             continue;
         }
@@ -246,7 +247,7 @@ void PlayerTargetController::clearInvalidCurrentTarget()
         return;
     }
 
-    if (!isTargetInRange(m_currentTarget) || !isTargetAlive(m_currentTarget))
+    if (!isTargetInRange(m_currentTarget) || !isTargetAlive(m_currentTarget) || !isTargetable(m_currentTarget))
     {
         setCurrentTarget(nullptr);
     }
@@ -277,7 +278,7 @@ GameObject* PlayerTargetController::findDefaultEnemyTarget() const
             continue;
         }
 
-        if (isTargetInRange(enemy) && isTargetAlive(enemy))
+        if (isTargetInRange(enemy) && isTargetAlive(enemy) && isTargetable(enemy))
         {
             return enemy;
         }
@@ -518,6 +519,23 @@ bool PlayerTargetController::isTargetAlive(GameObject* target) const
     }
 
     return false;
+}
+
+bool PlayerTargetController::isTargetable(GameObject* target) const
+{
+    if (target == nullptr)
+    {
+        return false;
+    }
+
+    CrystalShadowMark* crystal = GameObjectAPI::findScript<CrystalShadowMark>(target);
+
+    if (crystal != nullptr && crystal->isPuzzleCompleted())
+    {
+        return false;
+    }
+
+    return true;
 }
 
 bool PlayerTargetController::canTargetBreakableDuringCombat(GameObject* target) const

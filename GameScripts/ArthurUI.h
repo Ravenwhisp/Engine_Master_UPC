@@ -4,6 +4,8 @@
 #include "Transform2D.h"
 #include "UISlider.h"
 
+class BarrierComponent;
+
 class ArthurUI : public Script
 {
 	DECLARE_SCRIPT(ArthurUI)
@@ -47,18 +49,28 @@ public:
 private:
 	void applyHeavySwipeHitEffects(float t, Transform2D* glow, Transform2D* border, Transform2D* claw, float heavySwipeRange);
 
+	void updateHealthMarkers();
+	void setHealthMarkerVisible(Transform2D* marker, bool visible);
+
 public:
 	float m_healthBarDuration = 1.0f;
 
 private:
 	// Health
+	BarrierComponent* m_barrierComponent = nullptr;
 	ComponentRef<Transform> m_healthBarCanvas;
 	ComponentRef<Transform2D> m_healthBarContainer;
 	ComponentRef<Transform2D> m_healthBarPhase2;
+	ComponentRef<Transform2D> m_healthBarMarker25;
+	ComponentRef<Transform2D> m_healthBarPhaseMarker;
+	ComponentRef<Transform2D> m_healthBarMarker75;
 
 	Transform* m_healthBarCanvasTransform = nullptr;
 	Transform2D* m_healthBarContainerTransform2D = nullptr;
 	Transform2D* m_healthBarPhase2Transform2D = nullptr;
+	Transform2D* m_healthBarMarker25Transform2D = nullptr;
+	Transform2D* m_healthBarPhaseMarkerTransform2D = nullptr;
+	Transform2D* m_healthBarMarker75Transform2D = nullptr;
 
 	float m_healthBarTimer = 0.0f;
 	bool m_healthBarVisible = false;

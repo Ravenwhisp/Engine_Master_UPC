@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "UISplashScreen.h"
 #include "Transform2D.h"
+#include "PlayerGamepadBinding.h"
 
 IMPLEMENT_SCRIPT_FIELDS(UISplashScreen,
     SERIALIZED_COMPONENT_REF(buttonGlow, "Button Glow", ComponentType::TRANSFORM2D),
@@ -40,8 +41,8 @@ void UISplashScreen::Update()
         Input::getMoveAxis() != Vector2::Zero ||
         Input::getLookAxis() != Vector2::Zero)
     {
-        Input::setPlayerKeyboard(0);
-        Input::setPlayerGamepad(1, 0);
+        PlayerGamepadBinding::setKeyboard(0);
+        PlayerGamepadBinding::setGamepad(1, 0);
         if (!nextSceneName.empty())
         {
             SceneAPI::requestSceneChange(nextSceneName.c_str());
@@ -60,8 +61,8 @@ void UISplashScreen::Update()
         Input::getMoveAxis(1) != Vector2::Zero ||
         Input::getLookAxis(1) != Vector2::Zero)
     {
-        Input::setPlayerGamepad(0, 0);
-        Input::setPlayerGamepad(1, 1);
+        PlayerGamepadBinding::setGamepad(0, 0);
+        PlayerGamepadBinding::setGamepad(1, 1);
         if (!nextSceneName.empty())
         {
 			SceneAPI::requestSceneChange(nextSceneName.c_str());

@@ -307,8 +307,10 @@ void Scene::releasePendingDestroyedGameObjects()
     }
 }
 
-void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
+void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver)
 {
+    const std::string rootName = gameObject ? gameObject->GetName() : "<null>";
+
     std::vector<std::unique_ptr<GameObject>> all;
     all.push_back(std::move(gameObject));
 
@@ -332,6 +334,13 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
     markDirty();
 
     SceneReferenceResolver resolver;
+    if (externalResolver)
+    {
+        // Extra mappings (e.g. original prefab UIDs -> this instance's
+        // objects) so references resolve against the new subtree in one pass.
+        resolver.mergeFrom(*externalResolver);
+    }
+
     for (GameObject* obj : newGOs)
     {
         resolver.registerGameObject(obj, obj);
@@ -345,6 +354,14 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
             c->fixReferences(resolver);
     }
 
+    // Track the new objects in the quadtrees right away (this also rebuilds
+    // the tree if they lie outside the built bounds). Done after the fix
+    // pass so MeshRenderers already have valid bounding boxes.
+    for (GameObject* obj : newGOs)
+    {
+        app->getModuleScene()->moveGameObjectInQuadtrees(*obj);
+    }
+
     for (GameObject* obj : newGOs)
     {
         TriggerComponent* trigger = obj->GetComponentAs<TriggerComponent>(ComponentType::TRIGGER);
@@ -354,6 +371,9 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject)
             registerTrigger(trigger);
         }
     }
+
+    DEBUG_LOG("[Scene] '%s' added (+%zu subtree objects): references fixed, quadtrees updated.",
+              rootName.c_str(), newGOs.size());
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)

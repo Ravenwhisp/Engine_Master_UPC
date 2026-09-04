@@ -14,6 +14,8 @@
 #include "MaterialAsset.h"
 #include "SceneReferenceResolver.h"
 
+#include <unordered_set>
+
 MeshRenderer::~MeshRenderer() = default;
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
@@ -58,7 +60,21 @@ std::shared_ptr<BasicMesh>& MeshRenderer::getMesh()
         m_meshAsset.m_type = AssetType::MESH;
         auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
         if (meshAsset)
+        {
+            DEBUG_WARN("[MeshRenderer] '%s': mesh was null at render time; lazily loaded asset %llu "
+                       "(fixReferences had not loaded it).",
+                       m_owner->GetName().c_str(), (unsigned long long)m_meshAsset.m_uid);
             addMesh(*meshAsset);
+        }
+        else
+        {
+            static std::unordered_set<const MeshRenderer*> s_failedOnce;
+            if (s_failedOnce.insert(this).second)
+            {
+                DEBUG_WARN("[MeshRenderer] '%s': FAILED to lazily load mesh asset %llu.",
+                           m_owner->GetName().c_str(), (unsigned long long)m_meshAsset.m_uid);
+            }
+        }
     }
     return m_mesh;
 }
@@ -67,6 +83,13 @@ std::vector<std::shared_ptr<BasicMaterial>>& MeshRenderer::getMaterials()
 {
     if (m_materials.size() != m_materialAssets.size())
     {
+        static std::unordered_set<const MeshRenderer*> s_lazyWarned;
+        if (s_lazyWarned.insert(this).second)
+        {
+            DEBUG_WARN("[MeshRenderer] '%s': materials missing at render time (%zu refs vs %zu loaded); lazily loading.",
+                       m_owner->GetName().c_str(), m_materialAssets.size(), m_materials.size());
+        }
+
         m_materials.clear();
         for (auto& matRef : m_materialAssets)
         {
@@ -318,6 +341,9 @@ void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
         auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
         if (meshAsset)
             addMesh(*meshAsset);
+        else
+            DEBUG_WARN("[MeshRenderer] '%s': failed to load mesh asset %llu during fixReferences.",
+                       m_owner->GetName().c_str(), (unsigned long long)m_meshAsset.m_uid);
     }
 
     for (auto& matRef : m_materialAssets)
@@ -328,8 +354,18 @@ void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
             auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
             if (matAsset)
                 addMaterial(*matAsset);
+            else
+                DEBUG_WARN("[MeshRenderer] '%s': failed to load material asset %llu during fixReferences.",
+                           m_owner->GetName().c_str(), (unsigned long long)matRef.m_uid);
         }
     }
 
     recompute();
+
+    if (!m_mesh || m_materials.size() != m_materialAssets.size())
+    {
+        DEBUG_WARN("[MeshRenderer] '%s': fixReferences incomplete (mesh=%s, materials=%zu/%zu).",
+                   m_owner->GetName().c_str(), m_mesh ? "ok" : "NONE",
+                   m_materials.size(), m_materialAssets.size());
+    }
 }

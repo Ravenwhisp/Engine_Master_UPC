@@ -20,6 +20,7 @@ public:
 
     void registerComponent(UID id, Component* comp);
     void registerGameObject(const GameObject* original, GameObject* clone);
+    void mergeFrom(const SceneReferenceResolver& other);
     Component* getClonedComponent(UID id) const;
     GameObject* getClonedGameObject(const GameObject* original) const;
     GameObject* getClonedGameObject(UID id) const;

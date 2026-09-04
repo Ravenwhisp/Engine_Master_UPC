@@ -4,7 +4,6 @@
 #include "StateMachineScript.h"
 
 class ArthurBossController;
-class ArthurAttackConfig;
 class EnemyAttackExecutor;
 class AnimationComponent;
 class ArthurUI;
@@ -27,7 +26,6 @@ private:
 
 private:
     ArthurBossController* m_arthurController = nullptr;
-    AssetReference<ArthurAttackConfig> m_attackConfig;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
     ArthurUI* m_arthurUI = nullptr;

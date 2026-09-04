@@ -9,6 +9,8 @@
 #include "LyrielBasicAttack.h"
 #include "LyrielChargedAttack.h"
 
+#include "PersistingCheckpointState.h"
+
 IMPLEMENT_SCRIPT_FIELDS(LyrielCharacter,
     SERIALIZED_ASSET_REF(m_config, "Lyriel Config", AssetType::DATA_CONTAINER),
     SERIALIZED_STRING(m_arrowSpawnChildName, "Arrow Spawn Child Name")
@@ -64,6 +66,12 @@ void LyrielCharacter::Start()
     if (m_movement == nullptr)
     {
         Debug::log("[LyrielCharacter] PlayerMovement not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+
+    if (!PersistingCheckpointState::Get().IsStartOfLevel())
+    {
+        TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(m_owner),
+            PersistingCheckpointState::Get().m_savedLyrielRespawn);
     }
 }
 

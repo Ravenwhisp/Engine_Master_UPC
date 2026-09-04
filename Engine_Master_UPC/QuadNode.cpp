@@ -26,11 +26,11 @@ QuadNode::QuadNode(
 void QuadNode::insert(GameObject& object)
 {
     auto* model = object.GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-    if (!model) return;
+    if (!model || !model->hasMesh()) return;
 
     const auto& box = model->getBoundingBox();
 
-    if (!m_bounds.containsFully(box))
+    if (!m_bounds.containsFullySafe(box))
         return;
 
     if (!isLeaf())
@@ -62,15 +62,16 @@ void QuadNode::refit(GameObject& object)
 
     const auto& box = model->getBoundingBox();
 
-    if (!m_bounds.containsFully(box))
+    if (!m_bounds.containsFullySafe(box))
     {
         QuadNode* target = findContainingAncestor(box);
 
-        if (!target)
-            target = &m_tree.getRoot();
-
         remove(object);
-        target->insert(object);
+
+        if (target)
+            target->insert(object);
+        else
+            m_tree.insert(object); // Object left the root bounds: Quadtree::insert grows the tree if needed.
 
         return;
     }
@@ -304,7 +305,7 @@ QuadNode* QuadNode::findBestFitChild(const Engine::BoundingBox& box) const
 {
     for (const auto& child : m_children)
     {
-        if (child && child->m_bounds.containsFully(box))
+        if (child && child->m_bounds.containsFullySafe(box))
             return child.get();
     }
 
@@ -315,7 +316,7 @@ QuadNode* QuadNode::findContainingAncestor(const Engine::BoundingBox& box)
 {
     QuadNode* node = this;
 
-    while (node && !node->m_bounds.containsFully(box))
+    while (node && !node->m_bounds.containsFullySafe(box))
         node = node->m_parent;
 
     return node;

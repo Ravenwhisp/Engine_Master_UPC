@@ -4,11 +4,13 @@
 #include "HeartbeatHaptic.h"
 #include "CooperativeSound.h"
 #include "BoundConfig.h"
+#include "Transform2D.h"
 
 IMPLEMENT_SCRIPT_FIELDS(Bound,
     SERIALIZED_COMPONENT_REF(m_firstTarget, "Player 1 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_secondTarget, "Player 2 Transform", ComponentType::TRANSFORM),
-    SERIALIZED_COMPONENT_REF(m_BoundUI, "Bound UI", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_boundUI, "Bound UI", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_boundaryWarningUI, "Boundary Warning UI", ComponentType::TRANSFORM2D),
     SERIALIZED_ASSET_REF(m_config, "Bound Config", AssetType::DATA_CONTAINER)
 )
 
@@ -49,10 +51,8 @@ void Bound::Start()
     {
         const BoundConfig* cfg = m_config.get();
         m_minDistance = cfg->m_minDistance;
-        m_distanceDamage = cfg->m_distanceDamage;
-        m_distanceInstaKill = cfg->m_distanceInstaKill;
+        m_showBoundDistance = cfg->m_showBoundDistance;
         baseDamage = cfg->m_baseDamage;
-        maxDamage = cfg->m_maxDamage;
         m_radiusThreshold = cfg->m_radiusThreshold;
         m_separationHapticHpGate = cfg->m_separationHapticHpGate;
     }
@@ -69,48 +69,42 @@ void Bound::Update()
 
     // Midpoint
     m_center = (p1 + p2) * 0.5f;
-    if (m_BoundUI.getReferencedComponent())
+    if (m_boundUI.getReferencedComponent())
     {
-        TransformAPI::setGlobalPosition(m_BoundUI.getReferencedComponent(), m_center);
+        TransformAPI::setGlobalPosition(m_boundUI.getReferencedComponent(), m_center);
     }
 
     const float distance = Vector3::Distance(p1, p2);
 
-    const float maxRadius = m_distanceInstaKill * 0.5f;
-    m_currentRadius = min(distance * 0.5f + m_radiusThreshold, maxRadius);
+    m_currentRadius = distance * 0.5f + m_radiusThreshold;
 
-    if (m_previousDistance < m_distanceInstaKill && distance >= m_distanceInstaKill)
+    // --- Boundary warning alpha ---
+    if (m_boundaryWarningUI.getReferencedComponent())
     {
-        if (m_coopSound) m_coopSound->stopBoundDamageLoop();
-        m_firstDamageable->takeDamage(m_firstDamageable->getCurrentHp());
-        m_secondDamageable->takeDamage(m_secondDamageable->getCurrentHp());
-        return;
+        float alpha = 0.0f;
+        const float alphaRange = m_minDistance - m_showBoundDistance;
+        const float alphaMid = m_showBoundDistance + alphaRange * 0.5f;
+        if (distance > m_showBoundDistance && alphaRange > 0.0f)
+        {
+            if (distance >= alphaMid)
+                alpha = 1.0f;
+            else
+                alpha = (distance - m_showBoundDistance) / (alphaRange * 0.5f);
+        }
+        Transform2DAPI::setAlpha(m_boundaryWarningUI.getReferencedComponent(), alpha);
     }
 
-
-    if (distance > m_distanceDamage && distance < m_distanceInstaKill)
+    // --- Exponential damage beyond safe zone ---
+    if (distance > m_minDistance)
     {
-        // Separation damage band: the cooperative loop replaces the per-hit hurt grunt.
         if (m_coopSound) m_coopSound->startBoundDamageLoop();
 
-        const float range = m_distanceInstaKill - m_minDistance;
-
-        // Manual clamp
-        float t = (distance - m_minDistance) / range;
-        if (t < 0.0f) t = 0.0f;
-        if (t > 1.0f) t = 1.0f;
-
-        t = 0.45f + (t * t * 0.55f);
-
-        // Linear damage scale
-        const float damagePerSecond = baseDamage + (maxDamage - baseDamage) * t;
-
+        const float excess = (distance - m_minDistance) / m_minDistance;
+        const float damagePerSecond = baseDamage * pow(2.0f, excess);
         const float damage = damagePerSecond * Time::getDeltaTime();
 
-        // Continuous flag: suppresses the per-hit hurt grunt (the Bound-Damage loop
-        // above conveys the separation); the escalating heartbeat handles the tension.
-        m_firstDamageable->takeDamage(HitContext{ damage, /*continuous=*/true });
-        m_secondDamageable->takeDamage(HitContext{ damage, /*continuous=*/true });
+        m_firstDamageable->takeDamage(HitContext{ damage, true });
+        m_secondDamageable->takeDamage(HitContext{ damage, true });
 
         const bool p1LowHp = m_firstDamageable->getHpPercent() < m_separationHapticHpGate;
         const bool p2LowHp = m_secondDamageable->getHpPercent() < m_separationHapticHpGate;
@@ -118,7 +112,7 @@ void Bound::Update()
         if (m_haptic)
         {
             if (p1LowHp && p2LowHp)
-                m_haptic->tick(t);
+                m_haptic->tick(min(excess, 1.0f));
             else
                 m_haptic->stop();
         }
@@ -128,8 +122,6 @@ void Bound::Update()
         if (m_coopSound) m_coopSound->stopBoundDamageLoop();
         if (m_haptic) m_haptic->stop();
     }
-
-    m_previousDistance = distance;
 }
 
 void Bound::drawGizmo()
@@ -144,30 +136,16 @@ void Bound::drawGizmo()
     const float distance = Vector3::Distance(p1, p2);
     const Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
 
-    // Recompute radius locally
-    const float maxRadius = m_distanceInstaKill * 0.5f;
-    const float currentRadius = min(distance * 0.5f + m_radiusThreshold, maxRadius);
+    const float currentRadius = distance * 0.5f + m_radiusThreshold;
 
     DebugDrawAPI::drawLine(p1, p2, Vector3(1.0f, 1.0f, 1.0f));
     DebugDrawAPI::drawPoint(center, Vector3(1.0f, 1.0f, 0.0f), 4.0f);
 
-    Vector3 circleColor;
-    if (distance <= m_minDistance)
-        circleColor = Vector3(0.0f, 1.0f, 0.0f);
-    else if (distance < m_distanceDamage)
-        circleColor = Vector3(1.0f, 1.0f, 0.0f);
-    else if (distance < m_distanceInstaKill)
-        circleColor = Vector3(1.0f, 0.3f, 0.0f);
-    else
-        circleColor = Vector3(1.0f, 1.0f, 1.0f);
+    const Vector3 circleColor = distance <= m_minDistance
+        ? Vector3(0.0f, 1.0f, 0.0f)
+        : Vector3(1.0f, 0.3f, 0.0f);
 
     DebugDrawAPI::drawCircle(center, up, circleColor, currentRadius, 32.0f);
-
-    const float damageRadius = min(m_distanceDamage * 0.5f, m_distanceInstaKill * 0.5f);
-    const float instaKillRadius = m_distanceInstaKill * 0.5f;
-
-    DebugDrawAPI::drawCircle(center, up, Vector3(1.0f, 1.0f, 0.0f), damageRadius, 32.0f);
-    DebugDrawAPI::drawCircle(center, up, Vector3(1.0f, 0.0f, 0.0f), instaKillRadius, 32.0f);
 }
 
 

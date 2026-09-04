@@ -2,12 +2,13 @@
 #include "ReaperGauge.h"
 #include "CooperativeSound.h"
 
+#include "PersistingCheckpointState.h"
+
 #include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS(ReaperGauge,
     SERIALIZED_FLOAT(m_maxGauge, "Max Gauge", 1.0f, 500.0f, 1.0f),
     SERIALIZED_INT(m_numSegments, "Num Segments"),
-    SERIALIZED_FLOAT(m_gainPerExploit, "Gain Per Exploit", 0.0f, 100.0f, 1.0f),
     SERIALIZED_FLOAT(m_gracePeriod, "Grace Period", 0.0f, 60.0f, 0.5f),
     SERIALIZED_FLOAT(m_decayPerSecond, "Decay Per Second", 0.0f, 50.0f, 0.5f),
 	SERIALIZED_COMPONENT_REF(m_reaperGaugeUI, "Reaper Gauge UI", ComponentType::UISLIDER),
@@ -33,12 +34,28 @@ void ReaperGauge::Start()
     SliderAPI::setFillAmount(m_reaperGaugeSlider, getGaugePercent());
     Transform2DAPI::setAlpha(m_glowTransform, 0.0f);
     Transform2DAPI::setAlpha(m_blinkAlphaTransform, 0.0f);
+
+    PersistingCheckpointState* PersistingCheckpointState = &PersistingCheckpointState::Get();
+    if (PersistingCheckpointState && PersistingCheckpointState->m_lastCheckpointId > CheckpointId::NONE)
+    {
+        m_gauge = PersistingCheckpointState->m_savedReaperGaugeAmount;
+        m_everExploited = true;
+        m_decayTimer = 0.0f;
+        m_decaying = false;
+    }
 }
 
 void ReaperGauge::Update()
 {
-    if (!m_everExploited || m_gauge <= 0.0f)
+    if (!m_everExploited)
         return;
+
+    if (m_gauge <= 0.0f)
+    {
+        m_gauge = 0.0f;
+        updateUI();
+        return;
+    }
 
     m_decayTimer += Time::getDeltaTime();
 
@@ -53,15 +70,17 @@ void ReaperGauge::Update()
         }
 
         m_gauge -= m_decayPerSecond * Time::getDeltaTime();
-        if (m_gauge < 0.0f)
+
+        if (m_gauge <= 0.0f)
+        {
             m_gauge = 0.0f;
+            m_decaying = false;
+        }
 
         if (wasAboveZero && m_gauge <= 0.0f)
-        {
-            m_decaying = false;
             Debug::log("[ReaperGauge] Gauge empty. Shadow Execution NOT available.");
-        }
     }
+
     updateUI();
 }
 
@@ -73,13 +92,16 @@ void ReaperGauge::onMarkExploited()
 
     const bool wasFull = isFull();
 
-    m_gauge += m_gainPerExploit;
-    if (m_gauge > m_maxGauge)
-        m_gauge = m_maxGauge;
+    const float segmentValue = m_maxGauge / static_cast<float>(m_numSegments);
+    constexpr float epsilon = 0.0001f;
+    const int nextSegment = static_cast<int>((m_gauge + epsilon) / segmentValue) + 1;
 
-    Debug::log("[ReaperGauge] Mark exploited! +%.1f%%  =>  %.1f%%  (%d/%d segments)",
-        (m_gainPerExploit / m_maxGauge) * 100.0f, getGaugePercent() * 100.0f,
-        getCurrentSegments(), m_numSegments);
+    m_gauge = static_cast<float>(nextSegment) * segmentValue;;
+
+    if (m_gauge > m_maxGauge)
+    {
+        m_gauge = m_maxGauge;
+    }
 
     if (!wasFull && isFull())
     {
@@ -96,6 +118,9 @@ void ReaperGauge::consume()
     m_gauge      = 0.0f;
     m_decayTimer = 0.0f;
     m_decaying   = false;
+
+    updateUI();
+
     Debug::log("[ReaperGauge] Gauge consumed by Shadow Execution.");
 }
 
@@ -116,6 +141,25 @@ int ReaperGauge::getCurrentSegments() const
 
 void ReaperGauge::updateUI()
 {
+    if (m_gauge <= 0.0f)
+    {
+        if (m_reaperGaugeSlider) {
+            SliderAPI::setFillAmount(m_reaperGaugeSlider, 0.0f);
+        }
+
+        if (m_glowTransform)
+        {
+            Transform2DAPI::setAlpha(m_glowTransform, 0.0f);
+        }
+
+        if (m_blinkAlphaTransform) 
+        {
+            Transform2DAPI::setAlpha(m_blinkAlphaTransform, 0.0f);
+        }
+
+        return;
+    }
+
     if (m_reaperGaugeSlider)
     {
         SliderAPI::setFillAmount(m_reaperGaugeSlider, getGaugePercent());
@@ -123,18 +167,20 @@ void ReaperGauge::updateUI()
 
     if (m_glowTransform)
     {
-        if (m_decayTimer <= m_gracePeriod)
-        {
-            const float alpha = 1.0f - (m_decayTimer / m_gracePeriod);
-            Transform2DAPI::setAlpha(m_glowTransform, alpha);
+        float alpha = 0.0f;
+
+        if (m_gracePeriod > 0.0f && m_decayTimer <= m_gracePeriod) {
+            alpha = 1.0f - (m_decayTimer / m_gracePeriod);
         }
+
+        Transform2DAPI::setAlpha(m_glowTransform, alpha);
     }
 
     if (m_blinkAlphaTransform)
     {
         if (m_decayTimer > m_gracePeriod)
         {
-			const float t = (sinf((m_decayTimer - m_gracePeriod) * m_blinkSpeed) + 1.0f) * 0.5f;
+            const float t = (sinf((m_decayTimer - m_gracePeriod) * m_blinkSpeed) + 1.0f) * 0.5f;
             Transform2DAPI::setAlpha(m_blinkAlphaTransform, t * m_blinkAlpha);
         }
         else

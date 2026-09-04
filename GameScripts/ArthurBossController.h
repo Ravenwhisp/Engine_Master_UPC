@@ -59,6 +59,7 @@ public:
 	int getSelectedSideSweepSide() const { return m_selectedSideSweepSide; }
 	
 protected:
+	const EnemyBaseDataConfig* getBaseDataConfig() const override;
 	Transform* acquireCurrentTarget() override;
 	bool isTargetDowned(Transform* target) const override;
 
@@ -68,10 +69,10 @@ private:
 
 public:
 	float m_combatRange = 3.0f;
+	AssetReference<ArthurAttackConfig> m_attackConfig;
 
 private:
 	ArthurDetectionAggro* m_arthurDetectionAggro = nullptr;
-	AssetReference<ArthurAttackConfig> m_attackConfig;
 	ArthurUI* m_arthurUI = nullptr;
 
 	ArthurBossPhase m_phase = ArthurBossPhase::Phase1;

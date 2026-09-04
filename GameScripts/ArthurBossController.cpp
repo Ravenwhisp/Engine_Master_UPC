@@ -116,6 +116,11 @@ void ArthurBossController::Update()
 	updateBossPhase();
 }
 
+const EnemyBaseDataConfig* ArthurBossController::getBaseDataConfig() const
+{
+	return m_attackConfig.get();
+}
+
 Transform* ArthurBossController::acquireCurrentTarget()
 {
 	if (!m_arthurDetectionAggro)

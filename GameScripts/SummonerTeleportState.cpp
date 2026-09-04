@@ -40,7 +40,8 @@ void SummonerTeleportState::OnStateEnter()
 
 		if (ownerTransform)
 		{
-			TransformAPI::setPosition(ownerTransform, teleportPosition);
+			teleportPosition.y = TransformAPI::getGlobalPosition(ownerTransform).y;
+			TransformAPI::setGlobalPosition(ownerTransform, teleportPosition);
 			m_controller->consumeTeleportCooldown();
 
 			Debug::log("[SummonerTeleportState] Teleported.");

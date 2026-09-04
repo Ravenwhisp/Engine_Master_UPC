@@ -27,24 +27,13 @@ void DeathChargedAttack::Start()
     m_particles = GameObjectAPI::findScript<DeathParticles>(getOwner());
 
     if (m_deathCharacter == nullptr)
-    {
         Debug::error("[DeathChargedAttack] Owner does not have a valid DeathCharacter.");
-    }
-
     if (m_config == nullptr)
-    {
         Debug::error("[DeathChargedAttack] DeathConfig not found.");
-    }
-
     if (m_deathUI == nullptr)
-    {
         Debug::warn("[DeathChargedAttack] DeathUI not found.");
-    }
-
     if (m_particles == nullptr)
-    {
         Debug::error("[DeathChargedAttack] DeathParticles not found.");
-    }
 }
 
 void DeathChargedAttack::Update()
@@ -56,21 +45,18 @@ void DeathChargedAttack::Update()
         m_chargeTime += Time::getDeltaTime();
 
         if (m_chargeTime > m_config->m_chargedMaxChargeTime)
-        {
             m_chargeTime = m_config->m_chargedMaxChargeTime;
-        }
-
-        updateAimDirection();
 
         if (m_deathUI)
         {
             Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-
             if (ownerTransform)
             {
                 const Vector3 origin = TransformAPI::getGlobalPosition(ownerTransform);
+                const float chargeRatio = m_chargeTime / m_config->m_chargedMaxChargeTime;
+                const bool isMaxCharge = m_chargeTime >= m_config->m_chargedMaxChargeTime;
                 m_deathUI->showChargedAttackUI();
-                m_deathUI->updateChargedAttackUI(origin, m_aimDirection);
+                m_deathUI->updateChargedAttackUI(origin, chargeRatio, m_config->m_chargedCircleRadius, isMaxCharge);
             }
         }
 
@@ -83,9 +69,7 @@ void DeathChargedAttack::Update()
     }
 
     if (m_deathUI)
-    {
         m_deathUI->hideChargedAttackUI();
-    }
 }
 
 void DeathChargedAttack::startAbility()
@@ -95,55 +79,41 @@ void DeathChargedAttack::startAbility()
 
 bool DeathChargedAttack::canStartSpecificAbility() const
 {
-    return m_deathCharacter != nullptr && !m_deathCharacter->isInComboCooldown() && m_deathCharacter->canUseR2InCombo();
+    return m_deathCharacter != nullptr;
 }
 
 void DeathChargedAttack::startCharging()
 {
-    m_chargeTime             = 0.0f;
-    m_isCharging             = true;
-    m_aimDirection           = { 0.0f, 0.0f, 0.0f };
+    m_chargeTime   = 0.0f;
+    m_isCharging   = true;
 
     setAbilityLocked(true);
     applyChargingMovementSlowdown(m_config->m_chargedMovementSlowdownPercentage);
 
     DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
     if (sound != nullptr)
-    {
         sound->startChargeLoop();
-    }
-
-    Debug::log("[COMBO] R2 cargando  step=%d/3", m_deathCharacter->getComboStep() + 1);
 }
 
 void DeathChargedAttack::fireAttack()
 {
-    // Snap to the aim direction sampled during the hold, then deal damage in that direction
-    snapFaceAimDirection();
-
-    const int   comboStep   = m_deathCharacter->getComboStep();
-    const bool  isMaxCharge = (m_chargeTime >= m_deathCharacter->getConfig()->m_chargedMaxChargeTime);
-
-    // Charged-mode shot: only valid as combo starter (step 0), needs min charge time
-    const bool isChargedShot = (m_chargeTime >= m_deathCharacter->getConfig()->m_chargedMinChargeTime) && (comboStep == 0);
+    const bool  isMaxCharge   = (m_chargeTime >= m_config->m_chargedMaxChargeTime);
+    const bool  isChargedShot = (m_chargeTime >= m_config->m_chargedMinChargeTime);
 
     float damage;
     if (isChargedShot)
     {
-        const float rawRatio    = m_chargeTime / m_deathCharacter->getConfig()->m_chargedMaxChargeTime;
+        const float rawRatio    = m_chargeTime / m_config->m_chargedMaxChargeTime;
         const float chargeRatio = rawRatio > 1.0f ? 1.0f : rawRatio;
-        damage = m_deathCharacter->getConfig()->m_chargedAttackDamage * (1.0f + chargeRatio);
+        damage = m_config->m_chargedAttackDamage + (m_config->m_chargedMaxChargeDamage - m_config->m_chargedAttackDamage) * chargeRatio;
 
-        if (isMaxCharge)
-            Debug::log("[COMBO] R2 CARGA MAXIMA  step %d/3  dmg=%.1f", comboStep + 1, damage);
-        else
-            Debug::log("[COMBO] R2 CARGADO  step %d/3  ratio=%.0f%%  dmg=%.1f",
-                comboStep + 1, (m_chargeTime / m_deathCharacter->getConfig()->m_chargedMaxChargeTime) * 100.0f, damage);
+        Debug::log("[ChargedAttack] Charged shot  dmg=%.1f  ratio=%.0f%%%s",
+            damage, chargeRatio * 100.0f, isMaxCharge ? " (MAX)" : "");
     }
     else
     {
-        damage = m_deathCharacter->getConfig()->m_chargedAttackDamage;
-        Debug::log("[COMBO] R2  step %d/3  dmg=%.1f", comboStep + 1, damage);
+        damage = m_config->m_chargedAttackDamage;
+        Debug::log("[ChargedAttack] Quick tap  dmg=%.1f", damage);
     }
 
     DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
@@ -151,108 +121,51 @@ void DeathChargedAttack::fireAttack()
     {
         sound->stopChargeLoop();
         if (isChargedShot)
-        {
-            // Charged: the release IS the attack sound. No swing, no impact.
             sound->playChargeRelease();
-        }
         else
-        {
-            // Tap R2 or mid-combo: regular swing; impact will play if it lands.
             sound->playHeavySwing();
-        }
     }
 
-    const float range = isChargedShot ? m_deathCharacter->getConfig()->m_chargedShotArcRange : m_deathCharacter->getConfig()->m_chargedArcRange;
-    const float angle = isChargedShot ? m_deathCharacter->getConfig()->m_chargedShotArcAngle : m_deathCharacter->getConfig()->m_chargedArcAngle;
-
-    dealDamageInArc(damage, range, angle, isChargedShot, isMaxCharge);
+    dealDamageInCircle(damage, m_config->m_chargedCircleRadius, isChargedShot, isMaxCharge);
     notifyAbilitySuccessfullyStarted();
-
-    // Max charge (auto-fired at full charge, always step 0) gets longer combo window
-    const float window = (isChargedShot && isMaxCharge)
-        ? m_deathCharacter->getComboWindowMaxCharge()
-        : m_deathCharacter->getComboWindowR2();
-    m_deathCharacter->advanceCombo(true, window);
-
-    const bool isLast = (comboStep >= 2);
-    if (isLast)
-        Debug::log("[COMBO] R2  step 3/3  COMPLETO — reset");
 
     m_isCharging = false;
     resetChargingMovementSlowdown();
     m_chargeTime = 0.0f;
 
-    const float lockDuration = (comboStep >= 2) ? m_deathCharacter->getConfig()->m_chargedFinalHitLockDuration : m_deathCharacter->getConfig()->m_chargedAttackLockDuration;
-
-    // Trigger attack animation and start the post-fire movement lock window
     beginAttackPresentation();
-    beginAttackWindow(lockDuration);
+    beginAttackWindow(m_config->m_chargedAttackLockDuration);
     startCooldown();
 }
 
-void DeathChargedAttack::dealDamageInArc(float damage, float range, float angle, bool isChargedShot, bool isMaxCharge) const
+void DeathChargedAttack::dealDamageInCircle(float damage, float radius, bool isChargedShot, bool isMaxCharge) const
 {
     const Transform* myTransform = GameObjectAPI::getTransform(m_owner);
-    if (myTransform == nullptr)
-    {
-        return;
-    }
+    if (myTransform == nullptr) return;
 
-    Vector3 myPos = TransformAPI::getGlobalPosition(myTransform);
-    Vector3 myForward = TransformAPI::getForward(myTransform);
-
-    myForward.y = 0.0f;
-    const float fwdLen = myForward.Length();
-    if (fwdLen > 0.0001f)
-    {
-        myForward /= fwdLen;
-    }
-
-    constexpr float k_degToRad = 3.14159265f / 180.0f;
-    const float halfAngleCos = cosf(angle * 0.5f * k_degToRad);
-    const float arcRangeSq = range * range;
+    const Vector3 myPos = TransformAPI::getGlobalPosition(myTransform);
+    const float radiusSq = radius * radius;
 
     const auto enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY);
-	const auto breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE);
-	auto targets = enemies;
-	targets.insert(targets.end(), breakables.begin(), breakables.end());
+    const auto breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE);
+    auto targets = enemies;
+    targets.insert(targets.end(), breakables.begin(), breakables.end());
     int scanned = 0;
     int hit = 0;
 
     for (GameObject* target : targets)
     {
-        if (target == nullptr)
-        {
-            continue;
-        }
+        if (target == nullptr) continue;
 
         const Transform* enemyTr = GameObjectAPI::getTransform(target);
-        if (enemyTr == nullptr)
-        {
-            continue;
-        }
+        if (enemyTr == nullptr) continue;
 
         scanned++;
 
         Vector3 toEnemy = TransformAPI::getGlobalPosition(enemyTr) - myPos;
         toEnemy.y = 0.0f;
 
-        const float distSq = toEnemy.LengthSquared();
-        if (distSq > arcRangeSq)
-        {
-            continue;
-        }
-
-        if (angle < 360.0f && distSq > 0.0001f)
-        {
-            Vector3 toEnemyNorm = toEnemy;
-            toEnemyNorm.Normalize();
-
-            if (myForward.Dot(toEnemyNorm) < halfAngleCos)
-            {
-                continue;
-            }
-        }
+        if (toEnemy.LengthSquared() > radiusSq) continue;
 
         EnemyDamageable* damageable = GameObjectAPI::findScript<EnemyDamageable>(target);
         if (damageable == nullptr)
@@ -260,12 +173,12 @@ void DeathChargedAttack::dealDamageInArc(float damage, float range, float angle,
             BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(target);
             if (breakableDamageable == nullptr)
             {
-                Debug::log("[ARC] '%s' has no Damageable.", GameObjectAPI::getName(target));
+                Debug::log("[CIRCLE] '%s' has no Damageable.", GameObjectAPI::getName(target));
                 continue;
             }
-            breakableDamageable->takeDamage(damage);    
+            breakableDamageable->takeDamage(damage);
         }
-        else 
+        else
         {
             EnemyHitContext ctx;
             ctx.damage = damage;
@@ -280,57 +193,13 @@ void DeathChargedAttack::dealDamageInArc(float damage, float range, float angle,
     }
 
     DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
-    if (sound != nullptr)
-    {
-        // Charged shot uses charge_release as its impact sound (posted in fireAttack);
-        // only non-charged shots get heavy_impact here.
-        if (hit > 0 && !isChargedShot)
-        {
-            sound->playHeavyImpact();
-        }
-    }
+    if (sound != nullptr && hit > 0 && !isChargedShot)
+        sound->playHeavyImpact();
 
     if (scanned == 0)
-    {
-        Debug::log("[ARC] no ENEMY tagged objects in scene.");
-    }
+        Debug::log("[CIRCLE] no ENEMY tagged objects in scene.");
     else if (hit == 0)
-    {
-        Debug::log("[ARC] 0 hits — %d enemies scanned, none in range/angle.", scanned);
-    }
-}
-
-void DeathChargedAttack::updateAimDirection()
-{
-    Vector3 aimDirection = computeCameraRelativeAimDirection(0.09f);
-
-    if (aimDirection.LengthSquared() > 0.0001f)
-    {
-        m_aimDirection = aimDirection;
-    }
-    else
-    {
-        m_aimDirection = getFallbackFacingDirection();
-    }
-}
-
-void DeathChargedAttack::snapFaceAimDirection()
-{
-    // If no stick input was given during the charge, keep current facing
-    if (m_aimDirection.LengthSquared() <= 0.0001f)
-        return;
-
-    Transform* myTransform = GameObjectAPI::getTransform(getOwner());
-    if (myTransform == nullptr)
-        return;
-
-    Vector3 dir = m_aimDirection;
-    dir.Normalize();
-
-    constexpr float k_radToDeg = 180.0f / 3.14159265f;
-    const float     yaw        = atan2f(dir.x, dir.z) * k_radToDeg;
-    const Vector3   euler      = TransformAPI::getGlobalEulerDegrees(myTransform);
-    TransformAPI::setGlobalRotationEuler(myTransform, Vector3(euler.x, yaw, euler.z));
+        Debug::log("[CIRCLE] 0 hits — %d enemies scanned, none in range.", scanned);
 }
 
 void DeathChargedAttack::onAttackWindowUpdate()
@@ -340,17 +209,13 @@ void DeathChargedAttack::onAttackWindowUpdate()
         anim->requestAttack();
 
     if (m_particles != nullptr)
-    {
         m_particles->SetScytheActive();
-    }
 }
 
 void DeathChargedAttack::onAttackWindowFinished()
 {
     if (m_particles != nullptr)
-    {
         m_particles->SetScytheInactive();
-    }
 }
 
 float DeathChargedAttack::getCooldown() const
@@ -360,83 +225,58 @@ float DeathChargedAttack::getCooldown() const
 
 void DeathChargedAttack::drawGizmo()
 {
-    if (m_deathCharacter == nullptr)
-        return;
+    if (m_deathCharacter == nullptr) return;
 
     const Transform* t = GameObjectAPI::getTransform(getOwner());
-    if (t == nullptr)
-        return;
+    if (t == nullptr) return;
 
-    const Vector3 pos   = TransformAPI::getGlobalPosition(t);
-    const float   range = m_deathCharacter->getConfig()->m_chargedArcRange;
-
-    // While charging with stick input, show arc in aim direction; otherwise use character forward
-    Vector3 fwd;
-    if (m_isCharging && m_aimDirection.LengthSquared() > 0.0001f)
-    {
-        fwd = m_aimDirection;
-        fwd.Normalize();
-    }
-    else
-    {
-        fwd = TransformAPI::getForward(t);
-    }
-    const float   angle   = m_deathCharacter->getConfig()->m_chargedArcAngle;
+    const Vector3 pos     = TransformAPI::getGlobalPosition(t);
+    const float   radius  = m_deathCharacter->getConfig()->m_chargedCircleRadius;
     const Vector3 posFlat = { pos.x, pos.y, pos.z };
-
-    constexpr float k_degToRad = 3.14159265f / 180.0f;
-    const float halfRad        = angle * 0.5f * k_degToRad;
 
     const Vector3 colGrey   = { 0.35f, 0.35f, 0.35f };
     const Vector3 colOrange = { 1.0f,  0.55f, 0.0f  };
     const Vector3 colYellow = { 1.0f,  0.9f,  0.0f  };
     const Vector3 colBase   = m_isCharging ? colOrange : colGrey;
 
-    auto radialDir = [&](float a) -> Vector3
+    constexpr float k_degToRad = 3.14159265f / 180.0f;
+    constexpr int   circleSegs = 24;
+    const float     segAngle   = 360.0f / static_cast<float>(circleSegs) * k_degToRad;
+
+    auto circlePoint = [&](int i) -> Vector3
     {
-        return Vector3(
-            fwd.x * cosf(a) + fwd.z * sinf(a),
-            0.0f,
-            -fwd.x * sinf(a) + fwd.z * cosf(a));
+        const float a = segAngle * static_cast<float>(i);
+        return Vector3(cosf(a) * radius, 0.0f, sinf(a) * radius);
     };
 
-    // Arc outline
-    DebugDrawAPI::drawLine(posFlat, posFlat + radialDir(-halfRad) * range, colBase);
-    DebugDrawAPI::drawLine(posFlat, posFlat + radialDir( halfRad) * range, colBase);
-
-    const int   arcSegs = 12;
-    const float arcStep = (angle * k_degToRad) / static_cast<float>(arcSegs);
-    for (int i = 0; i < arcSegs; ++i)
+    // Circle outline
+    for (int i = 0; i < circleSegs; ++i)
     {
-        const float a0 = -halfRad + arcStep * static_cast<float>(i);
-        const float a1 = a0 + arcStep;
-        DebugDrawAPI::drawLine(posFlat + radialDir(a0) * range,
-                               posFlat + radialDir(a1) * range, colBase);
+        const int next = (i + 1) % circleSegs;
+        DebugDrawAPI::drawLine(posFlat + circlePoint(i), posFlat + circlePoint(next), colBase);
     }
 
-    // Charge fill: yellow overlay that grows with charge ratio
-    if (m_isCharging && m_deathCharacter->getConfig()->m_chargedMaxChargeTime > 0.0f)
+    // Charge fill: yellow arcs that grow with charge ratio
+    if (m_isCharging && m_config->m_chargedMaxChargeTime > 0.0f)
     {
-        const float ratio   = m_chargeTime / m_deathCharacter->getConfig()->m_chargedMaxChargeTime;
+        const float ratio   = m_chargeTime / m_config->m_chargedMaxChargeTime;
         const float clamped = ratio > 1.0f ? 1.0f : ratio;
-        const int   fillEnd = static_cast<int>(clamped * static_cast<float>(arcSegs));
+        const int   fillEnd = static_cast<int>(clamped * static_cast<float>(circleSegs));
 
         for (int i = 0; i < fillEnd; ++i)
         {
-            const float a0 = -halfRad + arcStep * static_cast<float>(i);
-            const float a1 = a0 + arcStep;
-            DebugDrawAPI::drawLine(posFlat + radialDir(a0) * range,
-                                   posFlat + radialDir(a1) * range, colYellow);
+            const int next = (i + 1) % circleSegs;
+            DebugDrawAPI::drawLine(posFlat + circlePoint(i), posFlat + circlePoint(next), colYellow);
         }
     }
 }
 
 void DeathChargedAttack::updateUI()
 {
+    AbilityBase::updateUI();
+
     if (m_deathUI)
-    {
         m_deathUI->updateChargedSlashUI(m_attackStateTimer, m_deathCharacter->getConfig()->m_chargedAttackLockDuration);
-    }
 }
 
 IMPLEMENT_SCRIPT(DeathChargedAttack)

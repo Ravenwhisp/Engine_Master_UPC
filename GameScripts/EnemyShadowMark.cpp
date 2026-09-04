@@ -8,10 +8,11 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyShadowMark,
     SERIALIZED_BOOL(m_useMarkDuration, "Use Mark Duration"),
     SERIALIZED_FLOAT(m_markDuration, "Mark Duration", 0.5f, 10.0f, 0.1f),
     SERIALIZED_FLOAT(m_markFadeDuration, "Mark Fade Duration", 0.0f, 5.0f, 0.1f),
-	SERIALIZED_COMPONENT_REF(m_canvas, "Canvas Transform", ComponentType::TRANSFORM2D),
-	SERIALIZED_COMPONENT_REF(m_mark_death, "Mark Death Sprite", ComponentType::TRANSFORM),
-	SERIALIZED_COMPONENT_REF(m_mark_lyriel, "Mark Lyriel Sprite", ComponentType::TRANSFORM),
-	SERIALIZED_COMPONENT_REF(m_mark_both, "Mark Both Sprite", ComponentType::TRANSFORM),
+    SERIALIZED_COMPONENT_REF(m_markContainer, "Mark Container Transform", ComponentType::TRANSFORM2D),
+    SERIALIZED_COMPONENT_REF(m_backgroundGlow, "Background Glow", ComponentType::TRANSFORM2D),
+    SERIALIZED_COMPONENT_REF(m_backgroundBlur, "Background Blur", ComponentType::TRANSFORM2D),
+    SERIALIZED_COMPONENT_REF(m_deathFragment, "Death Fragment", ComponentType::TRANSFORM2D),
+    SERIALIZED_COMPONENT_REF(m_lyrielFragment, "Lyriel Fragment", ComponentType::TRANSFORM2D),
     FIELD_GROUP_COLLAPSE("Effects",
         FIELD_GROUP_LABEL("Final Mark Explosion Effect"),
         SERIALIZED_FLOAT(m_explosionDuration, "Explosion Duration", 0.05f, 1.0f, 0.05f),
@@ -20,7 +21,11 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyShadowMark,
         SERIALIZED_FLOAT(m_entryPopDuration, "Entry Pop Duration", 0.05f, 0.5f, 0.01f),
         SERIALIZED_FLOAT(m_entryPopStartScaleMultiplier, "Entry Pop Start Scale", 0.1f, 1.0f, 0.05f),
         SERIALIZED_FLOAT(m_entryPopPeakScaleMultiplier, "Entry Pop Peak Scale", 1.0f, 2.0f, 0.05f),
-        SERIALIZED_FLOAT(m_readyPopPeakScaleMultiplier, "Ready Pop Peak Scale", 1.0f, 2.0f, 0.05f)
+        SERIALIZED_FLOAT(m_readyPopPeakScaleMultiplier, "Ready Pop Peak Scale", 1.0f, 2.0f, 0.05f),
+        FIELD_GROUP_LABEL("Inactive Fragment Pulse"),
+        SERIALIZED_FLOAT(m_inactivePulseMinAlpha, "Min Alpha", 0.0f, 1.0f, 0.05f),
+        SERIALIZED_FLOAT(m_inactivePulseMaxAlpha, "Max Alpha", 0.0f, 1.0f, 0.05f),
+        SERIALIZED_FLOAT(m_inactivePulseFrequency, "Frequency", 0.1f, 5.0f, 0.1f)
     )
 )
 
@@ -31,44 +36,76 @@ EnemyShadowMark::EnemyShadowMark(GameObject* owner)
 
 void EnemyShadowMark::Start()
 {
-	m_canvasTransform2D = m_canvas.getReferencedComponent();
-	m_mark1Object = m_mark_death.getReferencedComponent() ? ComponentAPI::getOwner(m_mark_death.getReferencedComponent()) : nullptr;
-	m_mark2Object = m_mark_lyriel.getReferencedComponent() ? ComponentAPI::getOwner(m_mark_lyriel.getReferencedComponent()) : nullptr;
-	m_mark3Object = m_mark_both.getReferencedComponent() ? ComponentAPI::getOwner(m_mark_both.getReferencedComponent()) : nullptr;
+    m_markContainerTransform2D = m_markContainer.getReferencedComponent();
+    m_deathFragmentTransform2D = m_deathFragment.getReferencedComponent();
+    m_backgroundGlowTransform2D = m_backgroundGlow.getReferencedComponent();
+    m_backgroundBlurTransform2D = m_backgroundBlur.getReferencedComponent();
+    m_lyrielFragmentTransform2D = m_lyrielFragment.getReferencedComponent();
 
-	if (!m_canvasTransform2D || !m_mark1Object || !m_mark2Object || !m_mark3Object)
-	{
-		Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-		Transform* shadowMarkTransform = TransformAPI::findChildByName(ownerTransform, "Shadow Mark");
-		if (shadowMarkTransform)
-		{
-			GameObject* shadowMarkObject = ComponentAPI::getOwner(shadowMarkTransform);
-			if (!m_canvasTransform2D)
-			{
-				m_canvasTransform2D = static_cast<Transform2D*>(GameObjectAPI::getComponent(shadowMarkObject, ComponentType::TRANSFORM2D));
-			}
-
-			if (!m_mark1Object)
-			{
-				Transform* mark1 = TransformAPI::findChildByName(shadowMarkTransform, "Shadow Mark Death");
-				if (mark1) m_mark1Object = ComponentAPI::getOwner(mark1);
-			}
-			if (!m_mark2Object)
-			{
-				Transform* mark2 = TransformAPI::findChildByName(shadowMarkTransform, "Shadow Mark Lyriel");
-				if (mark2) m_mark2Object = ComponentAPI::getOwner(mark2);
-			}
-			if (!m_mark3Object)
-			{
-				Transform* mark3 = TransformAPI::findChildByName(shadowMarkTransform, "Shadow Mark Both");
-				if (mark3) m_mark3Object = ComponentAPI::getOwner(mark3);
-			}
-		}
-	}
-
-    if (m_canvasTransform2D)
+    if (!m_markContainerTransform2D || !m_backgroundGlowTransform2D || !m_backgroundBlurTransform2D || !m_deathFragmentTransform2D || !m_lyrielFragmentTransform2D)
     {
-        m_originalScale = Transform2DAPI::getScale(m_canvasTransform2D);
+        Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+        Transform* healthBarTransform = TransformAPI::findChildByName(ownerTransform, "Health Bar");
+        Transform* shadowMarkTransform = healthBarTransform ? TransformAPI::findChildByName(healthBarTransform, "Shadow Mark") : nullptr;
+
+        if (shadowMarkTransform)
+        {
+            GameObject* shadowMarkObject = ComponentAPI::getOwner(shadowMarkTransform);
+
+            if (!m_markContainerTransform2D)
+            {
+                m_markContainerTransform2D = static_cast<Transform2D*>(GameObjectAPI::getComponent(shadowMarkObject, ComponentType::TRANSFORM2D));
+            }
+
+            if (!m_deathFragmentTransform2D)
+            {
+                Transform* deathFragment = TransformAPI::findChildByName(shadowMarkTransform, "Death Fragment");
+
+                if (deathFragment)
+                {
+                    GameObject* deathObject = ComponentAPI::getOwner(deathFragment);
+                    m_deathFragmentTransform2D = static_cast<Transform2D*>(GameObjectAPI::getComponent(deathObject, ComponentType::TRANSFORM2D));
+                }
+            }
+
+            if (!m_lyrielFragmentTransform2D)
+            {
+                Transform* lyrielFragment = TransformAPI::findChildByName(shadowMarkTransform, "Lyriel Fragment");
+
+                if (lyrielFragment)
+                {
+                    GameObject* lyrielObject = ComponentAPI::getOwner(lyrielFragment);
+                    m_lyrielFragmentTransform2D = static_cast<Transform2D*>(GameObjectAPI::getComponent(lyrielObject, ComponentType::TRANSFORM2D));
+                }
+            }
+
+            if (!m_backgroundGlowTransform2D)
+            {
+                Transform* backgroundGlow = TransformAPI::findChildByName(shadowMarkTransform, "Background Glow");
+
+                if (backgroundGlow)
+                {
+                    GameObject* backgroundGlowObject = ComponentAPI::getOwner(backgroundGlow);
+                    m_backgroundGlowTransform2D = static_cast<Transform2D*>(GameObjectAPI::getComponent(backgroundGlowObject, ComponentType::TRANSFORM2D));
+                }
+            }
+
+            if (!m_backgroundBlurTransform2D)
+            {
+                Transform* backgroundBlur = TransformAPI::findChildByName(shadowMarkTransform, "Background Blur");
+
+                if (backgroundBlur)
+                {
+                    GameObject* backgroundBlurObject = ComponentAPI::getOwner(backgroundBlur);
+                    m_backgroundBlurTransform2D = static_cast<Transform2D*>(GameObjectAPI::getComponent(backgroundBlurObject, ComponentType::TRANSFORM2D));
+                }
+            }
+        }
+    }
+
+    if (m_markContainerTransform2D)
+    {
+        m_originalScale = Transform2DAPI::getScale(m_markContainerTransform2D);
     }
 
     updateUI();
@@ -93,17 +130,17 @@ void EnemyShadowMark::Update()
         return;
     }
 
-    if (!m_useMarkDuration)
-    {
-        return;
-    }
+    m_pulseTimer += Time::getDeltaTime();
 
-    m_timer -= Time::getDeltaTime();
-
-    if (m_timer <= 0.0f)
+    if (m_useMarkDuration)
     {
-        resetMark();
-        return;
+        m_timer -= Time::getDeltaTime();
+
+        if (m_timer <= 0.0f)
+        {
+            resetMark();
+            return;
+        }
     }
 
     updateUI();
@@ -166,22 +203,60 @@ ReaperGauge* EnemyShadowMark::findReaperGauge()
 
 void EnemyShadowMark::updateUI()
 {
-    if (m_mark1Object)
+    const float pulseNormalized = (1.0f - cosf(m_pulseTimer * m_inactivePulseFrequency * 2.0f * MathAPI::PI)) * 0.5f;
+    const float pulseAlpha = m_inactivePulseMinAlpha + (m_inactivePulseMaxAlpha - m_inactivePulseMinAlpha) * pulseNormalized;
+
+    float deathAlpha = 0.0f;
+    float lyrielAlpha = 0.0f;
+    float backgroundGlowAlpha = 0.0f;
+    float backgroundBlurAlpha = 0.0f;
+
+    switch (m_state)
     {
-        GameObjectAPI::setActive(m_mark1Object, m_state == ShadowMarkState::DeathOnly);
+    case ShadowMarkState::None:
+        break;
+
+    case ShadowMarkState::DeathOnly:
+        deathAlpha = 1.0f;
+        lyrielAlpha = pulseAlpha;
+        backgroundGlowAlpha = 1.0f;
+        break;
+
+    case ShadowMarkState::LyrielOnly:
+        deathAlpha = pulseAlpha;
+        lyrielAlpha = 1.0f;
+        backgroundGlowAlpha = 1.0f;
+        break;
+
+    case ShadowMarkState::Ready:
+        deathAlpha = 1.0f;
+        lyrielAlpha = 1.0f;
+        backgroundGlowAlpha = 1.0f;
+        backgroundBlurAlpha = 1.0f;
+        break;
     }
 
-    if (m_mark2Object)
+    if (m_deathFragmentTransform2D)
     {
-        GameObjectAPI::setActive(m_mark2Object, m_state == ShadowMarkState::LyrielOnly);
+        Transform2DAPI::setAlpha(m_deathFragmentTransform2D, deathAlpha);
     }
 
-    if (m_mark3Object)
+    if (m_lyrielFragmentTransform2D)
     {
-        GameObjectAPI::setActive(m_mark3Object, m_state == ShadowMarkState::Ready);
+        Transform2DAPI::setAlpha(m_lyrielFragmentTransform2D, lyrielAlpha);
     }
 
-    if (!m_canvasTransform2D || m_isExploding || m_isEntryPopping)
+    if (m_backgroundGlowTransform2D)
+    {
+        Transform2DAPI::setAlpha(m_backgroundGlowTransform2D, backgroundGlowAlpha);
+    }
+
+    if (m_backgroundBlurTransform2D)
+    {
+        Transform2DAPI::setAlpha(m_backgroundBlurTransform2D, backgroundBlurAlpha);
+    }
+
+    if (!m_markContainerTransform2D || m_isExploding || m_isEntryPopping)
     {
         return;
     }
@@ -198,12 +273,11 @@ void EnemyShadowMark::updateUI()
             fadeProgress = std::clamp(fadeProgress, 0.0f, 1.0f);
 
             const float easedProgress = MathAPI::evaluateEasing(MathAPI::EasingType::EaseInSine, fadeProgress);
-
             alpha = 1.0f - easedProgress;
         }
     }
 
-    Transform2DAPI::setAlpha(m_canvasTransform2D, alpha);
+    Transform2DAPI::setAlpha(m_markContainerTransform2D, alpha);
 }
 
 void EnemyShadowMark::drawGizmo()
@@ -359,6 +433,7 @@ void EnemyShadowMark::applyDeathContribution()
 
     if (m_state != previousState)
     {
+        m_pulseTimer = 0.0f;
         updateUI();
         startEntryPop();
     }
@@ -389,6 +464,7 @@ void EnemyShadowMark::applyLyrielContribution()
 
     if (m_state != previousState)
     {
+        m_pulseTimer = 0.0f;
         updateUI();
         startEntryPop();
     }
@@ -408,6 +484,7 @@ void EnemyShadowMark::resetMark()
 {
     m_state = ShadowMarkState::None;
     m_timer = 0.0f;
+    m_pulseTimer = 0.0f;
 
     m_isExploding = false;
     m_explosionTimer = 0.0f;
@@ -421,7 +498,7 @@ void EnemyShadowMark::resetMark()
 
 void EnemyShadowMark::startExplosion()
 {
-    if (!m_canvasTransform2D)
+    if (!m_markContainerTransform2D)
     {
         resetMark();
         return;
@@ -442,7 +519,7 @@ void EnemyShadowMark::startExplosion()
 
 void EnemyShadowMark::updateExplosion()
 {
-    if (!m_canvasTransform2D)
+    if (!m_markContainerTransform2D)
     {
         m_isExploding = false;
         resetMark();
@@ -465,8 +542,8 @@ void EnemyShadowMark::updateExplosion()
 
     const float alpha = 1.0f - fadeProgress;
 
-    Transform2DAPI::setScale(m_canvasTransform2D, scale);
-    Transform2DAPI::setAlpha(m_canvasTransform2D, alpha);
+    Transform2DAPI::setScale(m_markContainerTransform2D, scale);
+    Transform2DAPI::setAlpha(m_markContainerTransform2D, alpha);
 
     if (t >= 1.0f)
     {
@@ -477,18 +554,18 @@ void EnemyShadowMark::updateExplosion()
 
 void EnemyShadowMark::restoreUIVisuals()
 {
-    if (!m_canvasTransform2D)
+    if (!m_markContainerTransform2D)
     {
         return;
     }
 
-    Transform2DAPI::setScale(m_canvasTransform2D, m_originalScale);
-    Transform2DAPI::setAlpha(m_canvasTransform2D, 1.0f);
+    Transform2DAPI::setScale(m_markContainerTransform2D, m_originalScale);
+    Transform2DAPI::setAlpha(m_markContainerTransform2D, 1.0f);
 }
 
 void EnemyShadowMark::startEntryPop()
 {
-    if (!m_canvasTransform2D || m_entryPopDuration <= 0.0f)
+    if (!m_markContainerTransform2D || m_entryPopDuration <= 0.0f)
     {
         restoreUIVisuals();
         updateUI();
@@ -509,13 +586,13 @@ void EnemyShadowMark::startEntryPop()
                 
     const Vector2 startScale = { m_originalScale.x * m_entryPopStartScaleMultiplier, m_originalScale.y * m_entryPopStartScaleMultiplier };
 
-    Transform2DAPI::setScale(m_canvasTransform2D, startScale);
-    Transform2DAPI::setAlpha(m_canvasTransform2D, 0.0f);
+    Transform2DAPI::setScale(m_markContainerTransform2D, startScale);
+    Transform2DAPI::setAlpha(m_markContainerTransform2D, 0.0f);
 }
 
 void EnemyShadowMark::updateEntryPop()
 {
-    if (!m_canvasTransform2D)
+    if (!m_markContainerTransform2D)
     {
         m_isEntryPopping = false;
         return;
@@ -537,7 +614,7 @@ void EnemyShadowMark::updateEntryPop()
 
         scale = { m_originalScale.x * multiplier, m_originalScale.y * multiplier };
 
-        Transform2DAPI::setAlpha(m_canvasTransform2D, firstHalfT);
+        Transform2DAPI::setAlpha(m_markContainerTransform2D, firstHalfT);
     }
     else
     {
@@ -548,10 +625,10 @@ void EnemyShadowMark::updateEntryPop()
 
         scale = { m_originalScale.x * multiplier, m_originalScale.y * multiplier };
 
-        Transform2DAPI::setAlpha(m_canvasTransform2D, 1.0f);
+        Transform2DAPI::setAlpha(m_markContainerTransform2D, 1.0f);
     }
 
-    Transform2DAPI::setScale(m_canvasTransform2D, scale);
+    Transform2DAPI::setScale(m_markContainerTransform2D, scale);
 
     if (t >= 1.0f)
     {

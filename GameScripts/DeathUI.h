@@ -23,7 +23,7 @@ public:
 
 	// Charged Attack
 	void showChargedAttackUI();
-	void updateChargedAttackUI(const Vector3& origin, const Vector3& aimDirection);
+	void updateChargedAttackUI(const Vector3& origin, float chargeRatio, float attackRadius, bool isMaxCharge);
 	void hideChargedAttackUI();
 
 	// Slash Combo
@@ -35,6 +35,9 @@ public:
 private:
 	void updateSlashUI(Transform* slashTransform, UISlider* slashSlider, float attackStateTimer, float attackLockDuration);
 
+	void updateMaxChargeAnimation(bool isMaxCharge);
+	void resetMaxChargeAnimation();
+
 private:
 	// Taunt
 	ComponentRef<Transform> m_tauntUI;
@@ -43,6 +46,9 @@ private:
 	// Charged Attack
 	ComponentRef<Transform> m_chargedAttackUI;
 	Transform* m_chargedAttackUITransform = nullptr;
+
+	ComponentRef<UISlider> m_chargedAttackChargeSlider;
+	UISlider* m_chargedAttackChargeUISlider = nullptr;
 
 	// Slash Combo
 	ComponentRef<Transform> m_basicSlashUI;
@@ -56,4 +62,9 @@ private:
 
 	Transform* m_chargedSlashUITransform = nullptr;
 	UISlider* m_chargedSlashUISlider = nullptr;
+
+	bool m_wasMaxCharge = false;
+	bool m_isPlayingMaxChargePop = false;
+	float m_chargedAttackBaseScale = 1.0f;
+	float m_maxChargePopTimer = 0.0f;
 };
