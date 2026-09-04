@@ -1,22 +1,21 @@
 #include "Globals.h"
-#include "TrailPass.h"
+#include "LineRendererPass.h"
 #include "BasicMaterial.h"
 #include "ModuleDescriptors.h"
 #include "Application.h"
 #include "ModuleScene.h"
 #include "RenderContext.h"
-#include "TrailComponent.h"
-#include "GameObject.h"
-#include "Transform.h"
+#include "LineRendererComponent.h"
 #include "RingBuffer.h"
 #include "ModuleRender.h"
+#include "imgui_color_gradient.h"
 
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
 
-TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
+LineRendererPass::LineRendererPass(ComPtr<ID3D12Device4> device)
 {
-    m_device = device;
+	m_device = device;
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
@@ -29,8 +28,9 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
     rootParameters[0].InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsConstants(sizeof(Matrix) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_VERTEX); // b0 <- view, projection
-    rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_PIXEL); 
     rootParameters[4].InitAsDescriptorTable(1, &vfxRange, D3D12_SHADER_VISIBILITY_PIXEL); //VFX textures
+
 
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -38,7 +38,6 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
     ComPtr<ID3DBlob> error;
     DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
     DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
-
 
 #if defined(_DEBUG)
     UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -48,11 +47,11 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
 
     // Load the vertex shader.
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"TrailVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"LineRendererVertexShader.cso", &vertexShaderBlob));
 
     // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"TrailPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(D3DReadFileToBlob(L"LineRendererPixelShader.cso", &pixelShaderBlob));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
@@ -61,7 +60,7 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0},
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
         { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        { "PERCENTAGE", 0, DXGI_FORMAT_R32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     // Describe and create the graphics pipeline state object (PSO).
@@ -74,11 +73,11 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
     psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
-    psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;      
-    psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA; // ALPHA BLEND! (needs the particle order; we should have ADDITIVE BLEND as an alternate option)
+    psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
     psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
     psoDesc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
-    psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA; // or D3D12_BLEND_ONE?
+    psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA;
     psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
     psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
@@ -90,28 +89,27 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT; // HDR scene target
+    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
     psoDesc.SampleDesc = { 1, 0 };
-    
+
 
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
-
 }
 
-void TrailPass::prepare(const RenderContext& ctx)
+void LineRendererPass::prepare(const RenderContext& ctx)
 {
     if (m_ringBuffer == nullptr) m_ringBuffer = ctx.ringBuffer;
-    
+
     m_viewport = &ctx.viewport;
 
     m_view = &ctx.view;
     m_projection = &ctx.projection;
     m_cameraPosition = &ctx.cameraPosition;
 
-    m_trailComponent = app->getModuleScene()->getTrailComponents();
+    m_lineRendererComponent = app->getModuleScene()->getLineRendererComponents();
 }
 
-void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
+void LineRendererPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetGraphicsRootSignature(m_rootSignature.Get());
@@ -122,70 +120,74 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRoot32BitConstants(2, sizeof(XMMATRIX) / sizeof(UINT32), &vp, 0);
 
     std::vector<UINT> indices;
-    std::vector<VertexTrails> vertices;
+    std::vector<VertexLineRenderer> vertices;
 
-    for (auto& trailComponent : m_trailComponent) 
+    for (auto& lineRendererComponent : m_lineRendererComponent)
     {
-        TextureConstantBuffer cb{};
+        GradientConstantBuffer cb{};
 
         indices.clear();
         vertices.clear();
-
-        GameObject* owner = trailComponent->getOwner();
-        if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
+        for (auto& color : cb.colors)
         {
-            continue;
-        }
-
-        if (!trailComponent->isActive())
-        {
-            continue;
-        }
-
-        if (trailComponent->getTrailPoints().size() <= 1)
-        {
-            continue;
+            color = {};
         }
 
         float distance = 0.0f;
-
-        for (auto point = trailComponent->getTrailPoints().begin(); point != trailComponent->getTrailPoints().end(); point++)
+        
+        for (auto point = lineRendererComponent->getPoints().begin(); point != lineRendererComponent->getPoints().end(); point++)
         {
             Vector3 position = point->get()->position;
-            Vector3 perpendicularVector = Vector3::Transform(Vector3::UnitX, point->get()->rotation);
             float halfWidth = point->get()->width * 0.5f;
 
-            Vector3 prevPos = (point == trailComponent->getTrailPoints().begin()) ? point->get()->position : std::prev(point)->get()->position;
+            Vector3 prevPos = (point == lineRendererComponent->getPoints().begin()) ? point->get()->position : std::prev(point)->get()->position;
+            Vector3 nextPos = (point == std::prev(lineRendererComponent->getPoints().end())) ? point->get()->position : std::next(point)->get()->position;
 
-            Vector3 nextPos = (point == std::prev(trailComponent->getTrailPoints().end())) ? owner->GetTransform()->getGlobalMatrix().Translation() : std::next(point)->get()->position;
 
+            //tangent
             Vector3 tangent = nextPos - prevPos;
-            Vector3 right = tangent;
-            right.Cross(Vector3::Up).Normalize();
-            Vector3 normal = right;
-            normal.Cross(tangent).Normalize();
+            tangent.Normalize();
 
-            if (point != trailComponent->getTrailPoints().begin())
+            Vector3 perpendicularVector = Vector3::Up.Cross(tangent);
+            
+            Vector3 right = tangent;
+            right.Cross(Vector3::Up);
+            right.Normalize();
+
+            //normal
+            Vector3 normal = right;
+            normal.Cross(tangent);
+            normal.Normalize();
+
+            if (point != lineRendererComponent->getPoints().begin()) 
             {
                 distance += Vector3::Distance(prevPos, position);
             }
 
-            VertexTrails leftVertex{};
+            VertexLineRenderer leftVertex{};
             leftVertex.position = position - perpendicularVector * halfWidth;
             leftVertex.tangent = tangent;
             leftVertex.normal = normal;
             leftVertex.texCoord0 = Vector2(0.0f, distance); //Texture tiling can be implemented. Vector2(0.0f, distance / tileLenght)
-            leftVertex.color = point->get()->color;
+            leftVertex.linePercentage = distance;
 
-            VertexTrails rightVertex{};
+            VertexLineRenderer rightVertex{};
             rightVertex.position = position + perpendicularVector * halfWidth;
             rightVertex.tangent = tangent;
             rightVertex.normal = normal;
             rightVertex.texCoord0 = Vector2(1.0f, distance);
-            rightVertex.color = point->get()->color;
+            rightVertex.linePercentage = distance;
 
             vertices.push_back(leftVertex);
             vertices.push_back(rightVertex);
+        }
+
+        for (size_t i = 0; i < vertices.size(); i++)
+        {
+            if (vertices[i].linePercentage != 0) 
+            {
+                vertices[i].linePercentage = vertices[i].linePercentage / distance;
+            } 
         }
 
         for (uint32_t i = 0; i < vertices.size() - 2; i += 2)
@@ -200,17 +202,50 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
             indices.push_back(i + 3);
         }
 
+        uint32_t colorIndex = 0;
+        bool colorExist;
+        for (const ImGradientMark* mark : lineRendererComponent->getColorGradient().getMarks())
+        {
+            colorExist = false;
+            GradientColor color{};
+            color.percentage = mark->position;
+            lineRendererComponent->getColorGradient().getColorAt(mark->position, &color.color.x);
+
+            for (int i = 0; i < 10; ++i) 
+            {
+                if(color.color == cb.colors[i].color && color.percentage == cb.colors[i].percentage)
+                {
+                    colorExist = true;
+                }
+            }
+
+            if (colorExist)
+            {
+                continue;
+            }
+
+            if (lineRendererComponent->getBloomValue()) 
+            {
+                color.color.x *= 2; 
+                color.color.y *= 2;
+                color.color.z *= 2;
+            }
+
+            cb.colors[colorIndex] = color;
+            colorIndex++;
+        }
+
         D3D12_VERTEX_BUFFER_VIEW vbv;
-        vbv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(vertices.data(), vertices.size() * sizeof(VertexTrails));
-        vbv.SizeInBytes = (UINT)(vertices.size() * sizeof(VertexTrails));
-        vbv.StrideInBytes = sizeof(VertexTrails);
-    
+        vbv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(vertices.data(), vertices.size() * sizeof(VertexLineRenderer));
+        vbv.SizeInBytes = (UINT)(vertices.size() * sizeof(VertexLineRenderer));
+        vbv.StrideInBytes = sizeof(VertexLineRenderer);
+
         D3D12_INDEX_BUFFER_VIEW ibv;
         ibv.BufferLocation = app->getModuleRender()->allocateInRingBuffer(indices.data(), indices.size() * sizeof(uint32_t));
         ibv.SizeInBytes = (UINT)(indices.size() * sizeof(uint32_t));
         ibv.Format = DXGI_FORMAT_R32_UINT;
-    
-        Texture* texture = trailComponent->getTexture();
+
+        Texture* texture = lineRendererComponent->getTexture();
         if (texture != nullptr && texture->getSRV().IsValid())
         {
             cb.hasTexture = 1;
@@ -218,7 +253,7 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
         }
 
         D3D12_GPU_VIRTUAL_ADDRESS cbAdress = app->getModuleRender()->allocateInRingBuffer(&cb, sizeof(cb));
-    
+
         commandList->SetGraphicsRootConstantBufferView(3, cbAdress);
 
         commandList->SetGraphicsRootDescriptorTable(1, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
@@ -228,4 +263,5 @@ void TrailPass::apply(ID3D12GraphicsCommandList4* commandList)
 
         commandList->DrawIndexedInstanced((UINT)indices.size(), 1, 0, 0, 0);
     }
+
 }

@@ -1,33 +1,34 @@
 #pragma once
 #include "Component.h"
+#include "AssetReference.h"
 #include "imgui_color_gradient.h"
 #include <vector>
-#include "AssetReference.h"
 #include <TextureAsset.h>
 
+class GameObject;
 class Texture;
 
-class TrailComponent : public Component
+class LineRendererComponent : public Component
 {
 public:
 
-	struct TrailPoint
+	struct RenderPoint
 	{
 		Vector3 position;
-		Quaternion rotation;
-		float lifeTime;
 		float width;
-		Vector4 color;
+		Transform* transformParent;
+		uint64_t transformId;
+
 	};
 
-	TrailComponent(UID id, GameObject* owner);
+	LineRendererComponent(UID id, GameObject* owner);
 
 	void drawUi() override;
 
 	void update() override;
 
 	void CreatePoint();
-
+	float WrapAngle(float angle);
 
 	void requestLoad() { m_loadRequested = true; }
 
@@ -38,30 +39,24 @@ public:
 	bool consumeLoadRequest();
 	void setTextureAssetId(const AssetId& assetId);
 
+	std::vector<std::shared_ptr<RenderPoint>>& getPoints() { return m_points; }
 
-	std::vector<std::shared_ptr<TrailPoint>>& getTrailPoints() { return m_points; }
+	ImGradient& getColorGradient() { return m_color; }
 
-	ImGradient& getColorGradient() { return m_colorOverTime; }
+	bool getBloomValue() { return m_bloom; }
 
 	std::unique_ptr<Component> clone(GameObject* newOwner) const override;
 
 	void serialize(IArchive& archive) override;
 
-	void debugDraw() override;
+	void fixReferences(const SceneReferenceResolver& resolver) override;
 
-	bool isGenerating() { return m_generate; }
-	void generate(bool value) { m_generate = value; }
+	void debugDraw() override;
 
 private:
 
-	std::vector<std::shared_ptr<TrailPoint>> m_points;
-	
-	//Editable parameters
-	float	m_startWidth;
-	float	m_endWidth;
-	float	m_spawnDistance;
-	float	m_pointLifetime;
-	
+	std::vector<std::shared_ptr<RenderPoint>> m_points;
+
 	AssetId m_textureAssetId{};
 	std::shared_ptr<Texture> m_texture = nullptr;
 	std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
@@ -69,16 +64,13 @@ private:
 
 	void LoadTexture(UID* data);
 
-	ImGradient m_colorOverTime;
+	ImGradient m_color;
 	ImGradientMark* m_draggingMark = nullptr;
 	ImGradientMark* m_selectedMark = nullptr;
 
-	bool drawBezierCurveUI(float* curveData);
-	float m_colorCurve[4] = { 0.000f, 0.000f, 1.000f, 1.000f };
-
 	bool m_bloom = false;
 
-	bool m_generate = true;
-};
+	int m_selectedPoint = -1;
 
+};
 

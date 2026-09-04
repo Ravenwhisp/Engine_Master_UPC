@@ -858,6 +858,21 @@
     <ClCompile Include="PostProcessCommon.cpp">
       <Filter>Source\Rendering\Post Processing</Filter>
     </ClCompile>
+    <ClCompile Include="ImporterNavMesh.cpp" />
+    <ClCompile Include="ImporterSoundBank.cpp" />
+    <ClCompile Include="NavMeshAsset.cpp" />
+    <ClCompile Include="NavMeshBuildSettings.cpp" />
+    <ClCompile Include="SoundBankAsset.cpp" />
+    <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
+    <ClCompile Include="LineRendererPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="LineRendererComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
     <ClCompile Include="TransparentPass.cpp">
       <Filter>Source\Rendering</Filter>
     </ClCompile>
@@ -1851,6 +1866,76 @@
     </ClInclude>
     <ClInclude Include="WwiseManager.h">
       <Filter>Source\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="DamageHighlightComponent.h">
+      <Filter>Source\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="DissolveComponent.h">
+      <Filter>Source\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessPass.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessSettings.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="BloomPass.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="CubeLut.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessCommon.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetRef.h" />
+    <ClInclude Include="ImporterSoundBank.h" />
+    <ClInclude Include="SoundBankAsset.h" />
+    <ClInclude Include="ImporterNavMesh.h" />
+    <ClInclude Include="NavMeshAsset.h" />
+    <ClInclude Include="LineRendererPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="LineRendererComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="TransparentPass.h">
+      <Filter>Source\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="SpectralComponent.h">
+      <Filter>Source\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthReductionPass.h" />
+    <ClInclude Include="ShadowFrustumComputePass.h" />
+    <ClInclude Include="VolumetricFogApplyPass.h" />
+    <ClInclude Include="VolumetricFogComputePass.h" />
+    <ClInclude Include="VolumetricFogSettings.h" />
+    <ClInclude Include="VolumetricFogTypes.h" />
+    <ClInclude Include="FlowMapComponent.h" />
+    <ClInclude Include="FlowMapGPUData.h" />
+    <ClInclude Include="FlowMapPass.h" />
+    <ClInclude Include="OcclusionTargetComponent.h" />
+    <ClInclude Include="OcclusionTargetDepthPass.h" />
+    <ClInclude Include="OcclusionOccluderComponent.h" />
+    <ClInclude Include="DynamicTransparencyMaskPass.h" />
+    <ClInclude Include="DynamicTransparencyFalloffPass.h" />
+    <ClInclude Include="ModuleVideo.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPlayback.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowVideoDebug.h">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPass.h">
+      <Filter>Source\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentVideo.h">
+      <Filter>Source\Video</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
