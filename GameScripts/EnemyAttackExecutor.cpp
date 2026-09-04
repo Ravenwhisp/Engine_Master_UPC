@@ -15,72 +15,215 @@ EnemyAttackExecutor::EnemyAttackExecutor(GameObject* owner)
 
 void EnemyAttackExecutor::Start()
 {
-    m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
+    m_enemyDetectionAggro =
+        GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
 
     if (!m_enemyDetectionAggro)
     {
-        Debug::error("[EnemyAttackExecutor] EnemyDetectionAggro script not found");
+        Debug::error(
+            "[EnemyAttackExecutor] EnemyDetectionAggro script not found"
+        );
     }
 }
 
-void EnemyAttackExecutor::applyDamageInRadius(const Vector3& center, float radius, float damage, const char* sourceName)
+void EnemyAttackExecutor::applyDamageInRadius(
+    const Vector3& center,
+    float radius,
+    float damage,
+    const char* sourceName
+)
 {
     if (!m_enemyDetectionAggro)
     {
         return;
     }
 
-    Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
-    Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
+    Transform* lyrielTransform =
+        m_enemyDetectionAggro->getLyrielTransform();
 
-    tryDamageTargetInRadius(lyrielTransform, center, radius, damage, sourceName);
-    tryDamageTargetInRadius(deathTransform, center, radius, damage, sourceName);
+    Transform* deathTransform =
+        m_enemyDetectionAggro->getDeathTransform();
+
+    tryDamageTargetInRadius(
+        lyrielTransform,
+        center,
+        radius,
+        damage,
+        sourceName
+    );
+
+    tryDamageTargetInRadius(
+        deathTransform,
+        center,
+        radius,
+        damage,
+        sourceName
+    );
 }
 
-void EnemyAttackExecutor::applyDamageAndStunInRadius(const Vector3& center, float radius, float damage, float stunDuration, const char* sourceName)
+void EnemyAttackExecutor::applyDamageAndStunInRadius(
+    const Vector3& center,
+    float radius,
+    float damage,
+    float stunDuration,
+    const char* sourceName
+)
 {
     if (!m_enemyDetectionAggro)
     {
         return;
     }
 
-    Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
-    Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
+    Transform* lyrielTransform =
+        m_enemyDetectionAggro->getLyrielTransform();
 
-    tryDamageAndStunTargetInRadius(lyrielTransform, center, radius, damage, stunDuration, sourceName);
-    tryDamageAndStunTargetInRadius(deathTransform, center, radius, damage, stunDuration, sourceName);
+    Transform* deathTransform =
+        m_enemyDetectionAggro->getDeathTransform();
+
+    tryDamageAndStunTargetInRadius(
+        lyrielTransform,
+        center,
+        radius,
+        damage,
+        stunDuration,
+        sourceName
+    );
+
+    tryDamageAndStunTargetInRadius(
+        deathTransform,
+        center,
+        radius,
+        damage,
+        stunDuration,
+        sourceName
+    );
 }
 
-int EnemyAttackExecutor::applyDamageInCone(const Vector3& center, const Vector3& direction, float range, float halfAngleDegrees, float damage, const char* sourceName)
+int EnemyAttackExecutor::applyDamageInCone(
+    const Vector3& center,
+    const Vector3& direction,
+    float range,
+    float halfAngleDegrees,
+    float damage,
+    const char* sourceName
+)
 {
     if (!m_enemyDetectionAggro)
     {
         return 0;
     }
 
-    Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
-    Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
+    Transform* lyrielTransform =
+        m_enemyDetectionAggro->getLyrielTransform();
+
+    Transform* deathTransform =
+        m_enemyDetectionAggro->getDeathTransform();
 
     int hits = 0;
-    if (tryDamageTargetInCone(lyrielTransform, center, direction, range, halfAngleDegrees, damage, sourceName)) ++hits;
-    if (tryDamageTargetInCone(deathTransform, center, direction, range, halfAngleDegrees, damage, sourceName)) ++hits;
+
+    if (tryDamageTargetInCone(
+        lyrielTransform,
+        center,
+        direction,
+        range,
+        halfAngleDegrees,
+        damage,
+        sourceName
+    ))
+    {
+        ++hits;
+    }
+
+    if (tryDamageTargetInCone(
+        deathTransform,
+        center,
+        direction,
+        range,
+        halfAngleDegrees,
+        damage,
+        sourceName
+    ))
+    {
+        ++hits;
+    }
+
     return hits;
 }
 
-bool EnemyAttackExecutor::tryDamageTargetInRadius(Transform* targetTransform, const Vector3& center, float radius, float damage, const char* sourceName)
+int EnemyAttackExecutor::applyDamageInRectangle(
+    const Vector3& origin,
+    const Vector3& direction,
+    float length,
+    float width,
+    float damage,
+    const char* sourceName
+)
+{
+    if (!m_enemyDetectionAggro)
+    {
+        return 0;
+    }
+
+    Transform* lyrielTransform =
+        m_enemyDetectionAggro->getLyrielTransform();
+
+    Transform* deathTransform =
+        m_enemyDetectionAggro->getDeathTransform();
+
+    int hits = 0;
+
+    if (tryDamageTargetInRectangle(
+        lyrielTransform,
+        origin,
+        direction,
+        length,
+        width,
+        damage,
+        sourceName
+    ))
+    {
+        ++hits;
+    }
+
+    if (tryDamageTargetInRectangle(
+        deathTransform,
+        origin,
+        direction,
+        length,
+        width,
+        damage,
+        sourceName
+    ))
+    {
+        ++hits;
+    }
+
+    return hits;
+}
+
+bool EnemyAttackExecutor::tryDamageTargetInRadius(
+    Transform* targetTransform,
+    const Vector3& center,
+    float radius,
+    float damage,
+    const char* sourceName
+)
 {
     if (!targetTransform)
     {
         return false;
     }
 
-    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject =
+        ComponentAPI::getOwner(targetTransform);
+
     if (!targetObject)
     {
         return false;
     }
 
-    Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
+    Vector3 targetPosition =
+        TransformAPI::getGlobalPosition(targetTransform);
 
     Vector3 difference = targetPosition - center;
     difference.y = 0.0f;
@@ -93,35 +236,67 @@ bool EnemyAttackExecutor::tryDamageTargetInRadius(Transform* targetTransform, co
         return false;
     }
 
-    return applyDamageToTarget(targetTransform, damage, sourceName);
+    return applyDamageToTarget(
+        targetTransform,
+        damage,
+        sourceName
+    );
 }
 
-void EnemyAttackExecutor::tryDamageAndStunTargetInRadius(Transform* targetTransform, const Vector3& center, float radius, float damage, float stunDuration, const char* sourceName)
+void EnemyAttackExecutor::tryDamageAndStunTargetInRadius(
+    Transform* targetTransform,
+    const Vector3& center,
+    float radius,
+    float damage,
+    float stunDuration,
+    const char* sourceName
+)
 {
-    const bool damaged = tryDamageTargetInRadius(targetTransform, center, radius, damage, sourceName);
+    const bool damaged = tryDamageTargetInRadius(
+        targetTransform,
+        center,
+        radius,
+        damage,
+        sourceName
+    );
 
     if (!damaged)
     {
         return;
     }
 
-    applyStunToTarget(targetTransform, stunDuration, sourceName);
+    applyStunToTarget(
+        targetTransform,
+        stunDuration,
+        sourceName
+    );
 }
 
-bool EnemyAttackExecutor::tryDamageTargetInCone(Transform* targetTransform, const Vector3& center, const Vector3& direction, float range, float halfAngleDegrees, float damage, const char* sourceName)
+bool EnemyAttackExecutor::tryDamageTargetInCone(
+    Transform* targetTransform,
+    const Vector3& center,
+    const Vector3& direction,
+    float range,
+    float halfAngleDegrees,
+    float damage,
+    const char* sourceName
+)
 {
     if (!targetTransform)
     {
         return false;
     }
 
-    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject =
+        ComponentAPI::getOwner(targetTransform);
+
     if (!targetObject)
     {
         return false;
     }
 
-    Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
+    Vector3 targetPosition =
+        TransformAPI::getGlobalPosition(targetTransform);
 
     Vector3 toTarget = targetPosition - center;
     toTarget.y = 0.0f;
@@ -136,7 +311,11 @@ bool EnemyAttackExecutor::tryDamageTargetInCone(Transform* targetTransform, cons
 
     if (distanceSquared < 0.0001f)
     {
-        return applyDamageToTarget(targetTransform, damage, sourceName);
+        return applyDamageToTarget(
+            targetTransform,
+            damage,
+            sourceName
+        );
     }
 
     Vector3 flatDirection = direction;
@@ -161,18 +340,111 @@ bool EnemyAttackExecutor::tryDamageTargetInCone(Transform* targetTransform, cons
         dot = -1.0f;
     }
 
-    constexpr float degreesToRadians = 3.14159265f / 180.0f;
-    const float minDot = std::cos(halfAngleDegrees * degreesToRadians);
+    constexpr float degreesToRadians =
+        3.14159265f / 180.0f;
+
+    const float minDot =
+        std::cos(halfAngleDegrees * degreesToRadians);
 
     if (dot < minDot)
     {
         return false;
     }
 
-    return applyDamageToTarget(targetTransform, damage, sourceName);
+    return applyDamageToTarget(
+        targetTransform,
+        damage,
+        sourceName
+    );
 }
 
-void EnemyAttackExecutor::tryDamageAndStunSingleTargetInCone(Transform* targetTransform, const Vector3& center, const Vector3& direction, float range, float halfAngleDegrees, float damage, float stunDuration, const char* sourceName)
+bool EnemyAttackExecutor::tryDamageTargetInRectangle(
+    Transform* targetTransform,
+    const Vector3& origin,
+    const Vector3& direction,
+    float length,
+    float width,
+    float damage,
+    const char* sourceName
+)
+{
+    if (!targetTransform)
+    {
+        return false;
+    }
+
+    if (length <= 0.0f || width <= 0.0f)
+    {
+        return false;
+    }
+
+    GameObject* targetObject =
+        ComponentAPI::getOwner(targetTransform);
+
+    if (!targetObject)
+    {
+        return false;
+    }
+
+    Vector3 flatDirection = direction;
+    flatDirection.y = 0.0f;
+
+    if (flatDirection.LengthSquared() < 0.0001f)
+    {
+        return false;
+    }
+
+    flatDirection.Normalize();
+
+    Vector3 rightDirection(
+        flatDirection.z,
+        0.0f,
+        -flatDirection.x
+    );
+
+    Vector3 targetPosition =
+        TransformAPI::getGlobalPosition(targetTransform);
+
+    Vector3 toTarget = targetPosition - origin;
+    toTarget.y = 0.0f;
+
+    const float forwardDistance =
+        flatDirection.Dot(toTarget);
+
+    if (forwardDistance < 0.0f ||
+        forwardDistance > length)
+    {
+        return false;
+    }
+
+    const float lateralDistance =
+        rightDirection.Dot(toTarget);
+
+    const float halfWidth = width * 0.5f;
+
+    if (lateralDistance < -halfWidth ||
+        lateralDistance > halfWidth)
+    {
+        return false;
+    }
+
+    return applyDamageToTarget(
+        targetTransform,
+        damage,
+        sourceName
+    );
+}
+
+void EnemyAttackExecutor::tryDamageAndStunSingleTargetInCone(
+    Transform* targetTransform,
+    const Vector3& center,
+    const Vector3& direction,
+    float range,
+    float halfAngleDegrees,
+    float damage,
+    float stunDuration,
+    const char* sourceName
+)
 {
     const bool damaged = tryDamageTargetInCone(
         targetTransform,
@@ -189,29 +461,43 @@ void EnemyAttackExecutor::tryDamageAndStunSingleTargetInCone(Transform* targetTr
         return;
     }
 
-    applyStunToTarget(targetTransform, stunDuration, sourceName);
+    applyStunToTarget(
+        targetTransform,
+        stunDuration,
+        sourceName
+    );
 }
 
-bool EnemyAttackExecutor::applyDamageToTarget(Transform* targetTransform, float damage, const char* sourceName)
+bool EnemyAttackExecutor::applyDamageToTarget(
+    Transform* targetTransform,
+    float damage,
+    const char* sourceName
+)
 {
     if (!targetTransform)
     {
         return false;
     }
 
-    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject =
+        ComponentAPI::getOwner(targetTransform);
+
     if (!targetObject)
     {
         return false;
     }
 
-    Damageable* damageable = GameObjectAPI::findScript<Damageable>(targetObject);
+    Damageable* damageable =
+        GameObjectAPI::findScript<Damageable>(targetObject);
+
     if (!damageable)
     {
         return false;
     }
 
-    PlayerState* playerState = GameObjectAPI::findScript<PlayerState>(targetObject);
+    PlayerState* playerState =
+        GameObjectAPI::findScript<PlayerState>(targetObject);
+
     if (playerState && playerState->isDowned())
     {
         return false;
@@ -219,11 +505,21 @@ bool EnemyAttackExecutor::applyDamageToTarget(Transform* targetTransform, float 
 
     damageable->takeDamage(damage);
 
-    Debug::log("[EnemyAttackExecutor] %s damaged '%s' for %.2f.", sourceName, GameObjectAPI::getName(targetObject), damage);
+    Debug::log(
+        "[EnemyAttackExecutor] %s damaged '%s' for %.2f.",
+        sourceName,
+        GameObjectAPI::getName(targetObject),
+        damage
+    );
+
     return true;
 }
 
-void EnemyAttackExecutor::applyStunToTarget(Transform* targetTransform, float stunDuration, const char* sourceName)
+void EnemyAttackExecutor::applyStunToTarget(
+    Transform* targetTransform,
+    float stunDuration,
+    const char* sourceName
+)
 {
     if (!targetTransform)
     {
@@ -235,13 +531,17 @@ void EnemyAttackExecutor::applyStunToTarget(Transform* targetTransform, float st
         return;
     }
 
-    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject =
+        ComponentAPI::getOwner(targetTransform);
+
     if (!targetObject)
     {
         return;
     }
 
-    PlayerStunState* stunState = GameObjectAPI::findScript<PlayerStunState>(targetObject);
+    PlayerStunState* stunState =
+        GameObjectAPI::findScript<PlayerStunState>(targetObject);
+
     if (!stunState)
     {
         return;
@@ -249,7 +549,12 @@ void EnemyAttackExecutor::applyStunToTarget(Transform* targetTransform, float st
 
     stunState->enterStun(stunDuration);
 
-    Debug::log("[EnemyAttackExecutor] %s stunned '%s' for %.2f seconds.", sourceName, GameObjectAPI::getName(targetObject), stunDuration);
+    Debug::log(
+        "[EnemyAttackExecutor] %s stunned '%s' for %.2f seconds.",
+        sourceName,
+        GameObjectAPI::getName(targetObject),
+        stunDuration
+    );
 }
 
 IMPLEMENT_SCRIPT(EnemyAttackExecutor)

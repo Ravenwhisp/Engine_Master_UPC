@@ -21,6 +21,14 @@ public:
 
     bool getDesiredCameraTransform(Vector3& outPosition, Vector3& outRotation);
 
+    void beginVerticalOnlyFollow(Transform* anchor);
+    void endVerticalOnlyFollow();
+
+    bool isVerticalOnlyFollowActive() const
+    {
+        return m_verticalOnlyFollowActive;
+    }
+
 public:
     ComponentRef<Transform> m_firstTarget;
     ComponentRef<Transform> m_secondTarget;
@@ -37,17 +45,52 @@ public:
 
 private:
     Vector3 computeFollowPoint() const;
-    float computeTargetExtraHeight(const Vector3& p1, const Vector3& p2) const;
-    float smoothExtraHeight(float current, float target, float sharpness, float dt) const;
-    Vector3 computeDesiredCameraPosition(const Vector3& followPoint, Transform* const& cameraTransform) const;
-    Vector3 smoothCameraPosition(const Vector3& current, const Vector3& target, float sharpness, float dt) const;
 
-    Vector3 lerpVector(const Vector3& start, const Vector3& end, float alpha) const;
-    float lerpFloat(float start, float end, float alpha) const;
+    float computeTargetExtraHeight(
+        const Vector3& p1,
+        const Vector3& p2
+    ) const;
+
+    float smoothExtraHeight(
+        float current,
+        float target,
+        float sharpness,
+        float dt
+    ) const;
+
+    Vector3 computeDesiredCameraPosition(
+        const Vector3& followPoint,
+        Transform* const& cameraTransform
+    ) const;
+
+    Vector3 smoothCameraPosition(
+        const Vector3& current,
+        const Vector3& target,
+        float sharpness,
+        float dt
+    ) const;
+
+    Vector3 lerpVector(
+        const Vector3& start,
+        const Vector3& end,
+        float alpha
+    ) const;
+
+    float lerpFloat(
+        float start,
+        float end,
+        float alpha
+    ) const;
 
 private:
     bool m_firstUpdateAfterResolve = true;
 
     bool m_followEnabled = true;
     float m_currentExtraHeight = 0.0f;
+
+    bool m_verticalOnlyFollowActive = false;
+    Transform* m_verticalFollowAnchor = nullptr;
+
+
+    float m_verticalFollowStartTargetY = 0.0f;
 };

@@ -43,6 +43,7 @@ private:
 
     bool isTargetInRange(GameObject* target) const;
     bool isTargetAlive(GameObject* target) const;
+    bool isTargetable(GameObject* target) const;
 
     bool canTargetBreakableDuringCombat(GameObject* target) const;
 

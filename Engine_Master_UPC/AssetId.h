@@ -30,11 +30,9 @@ struct AssetId {
 
     bool operator!=(const AssetId& o) const { return !(*this == o); }
 
-    void serialize(IArchive& archive)
-    {
-        archive.serialize(m_uid, "uid");
-        archive.serialize(m_libId, "libId");
-        archive.serializeStringEnum(m_type, "type", AssetTypeToString, StringToAssetType);
-    }
-
+    // Implemented in AssetId.cpp: validates the libId against the asset index
+    // (the uid is the identity, the libId is just a cache of the library file
+    // name) and heals stale references before they are persisted or after
+    // they are read.
+    ENGINE_API void serialize(IArchive& archive);
 };

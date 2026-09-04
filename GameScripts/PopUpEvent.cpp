@@ -40,6 +40,7 @@ IMPLEMENT_SCRIPT_FIELDS(PopUpEvent,
 PopUpEvent::PopUpEvent(GameObject* owner)
     : GameplayEventAction(owner)
 {
+    m_isPersistent = true;
 }
 
 void PopUpEvent::executeEvent(GameplayEventTrigger* trigger)

@@ -103,7 +103,7 @@ void LinkedDeathEnemyState::OnStateUpdate()
             GameObjectAPI::getName(getOwner()));
 
         EnemyDeathState::dropRewards();
-        EnemyDeathState::startDestroyCountdown(m_destroyDelay);
+        EnemyDeathState::startDestroyCountdown(m_dissolveDelay);
         return;
     }
 

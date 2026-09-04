@@ -36,6 +36,11 @@ void PlayerMovement::Update()
 {
 }
 
+void PlayerMovement::applyExternalMovement(GameObject* owner, const Vector3& displacement)
+{
+    moveInternal(owner, displacement);
+}
+
 void PlayerMovement::setMoving(bool isMoving)
 {
     if (m_isMoving == isMoving)

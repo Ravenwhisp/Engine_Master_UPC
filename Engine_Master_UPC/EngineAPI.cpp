@@ -923,16 +923,50 @@ namespace SceneAPI
         std::vector<GameObject*> candidates;
 
 		auto* sceneModule = app->getModuleScene();
-
-        if ((static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Static)) != 0)
+        if (!sceneModule)
         {
-            auto staticResult = sceneModule->getStaticQuadtree()->queryInArea(center, radius);
+            return candidates;
+        }
+
+        const bool staticRequested = (static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Static)) != 0;
+        const bool dynamicRequested = (static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Dynamic)) != 0;
+
+        auto* staticQuadtree = sceneModule->getStaticQuadtree();
+        auto* dynamicQuadtree = sceneModule->getDynamicQuadtree();
+
+        const bool useStatic = staticRequested && staticQuadtree && staticQuadtree->getIsBuilded();
+        const bool useDynamic = dynamicRequested && dynamicQuadtree && dynamicQuadtree->getIsBuilded();
+
+        if (useStatic)
+        {
+            auto staticResult = staticQuadtree->queryInArea(center, radius);
             candidates.insert(candidates.end(), staticResult.begin(), staticResult.end());
         }
-        if ((static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Dynamic)) != 0)
+        if (useDynamic)
         {
-            auto dynamicResult = sceneModule->getDynamicQuadtree()->queryInArea(center, radius);
+            auto dynamicResult = dynamicQuadtree->queryInArea(center, radius);
             candidates.insert(candidates.end(), dynamicResult.begin(), dynamicResult.end());
+        }
+
+        // The quadtrees are only built when frustum culling is enabled. When
+        // they are not available, fall back to a brute-force pass over the
+        // scene so gameplay queries do not silently return nothing.
+        if (!useStatic && !useDynamic)
+        {
+            for (GameObject* gameObject : sceneModule->getScene()->getAllGameObjects())
+            {
+                if (!gameObject || !gameObject->GetActive())
+                {
+                    continue;
+                }
+
+                if (!gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+                {
+                    continue;
+                }
+
+                candidates.push_back(gameObject);
+            }
         }
 
         std::vector<GameObject*> result;

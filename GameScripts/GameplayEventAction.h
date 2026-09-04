@@ -16,4 +16,9 @@ public:
 
     virtual void executeEvent(GameplayEventTrigger* trigger) = 0;
     virtual void stopEvent(GameplayEventTrigger* trigger) {}
+    
+    void saveTriggeredEvent(GameplayEventTrigger* trigger);
+
+protected:
+    bool m_isPersistent = false;
 };

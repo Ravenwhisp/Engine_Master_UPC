@@ -236,6 +236,19 @@ void WindowEditorSettings::drawBuildSettings()
         }
 
     }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Fix All Asset References"))
+    {
+        app->getModuleAssets()->fixAllAssetReferences();
+    }
+    ImGui::SetItemTooltip(
+        "Re-bakes every asset of the Assets folder in dependency order:\n"
+        "glTFs/textures/animations -> data containers -> prefabs -> scenes.\n"
+        "Each re-bake stores the current library hash of the assets it\n"
+        "references, healing stale libIds inside the saved assets themselves.\n"
+        "Run this before exporting the build config for GAME_RELEASE.");
 }
 
 void WindowEditorSettings::drawScriptReloadModal()

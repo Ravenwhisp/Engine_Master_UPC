@@ -2,6 +2,8 @@
 
 #include "ScriptAPI.h"
 
+class PersistingCheckpointState;
+
 class PowerupCollectible : public Script
 {
     DECLARE_SCRIPT(PowerupCollectible)

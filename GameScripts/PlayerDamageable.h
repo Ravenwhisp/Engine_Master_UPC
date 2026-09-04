@@ -40,7 +40,7 @@ private:
     HeartbeatHaptic* m_haptic = nullptr;
     DeathSound*  m_deathSound  = nullptr;
     LyrielSound* m_lyrielSound = nullptr;
-    PlayerRenderBufferComponent* m_playerRenderBuffer = nullptr;
+    DamageHighlightComponent* m_damageHighlight = nullptr;
 
     ComponentRef<Transform> m_renderer;
     ComponentRef<UISlider> m_healthGlow;

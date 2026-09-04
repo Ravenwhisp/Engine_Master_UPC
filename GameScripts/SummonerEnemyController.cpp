@@ -259,7 +259,7 @@ void SummonerEnemyController::summonSpidersAroundSelf()
 		return;
 	}
 
-	const Vector3 ownerPosition = TransformAPI::getPosition(ownerTransform);
+	const Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 	const Vector3 searchExtents = Vector3(5.0f, 5.0f, 5.0f);
 
 	for (int i = 0; i < m_attackConfig.get()->m_summonCount; ++i)

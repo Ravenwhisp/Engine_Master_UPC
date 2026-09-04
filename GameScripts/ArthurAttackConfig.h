@@ -3,17 +3,15 @@
 #include "Transform2D.h"
 #include "DataContainerAPI.h"
 #include "UISlider.h"
+#include "EnemyBaseDataConfig.h"
 
-class ArthurAttackConfig : public DataContainer
+class ArthurAttackConfig : public EnemyBaseDataConfig
 {
     DECLARE_DATACONTAINER(ArthurAttackConfig)
 
 public:
     ArthurAttackConfig() = default;
-    explicit ArthurAttackConfig(AssetId& id)
-        : DataContainer(id)
-    {
-    }
+    explicit ArthurAttackConfig(AssetId& id) : EnemyBaseDataConfig(id) {}
 
     // Heavy Swipe
     float m_heavySwipeDamage = 10.0f;
@@ -88,7 +86,7 @@ public:
     float m_earthHammerPhase2Damage = 25.0f;
     float m_earthHammerPhase2StunDuration = 1.75f;
 
-    IMPLEMENT_DATACONTAINER_FIELDS(ArthurAttackConfig,
+    IMPLEMENT_DATACONTAINER_FIELDS_INHERITED(ArthurAttackConfig, EnemyBaseDataConfig,
         FIELD_GROUP_COLLAPSE("Heavy Swipe",
             SERIALIZED_FLOAT(m_heavySwipeDamage, "Heavy Swipe Damage", 0.0f, 9999.0f, 1.0f),
             SERIALIZED_FLOAT(m_heavySwipeRange, "Heavy Swipe Range", 0.0f, 20.0f, 0.1f),

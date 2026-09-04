@@ -28,6 +28,10 @@ public:
     float m_somersaultDuration = 0.35f;
     float m_somersaultCooldown = 9.0f;
 
+    // Post-somersault range buff
+    float m_postSomersaultRangeBonus = 4.0f;
+    float m_postSomersaultBuffDuration = 5.0f;
+
     IMPLEMENT_DATACONTAINER_FIELDS_INHERITED(ArcherAttackConfig, EnemyBaseAttackConfig,
         FIELD_GROUP_COLLAPSE("Arrow Barrage",
             SERIALIZED_FLOAT(m_arrowBarrageRange, "Arrow Barrage Range", 0.0f, 9999.0f, 1.0f),
@@ -42,7 +46,9 @@ public:
             SERIALIZED_FLOAT(m_somersaultTriggerRange, "Somersault Trigger Range", 0.0f, 20.0f, 0.1f),
             SERIALIZED_FLOAT(m_somersaultDistance, "Somersault Distance", 0.0f, 20.0f, 0.1f),
             SERIALIZED_FLOAT(m_somersaultDuration, "Somersault Duration", 0.0f, 5.0f, 0.05f),
-            SERIALIZED_FLOAT(m_somersaultCooldown, "Somersault Cooldown", 0.0f, 30.0f, 0.1f)
+            SERIALIZED_FLOAT(m_somersaultCooldown, "Somersault Cooldown", 0.0f, 30.0f, 0.1f),
+            SERIALIZED_FLOAT(m_postSomersaultRangeBonus, "Post-Somersault Range Bonus", 0.0f, 20.0f, 0.1f),
+            SERIALIZED_FLOAT(m_postSomersaultBuffDuration, "Post-Somersault Buff Duration", 0.0f, 30.0f, 0.1f)
         )
     )
 };

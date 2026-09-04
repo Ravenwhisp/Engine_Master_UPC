@@ -933,6 +933,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="Metadata.cpp" />
     <ClCompile Include="AssetFileDialog.cpp" />
     <ClCompile Include="AssetIndex.cpp" />
+    <ClCompile Include="AssetId.cpp" />
     <ClCompile Include="ImporterRegistry.cpp" />
     <ClCompile Include="ModuleAssets.cpp" />
     <ClCompile Include="BoundingBox.cpp" />

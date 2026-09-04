@@ -3,6 +3,8 @@
 #include "ScriptAPI.h"
 #include "HapticEffectDefinition.h"
 
+class PlayerController;
+
 class HeartbeatHaptic : public Script
 {
     DECLARE_SCRIPT(HeartbeatHaptic)
@@ -28,10 +30,16 @@ public:
 private:
     void fireLub(float t);
 
+    void playOnTargetDevices(const char* effectId, float scale);
+
+    void getTargetDeviceIndices(int outDevices[], int& outCount) const;
+
     float m_dubTimer = -1.0f;
     float m_lubTimer = -1.0f;
     float m_dubScale = 0.0f;
     bool  m_dyingBeat = false;
     bool  m_active = false;
     float m_currentT = 0.0f;
+
+    PlayerController* m_playerController = nullptr;
 };

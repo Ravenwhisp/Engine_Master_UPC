@@ -3,7 +3,7 @@
 #include "EnemyBaseAttackConfig.h"
 
 #include "Damageable.h"
-#include "EnemyBaseAttackConfig.h"
+#include "EnemyBaseDataConfig.h"
 #include "EnemySound.h"
 
 static const char* navAgentProfileNames[] =
@@ -17,7 +17,6 @@ constexpr int navAgentProfileCount = 3;
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyBaseController,
     SERIALIZED_ENUM_INT(m_enemyType, "Enemy Type", navAgentProfileNames, navAgentProfileCount),
-    SERIALIZED_FLOAT(m_moveSpeed, "Move Speed", 0.0f, 50.0f, 0.1f),
     SERIALIZED_FLOAT(m_turnSpeedDegrees, "Turn Speed Degrees", 0.0f, 1080.0f, 1.0f),
     SERIALIZED_FLOAT(m_repathInterval, "Repath Interval", 0.0f, 50.0f, 0.1f),
     SERIALIZED_FLOAT(m_pathPointReachDistance, "Path Point Reach Distance", 0.01f, 5.0f, 0.01f),
@@ -31,13 +30,15 @@ EnemyBaseController::EnemyBaseController(GameObject* owner)
 
 void EnemyBaseController::Start()
 {
-    const EnemyBaseAttackConfig* cfg = getAttackConfig();
-    if (cfg)
+    const EnemyBaseDataConfig* cfg = getBaseDataConfig();
+    if (!cfg)
     {
-        m_moveSpeed = cfg->m_moveSpeed;
-        m_recoveryDuration = cfg->m_recoveryDuration;
-        m_stunnedDuration = cfg->m_stunnedDuration;
+        return;
     }
+
+    m_moveSpeed = cfg->m_moveSpeed;
+    m_recoveryDuration = cfg->m_recoveryDuration;
+    m_stunnedDuration = cfg->m_stunnedDuration;
 }
 
 void EnemyBaseController::updateCurrentTarget()
@@ -66,6 +67,11 @@ bool EnemyBaseController::hasValidTarget() const
     }
 
     return true;
+}
+
+const EnemyBaseDataConfig* EnemyBaseController::getBaseDataConfig() const
+{
+    return getAttackConfig();
 }
 
 float EnemyBaseController::getDistanceToCurrentTarget() const
@@ -216,6 +222,8 @@ void EnemyBaseController::clearPath()
     m_path.clear();
     m_currentPathIndex = 0;
     m_hasPath = false;
+
+    m_noProgressTime = 0.0f;
 }
 
 void EnemyBaseController::resetRepathTimer()
@@ -454,6 +462,9 @@ bool EnemyBaseController::buildPathToTarget()
     m_currentPathIndex = 1;
     m_hasPath = true;
 
+    m_lastProgressPosition = start;
+    m_noProgressTime = 0.0f;
+
     return true;
 }
 
@@ -468,31 +479,6 @@ bool EnemyBaseController::followPath()
     {
         clearPath();
         return false;
-    }
-
-    for (size_t i = 0; i < m_path.size(); ++i)
-    {
-        const Vector3 color =
-            i == m_currentPathIndex
-            ? Vector3(1.0f, 0.0f, 0.0f)
-            : Vector3(0.0f, 1.0f, 0.0f);
-
-        DebugDrawAPI::drawSphere(
-            m_path[i],
-            color,
-            0.15f,
-            1000
-        );
-
-        if (i > 0)
-        {
-            DebugDrawAPI::drawLine(
-                m_path[i - 1],
-                m_path[i],
-                Vector3(1.0f, 1.0f, 0.0f),
-                1000
-            );
-        }
     }
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
@@ -540,22 +526,37 @@ bool EnemyBaseController::followPath()
     if (!NavigationAPI::moveAlongSurface(ownerPosition, desiredStepTarget, nextPosition, m_pathSearchExtents))
     {
         clearPath();
-        //Debug::error("Move along surface FAILED");
         return false;
     }
 
     Vector3 actualStep = nextPosition - ownerPosition;
     actualStep.y = 0.0f;
 
-    if (actualStep.LengthSquared() <= 0.00001f)
-    {
-        clearPath();
-        return false;
-    }
-
-    facePosition(nextPosition);
+    facePosition(currentPathPoint);
 
     TransformAPI::setGlobalPosition(ownerTransform, nextPosition);
+
+    // Progress check
+    Vector3 progress = nextPosition - m_lastProgressPosition;
+    progress.y = 0.0f;
+
+    const float requiredProgressSquared = m_progressCheckDistance * m_progressCheckDistance;
+
+    if (progress.LengthSquared() >= requiredProgressSquared)
+    {
+        m_lastProgressPosition = nextPosition;
+        m_noProgressTime = 0.0f;
+    }
+    else
+    {
+        m_noProgressTime += Time::getDeltaTime();
+
+        if (m_noProgressTime >= m_maxNoProgressTime)
+        {
+            clearPath();
+            return false;
+        }
+    }
 
     return true;
 }

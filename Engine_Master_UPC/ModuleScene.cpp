@@ -25,6 +25,8 @@
 
 #include "ScenePicking.h"
 
+#include <unordered_set>
+
 ModuleScene::ModuleScene()
 {
     AssetId defaultSceneRef;
@@ -455,6 +457,7 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
 #ifdef GAME_RELEASE
     app->getSettings()->frustumCulling.enabled = true;
+    DEBUG_LOG("[ModuleScene] GAME_RELEASE: frustum culling forced ON for scene '%s'.", sceneName.c_str());
 #endif
 
     rebuildComponentCaches();
@@ -508,6 +511,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 
 #ifdef GAME_RELEASE
     app->getSettings()->frustumCulling.enabled = true;
+    DEBUG_LOG("[ModuleScene] GAME_RELEASE: frustum culling forced ON for scene '%s'.", sceneName);
 #endif
 
     rebuildComponentCaches();
@@ -582,11 +586,13 @@ void ModuleScene::syncQuadtreeWithSettings()
     {
         if (!m_staticQuadtree->getIsBuilded())
         {
+            DEBUG_LOG("[ModuleScene] Frustum culling ON: building static quadtree...");
             m_staticQuadtree->build(m_staticLayers);
         }
 
         if (!m_dynamicQuadtree->getIsBuilded())
         {
+            DEBUG_LOG("[ModuleScene] Frustum culling ON: building dynamic quadtree...");
             m_dynamicQuadtree->build(m_dynamicLayers);
         }
     }
@@ -594,11 +600,13 @@ void ModuleScene::syncQuadtreeWithSettings()
     {
         if (m_staticQuadtree->getIsBuilded())
         {
+            DEBUG_LOG("[ModuleScene] Frustum culling OFF: clearing static quadtree (full render lists from now on).");
             m_staticQuadtree->clear();
         }
 
         if (m_dynamicQuadtree->getIsBuilded())
         {
+            DEBUG_LOG("[ModuleScene] Frustum culling OFF: clearing dynamic quadtree (full render lists from now on).");
             m_dynamicQuadtree->clear();
         }
     }
@@ -606,13 +614,33 @@ void ModuleScene::syncQuadtreeWithSettings()
 
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
+    if (gameObject.IsSnapshotClone())
+    {
+        return;
+    }
+
     const Layer layer = gameObject.GetLayer();
 
-    if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+    const bool dynamic = std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end();
+    const bool isStatic = std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end();
+
+    if (!dynamic && !isStatic)
+    {
+        static std::unordered_set<const GameObject*> s_warnedLayers;
+        if (s_warnedLayers.insert(&gameObject).second)
+        {
+            DEBUG_WARN("[Quadtree] Object '%s' has layer '%s' which is in neither the static nor dynamic layer "
+                       "lists; it will never be culled or found by quadtree area queries.",
+                       gameObject.GetName().c_str(), LayerToString(layer));
+        }
+        return;
+    }
+
+    if (dynamic)
     {
         m_dynamicQuadtree->move(gameObject);
     }
-    else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    else
     {
         m_staticQuadtree->move(gameObject);
     }

@@ -31,12 +31,12 @@ public:
 	void updateDashChargesUI(int currentCharges, int maxCharges, float dt);
 
 private:
-	void updateChargeVisual(Transform2D* transform, float& currentScale, float targetScale, float dt);
+	void updateChargeVisual(Transform2D* transform, float& currentScale, bool visible, float dt);
 
 public:
 	float m_chargedScale = 1.0f;
-	float m_emptyScale = 0.5f;
-	float m_uiScaleSpeed = 3.0f;
+	float m_emptyScale = 0.75f;
+	float m_uiScaleSpeed = 8.0f;
 
 private:
 	// Charged Attack
