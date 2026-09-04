@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <Filter Include="Resources">
@@ -940,9 +940,7 @@
     <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor.h">
       <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
     </ClInclude>
-    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.h">
-      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
-    </ClInclude>
+    <ClInclude Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.h" />
     <ClInclude Include="3rdParty\ImGuiBezier\imgui_bezier.h">
       <Filter>Third Party\ImGui\ImGuiBezier</Filter>
     </ClInclude>
@@ -988,7 +986,25 @@
     <ClInclude Include="Asset.h">
       <Filter>Source\Assets</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentVideo.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoAsset.h">
+      <Filter>Source\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="DamageHighlightComponent.h">
+      <Filter>Source\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthReductionPass.h" />
+    <ClInclude Include="DissolveComponent.h">
+      <Filter>Source\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicTransparencyFalloffPass.h" />
+    <ClInclude Include="DynamicTransparencyMaskPass.h" />
     <ClInclude Include="ImporterSoundBank.h">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClInclude>
+    <ClInclude Include="ImporterVideo.h">
       <Filter>Source\Assets\Importers</Filter>
     </ClInclude>
     <ClInclude Include="ForwardPrepass.h">
@@ -1003,18 +1019,30 @@
     <ClInclude Include="ImportSettings.h">
       <Filter>Source\Assets\Importers</Filter>
     </ClInclude>
+    <ClInclude Include="ModuleVideo.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleFont.h">
+      <Filter>Source\Modules</Filter>
+    </ClInclude>
     <ClInclude Include="NavMeshBuildSettings.h">
       <Filter>Source\Navigation</Filter>
     </ClInclude>
     <ClInclude Include="NavRuntimeBlockerComponent.h">
       <Filter>Source\Navigation</Filter>
     </ClInclude>
+    <ClInclude Include="OcclusionOccluderComponent.h" />
+    <ClInclude Include="OcclusionTargetComponent.h" />
+    <ClInclude Include="OcclusionTargetDepthPass.h" />
     <ClInclude Include="PdbPatcher.h">
       <Filter>Source\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="PlayerPass.h">
       <Filter>Source\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="FlowMapComponent.h" />
+    <ClInclude Include="FlowMapGPUData.h" />
+    <ClInclude Include="FlowMapPass.h" />
     <ClInclude Include="PlayerRenderBufferComponent.h">
       <Filter>Source\Components</Filter>
     </ClInclude>
@@ -1024,6 +1052,7 @@
     <ClInclude Include="ScriptLibraryLoader.h">
       <Filter>Source\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowFrustumComputePass.h" />
     <ClInclude Include="ShadowMapPass.h">
       <Filter>Source\Rendering</Filter>
     </ClInclude>
@@ -1032,6 +1061,9 @@
     </ClInclude>
     <ClInclude Include="SoundBankAsset.h">
       <Filter>Source\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="SpectralComponent.h">
+      <Filter>Source\Components</Filter>
     </ClInclude>
     <ClInclude Include="SSAOBlurPass.h">
       <Filter>Source\Rendering</Filter>
@@ -1264,6 +1296,9 @@
     <ClInclude Include="TrailPass.h">
       <Filter>Source\Particles\Trails</Filter>
     </ClInclude>
+    <ClInclude Include="TransparentPass.h">
+      <Filter>Source\Rendering</Filter>
+    </ClInclude>
     <ClInclude Include="TriggerSystem.h">
       <Filter>Source\Components</Filter>
     </ClInclude>
@@ -1399,6 +1434,21 @@
     <ClInclude Include="StaticTexturesPass.h">
       <Filter>Source\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="PostProcessPass.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessSettings.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessCommon.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="CubeLut.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="BloomPass.h">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
     <ClInclude Include="SpriteParams.h">
       <Filter>Source\Rendering</Filter>
     </ClInclude>
@@ -1438,9 +1488,19 @@
     <ClInclude Include="UIParams.h">
       <Filter>Source\UI</Filter>
     </ClInclude>
+    <ClInclude Include="VideoPass.h">
+      <Filter>Source\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPlayback.h">
+      <Filter>Source\Video</Filter>
+    </ClInclude>
     <ClInclude Include="ViewHierarchyDialog.h">
       <Filter>Source\Editor\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="VolumetricFogApplyPass.h" />
+    <ClInclude Include="VolumetricFogComputePass.h" />
+    <ClInclude Include="VolumetricFogSettings.h" />
+    <ClInclude Include="VolumetricFogTypes.h" />
     <ClInclude Include="WindowAnimationStateMachine.h">
       <Filter>Source\Editor\Windows</Filter>
     </ClInclude>
@@ -1795,6 +1855,9 @@
     <ClInclude Include="WeakCache.h">
       <Filter>Source\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="WindowVideoDebug.h">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClInclude>
     <ClInclude Include="WwiseBank.h">
       <Filter>Source\Audio</Filter>
     </ClInclude>
@@ -1876,6 +1939,793 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
+      <Filter>Third Party\ImGui\imgui-docking</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_win32.cpp">
+      <Filter>Third Party\ImGui\imgui-docking</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui.cpp">
+      <Filter>Third Party\ImGui\imgui-docking</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_demo.cpp">
+      <Filter>Third Party\ImGui\imgui-docking</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_draw.cpp">
+      <Filter>Third Party\ImGui\imgui-docking</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_tables.cpp">
+      <Filter>Third Party\ImGui\imgui-docking</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-docking\imgui_widgets.cpp">
+      <Filter>Third Party\ImGui\imgui-docking</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\crude_json.cpp">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_canvas.cpp">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor.cpp">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\imgui-node-editor-master\imgui_node_editor_api.cpp">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\ImGuiBezier\imgui_bezier.cpp">
+      <Filter>Third Party\ImGui\ImGuiBezier</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\ImguiColorGradient\imgui_color_gradient.cpp">
+      <Filter>Third Party\ImGui\ImguiColorGradient</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\ImGuizmo\ImGuizmo.cpp">
+      <Filter>Third Party\ImGui\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\pcg\pcg_basic.c">
+      <Filter>Third Party\PCG</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkDefaultLowLevelIODispatcher.cpp">
+      <Filter>Third Party\Wwise</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkFileLocationBase.cpp">
+      <Filter>Third Party\Wwise</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkGeneratedSoundBanksResolver.cpp">
+      <Filter>Third Party\Wwise</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkMultipleFileLocation.cpp">
+      <Filter>Third Party\Wwise</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Common\AkPlatformProfilerHookStubs.cpp">
+      <Filter>Third Party\Wwise</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\Wwise\samples\SoundEngine\Win32\AkDefaultIOHookDeferred.cpp">
+      <Filter>Third Party\Wwise</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationComponent.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationController.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="Asset.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetDialogFilter.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAddChildToPrefabRoot.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAddGameObject.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetScanner.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCreateGameObject.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentVideo.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoAsset.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentSoundListener.cpp">
+      <Filter>Source\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentSoundSource.cpp">
+      <Filter>Source\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="ContentRegistry.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentFactory.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="DamageHighlightComponent.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="DataContainerExporter.cpp">
+      <Filter>Source\Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthReductionPass.cpp" />
+    <ClCompile Include="DescriptorHeapBlock.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCreateFolder.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCreateDataContainer.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandCutItem.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandDeleteAsset.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandDeleteFolder.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="DissolveComponent.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicTransparencyFalloffPass.cpp" />
+    <ClCompile Include="DynamicTransparencyMaskPass.cpp" />
+    <ClCompile Include="FlowMapComponent.cpp" />
+    <ClCompile Include="FlowMapPass.cpp" />
+    <ClCompile Include="EmitterAnimation.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterArea.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterColor.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterInstance.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterLifetime.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterRender.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterRotation.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterSize.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterSpawn.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EmitterVelocity.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineAPI.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="EquirectangularPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ForwardPrepass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="HapticEffectDefinition.cpp">
+      <Filter>Source\Haptics</Filter>
+    </ClCompile>
+    <ClCompile Include="HapticEffectLibrary.cpp">
+      <Filter>Source\Haptics</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyTreeRenderer.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyUtils.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandImportAsset.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="DataContainer.cpp">
+      <Filter>Source\Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterFont.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterGltf.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterNavMesh.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterPrefab.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandInstantiatePrefab.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterSoundBank.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterVideo.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="LightingPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>Source\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshAsset.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleFont.cpp">
+      <Filter>Source\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleGameView.cpp">
+      <Filter>Source\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleHaptics.cpp">
+      <Filter>Source\Haptics</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleMusic.cpp">
+      <Filter>Source\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleScripting.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleVideo.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="MusicPlaybackTracker.cpp">
+      <Filter>Source\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshAsset.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshBuildSettings.cpp">
+      <Filter>Source\Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="NavRuntimeBlockerComponent.cpp">
+      <Filter>Source\Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="OcclusionOccluderComponent.cpp" />
+    <ClCompile Include="OcclusionTargetComponent.cpp" />
+    <ClCompile Include="OcclusionTargetDepthPass.cpp" />
+    <ClCompile Include="PdbPatcher.cpp">
+      <Filter>Source\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerRenderBufferComponent.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PrefabManager.cpp">
+      <Filter>Source\Scene\Prefabs</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_GroupLabel.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptBuildSystem.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptLibraryLoader.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowFrustumComputePass.cpp" />
+    <ClCompile Include="ShadowMapPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundBankAsset.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="SpectralComponent.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="SSAOBlurPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SSAOGeometryPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SSAOPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureAsset.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureImportSettings.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ImportSettings.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>Source\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="TrailComponent.cpp">
+      <Filter>Source\Particles\Trails</Filter>
+    </ClCompile>
+    <ClCompile Include="TrailPass.cpp">
+      <Filter>Source\Particles\Trails</Filter>
+    </ClCompile>
+    <ClCompile Include="TransparentPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="TriggerSystem.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenePicking.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="NavModifierVolumeComponent.cpp">
+      <Filter>Source\Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_Bool.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_ComponentRef.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_ComponentRefList.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_EnumInt.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_Float.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_Int.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_List.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_String.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_Vec3.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldUtils.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldHandler_AssetReference.cpp">
+      <Filter>Source\Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="Skin.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleEmitter.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleModule.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticlesPass.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystemComponent.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleParticleSystem.cpp">
+      <Filter>Source\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="StagingDescriptorHeap.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandMoveFile.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandPasteFile.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRemoveGameObject.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandRenameGameObject.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSurface.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandReparent.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandSaveGameObjectAsPrefab.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneReferenceResolver.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneSnapshot.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticTexturesPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessPass.cpp">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessCommon.cpp">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClCompile>
+    <ClCompile Include="CubeLut.cpp">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClCompile>
+    <ClCompile Include="BloomPass.cpp">
+      <Filter>Source\Rendering\Post Processing</Filter>
+    </ClCompile>
+    <ClCompile Include="TriggerComponent.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="UILayoutUtils.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UINavigation.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UISheet.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UISlider.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinningComputePass.cpp">
+      <Filter>Source\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPlayback.cpp">
+      <Filter>Source\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="ViewHierarchyDialog.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumetricFogApplyPass.cpp" />
+    <ClCompile Include="VolumetricFogComputePass.cpp" />
+    <ClCompile Include="WindowAnimationStateMachine.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowGame.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleEventSystem.cpp">
+      <Filter>Source\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowFileDialog.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetCache.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryArchive.cpp">
+      <Filter>Source\Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonArchive.cpp">
+      <Filter>Source\Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="Metadata.cpp">
+      <Filter>Source\Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetFileDialog.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetIndex.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterRegistry.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleAssets.cpp">
+      <Filter>Source\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingBox.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>Source\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleCamera.cpp">
+      <Filter>Source\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>Source\Editor\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleD3D12.cpp">
+      <Filter>Source\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleDescriptors.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleEditor.cpp">
+      <Filter>Source\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowEditorSettings.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorToolbar.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Source\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="FileIO.cpp">
+      <Filter>Source\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="FontPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Frustum.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="LightComponent.cpp">
+      <Filter>Source\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleNavigation.cpp">
+      <Filter>Source\Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshBuilder.cpp">
+      <Filter>Source\Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshGeometryExtractor.cpp">
+      <Filter>Source\Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>Source\Miscellaneous</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredShadingPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayToolbar.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="PrefabUI.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="QuadNode.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Quadtree.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneConfig.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleScene.cpp">
+      <Filter>Source\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePad.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Globals.cpp">
+      <Filter>Source\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowHardware.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowHierarchy.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBuffer.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowInspector.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleInput.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowLogger.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicMaterial.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicMesh.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleRender.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleResources.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBuffer.cpp">
+      <Filter>Source\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowMusicDebug.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowDataContainerManager.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowSceneEditor.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptComponent.cpp">
+      <Filter>Source\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleMath.cpp">
+      <Filter>Source\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBox.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBoxPass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>Source\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="ImporterTexture.cpp">
+      <Filter>Source\Assets\Importers</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleTime.cpp">
+      <Filter>Source\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform2D.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="UIButton.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UID.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImage.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImagePass.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleUI.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIText.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilityGLFT.cpp">
+      <Filter>Source\Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexBuffer.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowGameDebug.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowVideoDebug.cpp">
+      <Filter>Source\Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WwiseBank.cpp">
+      <Filter>Source\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="WwiseManager.cpp">
+      <Filter>Source\Audio</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Engine.rc">
+      <Filter>Resources\Application</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Engine.ico">
+      <Filter>Resources\Application</Filter>
+    </Image>
+    <Image Include="small.ico">
+      <Filter>Resources\Application</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </None>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </None>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </None>
+    <None Include="DynamicTransparencyCommon.hlsli" />
+    <None Include="DynamicTransparencyFalloffCommon.hlsli" />
+    <None Include="ForwardCommon.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="GBufferCommon.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="General.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="LightingCBuffers.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="EngineAPI.inl">
+      <Filter>Source\Inline</Filter>
+    </None>
+    <None Include="MakeSpriteFont.exe">
+      <Filter>Tools</Filter>
+    </None>
+    <None Include="PBRGeneral.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="GeometryCBuffers.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="PBRLighting.hlsli" />
+    <None Include="SimpleMath.inl">
+      <Filter>Source\Utilities</Filter>
+    </None>
+    <None Include="VolumetricFogCommon.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
+    <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl" />
+    <FxCompile Include="DynamicTransparencyMaskPS.hlsl" />
     <FxCompile Include="ForwardPrepassVertexShader.hlsl">
       <Filter>Shaders\Rendering</Filter>
     </FxCompile>
@@ -1886,10 +2736,10 @@
       <Filter>Shaders\Rendering</Filter>
     </FxCompile>
     <FxCompile Include="BRDFPixelShader.hlsl">
-      <Filter>Shaders\Rendering</Filter>
+      <Filter>Shaders\Environment</Filter>
     </FxCompile>
     <FxCompile Include="BRDFVertexShader.hlsl">
-      <Filter>Shaders\Rendering</Filter>
+      <Filter>Shaders\Environment</Filter>
     </FxCompile>
     <FxCompile Include="EquirectangularPixelShader.hlsl">
       <Filter>Shaders\Environment</Filter>
@@ -1897,11 +2747,30 @@
     <FxCompile Include="EquirectangularVertexShader.hlsl">
       <Filter>Shaders\Environment</Filter>
     </FxCompile>
+    <FxCompile Include="FontPixelShader.hlsl">
+      <Filter>Shaders\UI</Filter>
+    </FxCompile>
     <FxCompile Include="FullscreenTriangleVS.hlsl">
       <Filter>Shaders\General</Filter>
     </FxCompile>
     <FxCompile Include="LightPixelShader.hlsl">
       <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="OcclusionBubblePS.hlsl" />
+    <FxCompile Include="OcclusionBubbleVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthPS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthVS.hlsl" />
+    <FxCompile Include="PostProcessPixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomThresholdPixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomDownsamplePixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="BloomUpsamplePixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
     </FxCompile>
     <FxCompile Include="ParticlePixelShader.hlsl">
       <Filter>Shaders\Particles</Filter>
@@ -1912,9 +2781,12 @@
     <FxCompile Include="PlayerPixelShader.hlsl">
       <Filter>Shaders\Rendering</Filter>
     </FxCompile>
+    <FxCompile Include="FlowMapPS.hlsl" />
+    <FxCompile Include="FlowMapVS.hlsl" />
     <FxCompile Include="PlayerVertexShader.hlsl">
       <Filter>Shaders\Rendering</Filter>
     </FxCompile>
+    <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
     <FxCompile Include="ShadowMapVertexShader.hlsl">
       <Filter>Shaders\Shadows</Filter>
     </FxCompile>
@@ -1963,6 +2835,12 @@
     <FxCompile Include="SSAONormalVS.hlsl">
       <Filter>Shaders\SSAO</Filter>
     </FxCompile>
+    <FxCompile Include="TransparentPixelShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="TransparentVertexShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
     <FxCompile Include="UIPixelShader.hlsl">
       <Filter>Shaders\UI</Filter>
     </FxCompile>
@@ -1972,100 +2850,18 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Shaders\General</Filter>
     </FxCompile>
-    <FxCompile Include="PostProcessPixelShader.hlsl">
-      <Filter>Shaders\Post Processing</Filter>
+    <FxCompile Include="VideoPixelShader.hlsl">
+      <Filter>Shaders\Video</Filter>
     </FxCompile>
-    <FxCompile Include="BloomThresholdPixelShader.hlsl">
-      <Filter>Shaders\Post Processing</Filter>
+    <FxCompile Include="VideoVertexShader.hlsl">
+      <Filter>Shaders\Video</Filter>
     </FxCompile>
-    <FxCompile Include="BloomDownsamplePixelShader.hlsl">
-      <Filter>Shaders\Post Processing</Filter>
+    <FxCompile Include="FontVertexShader.hlsl">
+      <Filter>Shaders\UI</Filter>
     </FxCompile>
-    <FxCompile Include="BloomUpsamplePixelShader.hlsl">
-      <Filter>Shaders\Post Processing</Filter>
-    </FxCompile>
-    <FxCompile Include="TransparentVertexShader.hlsl">
-      <Filter>Shaders\Rendering</Filter>
-    </FxCompile>
-    <FxCompile Include="TransparentPixelShader.hlsl">
-      <Filter>Shaders\Rendering</Filter>
-    </FxCompile>
-    <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
-    <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
-    <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
     <FxCompile Include="VolumetricFogApplyPixelShader.hlsl" />
     <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
     <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
     <FxCompile Include="VolumetricFogLightingCS.hlsl" />
-    <FxCompile Include="FlowMapPS.hlsl" />
-    <FxCompile Include="FlowMapVS.hlsl" />
-    <FxCompile Include="OcclusionTargetDepthVS.hlsl" />
-    <FxCompile Include="OcclusionTargetDepthPS.hlsl" />
-    <FxCompile Include="OcclusionBubbleVS.hlsl" />
-    <FxCompile Include="OcclusionBubblePS.hlsl" />
-    <FxCompile Include="DynamicTransparencyMaskPS.hlsl" />
-    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl" />
-    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl" />
-    <FxCompile Include="VideoVertexShader.hlsl">
-      <Filter>Shaders\Video</Filter>
-    </FxCompile>
-    <FxCompile Include="VideoPixelShader.hlsl">
-      <Filter>Shaders\Video</Filter>
-    </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
-      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
-    </None>
-    <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl">
-      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
-    </None>
-    <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
-      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
-    </None>
-    <None Include="ForwardCommon.hlsli">
-      <Filter>Shaders\Includes</Filter>
-    </None>
-    <None Include="GBufferCommon.hlsli">
-      <Filter>Shaders\Includes</Filter>
-    </None>
-    <None Include="General.hlsli">
-      <Filter>Shaders\Includes</Filter>
-    </None>
-    <None Include="LightingCBuffers.hlsli">
-      <Filter>Shaders\Includes</Filter>
-    </None>
-    <None Include="EngineAPI.inl">
-      <Filter>Source\Inline</Filter>
-    </None>
-    <None Include="MakeSpriteFont.exe">
-      <Filter>Tools</Filter>
-    </None>
-    <None Include="PBRGeneral.hlsli">
-      <Filter>Shaders\Includes</Filter>
-    </None>
-    <None Include="GeometryCBuffers.hlsli">
-      <Filter>Shaders\Includes</Filter>
-    </None>
-    <None Include="SimpleMath.inl">
-      <Filter>Source\Inline</Filter>
-    </None>
-    <None Include="VolumetricFogCommon.hlsli" />
-    <None Include="PBRLighting.hlsli" />
-    <None Include="DynamicTransparencyFalloffCommon.hlsli" />
-    <None Include="DynamicTransparencyCommon.hlsli" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Engine.rc">
-      <Filter>Resources\Application</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Engine.ico">
-      <Filter>Resources\Application</Filter>
-    </Image>
-    <Image Include="small.ico">
-      <Filter>Resources\Application</Filter>
-    </Image>
   </ItemGroup>
 </Project>
