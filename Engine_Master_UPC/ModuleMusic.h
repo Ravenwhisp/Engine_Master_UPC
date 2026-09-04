@@ -5,6 +5,7 @@
 #include "WwiseBank.h"
 #include "PlayingSound.h"
 #include "MusicPlaybackTracker.h"
+#include "AssetReference.h"
 
 #include <vector>
 
@@ -65,9 +66,11 @@ public:
 	
 	void unloadAllBanks();
 	bool loadBank(const std::string& bankName);
+	bool loadBank(const AssetId& ref);
 	bool unloadBank(const std::string& bankName);
+	AssetId findBankRef(const std::string& bankName) const;
 #pragma endregion
 
 private:
-	bool loadBanksFromFolder();
+	bool loadBanksFromLibrary();
 };

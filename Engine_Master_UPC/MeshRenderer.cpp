@@ -22,7 +22,6 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 
     newMeshRenderer->setActive(this->isActive());
 
-
     newMeshRenderer->m_meshAsset = m_meshAsset;
     newMeshRenderer->m_materialAssets = m_materialAssets;
 
@@ -32,6 +31,7 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     {
         newMeshRenderer->m_skin = m_skin->clone();
     }
+    newMeshRenderer->m_renderMode = m_renderMode;
 
     return newMeshRenderer;
 }
@@ -49,6 +49,37 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
         m_boundingBox = Engine::BoundingBox(boundsMin, boundsMax);
         m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
     }
+}
+
+std::shared_ptr<BasicMesh>& MeshRenderer::getMesh()
+{
+    if (!m_mesh && m_meshAsset.isValid())
+    {
+        m_meshAsset.m_type = AssetType::MESH;
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        if (meshAsset)
+            addMesh(*meshAsset);
+    }
+    return m_mesh;
+}
+
+std::vector<std::shared_ptr<BasicMaterial>>& MeshRenderer::getMaterials()
+{
+    if (m_materials.size() != m_materialAssets.size())
+    {
+        m_materials.clear();
+        for (auto& matRef : m_materialAssets)
+        {
+            if (matRef.isValid())
+            {
+                matRef.m_type = AssetType::MATERIAL;
+                auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+                if (matAsset)
+                    addMaterial(*matAsset);
+            }
+        }
+    }
+    return m_materials;
 }
 
 void MeshRenderer::recompute()
@@ -84,6 +115,13 @@ void MeshRenderer::drawUi()
         ImGui::Text("Mesh: None");
     }
 
+    static const char* RENDER_TYPES[(int)RenderMode::COUNT] = { "Default", "Transparent", "Flow Map" };
+    int typeIndex = static_cast<int>(m_renderMode);
+    if (ImGui::Combo("Render Mode", &typeIndex, RENDER_TYPES, (int)RenderMode::COUNT))
+    {
+        m_renderMode = static_cast<RenderMode>(typeIndex);
+    }
+
     // --- Mesh drop target ---
     ImGui::Button("Drop Mesh Here");
     if (ImGui::BeginDragDropTarget())
@@ -91,7 +129,7 @@ void MeshRenderer::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MESH"))
         {
             UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            AssetId* assetRef = app->getModuleAssets()->findReference(*ref);
             auto meshAsset = app->getModuleAssets()->load<MeshAsset>(*assetRef);
             if (meshAsset)
             {
@@ -129,7 +167,7 @@ void MeshRenderer::drawUi()
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MATERIAL"))
         {
             UID* ref = static_cast<UID*>(payload->Data);
-            AssetReference* assetRef = app->getModuleAssets()->findReference(*ref);
+            AssetId* assetRef = app->getModuleAssets()->findReference(*ref);
             auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(*assetRef);
             if (materialAsset)
             {
@@ -182,7 +220,7 @@ void MeshRenderer::serialize(IArchive& archive)
 
     if (archive.mode() == ArchiveMode::Input)
     {
-        AssetReference ref;
+        AssetId ref;
         archive.beginObject("MeshAssetId");
         ref.serialize(archive);
         archive.endObject();
@@ -204,6 +242,10 @@ void MeshRenderer::serialize(IArchive& archive)
             archive.endObject();
         }
         archive.endArray();
+
+        UINT renderMode = static_cast<UINT>(m_renderMode);
+        archive.serialize(renderMode, "Render Mode");
+        m_renderMode = static_cast<RenderMode>(renderMode);
     }
     else
     {
@@ -225,15 +267,18 @@ void MeshRenderer::serialize(IArchive& archive)
             archive.endObject();
         }
         archive.endArray();
+
+        UINT renderMode = static_cast<UINT>(m_renderMode);
+        archive.serialize(renderMode, "Render Mode");
     }
 }
 
-void MeshRenderer::setMeshReference(AssetReference& meshRef)
+void MeshRenderer::setMeshReference(AssetId& meshRef)
 {
     m_meshAsset = meshRef;
 }
 
-void MeshRenderer::addMaterialReference(AssetReference& materialRef)
+void MeshRenderer::addMaterialReference(AssetId& materialRef)
 {
     m_materialAssets.push_back(materialRef);
 }

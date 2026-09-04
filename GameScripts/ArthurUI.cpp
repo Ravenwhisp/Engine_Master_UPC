@@ -9,7 +9,7 @@ IMPLEMENT_SCRIPT_FIELDS(ArthurUI,
 		SERIALIZED_FLOAT(m_healthBarDuration, "Health Bar Duration", 0.0f, 10.0f, 0.1f)
 	),
 
-	FIELD_GROUP_COLLAPSE("Heavy Swipe", 
+	FIELD_GROUP_COLLAPSE("Heavy Swipe",
 		SERIALIZED_COMPONENT_REF(m_heavySwipeUICanvas, "Heavy Swipe UI Canvas", ComponentType::TRANSFORM),
 		SERIALIZED_COMPONENT_REF(m_heavySwipeUIContainer, "Heavy Swipe UI Container", ComponentType::TRANSFORM2D),
 		SERIALIZED_COMPONENT_REF(m_heavySwipeUIBackground, "Heavy Swipe UI Background", ComponentType::TRANSFORM2D),
@@ -270,7 +270,7 @@ void ArthurUI::updateHeavySwipeUI(float stateTimer, bool isPhase2, float hit1Tim
 		const float lastHitTime = isPhase2 ? hit4Time : hit3Time;
 		const float t = (stateTimer - lastHitTime) / (totalDuration - lastHitTime);
 
-		applyHeavySwipeHitEffects(t, m_heavySwipeUIGlowTransform2D, m_heavySwipeUIBorderTransform2D, isPhase2 ? m_heavySwipeUIRightClawTransform2D : m_heavySwipeUILeftClawTransform2D,heavySwipeRange);
+		applyHeavySwipeHitEffects(t, m_heavySwipeUIGlowTransform2D, m_heavySwipeUIBorderTransform2D, isPhase2 ? m_heavySwipeUIRightClawTransform2D : m_heavySwipeUILeftClawTransform2D, heavySwipeRange);
 
 		const float alpha = MathAPI::moveTowards(t, 1.0f, 0.3f);
 		Transform2DAPI::setAlpha(m_heavySwipeUIContainerTransform2D, alpha);

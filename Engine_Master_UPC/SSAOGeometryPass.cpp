@@ -110,7 +110,7 @@ void SSAOGeometryPass::prepare(const RenderContext& ctx)
 
 void SSAOGeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-    PERF_RENDER("SSAOGeometryPass::apply");
+    BEGIN_EVENT(commandList, "SsaoGeometryPass");
 
     if (!m_depthTexture || !m_normalTexture)
     {
@@ -174,6 +174,8 @@ void SSAOGeometryPass::apply(ID3D12GraphicsCommandList4* commandList)
     };
 
     commandList->ResourceBarrier(_countof(barriersToRead), barriersToRead);
+
+    END_EVENT(commandList);
 }
 
 void SSAOGeometryPass::renderMeshes(ID3D12GraphicsCommandList* commandList)

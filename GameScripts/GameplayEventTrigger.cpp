@@ -51,7 +51,14 @@ void GameplayEventTrigger::OnTriggerExit(GameObject* gameObject)
         return;
     }
 
+    const bool wasActive = m_isActive;
+
     setPlayerInside(gameObject, false);
+
+    if (wasActive && !canActivate())
+    {
+        deactivateEvent();
+    }
 }
 
 void GameplayEventTrigger::findPlayers()
@@ -142,6 +149,11 @@ bool GameplayEventTrigger::canActivate() const
 
 void GameplayEventTrigger::tryActivate()
 {
+    if (m_isActive)
+    {
+        return;
+    }
+
     if (m_triggerOnlyOnce && m_hasTriggered)
     {
         return;
@@ -151,6 +163,8 @@ void GameplayEventTrigger::tryActivate()
     {
         return;
     }
+
+    m_isActive = true;
 
     if (m_triggerOnlyOnce)
     {
@@ -173,6 +187,23 @@ void GameplayEventTrigger::activateEvent()
 
         eventAction->executeEvent(this);
     }
+}
+
+void GameplayEventTrigger::deactivateEvent()
+{
+    Debug::log("GameplayEventTrigger '%s' deactivated.", GameObjectAPI::getName(getOwner()));
+
+    for (GameplayEventAction* eventAction : m_eventActions)
+    {
+        if (eventAction == nullptr)
+        {
+            continue;
+        }
+
+        eventAction->stopEvent(this);
+    }
+
+    m_isActive = false;
 }
 
 IMPLEMENT_SCRIPT(GameplayEventTrigger)

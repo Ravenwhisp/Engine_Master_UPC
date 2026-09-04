@@ -27,6 +27,17 @@ namespace
             flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
         }
 
+        if (desc.depth > 1)
+        {
+            return CD3DX12_RESOURCE_DESC::Tex3D(
+                desc.format,
+                static_cast<UINT64>(desc.width),
+                static_cast<UINT>(desc.height),
+                static_cast<UINT16>(desc.depth),
+                desc.mipLevels,
+                flags);
+        }
+
         return CD3DX12_RESOURCE_DESC::Tex2D(
             desc.format,
             static_cast<UINT64>(desc.width),
@@ -95,9 +106,18 @@ DescriptorHandle Texture::getRTV(uint32_t mip) const
     return m_rtv[mip];
 }
 
-DescriptorHandle Texture::getDSV() const
+DescriptorHandle Texture::getDSV(uint32_t arraySlice) const
 {
     assert(hasDSV() && "Texture was not created with TextureView::DSV");
+
+    if (m_desc.arraySize > 1)
+    {
+        assert(arraySlice < m_dsvArray.size() && "DSV array slice out of range");
+        return m_dsvArray[arraySlice];
+    }
+
+    assert(arraySlice == 0 && "Non-array texture only has DSV slice 0");
+
     return m_dsv;
 }
 
@@ -128,8 +148,8 @@ bool Texture::resize(uint32_t newWidth, uint32_t newHeight)
     releaseViews();
 
     // 2. Defer the old underlying resource — GPU may still be reading it
-    app->getModuleD3D12()->getCommandQueue()->flush();
     app->getModuleResources()->deferResourceRelease(m_Resource);
+    app->getModuleD3D12()->getCommandQueue()->flush();
     m_Resource.Reset();
 
     // 3. Patch the desc and rebuild
@@ -198,7 +218,14 @@ void Texture::createSRV()
     srvDesc.Format = resolvedSRVFormat();
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    if (m_desc.arraySize == 6)
+    if (m_desc.depth > 1)
+    {
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+        srvDesc.Texture3D.MostDetailedMip = 0;
+        srvDesc.Texture3D.MipLevels = m_mipCount;
+        srvDesc.Texture3D.ResourceMinLODClamp = 0.0f;
+    }
+    else if (m_desc.arraySize == 6)
     {
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
         srvDesc.TextureCube.MostDetailedMip = 0;
@@ -294,30 +321,94 @@ void Texture::createDSV()
 {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
     dsvDesc.Format = resolvedDSVFormat();
-    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+    DescriptorHeap& dsvHeap =
+        app->getModuleDescriptors()
+        ->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+    if (m_desc.arraySize > 1)
+    {
+        dsvDesc.ViewDimension =
+            D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+
+        dsvDesc.Texture2DArray.MipSlice = 0;
+        dsvDesc.Texture2DArray.ArraySize = 1;
+
+        m_dsvArray.resize(m_desc.arraySize);
+
+        for (uint32_t slice = 0; slice < m_desc.arraySize; ++slice)
+        {
+            dsvDesc.Texture2DArray.FirstArraySlice = slice;
+
+            m_dsvArray[slice] = dsvHeap.allocate();
+
+            m_device.CreateDepthStencilView(
+                m_Resource.Get(),
+                &dsvDesc,
+                m_dsvArray[slice].cpu);
+        }
+
+        return;
+    }
+
+    dsvDesc.ViewDimension =
+        D3D12_DSV_DIMENSION_TEXTURE2D;
+
     dsvDesc.Texture2D.MipSlice = 0;
 
-    m_dsv = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV).allocate();
+    m_dsv = dsvHeap.allocate();
 
-    m_device.CreateDepthStencilView(m_Resource.Get(), &dsvDesc, m_dsv.cpu);
+    m_device.CreateDepthStencilView(
+        m_Resource.Get(),
+        &dsvDesc,
+        m_dsv.cpu);
 }
 
 void Texture::createUAV()
 {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
     uavDesc.Format = resolvedUAVFormat();
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+
+    if (m_desc.depth > 1)
+    {
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+    }
+    else
+    {
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+    }
 
     for (uint32_t mip = 0; mip < m_mipCount; ++mip)
     {
-        uavDesc.Texture2D.MipSlice = mip;
-        uavDesc.Texture2D.PlaneSlice = 0;
+        if (m_desc.depth > 1)
+        {
+            uint32_t mipDepth = static_cast<uint32_t>(m_desc.depth) >> mip;
 
-        m_uav[mip] = app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate();
+            if (mipDepth == 0)
+            {
+                mipDepth = 1;
+            }
+
+            uavDesc.Texture3D.MipSlice = mip;
+            uavDesc.Texture3D.FirstWSlice = 0;
+            uavDesc.Texture3D.WSize = mipDepth;
+        }
+        else
+        {
+            uavDesc.Texture2D.MipSlice = mip;
+            uavDesc.Texture2D.PlaneSlice = 0;
+        }
+
+        m_uav[mip] = app->getModuleDescriptors()
+            ->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+            .allocate();
 
         m_device.CreateUnorderedAccessView(
-        m_Resource.Get(), /*pCounterResource=*/nullptr, &uavDesc, m_uav[mip].cpu);
+            m_Resource.Get(),
+            nullptr,
+            &uavDesc,
+            m_uav[mip].cpu);
     }
 }
 
@@ -331,7 +422,7 @@ void Texture::releaseViews()
         if (m_desc.shaderVisibleSRV)
         {
             // Shader-visible block — defer release (GPU may still be reading it)
-            app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle);
+            app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_srv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
         else
         {
@@ -352,20 +443,37 @@ void Texture::releaseViews()
         {
             for (uint32_t mip = 0; mip < m_mipCount; ++mip)
             {
-                if (m_rtv[mip].IsValid())
-                {
-                    descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
-                    m_rtv[mip] = {};
-                }
+                app->getModuleDescriptors()->defferDescriptorRelease((Handle)m_rtv[mip].handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+                //descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).free(m_rtv[mip].handle);
+                m_rtv[mip] = {};
             }
         }
     }
 
-    if (hasDSV() && m_dsv.IsValid())
+    if (hasDSV())
     {
-        descriptors->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)
-            .free(m_dsv.handle);
-        m_dsv = {};
+        for (DescriptorHandle& dsv : m_dsvArray)
+        {
+            if (dsv.IsValid())
+            {
+                app->getModuleDescriptors()->defferDescriptorRelease(
+                    (Handle)dsv.handle,
+                    D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+                dsv = {};
+            }
+        }
+
+        m_dsvArray.clear();
+
+        if (m_dsv.IsValid())
+        {
+            app->getModuleDescriptors()->defferDescriptorRelease(
+                (Handle)m_dsv.handle,
+                D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+            m_dsv = {};
+        }
     }
 
     if (hasUAV())
@@ -374,7 +482,7 @@ void Texture::releaseViews()
         {
             if (m_uav[mip].IsValid())
             {
-                descriptors->defferDescriptorRelease((Handle)m_uav[mip].handle);
+                descriptors->defferDescriptorRelease((Handle)m_uav[mip].handle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
                 m_uav[mip] = {};
             }
         }

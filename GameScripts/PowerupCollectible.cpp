@@ -2,6 +2,7 @@
 #include "PowerupCollectible.h"
 
 #include "PersistingPowerupState.h"
+#include "EnvironmentSound.h"
 
 #include <cmath>
 
@@ -70,6 +71,11 @@ void PowerupCollectible::OnTriggerEnter(GameObject* player)
 
     m_collected = true;
 
+    // Posted from the COLLECTING PLAYER's source: this GO is destroyed immediately below,
+    // which would cut a sound played from its own emitter. The player persists and is at
+    // the pickup's position anyway.
+    EnvironmentSound::play(player, "Play_Environment_PickUp_PowerUp");
+
     GameObjectAPI::removeGameObject(getOwner());
 }
 
@@ -123,7 +129,7 @@ void PowerupCollectible::idleAnimation()
     position.z += std::sin(t) * m_horizontalAmplitude;
     position.y += std::sin(t * 2.0f) * m_verticalAmplitude;
 
-    TransformAPI::setPosition(GameObjectAPI::getTransform(getOwner()), position);
+    TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(getOwner()), position);
 }
 
 IMPLEMENT_SCRIPT(PowerupCollectible)

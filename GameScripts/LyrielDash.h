@@ -5,7 +5,7 @@
 class LyrielSound;
 class LyrielUI;
 class LyrielCharacter;
-class LyrielConfig;
+class LyrielParticles;
 
 class LyrielDash : public AbilityDash
 {
@@ -26,12 +26,12 @@ protected:
     bool canDash() const override;
     void onDashStarted() override;
     void onDashUpdate(float dt) override;
+    void onDashEnded() override;
     bool validateDashTarget() override;
     void drawGizmo() override;
 
 private:
     LyrielCharacter* m_lyrielCharacter = nullptr;
-    LyrielConfig* m_config = nullptr;
     LyrielUI* m_lyrielUI = nullptr;
 
     int m_currentCharges = 0;
@@ -45,4 +45,5 @@ private:
     bool m_debugLastDashValid = false;
 
     LyrielSound* m_sound = nullptr;
+    LyrielParticles* m_particles = nullptr;
 };

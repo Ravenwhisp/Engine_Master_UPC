@@ -26,14 +26,27 @@ void CameraFollow::Start()
 
 void CameraFollow::Update()
 {
+    static int s_frameCount = 0;
+    const bool isEarlyFrame = (s_frameCount < 10);
+
     if (!m_followEnabled)
     {
+        if (isEarlyFrame)
+        {
+            Debug::log("[CameraFollow DIAG] Frame %d: m_followEnabled=false, skipping.", s_frameCount);
+        }
+        ++s_frameCount;
         return;
     }
 
     Transform* firstTarget = m_firstTarget.getReferencedComponent();
     if (!firstTarget)
     {
+        if (isEarlyFrame)
+        {
+            Debug::log("[CameraFollow DIAG] Frame %d: m_firstTarget is null, skipping.", s_frameCount);
+        }
+        ++s_frameCount;
         return;
     }
 
@@ -43,9 +56,66 @@ void CameraFollow::Update()
     Transform* secondTarget = m_secondTarget.getReferencedComponent();
     const bool hasSecondTarget = (secondTarget != nullptr);
 
-    const float dt = Time::getDeltaTime();
+    const float dt = (std::min)(Time::getDeltaTime(), 0.05f);
 
-    TransformAPI::setRotationEuler(cameraTransform, m_rotationOffset);
+    if (isEarlyFrame)
+    {
+        const Vector3 camPos = TransformAPI::getGlobalPosition(cameraTransform);
+        const Vector3 targetPos = TransformAPI::getGlobalPosition(firstTarget);
+        const float dist = (targetPos - camPos).Length();
+        Debug::log("[CameraFollow DIAG] Frame %d: dt=%.4f cam=(%.1f,%.1f,%.1f) target=(%.1f,%.1f,%.1f) dist=%.1f firstUpdate=%d",
+            s_frameCount, dt,
+            camPos.x, camPos.y, camPos.z,
+            targetPos.x, targetPos.y, targetPos.z,
+            dist, m_firstUpdateAfterResolve ? 1 : 0);
+    }
+    ++s_frameCount;
+
+    TransformAPI::setGlobalRotationEuler(cameraTransform, m_rotationOffset);
+
+    Vector3 followPoint = computeFollowPoint();
+
+    float targetExtraHeight = 0.0f;
+    if (hasSecondTarget)
+    {
+        const Vector3 p1 = TransformAPI::getGlobalPosition(firstTarget);
+        const Vector3 p2 = TransformAPI::getGlobalPosition(secondTarget);
+        targetExtraHeight = computeTargetExtraHeight(p1, p2);
+    }
+
+    m_currentExtraHeight = smoothExtraHeight(m_currentExtraHeight, targetExtraHeight, m_zoomSharpness, dt);
+
+    const Vector3 desiredPos = computeDesiredCameraPosition(followPoint, cameraTransform);
+
+    if (m_firstUpdateAfterResolve)
+    {
+        TransformAPI::setGlobalPosition(cameraTransform, desiredPos);
+        TransformAPI::setGlobalRotationEuler(cameraTransform, m_rotationOffset);
+        m_firstUpdateAfterResolve = false;
+        return;
+    }
+
+    const Vector3 currentPos = TransformAPI::getGlobalPosition(cameraTransform);
+    const Vector3 smoothedCameraPosition = smoothCameraPosition(currentPos, desiredPos, m_followSharpness, dt);
+
+    TransformAPI::setGlobalPosition(cameraTransform, smoothedCameraPosition);
+}
+
+bool CameraFollow::getDesiredCameraTransform(Vector3& outPosition, Vector3& outRotation)
+{
+    Transform* firstTarget = m_firstTarget.getReferencedComponent();
+    if (firstTarget == nullptr)
+    {
+        return false;
+    }
+
+    GameObject* camera = getOwner();
+    Transform* cameraTransform = GameObjectAPI::getTransform(camera);
+
+    Transform* secondTarget = m_secondTarget.getReferencedComponent();
+    const bool hasSecondTarget = secondTarget != nullptr;
+
+    const float dt = (std::min)(Time::getDeltaTime(), 0.05f);
 
     Vector3 followPoint = computeFollowPoint();
 
@@ -59,20 +129,16 @@ void CameraFollow::Update()
 
     m_currentExtraHeight = smoothExtraHeight(m_currentExtraHeight, targetExtraHeight, m_zoomSharpness, dt);
 
-    const Vector3 desiredPos = computeDesiredCameraPosition(followPoint, cameraTransform);
+    const Vector3 previousRotation = TransformAPI::getEulerDegrees(cameraTransform);
 
-    if (m_firstUpdateAfterResolve)
-    {
-        TransformAPI::setPosition(cameraTransform, desiredPos);
-        TransformAPI::setRotationEuler(cameraTransform, m_rotationOffset);
-        m_firstUpdateAfterResolve = false;
-        return;
-    }
+    TransformAPI::setRotationEuler(cameraTransform, m_rotationOffset);
 
-    const Vector3 currentPos = TransformAPI::getPosition(cameraTransform);
-    const Vector3 smoothedCameraPosition = smoothCameraPosition(currentPos, desiredPos, m_followSharpness, dt);
+    outPosition = computeDesiredCameraPosition(followPoint, cameraTransform);
+    outRotation = m_rotationOffset;
 
-    TransformAPI::setPosition(cameraTransform, smoothedCameraPosition);
+    TransformAPI::setRotationEuler(cameraTransform, previousRotation);
+
+    return true;
 }
 
 Vector3 CameraFollow::computeFollowPoint() const
@@ -81,11 +147,11 @@ Vector3 CameraFollow::computeFollowPoint() const
     Transform* secondTarget = m_secondTarget.getReferencedComponent();
     if (!secondTarget)
     {
-        return TransformAPI::getPosition(firstTarget);
+        return TransformAPI::getGlobalPosition(firstTarget);
     }
 
-    const Vector3 p1 = TransformAPI::getPosition(firstTarget);
-    const Vector3 p2 = TransformAPI::getPosition(secondTarget);
+    const Vector3 p1 = TransformAPI::getGlobalPosition(firstTarget);
+    const Vector3 p2 = TransformAPI::getGlobalPosition(secondTarget);
     return (p1 + p2) * 0.5f;
 }
 
@@ -136,11 +202,11 @@ Vector3 CameraFollow::computeDesiredCameraPosition(const Vector3& followPoint, T
     desiredPos.x += m_transformOffset.x;
     desiredPos.z += m_transformOffset.z;
 
-    float highestTargetY = TransformAPI::getPosition(firstTarget).y;
+    float highestTargetY = TransformAPI::getGlobalPosition(firstTarget).y;
 
     if (secondTarget)
     {
-        const float secondTargetY = TransformAPI::getPosition(secondTarget).y;
+        const float secondTargetY = TransformAPI::getGlobalPosition(secondTarget).y;
         if (secondTargetY > highestTargetY)
         {
             highestTargetY = secondTargetY;

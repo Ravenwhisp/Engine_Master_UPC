@@ -4,8 +4,9 @@
 #include "StateMachineScript.h"
 
 class EnemyBaseController;
-class EnemyBaseAttackConfig;
 class AnimationComponent;
+class EnemySound;
+class PaladinVFX;
 
 class EnemyAttackState : public StateMachineScript
 {
@@ -20,11 +21,13 @@ public:
 
 private:
     void tryDamageTarget(Transform* targetTransform);
+    void playBasicAttackEffect();
 
 private:
     EnemyBaseController* m_controller = nullptr;
-    EnemyBaseAttackConfig* m_attackConfig = nullptr;
     AnimationComponent* m_animation = nullptr;
+    PaladinVFX* m_paladinVFX = nullptr;
+    EnemySound* m_enemySound = nullptr;
 
     Transform* m_committedTarget = nullptr;
 

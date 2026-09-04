@@ -21,6 +21,15 @@ struct ModelData
 	BasicMaterial::PbrMetallicRoughnessData material;
 };
 
+enum class RenderMode : UINT
+{
+	DEFAULT = 0,
+
+	TRANSP = 1,
+	FLOW_MAP = 2,
+	COUNT = 3
+};
+
 
 class MeshRenderer : public Component
 {
@@ -33,8 +42,8 @@ public:
 	void addMesh(MeshAsset& model);
 	void addMaterial(MaterialAsset& material);
 
-	std::shared_ptr<BasicMesh>& getMesh() { return m_mesh; }
-	std::vector<std::shared_ptr<BasicMaterial>>& getMaterials() { return m_materials; }
+	std::shared_ptr<BasicMesh>& getMesh();
+	std::vector<std::shared_ptr<BasicMaterial>>& getMaterials();
 
 	bool									hasMesh() const { return m_mesh != nullptr; }
 
@@ -50,16 +59,16 @@ public:
 
 	int getTriangles() const { return m_triangles; }
 
-	void setMeshReference(AssetReference& meshRef);
-	AssetReference& getMeshReference() { return m_meshAsset; }
-	void addMaterialReference(AssetReference& materialRef);
-	std::vector<AssetReference>& getMaterialsReference() { return m_materialAssets; }
+	void setMeshReference(AssetId& meshRef);
+	AssetId& getMeshReference() { return m_meshAsset; }
+	void addMaterialReference(AssetId& materialRef);
+	std::vector<AssetId>& getMaterialsReference() { return m_materialAssets; }
 
 	IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
  
 	// Legacy only: used to migrate old prefabs/scenes that stored SkinAssetId inside MeshRenderer.
-	AssetReference& getSkinReference() { return m_skinAsset; }
-	void setSkinReference(AssetReference& skinUID) { m_skinAsset = skinUID; }
+	AssetId& getSkinReference() { return m_skinAsset; }
+	void setSkinReference(AssetId& skinUID) { m_skinAsset = skinUID; }
 
 	bool hasSkin() const { return m_skin != nullptr; }
 
@@ -72,6 +81,8 @@ public:
 	const bool isCulled() { return m_isCulled; }
 	void setIsCulled(bool culled) { m_isCulled = culled; }
 
+	RenderMode getRenderMode() { return m_renderMode; }
+
 private:
 	void recompute();
 
@@ -80,13 +91,15 @@ private:
 	// The position of the material corresponds to the submesh number
 	std::vector<std::shared_ptr<BasicMaterial>>	m_materials;
 
-	AssetReference m_meshAsset{};
-	AssetReference m_skinAsset{};
-	std::vector<AssetReference> m_materialAssets{};
+	AssetId m_meshAsset{};
+	AssetId m_skinAsset{};
+	std::vector<AssetId> m_materialAssets{};
 
 	mutable Engine::BoundingBox				m_boundingBox;
 
 	int m_triangles = 0;
 
 	bool m_isCulled = false;
+
+	RenderMode m_renderMode = RenderMode::DEFAULT;
 };

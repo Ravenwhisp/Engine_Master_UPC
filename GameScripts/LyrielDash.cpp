@@ -5,6 +5,8 @@
 #include "LyrielSound.h"
 #include "LyrielUI.h"
 #include "LyrielConfig.h"
+#include "LyrielParticles.h"
+#include "PlayerMovement.h"
 
 LyrielDash::LyrielDash(GameObject* owner)
     : AbilityDash(owner)
@@ -23,9 +25,7 @@ void LyrielDash::Start()
         return;
     }
 
-    m_config = GameObjectAPI::findScript<LyrielConfig>(getOwner());
-
-    m_currentCharges = m_config->m_dashMaxCharges;
+    m_currentCharges = m_lyrielCharacter->getConfig()->m_dashMaxCharges;
 
     m_lyrielUI = GameObjectAPI::findScript<LyrielUI>(getOwner());
 
@@ -35,19 +35,27 @@ void LyrielDash::Start()
     }
     else
     {
-        m_lyrielUI->setupDashCharges(m_config->m_dashMaxCharges);
+        m_lyrielUI->setupDashCharges(m_lyrielCharacter->getConfig()->m_dashMaxCharges);
     }
 
     m_sound = GameObjectAPI::findScript<LyrielSound>(getOwner());
+
+    m_particles = GameObjectAPI::findScript<LyrielParticles>(getOwner());
+
+    if (!m_particles)
+    {
+        Debug::error("[LyrielDash] LyrielParticles not found.");
+        return;
+    }
 }
 
 void LyrielDash::recoverCharge()
 {
-    if (m_currentCharges < m_config->m_dashMaxCharges)
+    if (m_currentCharges < m_lyrielCharacter->getConfig()->m_dashMaxCharges)
     {
         ++m_currentCharges;
 
-        if (m_currentCharges == m_config->m_dashMaxCharges)
+        if (m_currentCharges == m_lyrielCharacter->getConfig()->m_dashMaxCharges)
         {
             m_chargeRecoveryTimer = 0.0f;
         }
@@ -56,17 +64,17 @@ void LyrielDash::recoverCharge()
 
 float LyrielDash::getCooldown() const
 {
-    return m_config->m_dashCooldown;
+    return m_lyrielCharacter->getConfig()->m_dashCooldown;
 }
 
 float LyrielDash::getDashDuration() const
 {
-    return m_config->m_dashDuration;
+    return m_lyrielCharacter->getConfig()->m_dashDuration;
 }
 
 float LyrielDash::getDashDistance() const
 {
-    return m_config->m_dashDistance;
+    return m_lyrielCharacter->getConfig()->m_dashDistance;
 }
 
 bool LyrielDash::canDash() const
@@ -78,59 +86,102 @@ void LyrielDash::onDashStarted()
 {
     --m_currentCharges;
 
+    if (validateDashTarget())
+    {
+        m_playerMovement->m_playerType = static_cast<int>(NavAgentProfile::PlayerDash);
+    }
+
     if (m_sound != nullptr)
     {
         m_sound->playDashWhoosh();
+    }
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetDashActive();
     }
 }
 
 void LyrielDash::onDashUpdate(float dt)
 {
-    if (m_currentCharges < m_config->m_dashMaxCharges)
+    if (m_currentCharges < m_lyrielCharacter->getConfig()->m_dashMaxCharges)
     {
         m_chargeRecoveryTimer += dt;
 
-        while (m_chargeRecoveryTimer >= m_config->m_dashRechargeTime && m_currentCharges < m_config->m_dashMaxCharges)
+        while (m_chargeRecoveryTimer >= m_lyrielCharacter->getConfig()->m_dashRechargeTime && m_currentCharges < m_lyrielCharacter->getConfig()->m_dashMaxCharges)
         {
             ++m_currentCharges;
-            m_chargeRecoveryTimer -= m_config->m_dashRechargeTime;
+            m_chargeRecoveryTimer -= m_lyrielCharacter->getConfig()->m_dashRechargeTime;
         }
 
-        if (m_currentCharges >= m_config->m_dashMaxCharges)
+        if (m_currentCharges >= m_lyrielCharacter->getConfig()->m_dashMaxCharges)
         {
-            m_currentCharges = m_config->m_dashMaxCharges;
+            m_currentCharges = m_lyrielCharacter->getConfig()->m_dashMaxCharges;
             m_chargeRecoveryTimer = 0.0f;
         }
     }
 
     if (m_lyrielUI)
     {
-        m_lyrielUI->updateDashChargesUI(m_currentCharges, m_config->m_dashMaxCharges, dt);
+        m_lyrielUI->updateDashChargesUI(m_currentCharges, m_lyrielCharacter->getConfig()->m_dashMaxCharges, dt);
+    }
+}
+
+void LyrielDash::onDashEnded()
+{
+    m_playerMovement->m_playerType = static_cast<int>(NavAgentProfile::PlayerNormal);
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetDashInactive();
     }
 }
 
 bool LyrielDash::validateDashTarget()
 {
+    //Vector3 currentPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
+    //m_debugDashStart = currentPosition; // Debugging
+
+    //Vector3 candidateEnd = currentPosition + m_dashDirection * getDashDistance();
+    //m_debugDashCandidateEnd = candidateEnd; // Debugging
+
+    //Vector3 sampledPosition;
+    //Vector3 searchExtents = Vector3(1.0f, 2.0f, 1.0f);
+
+    //if (NavigationAPI::samplePosition(candidateEnd, sampledPosition, searchExtents, NavAgentProfile::PlayerNormal))
+    //{
+    //    m_dashTargetPosition = sampledPosition;
+    //    m_hasDashTarget = true;
+    //    m_debugDashSampleEnd = sampledPosition; // Debugging
+    //    m_debugLastDashValid = true; // Debugging
+
+    //    return true;
+    //}
+
+    //m_debugLastDashValid = false; // Debugging
+    //return false;
+
     Vector3 currentPosition = TransformAPI::getPosition(getOwner()->GetTransform());
-    m_debugDashStart = currentPosition; // Debugging
 
-    Vector3 candidateEnd = currentPosition + m_dashDirection * getDashDistance();
-    m_debugDashCandidateEnd = candidateEnd; // Debugging
+    Vector3 idealEnd = currentPosition + m_dashDirection * getDashDistance();
 
-    Vector3 sampledPosition;
-    Vector3 searchExtents = Vector3(1.0f, 2.0f, 1.0f);
+    Vector3 candidateEnd;
+    Vector3 searchExtents = Vector3(0.2f, 2.0f, 0.2f);
 
-    if (NavigationAPI::samplePosition(candidateEnd, sampledPosition, searchExtents, NavAgentProfile::PlayerNormal))
+    if (NavigationAPI::moveAlongSurface(currentPosition, idealEnd, candidateEnd, searchExtents, NavAgentProfile::PlayerDash))
     {
-        m_dashTargetPosition = sampledPosition;
-        m_hasDashTarget = true;
-        m_debugDashSampleEnd = sampledPosition; // Debugging
-        m_debugLastDashValid = true; // Debugging
+        Vector3 checkEnd;
+        searchExtents = Vector3(0.2f, 2.0f, 0.2f);
+        if (NavigationAPI::samplePosition(candidateEnd, checkEnd, searchExtents, NavAgentProfile::PlayerNormal))
+        {
+            m_dashTargetPosition = candidateEnd;
 
-        return true;
+            m_debugDashSampleEnd = candidateEnd; // Debugging
+            m_debugLastDashValid = true;         // Debugging
+            return true;
+        }
     }
 
-    m_debugLastDashValid = false; // Debugging
     return false;
 }
 

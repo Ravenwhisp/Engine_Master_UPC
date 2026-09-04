@@ -4,10 +4,14 @@
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleScripting.h"
+#include "ModuleAssets.h"
+#include "ModuleMusic.h"
 
 #include "Settings.h"
 #include "Scene.h"
 #include "Quadtree.h"
+#include "AssetReference.h"
+#include "FileIO.h"
 
 WindowEditorSettings::WindowEditorSettings()
 {
@@ -26,6 +30,8 @@ void WindowEditorSettings::drawInternal()
     drawFrustumCullingSettings();
     ImGui::Separator();
     drawScriptsSettings();
+    ImGui::Separator();
+    drawBuildSettings();
 
     drawScriptReloadModal();
 }
@@ -170,6 +176,65 @@ void WindowEditorSettings::drawScriptsSettings()
         buildSettings.platform = m_scriptPlatformBuffer.data();
 
         moduleScripting->requestBuildAndReloadGameScriptsDll();
+    }
+}
+
+void WindowEditorSettings::drawBuildSettings()
+{
+    if (!ImGui::CollapsingHeader("Build"))
+    {
+        return;
+    }
+
+    Scene* scene = app->getModuleScene()->getScene();
+    if (!scene)
+    {
+        ImGui::TextDisabled("No scene loaded.");
+        return;
+    }
+
+    ImGui::Button("Drop Scene Here");
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+        {
+            UID* ref = static_cast<UID*>(payload->Data);
+            m_sceneBuildSceneId = app->getModuleAssets()->findReference(*ref);
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    if (!m_sceneBuildSceneId)
+    {
+        ImGui::Text("Scene: None");
+    }
+    else {
+        ImGui::Text("Scene:");
+        ImGui::BulletText("%s", m_sceneBuildSceneId->m_libId.c_str());
+    }
+
+    if (ImGui::Button("Export Build Config"))
+    {
+
+        if (m_sceneBuildSceneId && !m_sceneBuildSceneId->m_libId.empty())
+        {
+            std::string configStr = m_sceneBuildSceneId->m_libId + "\n";
+
+            AssetId initBnkRef = app->getModuleMusic()->findBankRef("Init.bnk");
+            if (initBnkRef.isValid())
+            {
+                configStr += initBnkRef.m_libId + "\n";
+            }
+            const std::filesystem::path outPath = std::filesystem::current_path() / "build.cfg";
+            FileIO::write(outPath, configStr.c_str(), configStr.size());
+            DEBUG_LOG("[WindowEditorSettings] Build config exported to %s", outPath.string().c_str());
+        }
+        else
+        {
+            DEBUG_ERROR("[WindowEditorSettings] Failed to resolve scene hash.");
+
+        }
+
     }
 }
 

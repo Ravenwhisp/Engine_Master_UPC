@@ -3,6 +3,7 @@
 
 #include "ScenePicking.h"
 #include "Layer.h"
+#include "MeshRenderer.h"
 
 #include <memory>
 #include <string>
@@ -11,6 +12,7 @@
 class Scene;
 class Quadtree;
 class SceneSnapshot;
+struct AssetId;
 
 class GameObject;
 class Component;
@@ -21,6 +23,8 @@ class LightComponent;
 class IDebugDrawable;
 class ParticleSystemComponent;
 class TrailComponent;
+class OcclusionTargetComponent;
+class OcclusionOccluderComponent;
 
 struct ID3D12GraphicsCommandList;
 
@@ -34,12 +38,15 @@ private:
 
     std::string m_pendingSceneLoad;
     std::shared_ptr<Scene> m_pendingScene;
+    AssetId m_pendingSceneAssetId;
 
     std::vector<MeshRenderer*>            m_meshRenderers;
     std::vector<LightComponent*>          m_lightComponents;
     std::vector<ScriptComponent*>         m_scriptComponents;
     std::vector<ParticleSystemComponent*> m_particleSystemComponents;
     std::vector<TrailComponent*>          m_trailComponents;
+    std::vector<OcclusionTargetComponent*> m_occlusionTargetComponents;
+    std::vector<OcclusionOccluderComponent*> m_occlusionOccluderComponents;
 
     const std::vector<Layer> m_staticLayers = { Layer::ENVIRONMENT, Layer::NAVMESH };
     const std::vector<Layer> m_dynamicLayers = { Layer::DEFAULT, Layer::PLAYER, Layer::ENEMY, Layer::PROJECTILE, Layer::BREAKABLE, Layer::PICKUP };
@@ -61,11 +68,15 @@ public:
     void saveScene();
     bool loadScene(const std::string& sceneName);
     bool loadScene(std::shared_ptr<Scene> scene);
+    bool loadScene(const AssetId& ref);
 
     void requestSceneChange(const std::string& sceneName);
     void requestSceneChange(std::shared_ptr<Scene> scene);
+    void requestSceneChange(const AssetId& ref);
 
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
+
+    void onGameStop();
 #pragma endregion
 
 #pragma region SnapShot 
@@ -75,10 +86,10 @@ public:
 
 #pragma region Quadtree
     void syncQuadtreeWithSettings();
-	Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
-	Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
-	void moveGameObjectInQuadtrees(GameObject& gameObject);
-	void removeGameObjectFromQuadtree(GameObject& gameObject);
+    Quadtree* getStaticQuadtree() { return m_staticQuadtree.get(); }
+    Quadtree* getDynamicQuadtree() { return m_dynamicQuadtree.get(); }
+    void moveGameObjectInQuadtrees(GameObject& gameObject);
+    void removeGameObjectFromQuadtree(GameObject& gameObject);
 #pragma endregion
 
 #pragma region ObjectPicking
@@ -95,9 +106,17 @@ public:
 
     // This cache is not very effective, it needs to be rebuilt almost every frame (whenever any object or the camera move) if frustum culling is enabled (always in game mode)
     const std::vector<MeshRenderer*>& getMeshRenderers();
+    const std::vector<MeshRenderer*> getDeferredMeshRenderers();
+    const std::vector<MeshRenderer*> getForwardMeshRenderers();
+    const std::vector<MeshRenderer*> getForwardMeshRenderers(RenderMode mode);
     const std::vector<MeshRenderer*> getVisibleMeshRenderers();
+    const std::vector<MeshRenderer*> getVisibleDeferredMeshRenderers();
+    const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers();
+    const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers(RenderMode mode);
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
     const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();
     const std::vector<TrailComponent*>& getTrailComponents();
+    const std::vector<OcclusionTargetComponent*>& getOcclusionTargetComponents();
+    const std::vector<OcclusionOccluderComponent*>& getOcclusionOccluderComponents();
 };

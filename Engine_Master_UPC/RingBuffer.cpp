@@ -3,7 +3,7 @@
 #include "Application.h"
 #include "ModuleResources.h"
 
-RingBuffer::RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t size) : Buffer(device, buffer), m_totalMemorySize(size)
+RingBuffer::RingBuffer(ID3D12Device4& device, ComPtr<ID3D12Resource> buffer, uint32_t size, size_t alignment) : Buffer(device, buffer), m_totalMemorySize(size), m_alignment (alignment)
 {
     CD3DX12_RANGE readRange(0, 0);
     buffer->Map(0, &readRange, reinterpret_cast<void**>(&m_mappedData));
@@ -17,10 +17,15 @@ RingBuffer::~RingBuffer() {
 
 D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size, uint64_t currentFrame)
 {
+    // Real number of valid bytes the caller provided. Never copy more than
+    // this: the aligned memcpy below would otherwise read past srcData into
+    // neighbouring heap pages and trigger random 0xC0000005 access violations
+    // (e.g. ParticlesPass submits N*88 bytes, which is not a 256-byte multiple).
+    const size_t dataSize = size;
 
-
-    // Align the size
-    size = alignUp(size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+    // The GPU needs constant-buffer data 256-byte aligned, so the ring
+    // reservation uses the aligned size; the copy uses the real size.
+    size = alignUp(size, m_alignment);
 
     if (size == 0 || size > m_totalMemorySize)
         return 0;
@@ -61,7 +66,7 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
         }
     }
 
-    memcpy(m_mappedData + allocationOffset, srcData, size);
+    memcpy(m_mappedData + allocationOffset, srcData, dataSize);
     m_allocationQueue.push_back({ currentFrame, allocationOffset, size });
     return m_Resource->GetGPUVirtualAddress() + allocationOffset;
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptAPI.h"
 
@@ -14,10 +14,12 @@ public:
     void Start() override;
     void Update() override;
 
-    ScriptFieldList getExposedFields() const override;
+    FieldList getExposedFields() const override;
+
+    bool canBeTargetedDuringCombat() const override { return true; }
 
 public:
-    std::string m_healthPickupPrefabPath = "";
+    PrefabRef m_healthPickupPrefab;
 
     float m_healthDropAmount = 10.0f;
     float m_dropRadius = 1.0f;

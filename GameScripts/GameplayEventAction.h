@@ -15,4 +15,5 @@ public:
     virtual ~GameplayEventAction() = default;
 
     virtual void executeEvent(GameplayEventTrigger* trigger) = 0;
+    virtual void stopEvent(GameplayEventTrigger* trigger) {}
 };

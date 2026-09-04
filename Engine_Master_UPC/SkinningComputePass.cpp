@@ -63,6 +63,8 @@ void SkinningComputePass::prepare(const RenderContext& ctx)
 
 void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 {
+    BEGIN_EVENT(commandList, "SkinningComputePass");
+
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetComputeRootSignature(m_rootSignature.Get());
 
@@ -193,5 +195,8 @@ void SkinningComputePass::apply(ID3D12GraphicsCommandList4* commandList)
             D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
         commandList->ResourceBarrier(2, postBarriers);
+
     }
+    
+    END_EVENT(commandList);
 }

@@ -6,8 +6,10 @@
 #include "ImporterGltf.h"
 #include "MD5.h"
 
+#ifndef GAME_RELEASE
 #include "AssetScanner.h"
 #include "ContentRegistry.h"
+#endif
 #include "PrefabManager.h"
 
 
@@ -22,6 +24,8 @@
 #include "JsonArchive.h"
 #include "Metadata.h"
 #include "UID.h"
+#include "DataContainer.h"
+#include "GenericTypeFactory.h"
 
 #include <filesystem>
 #include <FileIO.h>
@@ -43,17 +47,24 @@ ModuleAssets::~ModuleAssets() = default;
 
 bool ModuleAssets::init()
 {
+#ifndef GAME_RELEASE
     m_scanner = std::make_unique<AssetScanner>();
     m_contentRegistry = std::make_unique<ContentRegistry>();
+#endif
     m_prefabManager = std::make_unique<PrefabManager>(this);
 
+#ifndef GAME_RELEASE
     refresh();
+#endif
+
     return true;
 }
 
 void ModuleAssets::postRender()
 {
+#ifndef GAME_RELEASE
     m_dialog.flush(*this);
+#endif
 }
 
 bool ModuleAssets::cleanUp()
@@ -67,13 +78,13 @@ bool ModuleAssets::canImport(const std::filesystem::path& sourcePath) const
     return m_importers.canImport(sourcePath);
 }
 
-void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetReference& reference)
+void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId& reference)
 {
     Importer* importer = m_importers.findByPath(sourcePath);
     if (!importer)
     {
         DEBUG_WARN("[ModuleAssets] No importer found for '%s'.", sourcePath.string().c_str());
-        reference = AssetReference();
+        reference = AssetId();
         return;
     }
 
@@ -84,7 +95,25 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
     reference.m_type = importer->getAssetType();
     reference.m_libId = INVALID_ASSET_ID;
 
-    std::unique_ptr<Asset> asset(importer->createAssetInstance(reference));
+    std::unique_ptr<Asset> asset;
+
+    if (reference.m_type == AssetType::DATA_CONTAINER)
+    {
+        JsonArchive archive(ArchiveMode::Input);
+        if (archive.loadFile(sourcePath))
+        {
+            std::string typeName;
+            if (archive.read("_typeName", typeName) && DataContainerFactory::isRegistered(typeName))
+            {
+                asset = DataContainerFactory::create(typeName, reference);
+            }
+        }
+    }
+
+    if (!asset)
+    {
+        asset.reset(importer->createAssetInstance(reference));
+    }
 
     if (auto cached = m_cache.get(reference.m_uid))
     {
@@ -119,13 +148,13 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetRef
     if (!importer->import(sourcePath, asset.get()))
     {
         DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
-        if (!isReimport) reference = AssetReference();
+        if (!isReimport) reference = AssetId();
         return;
     }
 
     if (!persistAsset(asset.get(), importer, reference, sourcePath))
     {
-        if (!isReimport) reference = AssetReference();
+        if (!isReimport) reference = AssetId();
     }
 }
 
@@ -144,7 +173,9 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
 
     if (targetPath.empty())
     {
+#ifndef GAME_RELEASE
         m_dialog.requestSave(asset);
+#endif
         return false;
     }
 
@@ -162,11 +193,17 @@ bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
     }
 
     const UID uid = isValidUID(asset.getUID()) ? asset.getUID() : GenerateUID();
-    AssetReference ref(uid, INVALID_ASSET_ID, asset.getType());
-    return persistAsset(&asset, importer, ref, targetPath);
+    AssetId ref(uid, INVALID_ASSET_ID, asset.getType());
+    if (persistAsset(&asset, importer, ref, targetPath))
+    {
+        asset.setUID(ref.m_uid);
+        asset.setLibId(ref.m_libId);
+        return true;
+    }
+    return false;
 }
 
-bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference& reference,
+bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetId& reference,
                                  const std::filesystem::path& sourcePath)
 {
     const MD5Hash sourceHash = computeMD5(sourcePath);
@@ -223,13 +260,16 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetReference
 
     reference.m_libId = meta.contentHash;
 
+#ifndef GAME_RELEASE
     m_contentRegistry->registerAsset(sourcePath, &m_index);
+#endif
 
     return true;
 }
 
 void ModuleAssets::refresh()
 {
+#ifndef GAME_RELEASE
     std::string rootStr = ASSETS_FOLDER;
     if (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\'))
     {
@@ -264,7 +304,7 @@ void ModuleAssets::refresh()
     tCollect0 = std::chrono::high_resolution_clock::now();
     for (ImportRequest& req : scanResult.imports)
     {
-        AssetReference ref(req.existingUID);
+        AssetId ref(req.existingUID);
         importAsset(req.sourcePath, ref);
     }
     tCollect1 = std::chrono::high_resolution_clock::now();
@@ -274,21 +314,24 @@ void ModuleAssets::refresh()
     m_contentRegistry->rebuild(root, &m_index);
     tCollect1 = std::chrono::high_resolution_clock::now();
     DEBUG_ASSETS("[ModuleAssets] Metadata rebuild took %.3f ms", elapsedMs(tCollect0, tCollect1));
+#endif
 }
 
 void ModuleAssets::unregisterAsset(const fs::path& sourcePath)
 {
     const fs::path normPath = sourcePath.lexically_normal();
     m_index.unregisterByPath(normPath);
+#ifndef GAME_RELEASE
     m_contentRegistry->unregisterAsset(normPath);
+#endif
 }
 
-bool ModuleAssets::isLoaded(const AssetReference& ref)
+bool ModuleAssets::isLoaded(const AssetId& ref)
 {
     return m_cache.isLoaded(ref.m_uid);
 }
 
-void ModuleAssets::unload(const AssetReference& ref)
+void ModuleAssets::unload(const AssetId& ref)
 {
     m_cache.unload(ref.m_uid);
 }
@@ -347,7 +390,7 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID,
     }
 }
 
-AssetReference* ModuleAssets::findReference(const UID& uid)
+AssetId* ModuleAssets::findReference(const UID& uid)
 {
     if (!isValidUID(uid))
     {
@@ -362,7 +405,7 @@ AssetReference* ModuleAssets::findReference(const UID& uid)
 
     if (isValidAsset(entry->contentHash))
     {
-        return new AssetReference(uid, entry->contentHash, entry->type);
+        return new AssetId(uid, entry->contentHash, entry->type);
     }
 
     if (!entry->sourcePath.empty())
@@ -379,7 +422,7 @@ AssetReference* ModuleAssets::findReference(const UID& uid)
             {
                 mutableEntry->contentHash = meta.contentHash;
             }
-            return new AssetReference(uid, meta.contentHash, meta.type);
+            return new AssetId(uid, meta.contentHash, meta.type);
         }
     }
 
@@ -397,7 +440,11 @@ bool ModuleAssets::createStateMachineFromGltf(const std::filesystem::path& gltfP
 
 ContentRegistry* ModuleAssets::getContentRegistry() const
 {
+#ifndef GAME_RELEASE
     return m_contentRegistry.get();
+#else
+    return nullptr;
+#endif
 }
 
 PrefabManager* ModuleAssets::getPrefabManager() const

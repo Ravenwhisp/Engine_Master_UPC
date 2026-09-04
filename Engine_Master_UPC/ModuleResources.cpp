@@ -26,6 +26,8 @@
 #include <PlatformHelpers.h>
 #include "MD5Fwd.h"
 
+#include <algorithm>
+
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
 {
@@ -142,10 +144,11 @@ Texture* ModuleResources::createDepthBuffer(float width, float height)
 	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+	desc.shaderVisibleSRV = true; // sampleable by the post-process outline pass
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
-Texture* ModuleResources::createShadowMap(uint32_t size)
+Texture* ModuleResources::createShadowMap(uint32_t size, uint32_t arraySize)
 {
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R32_TYPELESS;
@@ -153,6 +156,7 @@ Texture* ModuleResources::createShadowMap(uint32_t size)
 	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
 	desc.width = size;
 	desc.height = size;
+	desc.arraySize = static_cast<uint16_t>(std::max(1u, arraySize));
 	desc.views = TextureView::DSV | TextureView::SRV;
 	desc.initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	desc.hasClearValue = true;
@@ -163,6 +167,55 @@ Texture* ModuleResources::createShadowMap(uint32_t size)
 	shadowMap->setName(L"ShadowMap");
 
 	return shadowMap;
+}
+
+Texture* ModuleResources::createDepthMinMaxTexture(uint32_t width, uint32_t height)
+{
+	TextureDesc desc{};
+
+	desc.format = DXGI_FORMAT_R32G32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32G32_FLOAT;
+	desc.uavFormat = DXGI_FORMAT_R32G32_FLOAT;
+
+	desc.width = std::max(1u, width);
+	desc.height = std::max(1u, height);
+
+	desc.views = TextureView::SRV | TextureView::UAV;
+
+	desc.initialState =
+		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture =
+		new Texture(GenerateUID(), *m_device.Get(), desc);
+
+	texture->setName(L"DepthMinMaxReduction");
+
+	return texture;
+}
+
+Texture* ModuleResources::createVolumeTexture(uint32_t width, uint32_t height, uint16_t depth, DXGI_FORMAT format)
+{
+	TextureDesc desc{};
+
+	desc.format = format;
+	desc.srvFormat = format;
+	desc.uavFormat = format;
+
+	desc.width = std::max(1u, width);
+	desc.height = std::max(1u, height);
+	desc.depth = std::max<uint16_t>(1u, depth);
+
+	desc.mipLevels = 1;
+
+	desc.views = TextureView::SRV | TextureView::UAV;
+
+	desc.initialState = D3D12_RESOURCE_STATE_COMMON;
+
+	desc.shaderVisibleSRV = true;
+
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
 }
 
 Texture* ModuleResources::createRenderTexture(float width, float height)
@@ -177,6 +230,27 @@ Texture* ModuleResources::createRenderTexture(float width, float height)
 	desc.initialState = D3D12_RESOURCE_STATE_COMMON;
 	desc.hasClearValue = true;
 	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, Color(0.0f, 0.2f, 0.4f, 1.0f));
+	desc.shaderVisibleSRV = true;
+
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
+
+Texture* ModuleResources::createGBuffer(float width, float height, const DXGI_FORMAT format)
+{
+	//const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	const float clearColor[4] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	
+
+	TextureDesc desc{};
+	desc.format = format;
+	desc.srvFormat = format;
+	desc.rtvFormat = format;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::SRV | TextureView::RTV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(format, clearColor);
 	desc.shaderVisibleSRV = true;
 
 	return new Texture(GenerateUID(), *m_device.Get(), desc);
@@ -248,35 +322,41 @@ Texture* ModuleResources::createSSAOTexture(float width, float height)
 	return texture;
 }
 
+Texture* ModuleResources::createHDRRenderTexture(float width, float height)
+{
+	// Floating-point colour target so the lit scene can be stored in HDR
+	// (unclamped) and tone-mapped later as a post-process step.
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::SRV | TextureView::RTV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R16G16B16A16_FLOAT, Color(0.0f, 0.2f, 0.4f, 1.0f));
+	desc.shaderVisibleSRV = true;
+
+	return new Texture(GenerateUID(), *m_device.Get(), desc);
+}
+
 RenderSurface* ModuleResources::createRenderSurface(float width, float height)
 {
 	auto surface = new RenderSurface();
 
-	auto colorTex = std::shared_ptr<Texture>(app->getModuleResources()->createRenderTexture(width, height));
+	auto colorTex = std::shared_ptr<Texture>(createRenderTexture(width, height));
 	colorTex->setName(L"RenderSurface_Color");
 
-	auto depthTex = std::shared_ptr<Texture>(app->getModuleResources()->createDepthBuffer(width, height));
+	auto hdrTex = std::shared_ptr<Texture>(createHDRRenderTexture(width, height));
+	hdrTex->setName(L"RenderSurface_SceneHDR");
+
+	auto depthTex = std::shared_ptr<Texture>(createDepthBuffer(width, height));
 	depthTex->setName(L"RenderSurface_Depth");
 
-	auto ssaoDepthTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAODepthBuffer(width, height));
-	ssaoDepthTex->setName(L"RenderSurface_SSAO_Depth");
-
-	auto ssaoNormalTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAONormalBuffer(width, height));
-	ssaoNormalTex->setName(L"RenderSurface_SSAO_Normal");
-
-	auto ssaoRawTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
-	ssaoRawTex->setName(L"RenderSurface_SSAO_Raw");
-
-	auto ssaoBlurTex = std::shared_ptr<Texture>(app->getModuleResources()->createSSAOTexture(width, height));
-	ssaoBlurTex->setName(L"RenderSurface_SSAO_Blur");
-
-	surface->attachTexture(RenderSurface::COLOR_0, colorTex);
+	surface->attachTexture(RenderSurface::COMPOSITE, colorTex);
+	surface->attachTexture(RenderSurface::SCENE_HDR, hdrTex);
 	surface->attachTexture(RenderSurface::DEPTH_STENCIL, depthTex);
-
-	surface->attachTexture(RenderSurface::SSAO_DEPTH, ssaoDepthTex);
-	surface->attachTexture(RenderSurface::SSAO_NORMAL, ssaoNormalTex);
-	surface->attachTexture(RenderSurface::SSAO_RAW, ssaoRawTex);
-	surface->attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTex);
 
 	return surface;
 }
@@ -338,7 +418,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox)
 {
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
-	
+
 	//Texture to render
 	TextureDesc desc{};
 	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -348,6 +428,14 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 	desc.mipLevels = 1;
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValue.Color[0] = 0.0f;
+	clearValue.Color[1] = 0.0f;
+	clearValue.Color[2] = 0.0f;
+	clearValue.Color[3] = 1.0f;
+	desc.clearValue = clearValue;
+	desc.hasClearValue = true;
 
 	auto irradianceTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
@@ -525,6 +613,14 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 	desc.mipLevels = 11; //roughness levels
 	desc.views = TextureView::RTV;
 	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValue.Color[0] = 0.0f;
+	clearValue.Color[1] = 0.0f;
+	clearValue.Color[2] = 0.0f;
+	clearValue.Color[3] = 1.0f;
+	desc.clearValue = clearValue;
+	desc.hasClearValue = true;
 
 	auto environmentTexture = new Texture(GenerateUID(), *m_device.Get(), desc);
 
@@ -704,7 +800,14 @@ RingBuffer* ModuleResources::createRingBuffer(size_t size)
 {
 	size_t totalMemorySize = alignUp(size * (1 << 20), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 	ComPtr<ID3D12Resource> buffer = createUploadBuffer(totalMemorySize);
-	return new RingBuffer(*m_device.Get(), buffer, static_cast<uint32_t>(totalMemorySize));
+	return new RingBuffer(*m_device.Get(), buffer, static_cast<uint32_t>(totalMemorySize), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+}
+
+RingBuffer* ModuleResources::createStructuredRingBuffer(size_t size)
+{
+	size_t totalMemorySize = alignUp(size * (1 << 20), D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT);
+	ComPtr<ID3D12Resource> buffer = createUploadBuffer(totalMemorySize);
+	return new RingBuffer(*m_device.Get(), buffer, static_cast<uint32_t>(totalMemorySize), D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT);
 }
 
 VertexBuffer* ModuleResources::createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride)

@@ -27,9 +27,45 @@ void UISplashScreen::Start()
 
 void UISplashScreen::Update()
 {
-    if ((Input::isFaceButtonLeftJustPressed || Input::isFaceButtonRightJustPressed || Input::isLeftShoulderJustPressed || Input::isRightShoulderJustPressed || Input::isLeftTriggerJustPressed || Input::isRightTriggerJustPressed) && !nextSceneName.empty())
+    if (Input::isFaceButtonLeftJustPressed() ||
+        Input::isFaceButtonRightJustPressed() ||
+        Input::isFaceButtonTopJustPressed() ||
+        Input::isFaceButtonBottomJustPressed() ||
+        Input::isLeftShoulderJustPressed() ||
+        Input::isRightShoulderJustPressed() ||
+        Input::isLeftTriggerJustPressed() ||
+        Input::isRightTriggerJustPressed() ||
+        Input::isLeftStickJustPressed() ||
+        Input::isRightStickJustPressed() ||
+        Input::getMoveAxis() != Vector2::Zero ||
+        Input::getLookAxis() != Vector2::Zero)
     {
-        SceneAPI::requestSceneChange(nextSceneName.c_str());
+        Input::setPlayerKeyboard(0);
+        Input::setPlayerGamepad(1, 0);
+        if (!nextSceneName.empty())
+        {
+            SceneAPI::requestSceneChange(nextSceneName.c_str());
+        }
+    }
+    if (Input::isFaceButtonLeftJustPressed(1) ||
+        Input::isFaceButtonRightJustPressed(1) ||
+        Input::isFaceButtonTopJustPressed(1) ||
+        Input::isFaceButtonBottomJustPressed(1) ||
+        Input::isLeftShoulderJustPressed(1) ||
+        Input::isRightShoulderJustPressed(1) ||
+        Input::isLeftTriggerJustPressed(1) ||
+        Input::isRightTriggerJustPressed(1) ||
+        Input::isLeftStickJustPressed(1) ||
+        Input::isRightStickJustPressed(1) ||
+        Input::getMoveAxis(1) != Vector2::Zero ||
+        Input::getLookAxis(1) != Vector2::Zero)
+    {
+        Input::setPlayerGamepad(0, 0);
+        Input::setPlayerGamepad(1, 1);
+        if (!nextSceneName.empty())
+        {
+			SceneAPI::requestSceneChange(nextSceneName.c_str());
+        }
     }
 
 	time += Time::getDeltaTime();

@@ -32,6 +32,10 @@ void SceneConfig::drawInternal()
     ImGui::Separator();
     drawSSAOSettings();
     ImGui::Separator();
+    drawVolumetricFogSettings();
+    ImGui::Separator();
+    drawPostProcessSettings();
+    ImGui::Separator();
     drawMusicBanksSettings();
 }
 
@@ -70,7 +74,7 @@ void SceneConfig::drawLoadSceneSettings()
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
                 UID* ref = static_cast<UID*>(payload->Data);
-                AssetReference assetRef(*ref, INVALID_ASSET_ID, AssetType::SCENE);
+                AssetId assetRef(*ref, INVALID_ASSET_ID, AssetType::SCENE);
                 auto scene = app->getModuleAssets()->load<Scene>(assetRef);
                 if (scene)
                 {
@@ -158,7 +162,7 @@ void SceneConfig::drawSkyBoxSettings()
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
             {
-                AssetReference* data = static_cast<AssetReference*>(payload->Data);
+                AssetId* data = static_cast<AssetId*>(payload->Data);
                 if (auto cubemapRef = app->getModuleAssets()->findReference(data->m_uid))
                 {
                     skyboxSettings.cubemapAssetId = *cubemapRef;
@@ -220,9 +224,145 @@ void SceneConfig::drawSSAOSettings()
     }
 }
 
+void SceneConfig::drawVolumetricFogSettings()
+{
+    VolumetricFogSettings& fog = m_moduleScene->getScene()->getVolumetricFogSettings();
+
+    if (ImGui::CollapsingHeader("Volumetric Fog"))
+    {
+        ImGui::Checkbox("Enabled###VolFogEnabled", &fog.enabled);
+
+        ImGui::Separator();
+
+        ImGui::DragFloat("Density###VolFogDensity", &fog.density, 0.01f, 0.0f, 10.0f, "%.3f");
+        ImGui::DragFloat("Scattering Coefficient###VolFogScattering", &fog.scatteringCoefficient, 0.001f, 0.0f, 1.0f, "%.4f");
+        ImGui::DragFloat("Extinction Coefficient###VolFogExtinction", &fog.extinctionCoefficient, 0.001f, 0.0f, 1.0f, "%.4f");
+
+        ImGui::TextDisabled("Extinction must be greater than or equal to scattering.");
+
+        ImGui::Separator();
+
+        ImGui::SliderFloat("Anisotropy (g)###VolFogAnisotropy", &fog.anisotropy, -0.99f, 0.99f, "%.2f");
+        ImGui::DragFloat("Max Distance###VolFogMaxDistance", &fog.maxDistance, 1.0f, 1.0f, 1000.0f, "%.1f");
+
+        fog.sanitize();
+
+        ImGui::Separator();
+        ImGui::Text("Animation");
+
+        ImGui::Checkbox("Animate Density###VolumetricFogAnimateDensity", &fog.animateDensity);
+
+        if (fog.animateDensity)
+        {
+            ImGui::DragFloat("Noise Scale###VolumetricFogNoiseScale", &fog.noiseScale, 0.001f, 0.001f, 1.0f);
+            ImGui::SliderFloat("Noise Strength###VolumetricFogNoiseStrength", &fog.noiseStrength, 0.0f, 1.0f);
+
+            float windDirection[3] = { fog.windDirectionX, fog.windDirectionY, fog.windDirectionZ };
+
+            if (ImGui::DragFloat3("Wind Direction###VolumetricFogWindDirection", windDirection, 0.01f))
+            {
+                fog.windDirectionX = windDirection[0];
+                fog.windDirectionY = windDirection[1];
+                fog.windDirectionZ = windDirection[2];
+            }
+
+            ImGui::DragFloat("Wind Speed###VolumetricFogWindSpeed", &fog.windSpeed, 0.01f, 0.0f, 100.0f);
+        }
+
+        fog.sanitize();
+
+        ImGui::Separator();
+        ImGui::Text("Debug");
+
+        static const char* DEBUG_VIEW_NAMES[] = { "Final", "Medium / Extinction Slice", "Lighting Slice", "Lighting Slice - No Shadows", "Accumulated Scattering", "Transmittance" };
+
+        int debugView = static_cast<int>(fog.debugView);
+
+        if (ImGui::Combo("Debug View###VolumetricFogDebugView", &debugView, DEBUG_VIEW_NAMES, IM_ARRAYSIZE(DEBUG_VIEW_NAMES)))
+        {
+            fog.debugView = static_cast<VolumetricFogDebugView>(debugView);
+        }
+
+        if (fog.debugView == VolumetricFogDebugView::Medium || fog.debugView == VolumetricFogDebugView::Lighting || fog.debugView == VolumetricFogDebugView::LightingNoShadows)
+        {
+            ImGui::SliderFloat("Debug Slice###VolumetricFogDebugSlice", &fog.debugSlice, 0.0f, 1.0f);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::Button("Reset Defaults###VolFogResetDefaults"))
+        {
+            fog = VolumetricFogSettings{};
+        }
+    }
+}
+
+void SceneConfig::drawPostProcessSettings()
+{
+    PostProcessSettings& pp = m_moduleScene->getScene()->getPostProcessSettings();
+
+    if (ImGui::CollapsingHeader("Post Process"))
+    {
+        ImGui::DragFloat("Exposure (EV)###PPExposure", &pp.exposure, 0.05f, -10.0f, 10.0f);
+        ImGui::TextDisabled("One stop (EV +1) doubles luminance.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Bloom###PPBloomEnabled", &pp.bloomEnabled);
+        ImGui::DragFloat("Bloom Threshold###PPBloomThreshold", &pp.bloomThreshold, 0.01f, 0.0f, 10.0f);
+        ImGui::DragFloat("Bloom Intensity###PPBloomIntensity", &pp.bloomIntensity, 0.01f, 0.0f, 5.0f);
+        ImGui::DragFloat("Bloom Clamp###PPBloomClamp", &pp.bloomClamp, 0.1f, 0.5f, 8192.0f);
+        ImGui::TextDisabled("Lower = tame blown-out discs from very bright lights.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Colour Grading (LUT)###PPLutEnabled", &pp.lutEnabled);
+        char lutBuffer[260];
+        strcpy_s(lutBuffer, pp.lutPath.c_str());
+        if (ImGui::InputText(".CUBE Path###PPLutPath", lutBuffer, IM_ARRAYSIZE(lutBuffer)))
+        {
+            pp.lutPath = lutBuffer;
+        }
+        ImGui::TextDisabled("Path to a .CUBE LUT (relative to the working directory).");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Chromatic Aberration###PPCAEnabled", &pp.chromaticAberrationEnabled);
+        ImGui::DragFloat("CA Strength###PPCAStrength", &pp.chromaticAberrationStrength, 0.05f, 0.0f, 10.0f);
+
+        ImGui::Separator();
+        ImGui::Checkbox("Heartbeat (Damage FX)###PPHeartbeat", &pp.heartbeatEnabled);
+        ImGui::DragFloat("Health Threshold###PPHealthThreshold", &pp.healthThreshold, 0.01f, 0.0f, 1.0f);
+        ImGui::SliderFloat("Health (test)###PPHealth", &pp.health, 0.0f, 1.0f);
+        ImGui::SliderFloat("Separation (test)###PPSeparation", &pp.separation, 0.0f, 1.0f);
+        ImGui::TextDisabled("Health/Separation are normally driven by gameplay.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Death Fade (test)###PPDeath", &pp.deathFadeActive);
+        ImGui::DragFloat("Grey Duration (s)###PPDeathGrey", &pp.deathGreyDuration, 0.05f, 0.1f, 10.0f);
+        ImGui::DragFloat("Black Duration (s)###PPDeathBlack", &pp.deathBlackDuration, 0.05f, 0.1f, 10.0f);
+        ImGui::TextDisabled("Triggered by gameplay when all players are down.");
+
+        ImGui::Separator();
+        ImGui::Checkbox("Outline (Ink)###PPOutline", &pp.outlineEnabled);
+        ImGui::DragFloat("Thickness (px)###PPOutThick", &pp.outlineThickness, 0.05f, 0.5f, 6.0f);
+        ImGui::DragFloat("Depth Threshold (silhouette)###PPOutThresh", &pp.outlineThreshold, 0.001f, 0.001f, 0.5f, "%.3f");
+        ImGui::DragFloat("Normal Threshold (creases)###PPOutNormalThresh", &pp.outlineNormalThreshold, 0.005f, 0.01f, 2.0f, "%.3f");
+        ImGui::DragFloat("Intensity###PPOutIntensity", &pp.outlineIntensity, 0.01f, 0.0f, 1.0f);
+        float ink[3] = { pp.outlineColorR, pp.outlineColorG, pp.outlineColorB };
+        if (ImGui::ColorEdit3("Ink Colour###PPOutColor", ink))
+        {
+            pp.outlineColorR = ink[0];
+            pp.outlineColorG = ink[1];
+            pp.outlineColorB = ink[2];
+        }
+        ImGui::DragFloat("Wobble###PPOutWobble", &pp.outlineWobble, 0.05f, 0.0f, 5.0f);
+        ImGui::DragFloat("Noise Scale###PPOutNoise", &pp.outlineNoiseScale, 1.0f, 1.0f, 400.0f);
+        ImGui::DragFloat("Break-up###PPOutBreakup", &pp.outlineBreakup, 0.01f, 0.0f, 1.0f);
+        ImGui::TextDisabled("Depth threshold catches silhouettes; normal threshold catches interior creases and stays stable while zooming.");
+    }
+}
+
 void SceneConfig::drawMusicBanksSettings()
 {
-    const std::vector<std::string> loadedBanks = m_moduleScene->getScene()->getLoadedBanks();
+    const std::vector<std::string> loadedBanks = m_moduleScene->getScene()->getLoadedBankNames();
     std::vector<WwiseBank>& existingBanks = m_moduleMusic->getBankList();
 
     if (!ImGui::CollapsingHeader("Music Banks"))

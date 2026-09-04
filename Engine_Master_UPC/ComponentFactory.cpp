@@ -17,6 +17,15 @@
 #include "TrailComponent.h"
 #include "ComponentSoundListener.h"
 #include "ComponentSoundSource.h"
+#include "PlayerRenderBufferComponent.h"
+#include "DamageHighlightComponent.h"
+#include "DissolveComponent.h"
+#include "SpectralComponent.h"
+#include "FlowMapComponent.h"
+#include "OcclusionTargetComponent.h"
+#include "OcclusionOccluderComponent.h"
+
+#include "ComponentVideo.h"
 
 // Prefab
 #include "PrefabInstanceComponent.h"
@@ -99,6 +108,30 @@ std::unique_ptr<Component> ComponentFactory::createWithUID(ComponentType type, U
 
     case ComponentType::PREFAB_INSTANCE:
         return std::make_unique<PrefabInstanceComponent>(id, owner);
+
+    case ComponentType::PLAYER_RENDER_BUFFER:
+        return std::make_unique<PlayerRenderBufferComponent>(id, owner);
+
+    case ComponentType::DAMAGE_HIGHLIGHT:
+        return std::make_unique<DamageHighlightComponent>(id, owner);
+
+    case ComponentType::DISSOLVE:
+        return std::make_unique<DissolveComponent>(id, owner);
+
+    case ComponentType::FLOW_MAP:
+        return std::make_unique<FlowMapComponent>(id, owner);
+
+    case ComponentType::SPECTRAL:
+        return std::make_unique<SpectralComponent>(id, owner);
+
+    case ComponentType::OCCLUSION_TARGET:
+        return std::make_unique<OcclusionTargetComponent>(id, owner);
+
+    case ComponentType::OCCLUSION_OCCLUDER:
+        return std::make_unique<OcclusionOccluderComponent>(id, owner);
+
+    case ComponentType::VIDEO:
+        return std::make_unique<ComponentVideo>(id, owner);
 
     case ComponentType::TRANSFORM:
     case ComponentType::COUNT:

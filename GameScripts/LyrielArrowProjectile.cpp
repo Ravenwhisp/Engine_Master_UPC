@@ -1,18 +1,16 @@
 #include "pch.h"
 #include "LyrielArrowProjectile.h"
-#include "ArrowPool.h"
 #include "EnemyDamageable.h"
 #include "BreakableDamageable.h"
-#include "EnemyShadowMark.h"
 #include "LyrielCharacter.h"
 #include "LyrielSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS(LyrielArrowProjectile,
-    SERIALIZED_STRING(m_particlePrefabPath, "Particle Prefab Path")
+    SERIALIZED_ASSET_REF(m_particlePrefab, "Particle Prefab", AssetType::PREFAB)
 )
 
 LyrielArrowProjectile::LyrielArrowProjectile(GameObject* owner)
-    : Script(owner)
+    : ProjectileBase(owner)
 {
 }
 
@@ -40,21 +38,6 @@ void LyrielArrowProjectile::Update()
     }
 }
 
-void LyrielArrowProjectile::setPool(ArrowPool* pool)
-{
-    m_pool = pool;
-}
-
-void LyrielArrowProjectile::setArrowOwnerTransform(Transform* owner)
-{
-    m_arrowOwner = owner;
-}
-
-bool LyrielArrowProjectile::isInUse() const
-{
-    return m_inUse;
-}
-
 void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage)
 {
     m_inUse = true;
@@ -73,9 +56,9 @@ void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3&
         TransformAPI::lookAt(transform, start_position + m_direction);
     }
 
-    if (!m_particlePrefabPath.empty())
+    if (m_particlePrefab.m_id.isValid())
     {
-        m_particleGO = GameObjectAPI::instantiatePrefab(m_particlePrefabPath.c_str(), start_position, Vector3::Zero, nullptr);
+        m_particleGO = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_id, start_position, Vector3::Zero, nullptr);
         if (m_particleGO != nullptr)
         {
             syncParticleTransform();
@@ -87,7 +70,6 @@ void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3&
 
 void LyrielArrowProjectile::resetProjectile()
 {
-    m_inUse = false;
     m_direction = Vector3::Zero;
     m_speed = 0.0f;
     m_lifeTimer = 0.0f;
@@ -101,18 +83,7 @@ void LyrielArrowProjectile::resetProjectile()
         m_particleGO = nullptr;
     }
 
-    GameObjectAPI::setActive(getOwner(), false);
-}
-
-void LyrielArrowProjectile::returnToPool()
-{
-    if (m_pool == nullptr)
-    {
-        resetProjectile();
-        return;
-    }
-
-    m_pool->releaseArrow(this);
+    ProjectileBase::resetProjectile();
 }
 
 void LyrielArrowProjectile::applyImpactDamage()
@@ -122,11 +93,13 @@ void LyrielArrowProjectile::applyImpactDamage()
         return;
     }
 
+    Transform* projectileOwner = getProjectileOwnerTransform();
+
     // Resolve LyrielSound on the shooter once for both impact + mark exploit feedback.
     LyrielSound* sound = nullptr;
-    if (m_arrowOwner != nullptr)
+    if (projectileOwner != nullptr)
     {
-        GameObject* shooter = m_arrowOwner->getOwner();
+        GameObject* shooter = projectileOwner->getOwner();
         if (shooter != nullptr)
         {
             sound = GameObjectAPI::findScript<LyrielSound>(shooter);
@@ -142,35 +115,28 @@ void LyrielArrowProjectile::applyImpactDamage()
 
     if (damageable != nullptr)
     {
+        EnemyHitContext ctx;
+        ctx.damage = m_damage;
+        ctx.attacker = projectileOwner;
+        ctx.attackType = PlayerAttackType::LyrielArrow;
+
+        damageable->takeDamage(ctx);
+        if (damageable->lastHitExploitShadowMark() && projectileOwner != nullptr)
         {
-            EnemyHitContext ctx;
-            ctx.damage = m_damage;
-            ctx.attacker = m_arrowOwner;
-            ctx.attackType = EnemyAttackType::LyrielArrow;
-            damageable->takeDamage(ctx);
-        }
+            GameObject* shooter = projectileOwner->getOwner();
 
-        EnemyShadowMark* mark = GameObjectAPI::findScript<EnemyShadowMark>(m_target);
-        if (mark != nullptr && mark->isExploitable())
-        {
-            mark->exploit();
-
-            if (sound != nullptr)
+            if (shooter != nullptr)
             {
-                sound->playMarkExploit();
-            }
+                LyrielCharacter* lyriel = GameObjectAPI::findScript<LyrielCharacter>(shooter);
 
-            if (m_arrowOwner != nullptr)
-            {
-                GameObject* shooter = m_arrowOwner->getOwner();
-                if (shooter != nullptr)
+                if (lyriel != nullptr)
                 {
-                    LyrielCharacter* lyriel = GameObjectAPI::findScript<LyrielCharacter>(shooter);
-                    if (lyriel != nullptr)
-                        lyriel->onMarkExploited();
+                    lyriel->onMarkExploited();
                 }
             }
         }
+
+        return;
     }
 
 	BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(m_target);
@@ -178,7 +144,6 @@ void LyrielArrowProjectile::applyImpactDamage()
     if (breakableDamageable != nullptr)
     {
         breakableDamageable->takeDamage(m_damage);
-        return;
     }
 }
 

@@ -35,7 +35,7 @@ void PlayerRotation::applyFacingFromDirection(GameObject* owner, const Vector3& 
 	const float targetYawDeg = yawRad * (180.0f / PI);
 
 	Transform* transform = GameObjectAPI::getTransform(owner);
-	Vector3 currentEuler = TransformAPI::getEulerDegrees(transform);
+	Vector3 currentEuler = TransformAPI::getGlobalEulerDegrees(transform);
 	const float currentWorldYaw = currentEuler.y;
 
 	const float maxStep = m_turnSpeedDegPerSec * dt;

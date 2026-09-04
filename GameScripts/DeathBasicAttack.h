@@ -3,6 +3,7 @@
 #include "DeathAbilityBase.h"
 
 class DeathUI;
+class DeathParticles;
 
 class DeathBasicAttack : public DeathAbilityBase
 {
@@ -35,4 +36,6 @@ private:
     DeathUI* m_deathUI = nullptr;
 
     GameObject* m_attackFacingTarget = nullptr;
+
+    DeathParticles* m_particles = nullptr;
 };

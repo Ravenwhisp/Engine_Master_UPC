@@ -8,10 +8,10 @@
 #include "PlayerRotation.h"
 #include "PlayerState.h"
 #include "EnemyDamageable.h"
-#include "EnemyShadowMark.h"
 #include "BreakableDamageable.h"
 #include "DeathUI.h"
 #include "DeathConfig.h"
+#include "DeathParticles.h"
 
 #include <cmath>
 
@@ -30,6 +30,15 @@ void DeathBasicAttack::Start()
     {
         Debug::warn("[DeathBasicAttack] DeathUI not found.");
     }
+
+    m_particles = GameObjectAPI::findScript<DeathParticles>(getOwner());
+
+    if (!m_particles)
+    {
+        Debug::error("[DeathBasicAttack] DeathParticles not found.");
+        return;
+    }
+
 }
 
 void DeathBasicAttack::Update()
@@ -69,10 +78,12 @@ void DeathBasicAttack::startAbility()
     }
 
     dealDamageToTarget(target);
+    notifyAbilitySuccessfullyStarted();
+
     m_deathCharacter->advanceCombo(false);
 
-    const bool  isFinalHit = (comboStep >= 2);
-    const float lockDuration = isFinalHit ? m_config->m_basicFinalHitLockDuration : m_config->m_basicAttackLockDuration;
+    const bool  isFinalHit  = (comboStep >= 2);
+    const float lockDuration = isFinalHit ? m_deathCharacter->getConfig()->m_basicFinalHitLockDuration : m_deathCharacter->getConfig()->m_basicAttackLockDuration;
 
     beginAttackPresentation();
     beginAttackWindow(lockDuration);
@@ -97,6 +108,11 @@ void DeathBasicAttack::onAttackWindowUpdate()
     {
         anim->requestAttack();
     }
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetScytheActive();
+    }
 }
 
 void DeathBasicAttack::onAttackWindowFinished()
@@ -107,11 +123,16 @@ void DeathBasicAttack::onAttackWindowFinished()
     {
         releaseComboMoveLock();
     }
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetScytheInactive();
+    }
 }
 
 float DeathBasicAttack::getCooldown() const
 {
-    return m_config->m_basicCooldown;
+    return m_deathCharacter->getConfig()->m_basicCooldown;
 }
 
 void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
@@ -122,7 +143,7 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
         return;
     }
 
-    const Vector3 myPos = TransformAPI::getPosition(myTransform);
+    const Vector3 myPos = TransformAPI::getGlobalPosition(myTransform);
     Vector3 myForward = TransformAPI::getForward(myTransform);
     myForward.y = 0.0f;
     const float fwdLen = myForward.Length();
@@ -132,8 +153,8 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
     }
 
     constexpr float k_degToRad = 3.14159265f / 180.0f;
-    const float halfHitCos = cosf(m_config->m_basicAttackHitAngle * 0.5f * k_degToRad);
-    const float rangeSq = m_config->m_basicAttackRange * m_config->m_basicAttackRange;
+    const float halfHitCos = cosf(m_deathCharacter->getConfig()->m_basicAttackHitAngle * 0.5f * k_degToRad);
+    const float rangeSq = m_deathCharacter->getConfig()->m_basicAttackRange * m_deathCharacter->getConfig()->m_basicAttackRange;
 
     auto isInHitZone = [&](GameObject* enemy) -> bool
         {
@@ -146,7 +167,7 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
             {
                 return false;
             }
-            Vector3 toE = TransformAPI::getPosition(eTr) - myPos;
+            Vector3 toE = TransformAPI::getGlobalPosition(eTr) - myPos;
             toE.y = 0.0f;
             if (toE.LengthSquared() > rangeSq)
             {
@@ -172,11 +193,11 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
             if (damageable == nullptr)
             {
                 BreakableDamageable* breakableDamageable = GameObjectAPI::findScript<BreakableDamageable>(enemy);
-                if (breakableDamageable == nullptr)
+                if(breakableDamageable == nullptr)
                 {
                     return;
                 }
-                breakableDamageable->takeDamage(m_config->m_basicAttackDamage);
+                breakableDamageable->takeDamage(m_deathCharacter->getConfig()->m_basicAttackDamage);
                 if (sound != nullptr)
                 {
                     sound->playLightImpact();
@@ -186,31 +207,21 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
 
             {
                 EnemyHitContext ctx;
-                ctx.damage = m_config->m_basicAttackDamage;
+                ctx.damage = m_deathCharacter->getConfig()->m_basicAttackDamage;
                 ctx.attacker = GameObjectAPI::getTransform(getOwner());
-                ctx.attackType = EnemyAttackType::DeathBasic;
+                ctx.attackType = PlayerAttackType::DeathBasic;
                 damageable->takeDamage(ctx);
             }
 
             Debug::log("[BASIC] hit '%s'  dmg=%.1f  hp=%.1f/%.1f",
                 GameObjectAPI::getName(enemy),
-                m_config->m_basicAttackDamage,
+                m_deathCharacter->getConfig()->m_basicAttackDamage,
                 damageable->getCurrentHp(),
                 damageable->getMaxHp());
 
             if (sound != nullptr)
             {
                 sound->playLightImpact();
-            }
-
-            EnemyShadowMark* shadowMark = GameObjectAPI::findScript<EnemyShadowMark>(enemy);
-            if (shadowMark != nullptr)
-            {
-                shadowMark->notifyDeathHit();
-                if (sound != nullptr)
-                {
-                    sound->playMarkApply();
-                }
             }
         };
 
@@ -231,7 +242,7 @@ void DeathBasicAttack::dealDamageToTarget(GameObject* target) const
             continue;
         }
         const Transform* eTr = GameObjectAPI::getTransform(enemy);
-        Vector3 toE = TransformAPI::getPosition(eTr) - myPos;
+        Vector3 toE = TransformAPI::getGlobalPosition(eTr) - myPos;
         toE.y = 0.0f;
         toE.Normalize();
         const float dot = myForward.Dot(toE);
@@ -265,27 +276,27 @@ void DeathBasicAttack::drawGizmo()
         return;
     }
 
-    const Vector3 pos = TransformAPI::getPosition(t);
-    const Vector3 fwd = TransformAPI::getForward(t);
-    const float   fill = m_deathCharacter->getComboFillRatio();
+    const Vector3 pos      = TransformAPI::getGlobalPosition(t);
+    const Vector3 fwd      = TransformAPI::getForward(t);
+    const float   fill     = m_deathCharacter->getComboFillRatio();
 
     constexpr float k_degToRad = 3.14159265f / 180.0f;
-    const float hitHalfRad = m_config->m_basicAttackHitAngle * 0.5f * k_degToRad;
+    const float hitHalfRad     = m_deathCharacter->getConfig()->m_basicAttackHitAngle * 0.5f * k_degToRad;
 
     const Vector3 posFlat = { pos.x, pos.y, pos.z };
 
-    const Vector3 colGrey = { 0.35f, 0.35f, 0.35f };
-    const Vector3 colPurple = { 0.9f,  0.0f,  0.9f };
-    const Vector3 colOrange = { 1.0f,  0.55f, 0.0f };
-    const Vector3 colFill = m_deathCharacter->wasLastHitR2() ? colOrange : colPurple;
+    const Vector3 colGrey   = { 0.35f, 0.35f, 0.35f };
+    const Vector3 colPurple = { 0.9f,  0.0f,  0.9f  };
+    const Vector3 colOrange = { 1.0f,  0.55f, 0.0f  };
+    const Vector3 colFill   = m_deathCharacter->wasLastHitR2() ? colOrange : colPurple;
 
     auto radialDir = [&](float a) -> Vector3
-        {
-            return Vector3(
-                fwd.x * cosf(a) + fwd.z * sinf(a),
-                0.0f,
-                -fwd.x * sinf(a) + fwd.z * cosf(a));
-        };
+    {
+        return Vector3(
+            fwd.x * cosf(a) + fwd.z * sinf(a),
+            0.0f,
+            -fwd.x * sinf(a) + fwd.z * cosf(a));
+    };
 
     // Detection range: full circle
     const int   circleSegs = 32;
@@ -294,40 +305,40 @@ void DeathBasicAttack::drawGizmo()
     {
         const float a0 = circleStep * static_cast<float>(i);
         const float a1 = a0 + circleStep;
-        DebugDrawAPI::drawLine(posFlat + radialDir(a0) * m_config->m_basicAttackRange,
-            posFlat + radialDir(a1) * m_config->m_basicAttackRange, colGrey);
+        DebugDrawAPI::drawLine(posFlat + radialDir(a0) * m_deathCharacter->getConfig()->m_basicAttackRange,
+                               posFlat + radialDir(a1) * m_deathCharacter->getConfig()->m_basicAttackRange, colGrey);
     }
 
     // Hit zone: narrow arc with edge lines
-    const Vector3 hitLeft = radialDir(-hitHalfRad);
-    const Vector3 hitRight = radialDir(hitHalfRad);
-    DebugDrawAPI::drawLine(posFlat, posFlat + hitLeft * m_config->m_basicAttackRange, colGrey);
-    DebugDrawAPI::drawLine(posFlat, posFlat + hitRight * m_config->m_basicAttackRange, colGrey);
+    const Vector3 hitLeft  = radialDir(-hitHalfRad);
+    const Vector3 hitRight = radialDir( hitHalfRad);
+    DebugDrawAPI::drawLine(posFlat, posFlat + hitLeft  * m_deathCharacter->getConfig()->m_basicAttackRange, colGrey);
+    DebugDrawAPI::drawLine(posFlat, posFlat + hitRight * m_deathCharacter->getConfig()->m_basicAttackRange, colGrey);
 
     const int   arcSegs = 12;
-    const float arcStep = (m_config->m_basicAttackHitAngle * k_degToRad) / static_cast<float>(arcSegs);
+    const float arcStep = (m_deathCharacter->getConfig()->m_basicAttackHitAngle * k_degToRad) / static_cast<float>(arcSegs);
     for (int i = 0; i < arcSegs; ++i)
     {
         const float a0 = -hitHalfRad + arcStep * static_cast<float>(i);
         const float a1 = a0 + arcStep;
-        DebugDrawAPI::drawLine(posFlat + radialDir(a0) * m_config->m_basicAttackRange,
-            posFlat + radialDir(a1) * m_config->m_basicAttackRange, colGrey);
+        DebugDrawAPI::drawLine(posFlat + radialDir(a0) * m_deathCharacter->getConfig()->m_basicAttackRange,
+                               posFlat + radialDir(a1) * m_deathCharacter->getConfig()->m_basicAttackRange, colGrey);
     }
 
     // Combo fill: purple (R1 last) or orange (R2 last) on hit zone arc
     if (fill > 0.0f)
     {
-        const int   fillLines = 16;
+        const int   fillLines   = 16;
         const float filledAngle = fill * 2.0f * hitHalfRad;
 
         for (int i = 0; i <= fillLines; ++i)
         {
             const float t2 = static_cast<float>(i) / static_cast<float>(fillLines);
-            const float a = -hitHalfRad + t2 * filledAngle;
-            DebugDrawAPI::drawLine(posFlat, posFlat + radialDir(a) * m_config->m_basicAttackRange, colFill);
+            const float a  = -hitHalfRad + t2 * filledAngle;
+            DebugDrawAPI::drawLine(posFlat, posFlat + radialDir(a) * m_deathCharacter->getConfig()->m_basicAttackRange, colFill);
         }
 
-        DebugDrawAPI::drawLine(posFlat, posFlat + hitLeft * m_config->m_basicAttackRange, colFill);
+        DebugDrawAPI::drawLine(posFlat, posFlat + hitLeft * m_deathCharacter->getConfig()->m_basicAttackRange, colFill);
     }
 }
 
@@ -338,18 +349,18 @@ void DeathBasicAttack::snapFaceTarget(GameObject* target)
         return;
     }
 
-    Transform* myTransform = GameObjectAPI::getTransform(getOwner());
+    Transform* myTransform     = GameObjectAPI::getTransform(getOwner());
     Transform* targetTransform = GameObjectAPI::getTransform(target);
     if (myTransform == nullptr || targetTransform == nullptr)
     {
         return;
     }
 
-    const float rangeSq = m_config->m_basicAttackRange * m_config->m_basicAttackRange;
+    const float rangeSq = m_deathCharacter->getConfig()->m_basicAttackRange * m_deathCharacter->getConfig()->m_basicAttackRange;
 
-    Vector3 myPos = TransformAPI::getGlobalPosition(myTransform);
+    Vector3 myPos     = TransformAPI::getGlobalPosition(myTransform);
     Vector3 targetPos = TransformAPI::getGlobalPosition(targetTransform);
-    Vector3 dir = targetPos - myPos;
+    Vector3 dir       = targetPos - myPos;
     dir.y = 0.0f;
 
     if (dir.LengthSquared() > rangeSq || dir.LengthSquared() <= 0.0001f)
@@ -360,9 +371,9 @@ void DeathBasicAttack::snapFaceTarget(GameObject* target)
     dir.Normalize();
 
     constexpr float k_radToDeg = 180.0f / 3.14159265f;
-    const float     yaw = atan2f(dir.x, dir.z) * k_radToDeg;
-    const Vector3   euler = TransformAPI::getEulerDegrees(myTransform);
-    TransformAPI::setRotationEuler(myTransform, Vector3(euler.x, yaw, euler.z));
+    const float     yaw        = atan2f(dir.x, dir.z) * k_radToDeg;
+    const Vector3   euler      = TransformAPI::getGlobalEulerDegrees(myTransform);
+    TransformAPI::setGlobalRotationEuler(myTransform, Vector3(euler.x, yaw, euler.z));
 }
 
 void DeathBasicAttack::faceTarget(GameObject* target)
@@ -373,16 +384,16 @@ void DeathBasicAttack::faceTarget(GameObject* target)
         return;
     }
 
-    Transform* myTransform = GameObjectAPI::getTransform(getOwner());
+    Transform* myTransform     = GameObjectAPI::getTransform(getOwner());
     Transform* targetTransform = GameObjectAPI::getTransform(target);
 
-    Vector3 myPos = TransformAPI::getGlobalPosition(myTransform);
+    Vector3 myPos     = TransformAPI::getGlobalPosition(myTransform);
     Vector3 targetPos = TransformAPI::getGlobalPosition(targetTransform);
 
     Vector3 dir = targetPos - myPos;
     dir.y = 0.0f;
 
-    const float rangeSq = m_config->m_basicAttackRange * m_config->m_basicAttackRange;
+    const float rangeSq = m_deathCharacter->getConfig()->m_basicAttackRange * m_deathCharacter->getConfig()->m_basicAttackRange;
     if (dir.LengthSquared() > rangeSq)
     {
         return;
@@ -403,7 +414,7 @@ void DeathBasicAttack::updateUI()
 
     if (m_deathUI)
     {
-        m_deathUI->updateBasicSlashUI(m_attackStateTimer, m_config->m_basicAttackLockDuration);
+        m_deathUI->updateBasicSlashUI(m_attackStateTimer, m_deathCharacter->getConfig()->m_basicAttackLockDuration);
     }
 }
 

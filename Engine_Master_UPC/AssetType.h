@@ -1,6 +1,5 @@
 #pragma once
 #include <cstdint>
-#include <cstring>
 
 #define ASSET_TYPE_LIST(X) \
     X(TEXTURE)                 \
@@ -13,6 +12,11 @@
     X(SKIN)                    \
     X(ANIMATION_STATE_MACHINE) \
     X(SCENE)                   \
+    X(NAVMESH)                 \
+    X(SOUND_BANK)              \
+    X(SCRIPT)                  \
+    X(DATA_CONTAINER) 			\
+    X(VIDEO)                 	\
     X(UNKNOWN)
 
 #define ASSET_ENUM(name) name,

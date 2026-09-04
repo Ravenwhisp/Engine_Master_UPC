@@ -87,9 +87,12 @@ void BinaryArchive::serializeRaw(void* data, size_t size, const char* /*name*/)
         }
         m_writer.bytes(data, size);
         m_bytesWritten += size;
+
     }
     else
         m_reader.bytes(data, size);
+
+
 }
 
 void BinaryArchive::beginArray(uint32_t& count, const char* /*name*/)
@@ -98,6 +101,11 @@ void BinaryArchive::beginArray(uint32_t& count, const char* /*name*/)
 }
 
 void BinaryArchive::serialize(DirectX::SimpleMath::Vector3& val, const char* /*name*/)
+{
+    serializeRaw(&val, sizeof(val));
+}
+
+void BinaryArchive::serialize(DirectX::SimpleMath::Vector2& val, const char* /*name*/)
 {
     serializeRaw(&val, sizeof(val));
 }

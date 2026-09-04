@@ -4,8 +4,8 @@
 #include "StateMachineScript.h"
 
 class RangedEnemyController;
-class ArcherAttackConfig;
 class AnimationComponent;
+class ArcherGuardParticles;
 
 class ArcherSomersaultState : public StateMachineScript
 {
@@ -21,11 +21,12 @@ public:
 private:
     void moveSomersault();
     void finishSomersault();
+    void cancelSomersault();
 
 private:
     RangedEnemyController* m_archerController = nullptr;
-    ArcherAttackConfig* m_attackConfig = nullptr;
     AnimationComponent* m_animation = nullptr;
+    ArcherGuardParticles* m_particles = nullptr;
 
     Vector3 m_escapeDirection = Vector3(0.0f, 0.0f, 0.0f);
 

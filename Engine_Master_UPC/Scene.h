@@ -7,12 +7,14 @@
 #include "SceneLightingSettings.h"
 #include "SceneDataCB.h"
 #include "SkyBoxSettings.h"
-#include "SSAOSettings.h"
-#include "SoundBanksData.h"
+#include "PostProcessSettings.h"
 #include "SceneReferenceResolver.h"
+#include "VolumetricFogSettings.h"
+#include "AssetId.h"
 #include "UID.h"
 
 #include <unordered_map>
+#include <SSAOSettings.h>
 
 struct ID3D12GraphicsCommandList;
 
@@ -22,7 +24,7 @@ class MeshRenderer;
 class TriggerSystem;
 class TriggerComponent;
 
-class Scene: public Asset
+class Scene : public Asset
 {
     friend class SceneSnapshot;
 private:
@@ -34,6 +36,9 @@ private:
     SceneLightingSettings m_lighting;
     SceneDataCB m_sceneDataCB;
     SkyBoxSettings m_skybox;
+    PostProcessSettings m_postProcess;
+    VolumetricFogSettings m_volumetricFog;
+    AssetId m_navMesh;
     SSAOSettings m_ssao;
 
     CameraComponent* m_defaultCamera;
@@ -49,7 +54,8 @@ private:
 
     void removePendingGameObjects();
 
-    std::vector<std::string> m_loadedBanks;
+    std::vector<AssetId> m_loadedBankRefs;
+    mutable std::vector<std::string> m_loadedBankNameCache;
 
     //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
     bool m_isUpdating = false;
@@ -75,7 +81,7 @@ private:
 public:
     friend class ModuleScene;
 
-    Scene(AssetReference& uid);
+    Scene(AssetId& uid);
     ~Scene();
 
     void serialize(IArchive& archive) override;
@@ -103,7 +109,14 @@ public:
     const SkyBoxSettings& getSkyBoxSettings() const { return m_skybox; }
     SSAOSettings& getSSAOSettings() { return m_ssao; }
     const SSAOSettings& getSSAOSettings() const { return m_ssao; }
+    VolumetricFogSettings& getVolumetricFogSettings() { return m_volumetricFog; }
+    const VolumetricFogSettings& getVolumetricFogSettings() const { return m_volumetricFog; }
+    PostProcessSettings& getPostProcessSettings() { return m_postProcess; }
+    const PostProcessSettings& getPostProcessSettings() const { return m_postProcess; }
 
+    AssetId& getNavMesh() { return m_navMesh; }
+    const AssetId& getNavMesh() const { return m_navMesh; }
+    void setNavMesh(const AssetId& ref) { m_navMesh = ref; }
 
     CameraComponent* getDefaultCamera() const { return m_defaultCamera; }
     void setDefaultCamera(CameraComponent* camera) { m_defaultCamera = camera; }
@@ -136,6 +149,8 @@ public:
 
     void clearScene();
 
+    void onGameStop();
+
     void  markDirty();
     bool  isComponentCacheDirty() const { return m_componentCacheDirty; }
     void  clearDirty() { m_componentCacheDirty = false; }
@@ -152,9 +167,11 @@ public:
 #pragma endregion
 
 #pragma region MusicBanks
-    const std::vector<std::string>& getLoadedBanks() const;
-    void addLoadedBank(const std::string& bank);
-    void removeLoadedBank(const std::string& bank);
-	void unloadSoundBanks();
+    const std::vector<AssetId>& getLoadedBankRefs() const { return m_loadedBankRefs; }
+    void addLoadedBank(const std::string& bankName);
+    void removeLoadedBank(const std::string& bankName);
+    std::vector<std::string> getLoadedBankNames() const;
+    void resolveLoadedBankNames() const;
+    void unloadSoundBanks();
 #pragma endregion
 };

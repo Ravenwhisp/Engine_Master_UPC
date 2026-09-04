@@ -24,12 +24,19 @@
 #include "WindowAnimationStateMachine.h"
 #include "PrefabManager.h"
 #include "WindowMusicDebug.h"
+#include "WindowVideoDebug.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
 #include "ModuleGameView.h"
 #include "ModuleAssets.h"
 #include "Mouse.h"
+#include "GenericTypeFactory.h"
+#include "ContentRegistry.h"
+#include "CommandCreateDataContainer.h"
+#include "DataContainerExporter.h"
+#include "WindowDataContainerManager.h"
+#include "FileDialog.h"
 
 #include <fstream>
 
@@ -148,6 +155,8 @@ bool ModuleEditor::init()
     registerWindowType<WindowGame>("Game");
     registerWindowType<WindowAnimationStateMachine>("Animation State Machine");
     registerWindowType<WindowMusicDebug>("Music Library");
+    registerWindowType<WindowDataContainerManager>("Data Container Manager");
+    registerWindowType<WindowVideoDebug>("Video debug");
 
     // ---- Spawn the default set of windows (one each) ----
     openWindow("Console");
@@ -182,6 +191,28 @@ void ModuleEditor::update()
         if (sceneEditor->isFocused())
         {
             handleKeyboardShortcuts();
+        }
+    }
+
+    if (!m_dcDialogRunning.load())
+    {
+        std::optional<std::filesystem::path> result;
+        {
+            std::lock_guard lock(m_dcDialogMutex);
+            if (m_dcDialogResult.has_value())
+            {
+                result = std::move(m_dcDialogResult);
+                m_dcDialogResult.reset();
+            }
+        }
+
+        if (result.has_value())
+        {
+            if (m_dcDialogMode == 1)
+                DataContainerExporter::exportToJson(result.value());
+            else if (m_dcDialogMode == 2)
+                DataContainerExporter::importFromJson(result.value());
+            m_dcDialogMode = 0;
         }
     }
 }
@@ -332,7 +363,8 @@ void ModuleEditor::mainMenuBar()
 
     if (ImGui::BeginMenu("Window"))
     {
-        // ---- New Window submenu — spawn additional instances ----
+        // ---- New Window submenu â€“ spawn additional instances ----
+        // ---- New Window submenu ï¿½ spawn additional instances ----
         if (!m_windowFactories.empty())
         {
             ImGui::Separator();
@@ -346,6 +378,63 @@ void ModuleEditor::mainMenuBar()
                     }
                 }
                 ImGui::EndMenu();
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Asset"))
+    {
+        const auto& dcRegistry = DataContainerFactory::getAllRegistered();
+        if (!dcRegistry.empty())
+        {
+            for (const auto& entry : dcRegistry)
+            {
+                if (ImGui::MenuItem(entry.displayName.c_str()))
+                {
+                    std::filesystem::path assetsDir = ASSETS_FOLDER;
+                    if (assetsDir.empty())
+                    {
+                        assetsDir = std::filesystem::current_path() / "Assets";
+                    }
+                    std::string assetName = std::string("New_") + entry.name;
+                    CommandCreateDataContainer(assetsDir, entry.name, assetName).run();
+                }
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("No asset types registered");
+        }
+
+        ImGui::Separator();
+        if (ImGui::MenuItem("Export Data Assets..."))
+        {
+            if (!m_dcDialogRunning.load())
+            {
+                m_dcDialogMode = 1;
+                m_dcDialogRunning.store(true);
+                { std::lock_guard lock(m_dcDialogMutex); m_dcDialogResult.reset(); }
+                std::thread([this]() {
+                    auto result = saveAs("JSON Files (*.json)\0*.json\0", "json", "Export Data Assets", ASSETS_FOLDER);
+                    { std::lock_guard lock(m_dcDialogMutex); m_dcDialogResult = std::move(result); }
+                    m_dcDialogRunning.store(false);
+                }).detach();
+            }
+        }
+        if (ImGui::MenuItem("Import Data Assets..."))
+        {
+            if (!m_dcDialogRunning.load())
+            {
+                m_dcDialogMode = 2;
+                m_dcDialogRunning.store(true);
+                { std::lock_guard lock(m_dcDialogMutex); m_dcDialogResult.reset(); }
+                std::thread([this]() {
+                    auto result = open("JSON Files (*.json)\0*.json\0", "Import Data Assets", ASSETS_FOLDER);
+                    { std::lock_guard lock(m_dcDialogMutex); m_dcDialogResult = std::move(result); }
+                    m_dcDialogRunning.store(false);
+                }).detach();
             }
         }
 
@@ -649,7 +738,16 @@ void ModuleEditor::enterPrefabEdit(const std::filesystem::path& sourcePath)
     Scene* mainScene = app->getModuleScene()->getScene();
     m_prefabSession.m_isolatedScene = mainScene;
 
-    GameObject* loaded = app->getModuleAssets()->getPrefabManager()->spawnPrefab(sourcePath, mainScene);
+    const UID uid = app->getModuleAssets()->getIndex().findUID(sourcePath);
+    AssetId* ref = app->getModuleAssets()->findReference(uid);
+    if (!ref)
+    {
+        m_prefabSession.clear();
+        return;
+    }
+
+    GameObject* loaded = app->getModuleAssets()->getPrefabManager()->spawnPrefab(*ref, mainScene);
+    delete ref;
 
     if (!loaded)
     {

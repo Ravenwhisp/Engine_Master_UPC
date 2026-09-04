@@ -4,10 +4,11 @@
 #include "StateMachineScript.h"
 
 class RangedEnemyController;
-class ArcherAttackConfig;
 class EnemyAttackExecutor;
 class AnimationComponent;
 class ArcherUI;
+class ArcherGuardParticles;
+class ArcherSound;
 
 class ArcherArrowBarrageState : public StateMachineScript
 {
@@ -27,10 +28,11 @@ private:
 
 private:
     RangedEnemyController* m_archerController = nullptr;
-    ArcherAttackConfig* m_attackConfig = nullptr;
     EnemyAttackExecutor* m_attackExecutor = nullptr;
     AnimationComponent* m_animation = nullptr;
     ArcherUI* m_archerUI = nullptr;
+    ArcherGuardParticles* m_particles = nullptr;
+    ArcherSound* m_archerSound = nullptr;
 
     Vector3 m_impactPosition = Vector3(0.0f, 0.0f, 0.0f);
 

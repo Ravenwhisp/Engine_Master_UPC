@@ -46,6 +46,9 @@ public:
     {
         return m_viewportY;
     }
+protected:
+    void onBecameHidden()  override;
+    void onBecameVisible() override;
 
 private:
     void handleObjectPicking(const ImVec2& viewportSize);

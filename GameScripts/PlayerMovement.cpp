@@ -56,7 +56,7 @@ void PlayerMovement::moveInternal(GameObject* owner, const Vector3& displacement
     Transform* transform = GameObjectAPI::getTransform(owner);
     if (!transform) return;
 
-    const Vector3 currentPos = TransformAPI::getPosition(transform);
+    const Vector3 currentPos = TransformAPI::getGlobalPosition(transform);
     const Vector3 desiredPos = currentPos + displacement;
 
     applyTranslation(transform, currentPos, desiredPos);
@@ -66,14 +66,14 @@ void PlayerMovement::applyTranslation(Transform* transform, const Vector3& curre
 {
     if (!m_constrainToNavMesh)
     {
-        TransformAPI::setPosition(transform, desiredPos);
+        TransformAPI::setGlobalPosition(transform, desiredPos);
         return;
     }
 
     Vector3 constrainedPos;
     if (NavigationAPI::moveAlongSurface(currentPos, desiredPos, constrainedPos, m_navExtents, static_cast<NavAgentProfile>(m_playerType)))
     {
-        TransformAPI::setPosition(transform, constrainedPos);
+        TransformAPI::setGlobalPosition(transform, constrainedPos);
     }
 }
 

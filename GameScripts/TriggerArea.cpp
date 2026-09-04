@@ -32,17 +32,17 @@ void TriggerArea::Update()
         return;
     }
 
-    const Vector3 triggerCenter = TransformAPI::getPosition(ownerTransform);
+    const Vector3 triggerCenter = TransformAPI::getGlobalPosition(ownerTransform);
 
     Transform* firstTarget = m_firstTarget.getReferencedComponent();
-    if (firstTarget && containsPoint(triggerCenter, TransformAPI::getPosition(firstTarget)))
+    if (firstTarget && containsPoint(triggerCenter, TransformAPI::getGlobalPosition(firstTarget)))
     {
         triggerSceneChange();
         return;
     }
 
     Transform* secondTarget = m_secondTarget.getReferencedComponent();
-    if (secondTarget && containsPoint(triggerCenter, TransformAPI::getPosition(secondTarget)))
+    if (secondTarget && containsPoint(triggerCenter, TransformAPI::getGlobalPosition(secondTarget)))
     {
         triggerSceneChange();
     }

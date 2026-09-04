@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AssetId.h"
+
 class Script;
 
 enum class ScriptMethodParamType
@@ -10,7 +12,8 @@ enum class ScriptMethodParamType
     Bool,
     Vec3,
     String,
-    Unsupported
+    Unsupported,
+    AssetId
 };
 
 using ScriptMethodParamFunc = void(*)(Script*, const void*);

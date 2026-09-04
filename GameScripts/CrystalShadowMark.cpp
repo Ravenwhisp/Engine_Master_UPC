@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "CrystalShadowMark.h"
+#include "EnvironmentSound.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(CrystalShadowMark, EnemyShadowMark,
     SERIALIZED_COMPONENT_REF(m_puzzleManager, "PuzzleManager", ComponentType::TRANSFORM),
 	SERIALIZED_INT(m_puzzleID, "Puzzle ID"),
-	SERIALIZED_FLOAT(m_activeTime, "Active Time", 0.0f, 10.0f, 0.1f)
+	SERIALIZED_FLOAT(m_activeTime, "Active Time", 0.0f, 10.0f, 0.1f),
+    SERIALIZED_ASSET_REF(m_crystalSparks, "Crystal Sparks Particle", AssetType::PREFAB)
 )
 
 CrystalShadowMark::CrystalShadowMark(GameObject* owner) : EnemyShadowMark(owner) {}
@@ -36,8 +38,11 @@ void CrystalShadowMark::Update()
     if (m_activationTimer >= m_activeTime)
     {
         Debug::log("[CrystalMark] Crystal deactivated after %.1f seconds.", m_activeTime);
+
         m_activated = false;
         m_activationTimer = 0.0f;
+
+        deactivateEffect();
 
         if (managerScript != nullptr)
         {
@@ -50,18 +55,61 @@ void CrystalShadowMark::Update()
     }
 }
 
-void CrystalShadowMark::exploit()
+bool CrystalShadowMark::processAttack(PlayerAttackType attackType)
 {
-    EnemyShadowMark::exploit(); 
+    if (m_activated)
+    {
+        return false;
+    }
 
-    if (managerScript != nullptr)
+    const bool markExploited = EnemyShadowMark::processAttack(attackType);
+
+    if (markExploited)
     {
-        managerScript->onCrystalsActivated(m_puzzleID);
+        activateCrystal();
     }
-    else
+
+    return markExploited;
+}
+
+void CrystalShadowMark::activeEffect()
+{
+    if (effectObject == nullptr)
     {
-		Debug::log("[CrystalMark] WARNING: PuzzleManagerLVL1 not found!");
+        effectObject = GameObjectAPI::instantiatePrefab(m_crystalSparks.m_id, TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())) + Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
     }
+}
+
+void CrystalShadowMark::deactivateEffect()
+{
+    if (effectObject != nullptr)
+    {
+        GameObjectAPI::removeGameObject(effectObject);
+        effectObject = nullptr;
+    }
+}
+
+void CrystalShadowMark::activateCrystal()
+{
+    EnvironmentSound::play(getOwner(), "Play_Environment_Crystal_Activate");
+
+    if (!m_activatedLoopStarted)
+    {
+        EnvironmentSound::play(getOwner(), "Play_Environment_Crystal_Activated");
+        m_activatedLoopStarted = true;
+    }
+
+    if (managerScript == nullptr)
+    {
+        Debug::log("[CrystalMark] WARNING: PuzzleManagerLVL1 not found!");
+        return;
+    }
+
+    m_activationTimer = 0.0f;
+    m_activated = true;
+
+    activeEffect();
+    managerScript->onCrystalsActivated(m_puzzleID);
 }
 
 IMPLEMENT_SCRIPT(CrystalShadowMark)

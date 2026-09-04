@@ -9,13 +9,17 @@
 #include "ModuleEditor.h"
 #include "ModuleAssets.h"
 #include "ModuleMusic.h"
+#include "ModuleD3D12.h"
+#include "WindowGame.h"
 
 #include "PrefabManager.h"
 #include "Quadtree.h"
+#include "AssetIndex.h"
+#include "VideoAsset.h"
 
 #include "Scene.h"
 #include "Keyboard.h"
-#include "ScriptFactory.h"
+#include "GenericTypeFactory.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -31,6 +35,12 @@
 #include "ParticleSystemComponent.h"
 #include "ComponentSoundSource.h"
 #include "NavRuntimeBlockerComponent.h"
+#include "PlayerRenderBufferComponent.h"
+#include "DamageHighlightComponent.h"
+#include "TrailComponent.h"
+#include "DissolveComponent.h"
+#include "ComponentVideo.h"
+#include "SpectralComponent.h"
 
 #include "CameraComponent.h"
 
@@ -48,9 +58,14 @@
 
 #include <DetourNavMeshQuery.h>
 
-void registerScript(const char* scriptName, ScriptCreator creator)
+void registerScript(const char* scriptName, ScriptFactory::Creator creator)
 {
-    ScriptFactory::registerScript(scriptName, creator);
+	ScriptFactory::registerType(scriptName, scriptName, creator);
+}
+
+void registerDataContainer(const char* name, const char* displayName, DataContainerFactory::Creator creator)
+{
+	DataContainerFactory::registerType(name, displayName, creator);
 }
 
 namespace GameObjectAPI
@@ -288,11 +303,11 @@ namespace GameObjectAPI
     }
     */
 
-    ENGINE_API GameObject* instantiatePrefab(const char* path, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
+    ENGINE_API GameObject* instantiatePrefab(const AssetId& prefabRef, const Vector3& position, const Vector3& rotationEuler, GameObject* parentObject)
     {
         Scene* currentScene = app->getModuleScene()->getScene();
         
-        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(path, currentScene);
+        GameObject* prefabInstance = app->getModuleAssets()->getPrefabManager()->spawnPrefab(prefabRef, currentScene);
 
         if (!prefabInstance) return nullptr;
 
@@ -1000,6 +1015,16 @@ namespace SceneAPI
 
         app->getModuleScene()->requestSceneChange(sceneName);
     }
+
+    void requestSceneChange(const AssetId& ref)
+    {
+        if (!app || !app->getModuleScene() || !ref.isValid())
+        {
+            return;
+        }
+
+        app->getModuleScene()->requestSceneChange(ref);
+    }
 }
 
 namespace Input
@@ -1467,11 +1492,59 @@ namespace Input
         {
         case DeviceType::Keyboard:
         {
-            float deltaX = 0.0f;
-            float deltaY = 0.0f;
-            input->getMouseDelta(deltaX, deltaY);
+#ifdef GAME_RELEASE
+            const auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+            const float winX = viewport.TopLeftX;
+            const float winY = viewport.TopLeftY;
+            const float winW = viewport.Width;
+            const float winH = viewport.Height;
+#else
+            WindowGame* gameWindow = app->getModuleEditor()->getWindowGame();
+            if (gameWindow == nullptr)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
 
-            return Vector2(deltaX, deltaY);
+            const float winX = gameWindow->getViewportX();
+            const float winY = gameWindow->getViewportY();
+            const ImVec2 gameViewportSize = gameWindow->getSize();
+            const float winW = gameViewportSize.x;
+            const float winH = gameViewportSize.y;
+#endif // GAME_RELEASE
+
+            if (winW <= 0.0f || winH <= 0.0f)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            const Vector2 rawMouse = input->getMousePosition();
+            const float localX = rawMouse.x - winX;
+            const float localY = rawMouse.y - winY;
+
+            if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            const float halfWidth = winW * 0.5f;
+            const float halfHeight = winH * 0.5f;
+
+            Vector2 stick(
+                (localX - halfWidth) / halfWidth,
+                (localY - halfHeight) / halfHeight);
+
+            if (stick.LengthSquared() > 1.0f)
+            {
+                stick.Normalize();
+            }
+
+            const float deadzone = 0.15f;
+            if (stick.LengthSquared() < deadzone * deadzone)
+            {
+                return Vector2(0.0f, 0.0f);
+            }
+
+            return stick;
         }
 
         case DeviceType::Gamepad:
@@ -1480,6 +1553,172 @@ namespace Input
         case DeviceType::None:
         default:
             return Vector2(0.0f, 0.0f);
+        }
+    }
+
+    static Vector3 resolveKeyboardMouseAimDirection(const Vector3& originWorldPos)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (input == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
+        if (cameraObject == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        CameraComponent* camera = CameraAPI::getCameraComponent(cameraObject);
+        if (camera == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+#ifdef GAME_RELEASE
+        const auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+        const float winX = viewport.TopLeftX;
+        const float winY = viewport.TopLeftY;
+        const float winW = viewport.Width;
+        const float winH = viewport.Height;
+#else
+        WindowGame* gameWindow = app->getModuleEditor()->getWindowGame();
+        if (gameWindow == nullptr)
+        {
+            return Vector3::Zero;
+        }
+
+        const float winX = gameWindow->getViewportX();
+        const float winY = gameWindow->getViewportY();
+        const ImVec2 gameViewportSize = gameWindow->getSize();
+        const float winW = gameViewportSize.x;
+        const float winH = gameViewportSize.y;
+#endif // GAME_RELEASE
+
+        if (winW <= 0.0f || winH <= 0.0f)
+        {
+            return Vector3::Zero;
+        }
+
+        const Vector2 rawMouse = input->getMousePosition();
+        const float localX = rawMouse.x - winX;
+        const float localY = rawMouse.y - winY;
+
+        if (localX < 0.0f || localX > winW || localY < 0.0f || localY > winH)
+        {
+            return Vector3::Zero;
+        }
+
+        const float normalizedX = (2.0f * localX / winW) - 1.0f;
+        const float normalizedY = 1.0f - (2.0f * localY / winH);
+
+        const Matrix inverseViewProjection = (camera->getViewMatrix() * camera->getProjectionMatrix()).Invert();
+
+        const Vector3 nearPoint = Vector3::Transform(Vector3(normalizedX, normalizedY, 0.0f), inverseViewProjection);
+        const Vector3 farPoint  = Vector3::Transform(Vector3(normalizedX, normalizedY, 1.0f), inverseViewProjection);
+
+        Vector3 rayDirection = farPoint - nearPoint;
+        if (rayDirection.LengthSquared() <= 0.0001f)
+        {
+            return Vector3::Zero;
+        }
+        rayDirection.Normalize();
+
+        const Ray mouseRay(nearPoint, rayDirection);
+        const Plane groundPlane(Vector3(0.0f, originWorldPos.y, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
+
+        float hitDistance = 0.0f;
+        if (!mouseRay.Intersects(groundPlane, hitDistance) || hitDistance <= 0.0f)
+        {
+            return Vector3::Zero;
+        }
+
+        const Vector3 hitPoint = nearPoint + rayDirection * hitDistance;
+
+        Vector3 aimDirection = hitPoint - originWorldPos;
+        aimDirection.y = 0.0f;
+
+        if (aimDirection.LengthSquared() <= 0.0001f)
+        {
+            return Vector3::Zero;
+        }
+
+        aimDirection.Normalize();
+        return aimDirection;
+    }
+
+    Vector3 getAimDirection(const Vector3& originWorldPos, int player, float gamepadDeadzoneSq)
+    {
+        ModuleInput* input = app->getModuleInput();
+        if (!input)
+        {
+            return Vector3::Zero;
+        }
+
+        const PlayerBinding binding = input->getPlayerBinding(player);
+
+        switch (binding.deviceType)
+        {
+        case DeviceType::Keyboard:
+            return resolveKeyboardMouseAimDirection(originWorldPos);
+
+        case DeviceType::Gamepad:
+        {
+            const Vector2 lookAxis = input->getRightStick(binding.deviceIndex);
+            const float magSq = lookAxis.x * lookAxis.x + lookAxis.y * lookAxis.y;
+
+            if (magSq < gamepadDeadzoneSq)
+            {
+                return Vector3::Zero;
+            }
+
+            GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
+            Vector3 fallbackDirection(lookAxis.x, 0.0f, lookAxis.y);
+            if (fallbackDirection.LengthSquared() > 0.0001f)
+            {
+                fallbackDirection.Normalize();
+            }
+
+            if (cameraObject == nullptr)
+            {
+                return fallbackDirection;
+            }
+
+            Transform* cameraTransform = GameObjectAPI::getTransform(cameraObject);
+            if (cameraTransform == nullptr)
+            {
+                return fallbackDirection;
+            }
+
+            Vector3 cameraForward = TransformAPI::getForward(cameraTransform);
+            Vector3 cameraRight = TransformAPI::getRight(cameraTransform);
+
+            cameraForward.y = 0.0f;
+            cameraRight.y = 0.0f;
+
+            if (cameraForward.LengthSquared() <= 0.0001f || cameraRight.LengthSquared() <= 0.0001f)
+            {
+                return fallbackDirection;
+            }
+
+            cameraForward.Normalize();
+            cameraRight.Normalize();
+
+            Vector3 aimDirection = -cameraRight * lookAxis.x - cameraForward * lookAxis.y;
+
+            if (aimDirection.LengthSquared() <= 0.0001f)
+            {
+                return Vector3::Zero;
+            }
+
+            aimDirection.Normalize();
+            return aimDirection;
+        }
+
+        case DeviceType::None:
+        default:
+            return Vector3::Zero;
         }
     }
 
@@ -1952,15 +2191,24 @@ namespace NavigationAPI
             return false;
         }
 
-        dtPolyRef lastRef = (visitedCount > 0) ? visited[visitedCount - 1] : startRef;
-
-        float height = result[1];
-        if (dtStatusFailed(query->getPolyHeight(lastRef, result, &height)))
+        const dtPolyRef lastRef = visitedCount > 0 ? visited[visitedCount - 1] : startRef;
+        
+        if (!lastRef)
         {
             return false;
         }
 
-        outResultPosition = Vector3(result[0], height, result[2]);
+        float resultOnPoly[3] = {};
+        bool isOverPoly = false;
+
+        const dtStatus closestStatus = query->closestPointOnPoly(lastRef, result, resultOnPoly, &isOverPoly);
+
+        if (dtStatusFailed(closestStatus))
+        {
+            return false;
+        }        
+
+        outResultPosition = Vector3(resultOnPoly[0], resultOnPoly[1], resultOnPoly[2]);
         return true;
     }
 
@@ -2858,6 +3106,39 @@ ENGINE_API void ParticleSystemAPI::reset(ParticleSystemComponent* particleSystem
     particleSystem->resetParticles();
 }
 
+namespace TrailAPI
+{
+    TrailComponent* getTrailComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
+    }
+
+    const TrailComponent* getTrailComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<TrailComponent>(ComponentType::TRAIL);
+    }
+
+    bool isTrailGenerating(TrailComponent* trailComponent)
+    {
+        return trailComponent->isGenerating();
+    }
+
+    void generateTrail(TrailComponent* trailComponent, bool value)
+    {
+        return trailComponent->generate(value);
+    }
+}
+
 namespace AudioAPI
 {
     ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject)
@@ -3067,4 +3348,411 @@ namespace UITextAPI
         component->enableWave(enabled);
     }
 #pragma endregion
+}
+namespace Shaders
+{
+    PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
+    }
+
+    const PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<PlayerRenderBufferComponent>(ComponentType::PLAYER_RENDER_BUFFER);
+    }
+
+    float Shaders::getDamageHighlightIntensity(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightIntensity();
+    }
+
+    void setDamageHighlightIntensity(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlightIntensity(value);
+    }
+
+    Vector3 Shaders::getDamageHighlightCenterColor(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightCenterColor();
+    }
+
+    void Shaders::setDamageHighlightCenterColor(PlayerRenderBufferComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightCenterColor(value);
+    }
+
+    Vector3 Shaders::getDamageHighlightRimColor(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightRimColor();
+    }
+
+    void Shaders::setDamageHighlightRimColor(PlayerRenderBufferComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightRimColor(value);
+    }
+
+    float Shaders::getDamageHighlightRimIntensity(PlayerRenderBufferComponent* component)
+    {
+        return component->getDamageHighlightRimIntensity();
+    }
+
+    void setDamageHighlightRimIntensity(PlayerRenderBufferComponent* component, float value)
+    {
+        component->setDamageHighlightRimIntensity(value);
+    }
+}
+
+namespace ShadersAPI
+{
+    DamageHighlightComponent* getDamageHighlightComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DamageHighlightComponent>(ComponentType::DAMAGE_HIGHLIGHT);
+    }
+
+    const DamageHighlightComponent* getDamageHighlightComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DamageHighlightComponent>(ComponentType::DAMAGE_HIGHLIGHT);
+    }
+
+    float getDamageHighlightIntensity(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightIntensity();
+    }
+
+    void setDamageHighlightIntensity(DamageHighlightComponent* component, float value)
+    {
+        component->setDamageHighlightIntensity(value);
+    }
+
+    Vector3 getDamageHighlightCenterColor(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightCenterColor();
+    }
+
+    void setDamageHighlightCenterColor(DamageHighlightComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightCenterColor(value);
+    }
+
+    Vector3 getDamageHighlightRimColor(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightRimColor();
+    }
+
+    void setDamageHighlightRimColor(DamageHighlightComponent* component, Vector3 value)
+    {
+        return component->setDamageHighlightRimColor(value);
+    }
+
+    float getDamageHighlightRimIntensity(DamageHighlightComponent* component)
+    {
+        return component->getDamageHighlightRimIntensity();
+    }
+
+    void setDamageHighlightRimIntensity(DamageHighlightComponent* component, float value)
+    {
+        component->setDamageHighlightRimIntensity(value);
+    }
+
+    DissolveComponent* getDissolveComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DissolveComponent>(ComponentType::DISSOLVE);
+    }
+
+    const DissolveComponent* getDissolveComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<DissolveComponent>(ComponentType::DISSOLVE);
+    }
+
+    float getDissolveAmount(DissolveComponent* component)
+    {
+        return component->getDissolveAmount();
+    }
+
+    void setDissolveAmount(DissolveComponent* component, float value)
+    {
+        component->setDissolveAmount(value);
+    }
+
+    Vector3 getDissolveColor(DissolveComponent* component)
+    {
+        return component->getDissolveColor();
+    }
+
+    void setDissolveColor(DissolveComponent* component, Vector3 value)
+    {
+        return component->setDissolveColor(value);
+    }
+
+    float getDissolveThikness(DissolveComponent* component)
+    {
+        return component->getDissolveThikness();
+    }
+
+    void setDissolveThikness(DissolveComponent* component, float value)
+    {
+        component->setDissolveThikness(value);
+    }
+
+    SpectralComponent* getSpectralComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<SpectralComponent>(ComponentType::SPECTRAL);
+    }
+
+    const SpectralComponent* getSpectralComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<SpectralComponent>(ComponentType::SPECTRAL);
+    }
+
+    Vector3 getSpectralColor(SpectralComponent* component)
+    {
+        return component->getSpectralColor();
+    }
+
+    void setSpectralColor(SpectralComponent* component, Vector3 value)
+    {
+        return component->setSpectralColor(value);
+    }
+}
+
+namespace PostProcessAPI
+{
+    static PostProcessSettings* getSettings()
+    {
+        if (!app || !app->getModuleScene() || !app->getModuleScene()->getScene())
+        {
+            return nullptr;
+        }
+        return &app->getModuleScene()->getScene()->getPostProcessSettings();
+    }
+
+    // --- Exposure ---
+    void  setExposure(float ev)        { if (auto* pp = getSettings()) pp->exposure = ev; }
+    float getExposure()                { auto* pp = getSettings(); return pp ? pp->exposure : 0.0f; }
+
+    // --- Bloom ---
+    void  setBloomEnabled(bool e)      { if (auto* pp = getSettings()) pp->bloomEnabled = e; }
+    bool  isBloomEnabled()             { auto* pp = getSettings(); return pp ? pp->bloomEnabled : false; }
+    void  setBloomThreshold(float t)   { if (auto* pp = getSettings()) pp->bloomThreshold = t; }
+    float getBloomThreshold()          { auto* pp = getSettings(); return pp ? pp->bloomThreshold : 0.0f; }
+    void  setBloomIntensity(float i)   { if (auto* pp = getSettings()) pp->bloomIntensity = i; }
+    float getBloomIntensity()          { auto* pp = getSettings(); return pp ? pp->bloomIntensity : 0.0f; }
+
+    // --- Colour grading (LUT) ---
+    void  setLutEnabled(bool e)        { if (auto* pp = getSettings()) pp->lutEnabled = e; }
+    bool  isLutEnabled()               { auto* pp = getSettings(); return pp ? pp->lutEnabled : false; }
+    void  setLutPath(const char* path) { if (auto* pp = getSettings()) pp->lutPath = path ? path : ""; }
+    const char* getLutPath()           { auto* pp = getSettings(); return pp ? pp->lutPath.c_str() : ""; }
+
+    // --- Chromatic aberration ---
+    void  setChromaticAberrationEnabled(bool e)   { if (auto* pp = getSettings()) pp->chromaticAberrationEnabled = e; }
+    bool  isChromaticAberrationEnabled()          { auto* pp = getSettings(); return pp ? pp->chromaticAberrationEnabled : false; }
+    void  setChromaticAberrationStrength(float s) { if (auto* pp = getSettings()) pp->chromaticAberrationStrength = s; }
+    float getChromaticAberrationStrength()        { auto* pp = getSettings(); return pp ? pp->chromaticAberrationStrength : 0.0f; }
+
+    // --- Heartbeat ---
+    void  setHeartbeatEnabled(bool e)  { if (auto* pp = getSettings()) pp->heartbeatEnabled = e; }
+    bool  isHeartbeatEnabled()         { auto* pp = getSettings(); return pp ? pp->heartbeatEnabled : false; }
+    void  setHealth(float h)           { if (auto* pp = getSettings()) pp->health = h; }
+    float getHealth()                  { auto* pp = getSettings(); return pp ? pp->health : 1.0f; }
+    void  setSeparation(float s)       { if (auto* pp = getSettings()) pp->separation = s; }
+    float getSeparation()              { auto* pp = getSettings(); return pp ? pp->separation : 0.0f; }
+    void  setHealthThreshold(float t)  { if (auto* pp = getSettings()) pp->healthThreshold = t; }
+    float getHealthThreshold()         { auto* pp = getSettings(); return pp ? pp->healthThreshold : 0.5f; }
+
+    // --- Death fade ---
+    void  setDeathFadeActive(bool a)      { if (auto* pp = getSettings()) pp->deathFadeActive = a; }
+    bool  isDeathFadeActive()             { auto* pp = getSettings(); return pp ? pp->deathFadeActive : false; }
+    void  setDeathGreyDuration(float s)   { if (auto* pp = getSettings()) pp->deathGreyDuration = s; }
+    float getDeathGreyDuration()          { auto* pp = getSettings(); return pp ? pp->deathGreyDuration : 0.0f; }
+    void  setDeathBlackDuration(float s)  { if (auto* pp = getSettings()) pp->deathBlackDuration = s; }
+    float getDeathBlackDuration()         { auto* pp = getSettings(); return pp ? pp->deathBlackDuration : 0.0f; }
+
+    // --- Outline ---
+    void  setOutlineEnabled(bool e)    { if (auto* pp = getSettings()) pp->outlineEnabled = e; }
+    bool  isOutlineEnabled()           { auto* pp = getSettings(); return pp ? pp->outlineEnabled : false; }
+    void  setOutlineThickness(float t) { if (auto* pp = getSettings()) pp->outlineThickness = t; }
+    float getOutlineThickness()        { auto* pp = getSettings(); return pp ? pp->outlineThickness : 0.0f; }
+    void  setOutlineThreshold(float t) { if (auto* pp = getSettings()) pp->outlineThreshold = t; }
+    float getOutlineThreshold()        { auto* pp = getSettings(); return pp ? pp->outlineThreshold : 0.0f; }
+    void  setOutlineNormalThreshold(float t) { if (auto* pp = getSettings()) pp->outlineNormalThreshold = t; }
+    float getOutlineNormalThreshold()        { auto* pp = getSettings(); return pp ? pp->outlineNormalThreshold : 0.0f; }
+    void  setOutlineIntensity(float i) { if (auto* pp = getSettings()) pp->outlineIntensity = i; }
+    float getOutlineIntensity()        { auto* pp = getSettings(); return pp ? pp->outlineIntensity : 0.0f; }
+    void  setOutlineColor(const Vector3& rgb)
+    {
+        if (auto* pp = getSettings())
+        {
+            pp->outlineColorR = rgb.x;
+            pp->outlineColorG = rgb.y;
+            pp->outlineColorB = rgb.z;
+        }
+    }
+    Vector3 getOutlineColor()
+    {
+        auto* pp = getSettings();
+        return pp ? Vector3(pp->outlineColorR, pp->outlineColorG, pp->outlineColorB) : Vector3::Zero;
+    }
+    void  setOutlineWobble(float w)     { if (auto* pp = getSettings()) pp->outlineWobble = w; }
+    float getOutlineWobble()            { auto* pp = getSettings(); return pp ? pp->outlineWobble : 0.0f; }
+    void  setOutlineNoiseScale(float s) { if (auto* pp = getSettings()) pp->outlineNoiseScale = s; }
+    float getOutlineNoiseScale()        { auto* pp = getSettings(); return pp ? pp->outlineNoiseScale : 0.0f; }
+    void  setOutlineBreakup(float b)    { if (auto* pp = getSettings()) pp->outlineBreakup = b; }
+    float getOutlineBreakup()           { auto* pp = getSettings(); return pp ? pp->outlineBreakup : 0.0f; }
+}
+
+namespace VideoAPI
+{
+    ComponentVideo* getVideoComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<ComponentVideo>(ComponentType::VIDEO);
+    }
+
+    const ComponentVideo* getVideoComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+        {
+            return nullptr;
+        }
+
+        return gameObject->GetComponentAs<ComponentVideo>(ComponentType::VIDEO);
+    }
+
+    void play(ComponentVideo* component)
+    {
+        if (component)
+        {
+            component->play();
+        }
+    }
+
+    void pause(ComponentVideo* component)
+    {
+        if (component)
+        {
+            component->pause();
+        }
+    }
+
+    void resume(ComponentVideo* component)
+    {
+        if (component)
+        {
+            component->resume();
+        }
+    }
+
+    void stop(ComponentVideo* component)
+    {
+        if (component)
+        {
+            component->stop();
+        }
+    }
+
+    bool isPlaying(const ComponentVideo* component)
+    {
+        return component ? component->isPlaying() : false;
+    }
+
+    bool isPaused(const ComponentVideo* component)
+    {
+        return component ? component->isPaused() : false;
+    }
+
+    void setPath(ComponentVideo* component, const char* path)
+    {
+        if (!component || !path)
+        {
+            return;
+        }
+
+        auto* moduleAssets = app->getModuleAssets();
+        if (!moduleAssets)
+        {
+            return;
+        }
+
+        const UID uid = moduleAssets->getIndex().findUID(std::filesystem::path(path));
+        AssetId* ref = moduleAssets->findReference(uid);
+        if (!ref)
+        {
+            return;
+        }
+
+        VideoRef videoRef;
+        videoRef.m_id = *ref;
+        auto loaded = moduleAssets->load<VideoAsset>(*ref);
+        if (loaded)
+        {
+            videoRef.m_data = loaded;
+        }
+        component->setAsset(videoRef);
+        delete ref;
+    }
+
+    const char* getPath(const ComponentVideo* component)
+    {
+        static std::string result;
+        result.clear();
+
+        if (component)
+        {
+            const VideoRef& ref = component->getAsset();
+            if (ref)
+            {
+                if (const AssetIndexEntry* entry = app->getModuleAssets()->getIndex().findEntry(ref.m_id.m_uid))
+                {
+                    result = entry->sourcePath.string();
+                }
+            }
+        }
+
+        return result.c_str();
+    }
 }

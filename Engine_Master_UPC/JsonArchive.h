@@ -1,14 +1,20 @@
 #pragma once
 #include "IArchive.h"
-#include "UID.h"
-#include "MD5Fwd.h"
-#include "AssetType.h"
-#include "ImportSettings.h"
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
 #include <stack>
+
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/filereadstream.h>
+#include <fstream>
+#include <cstdio>
+
+using namespace rapidjson;
 
 struct DependencyRecord;
 
@@ -29,6 +35,7 @@ public:
     void serializeRaw(void* data, size_t size, const char* name = "") override;
 
     void serialize(DirectX::SimpleMath::Vector3& val, const char* name = "") override;
+    void serialize(DirectX::SimpleMath::Vector2& val, const char* name = "") override;
     void serialize(DirectX::SimpleMath::Quaternion& val, const char* name = "") override;
     void serialize(DirectX::SimpleMath::Color& val, const char* name = "") override;
     void serialize(DirectX::SimpleMath::Matrix& val, const char* name = "") override;

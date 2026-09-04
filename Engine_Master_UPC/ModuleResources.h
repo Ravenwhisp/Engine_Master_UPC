@@ -49,18 +49,22 @@ public:
 
 
 	RingBuffer* createRingBuffer(size_t size);
+	RingBuffer* createStructuredRingBuffer(size_t size);
 	VertexBuffer* createVertexBuffer(const void* data, size_t numVertices, size_t vertexStride);
 	VertexBuffer* createVertexBuffer(ComPtr<ID3D12Resource> existingResource, size_t numVertices, size_t vertexStride);
 	IndexBuffer* createIndexBuffer(const void* data, size_t numIndices, DXGI_FORMAT indexFormat, const char* name = "IndexBuffer");
 
 
 	Texture* createDepthBuffer(float width, float height);
-	Texture* createShadowMap(uint32_t size);
+	Texture* createShadowMap(uint32_t size, uint32_t arraySize = 1);
+	Texture* createDepthMinMaxTexture(uint32_t width, uint32_t height);
+	Texture* createVolumeTexture(uint32_t width, uint32_t height, uint16_t depth, DXGI_FORMAT format);
 	Texture* createRenderTexture(float width, float height);
+	Texture* createHDRRenderTexture(float width, float height);
 
 	Texture* createSSAODepthBuffer(float width, float height);
 	Texture* createSSAONormalBuffer(float width, float height);
-	Texture* createSSAOTexture(float width, float height);
+	Texture* createSSAOTexture(float width, float height);	
 
 	RenderSurface* createRenderSurface(float width, float height);
 	static constexpr const char* NULL_TEXTURE_HASH = "__NULL_TEXTURE__";
@@ -81,6 +85,7 @@ public:
 	std::shared_ptr<Texture>		createTexture(const TextureAsset& textureAsset, bool shaderVisible = false);
 	std::shared_ptr<Texture>		createIrradiance(const IndexBuffer* indexBuffer, SkyBox* skybox);
 	std::shared_ptr<Texture>		createEnvironment(const IndexBuffer* indexBuffer, SkyBox* skybox);
+	Texture* createGBuffer(float width, float height, const DXGI_FORMAT format);
 	std::shared_ptr<Texture>		createTexture(ComPtr<ID3D12Resource> existingResource, TextureView views, DXGI_FORMAT rtvFormat = DXGI_FORMAT_UNKNOWN);
 	std::shared_ptr<BasicMesh>		createMesh(const MeshAsset& meshAsset);
 	std::shared_ptr<BasicMaterial>	createMaterial(MaterialAsset& materialAsset);

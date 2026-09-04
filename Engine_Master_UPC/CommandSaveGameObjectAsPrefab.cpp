@@ -29,7 +29,7 @@ void CommandSaveGameObjectAsPrefab::run()
         savePath = m_targetDir / (m_go->GetName() + "_" + std::to_string(suffix++) + PREFAB_EXTENSION);
     }
 
-    AssetReference ref;
+    AssetId ref;
     Prefab tempPrefab(ref);
     tempPrefab.setUID(GenerateUID());
     tempPrefab.buildFrom(m_go);
@@ -53,5 +53,5 @@ void CommandSaveGameObjectAsPrefab::run()
 
     const UID existingUID = app->getModuleAssets()->getIndex().findUID(savePath);
     if (isValidUID(existingUID))
-        app->getModuleAssets()->unload(AssetReference(existingUID));
+        app->getModuleAssets()->unload(AssetId(existingUID));
 }

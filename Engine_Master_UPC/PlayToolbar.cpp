@@ -44,6 +44,8 @@ void PlayToolbar::DrawCentered(float menuWidth)
 	{
 		CreateButton(selectedIndex, BAR_FUNCTIONS[i], i);
 	}
+
+
 }
 
 void PlayToolbar::ManagePositionButton(int selectedIndex)

@@ -15,9 +15,10 @@ public:
 
     void Start()  override;
     void Update() override;
+    FieldList getExposedFields() const override;
 
     DeathSound* getSound() const { return m_sound; }
-    DeathConfig* getConfig() const { return m_config; }
+    DeathConfig* getConfig() const { return m_config.get(); }
 
     float getComboWindowR2() const;
     float getComboWindowMaxCharge() const;
@@ -48,5 +49,5 @@ private:
 
     DeathSound*     m_sound     = nullptr;
     PlayerMovement* m_movement  = nullptr;
-    DeathConfig* m_config       = nullptr;
+    AssetReference<DeathConfig> m_config;
 };

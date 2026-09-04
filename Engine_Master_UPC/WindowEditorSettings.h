@@ -4,6 +4,7 @@
 #include <array>
 
 class Settings;
+struct AssetId;
 
 class WindowEditorSettings : public EditorWindow
 {
@@ -27,6 +28,7 @@ private:
     void drawFrustumCullingSettings();
     void drawScriptsSettings();
     void drawScriptReloadModal();
+    void drawBuildSettings();
 
 private:
     Settings* m_settings = nullptr;
@@ -36,4 +38,6 @@ private:
     std::array<char, 64> m_scriptConfigurationBuffer = {};
     std::array<char, 64> m_scriptPlatformBuffer = {};
     bool m_scriptBuildSettingsSynced = false;
+
+    AssetId* m_sceneBuildSceneId = nullptr;
 };

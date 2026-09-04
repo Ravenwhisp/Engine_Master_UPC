@@ -25,7 +25,7 @@ public:
 
 	void CreatePoint();
 
-	AssetReference& getTextureAssetReference() { return m_textureAsset; }
+	AssetId& getTextureAssetId() { return m_textureAsset; }
 
 	std::vector<std::shared_ptr<TrailPoint>>& getTrailPoints() { return m_points; }
 
@@ -37,6 +37,8 @@ public:
 
 	void debugDraw() override;
 
+	bool isGenerating() { return m_generate; }
+	void generate(bool value) { m_generate = value; }
 
 private:
 
@@ -48,7 +50,7 @@ private:
 	float	m_spawnDistance;
 	float	m_pointLifetime;
 	
-	AssetReference m_textureAsset{};
+	AssetId m_textureAsset{};
 
 	ImGradient m_colorOverTime;
 	ImGradientMark* m_draggingMark = nullptr;
@@ -56,6 +58,8 @@ private:
 
 	bool drawBezierCurveUI(float* curveData);
 	float m_colorCurve[4] = { 0.000f, 0.000f, 1.000f, 1.000f };
+
+	bool m_generate = false;
 };
 
 

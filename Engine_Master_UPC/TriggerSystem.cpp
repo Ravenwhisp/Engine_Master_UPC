@@ -43,7 +43,7 @@ void TriggerSystem::registerTrigger(TriggerComponent* trigger)
 
 void TriggerSystem::unregisterTrigger(TriggerComponent* trigger)
 {
-    if(!trigger)
+    if (!trigger)
     {
         return;
     }

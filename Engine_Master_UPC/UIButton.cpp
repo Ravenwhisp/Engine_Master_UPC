@@ -57,7 +57,7 @@ void UIButton::setTargetGraphic(UIImage* img)
 }
 
 #pragma region Events
-void UIButton::applyTargetTexture(const AssetReference& assetId)
+void UIButton::applyTargetTexture(const AssetId& assetId)
 {
 	if (!m_targetGraphic)
 	{
@@ -72,7 +72,7 @@ void UIButton::applyTargetTexture(const AssetReference& assetId)
 	m_targetGraphic->setTextureAssetId(assetId);
 }
 
-const AssetReference& UIButton::getDefaultTextureAssetId()
+const AssetId& UIButton::getDefaultTextureAssetId()
 {
 	if (m_defaultTextureAssetId.isValid())
 	{
@@ -84,13 +84,13 @@ const AssetReference& UIButton::getDefaultTextureAssetId()
 		return m_targetGraphic->getTextureAssetId();
 	}
 
-	static AssetReference s_defaultAsset{};
+	static AssetId s_defaultAsset{};
 	return s_defaultAsset;
 }
 
 void UIButton::applyCurrentStateTexture()
 {
-	const AssetReference* targetAsset = &getDefaultTextureAssetId();
+	const AssetId* targetAsset = &getDefaultTextureAssetId();
 
 	if (m_isPressed && m_isHovered)
 	{
@@ -234,6 +234,12 @@ void UIButton::executeBindings(std::vector<ButtonEventBinding>& bindings)
 					binding.paramFunc(script, &binding.paramString);
 				}
 				break;
+			case ScriptMethodParamType::AssetId:
+				if (binding.paramFunc)
+				{
+					binding.paramFunc(script, &binding.paramAssetId);
+				}
+				break;
 			case ScriptMethodParamType::Unsupported:
 				break;
 			}
@@ -286,7 +292,7 @@ void UIButton::drawUi()
 		ImGui::SameLine();
 		if (ImGui::Button("Clear##HoverTexture"))
 		{
-			m_hoverTextureAssetId = AssetReference();
+			m_hoverTextureAssetId = AssetId();
 			applyCurrentStateTexture();
 		}
 
@@ -306,7 +312,7 @@ void UIButton::drawUi()
 		ImGui::SameLine();
 		if (ImGui::Button("Clear##PressedTexture"))
 		{
-			m_pressedTextureAssetId = AssetReference();
+			m_pressedTextureAssetId = AssetId();
 			applyCurrentStateTexture();
 		}
 	}
@@ -477,9 +483,10 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 												binding.paramFloat = 0.0f;
 												binding.paramInt = 0;
 												binding.paramBool = false;
-												binding.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
-												binding.paramString.clear();
-											}
+								binding.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
+								binding.paramString.clear();
+								binding.paramAssetId = AssetId();
+							}
 										}
 										if (selected)
 											ImGui::SetItemDefaultFocus();
@@ -519,6 +526,28 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 						if (ImGui::InputText(paramLabel, buffer, sizeof(buffer)))
 						{
 							binding.paramString = buffer;
+						}
+						break;
+					}
+					case ScriptMethodParamType::AssetId:
+					{
+						ImGui::Button(binding.paramAssetId.isValid() ? "Assigned Asset" : "Drop Asset");
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+							{
+								const UID droppedUid = *static_cast<const UID*>(payload->Data);
+								if (AssetId* assetId = app->getModuleAssets()->findReference(droppedUid))
+								{
+									binding.paramAssetId = *assetId;
+								}
+							}
+							ImGui::EndDragDropTarget();
+						}
+						ImGui::SameLine();
+						if (ImGui::SmallButton("Clear##AssetId"))
+						{
+							binding.paramAssetId = AssetId();
 						}
 						break;
 					}
@@ -566,105 +595,6 @@ void UIButton::drawBindingsUI(const char* label, std::vector<ButtonEventBinding>
 #pragma endregion
 
 #pragma region Serialization
-void UIButton::SerializeBindings(const std::vector<UIButton::ButtonEventBinding>& bindings, rapidjson::Value& array, rapidjson::Document& doc)
-{
-	for (const auto& b : bindings)
-	{
-		rapidjson::Value obj(rapidjson::kObjectType);
-
-		obj.AddMember("GameObjectUID", (uint64_t)b.gameObjectUid, doc.GetAllocator());
-		obj.AddMember("ComponentUID", (uint64_t)b.componentUid, doc.GetAllocator());
-		obj.AddMember("Method", rapidjson::Value(b.methodName.c_str(), doc.GetAllocator()), doc.GetAllocator());
-		obj.AddMember("ParamType", static_cast<int>(b.paramType), doc.GetAllocator());
-		switch (b.paramType)
-		{
-		case ScriptMethodParamType::Float:
-			obj.AddMember("ParamValue", b.paramFloat, doc.GetAllocator());
-			break;
-		case ScriptMethodParamType::Int:
-			obj.AddMember("ParamValue", b.paramInt, doc.GetAllocator());
-			break;
-		case ScriptMethodParamType::Bool:
-			obj.AddMember("ParamValue", b.paramBool, doc.GetAllocator());
-			break;
-		case ScriptMethodParamType::Vec3:
-		{
-			rapidjson::Value array(rapidjson::kArrayType);
-			array.PushBack(b.paramVec3.x, doc.GetAllocator());
-			array.PushBack(b.paramVec3.y, doc.GetAllocator());
-			array.PushBack(b.paramVec3.z, doc.GetAllocator());
-			obj.AddMember("ParamValue", array, doc.GetAllocator());
-			break;
-		}
-		case ScriptMethodParamType::String:
-			obj.AddMember("ParamValue", rapidjson::Value(b.paramString.c_str(), doc.GetAllocator()), doc.GetAllocator());
-			break;
-		case ScriptMethodParamType::None:
-		case ScriptMethodParamType::Unsupported:
-			break;
-		}
-
-		array.PushBack(obj, doc.GetAllocator());
-	}
-}
-
-void UIButton::DeserializeBindings(const rapidjson::Value& array, std::vector<UIButton::ButtonEventBinding>& outBindings)
-{
-	outBindings.clear();
-
-	for (auto& v : array.GetArray())
-	{
-		UIButton::ButtonEventBinding b;
-
-		b.gameObjectUid = (UID)v["GameObjectUID"].GetUint64();
-		b.componentUid = (UID)v["ComponentUID"].GetUint64();
-		b.methodName = v["Method"].GetString();
-		b.paramType = ScriptMethodParamType::None;
-		b.paramFloat = 0.0f;
-		b.paramInt = 0;
-		b.paramBool = false;
-		b.paramVec3 = Vector3(0.0f, 0.0f, 0.0f);
-		b.paramString.clear();
-		if (v.HasMember("ParamType") && v["ParamType"].IsInt())
-		{
-			b.paramType = static_cast<ScriptMethodParamType>(v["ParamType"].GetInt());
-		}
-		if (v.HasMember("ParamValue"))
-		{
-			const auto& paramValue = v["ParamValue"];
-			switch (b.paramType)
-			{
-			case ScriptMethodParamType::Float:
-				if (paramValue.IsNumber())
-					b.paramFloat = paramValue.GetFloat();
-				break;
-			case ScriptMethodParamType::Int:
-				if (paramValue.IsInt())
-					b.paramInt = paramValue.GetInt();
-				break;
-			case ScriptMethodParamType::Bool:
-				if (paramValue.IsBool())
-					b.paramBool = paramValue.GetBool();
-				break;
-			case ScriptMethodParamType::Vec3:
-				if (paramValue.IsArray() && paramValue.Size() == 3)
-				{
-					b.paramVec3 = Vector3(paramValue[0].GetFloat(), paramValue[1].GetFloat(), paramValue[2].GetFloat());
-				}
-				break;
-			case ScriptMethodParamType::String:
-				if (paramValue.IsString())
-					b.paramString = paramValue.GetString();
-				break;
-			case ScriptMethodParamType::None:
-			case ScriptMethodParamType::Unsupported:
-				break;
-			}
-		}
-
-		outBindings.push_back(b);
-	}
-}
 
 void UIButton::serialize(IArchive& archive)
 {
@@ -731,6 +661,11 @@ void UIButton::serialize(IArchive& archive)
 				break;
 			case ScriptMethodParamType::String:
 				archive.serialize(b.paramString, "ParamValue");
+				break;
+			case ScriptMethodParamType::AssetId:
+				archive.beginObject("ParamValue");
+				b.paramAssetId.serialize(archive);
+				archive.endObject();
 				break;
 			}
 			archive.endObject();

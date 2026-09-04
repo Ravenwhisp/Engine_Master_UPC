@@ -8,6 +8,7 @@
 #include "LyrielSound.h"
 #include "EnemyDamageable.h"
 #include "BreakableDamageable.h"
+#include "BreakableObject.h"
 
 IMPLEMENT_SCRIPT_FIELDS(PlayerTargetController,
     SERIALIZED_FLOAT(m_targetRange, "Target Range", 0.0f, 20.0f, 0.05f),
@@ -57,7 +58,8 @@ void PlayerTargetController::Update()
     }
 
     updateTargetsInRange();
-    ensureValidCurrentTarget();
+    clearInvalidCurrentTarget();
+    setDefaultEnemyTargetIfNeeded();
 
     updateCurrentTarget();
 }
@@ -121,6 +123,8 @@ void PlayerTargetController::updateTargetsInRange()
     const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
     const std::vector<GameObject*> breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE, true);
 
+    bool hasEnemyInRange = false;
+
     for (GameObject* enemy : enemies)
     {
         if (enemy == nullptr)
@@ -128,11 +132,10 @@ void PlayerTargetController::updateTargetsInRange()
             continue;
         }
 
-        const bool inRange = isTargetInRange(enemy);
-
-        if (inRange && isTargetAlive(enemy))
+        if (isTargetInRange(enemy) && isTargetAlive(enemy))
         {
             m_targetsInRange.push_back(enemy);
+            hasEnemyInRange = true;
         }
     }
 
@@ -143,12 +146,17 @@ void PlayerTargetController::updateTargetsInRange()
             continue;
         }
 
-        const bool inRange = isTargetInRange(breakable);
-
-        if (inRange && isTargetAlive(breakable))
+        if (!isTargetInRange(breakable) || !isTargetAlive(breakable))
         {
-            m_targetsInRange.push_back(breakable);
+            continue;
         }
+
+        if (hasEnemyInRange && !canTargetBreakableDuringCombat(breakable))
+        {
+            continue;
+        }
+
+        m_targetsInRange.push_back(breakable);
     }
 }
 
@@ -231,7 +239,7 @@ void PlayerTargetController::setCurrentTarget(GameObject* newTarget)
     }
 }
 
-void PlayerTargetController::ensureValidCurrentTarget()
+void PlayerTargetController::clearInvalidCurrentTarget()
 {
     if (m_currentTarget == nullptr)
     {
@@ -242,6 +250,40 @@ void PlayerTargetController::ensureValidCurrentTarget()
     {
         setCurrentTarget(nullptr);
     }
+}
+
+void PlayerTargetController::setDefaultEnemyTargetIfNeeded()
+{
+    if (m_currentTarget != nullptr)
+    {
+        return;
+    }
+
+    GameObject* defaultTarget = findDefaultEnemyTarget();
+    if (defaultTarget != nullptr)
+    {
+        setCurrentTarget(defaultTarget);
+    }
+}
+
+GameObject* PlayerTargetController::findDefaultEnemyTarget() const
+{
+    const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
+
+    for (GameObject* enemy : enemies)
+    {
+        if (enemy == nullptr)
+        {
+            continue;
+        }
+
+        if (isTargetInRange(enemy) && isTargetAlive(enemy))
+        {
+            return enemy;
+        }
+    }
+
+    return nullptr;
 }
 
 bool PlayerTargetController::canUpdateTarget() const
@@ -271,70 +313,15 @@ Vector3 PlayerTargetController::computeAimDirection() const
         return Vector3::Zero;
     }
 
-    const Vector2 lookAxis = Input::getLookAxis(m_character->getPlayerIndex());
-
-    const float magSq = lookAxis.x * lookAxis.x + lookAxis.y * lookAxis.y;
-    if (magSq <= 0.0001f)
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+    if (ownerTransform == nullptr)
     {
         return Vector3::Zero;
     }
 
-    GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
-    if (cameraObject == nullptr)
-    {
-        Vector3 fallbackDirection(lookAxis.x, 0.0f, lookAxis.y);
+    const Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
 
-        if (fallbackDirection.LengthSquared() > 0.0001f)
-        {
-            fallbackDirection.Normalize();
-        }
-
-        return fallbackDirection;
-    }
-
-    Transform* cameraTransform = GameObjectAPI::getTransform(cameraObject);
-    if (cameraTransform == nullptr)
-    {
-        Vector3 fallbackDirection(lookAxis.x, 0.0f, lookAxis.y);
-
-        if (fallbackDirection.LengthSquared() > 0.0001f)
-        {
-            fallbackDirection.Normalize();
-        }
-
-        return fallbackDirection;
-    }
-
-    Vector3 cameraForward = TransformAPI::getForward(cameraTransform);
-    Vector3 cameraRight = TransformAPI::getRight(cameraTransform);
-
-    cameraForward.y = 0.0f;
-    cameraRight.y = 0.0f;
-
-    if (cameraForward.LengthSquared() <= 0.0001f || cameraRight.LengthSquared() <= 0.0001f)
-    {
-        Vector3 fallbackDirection(lookAxis.x, 0.0f, lookAxis.y);
-
-        if (fallbackDirection.LengthSquared() > 0.0001f)
-        {
-            fallbackDirection.Normalize();
-        }
-
-        return fallbackDirection;
-    }
-
-    cameraForward.Normalize();
-    cameraRight.Normalize();
-
-    Vector3 aimDirection = -cameraRight * lookAxis.x - cameraForward * lookAxis.y;
-
-    if (aimDirection.LengthSquared() <= 0.0001f)
-    {
-        return Vector3::Zero;
-    }
-
-    aimDirection.Normalize();
-    return aimDirection;
+    return Input::getAimDirection(ownerPosition, m_character->getPlayerIndex());
 }
 
 bool PlayerTargetController::isAimStickValid(const Vector3& direction) const
@@ -531,6 +518,23 @@ bool PlayerTargetController::isTargetAlive(GameObject* target) const
     }
 
     return false;
+}
+
+bool PlayerTargetController::canTargetBreakableDuringCombat(GameObject* target) const
+{
+    if (target == nullptr)
+    {
+        return false;
+    }
+
+    BreakableObject* breakableObject = GameObjectAPI::findScript<BreakableObject>(target);
+
+    if (breakableObject == nullptr)
+    {
+        return false;
+    }
+
+    return breakableObject->canBeTargetedDuringCombat();
 }
 
 IMPLEMENT_SCRIPT(PlayerTargetController)

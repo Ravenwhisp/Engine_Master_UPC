@@ -11,6 +11,7 @@ struct UITextCommand;
 struct UIImageCommand;
 struct SkyBoxSettings;
 struct ParticleEmitterCommand;
+class RenderSurface;
 
 struct RenderContext
 {
@@ -28,8 +29,9 @@ struct RenderContext
     const std::vector<ParticleEmitterCommand>* particleCommands = nullptr;
 
     const SkyBoxSettings* skyBoxSettings = nullptr;
-    const ShadowFrameData* shadowData = nullptr;
 
+    RenderSurface& renderSurface;
+    const ShadowFrameData* shadowData = nullptr;
     Texture* ssaoDepthTexture = nullptr;
     Texture* ssaoNormalTexture = nullptr;
     Texture* ssaoRawTexture = nullptr;

@@ -84,6 +84,7 @@ Texture* BasicMaterial::getTexture() const noexcept
 	return m_textureColor.get();
 }
 
+
 D3D12_GPU_DESCRIPTOR_HANDLE BasicMaterial::getTableGPUHandle() const
 {
     assert(m_block && "Material descriptor table was not built");

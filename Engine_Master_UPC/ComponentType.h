@@ -1,4 +1,6 @@
 #pragma once
+#include <cstring>
+#include <cstdint>
 
 #define COMPONENT_TYPE_LIST(X) \
     X(TRANSFORM)            \
@@ -20,8 +22,16 @@
     X(TRAIL)                \
     X(UISHEET)              \
     X(SOUND_LISTENER)       \
-    X(SOUND_SOURCE)          \
-    X(PREFAB_INSTANCE)
+    X(SOUND_SOURCE)         \
+    X(PREFAB_INSTANCE)      \
+    X(PLAYER_RENDER_BUFFER) \
+    X(DAMAGE_HIGHLIGHT)     \
+    X(FLOW_MAP)             \
+    X(DISSOLVE)             \
+    X(SPECTRAL)             \
+    X(OCCLUSION_TARGET)     \
+    X(OCCLUSION_OCCLUDER)   \
+    X(VIDEO)
 
 #define COMP_ENUM(name) name,
 #define COMP_SWITCH(name) case ComponentType::name: return #name;

@@ -16,6 +16,7 @@ namespace
     constexpr const char* k_markApply       = "Play_Death_Mark_Apply";
     constexpr const char* k_hurt            = "Play_Death_Hurt";
     constexpr const char* k_down            = "Play_Death_Down";
+    constexpr const char* k_revived         = "Play_Death_Revived";
     constexpr const char* k_lockTarget      = "Play_Death_Lock_Target";
     constexpr const char* k_switchTarget    = "Play_Death_Switch_Target";
 
@@ -29,6 +30,10 @@ namespace
     // R2 must be held this long before the charge loop actually starts to sound.
     // A quicker release (heavy swing without charge) plays no charge sound at all.
     constexpr float k_chargeLoopMinHold = 0.20f;
+
+    // Minimum time between consecutive hurt one-shots. Guarantees the hurt SFX can
+    // never machine-gun under continuous damage, regardless of how often it's called.
+    constexpr float k_hurtRetriggerCooldown = 0.25f;
 }
 
 DeathSound::DeathSound(GameObject* owner)
@@ -74,6 +79,11 @@ void DeathSound::Update()
             m_chargeLoopID = postEvent(k_chargeLoopStart);
         }
     }
+
+    if (m_hurtCooldownTimer > 0.0f)
+    {
+        m_hurtCooldownTimer -= dt;
+    }
 }
 
 uint32_t DeathSound::postEvent(const char* eventName)
@@ -104,8 +114,17 @@ void DeathSound::playDashWhoosh()    { postEvent(k_dashWhoosh); }
 void DeathSound::playDashImpact()    { postEvent(k_dashImpact); }
 void DeathSound::playTauntShout()    { postEvent(k_tauntShout); }
 void DeathSound::playMarkApply()     { postEventDelayed(k_markApply, k_impactDelay); }
-void DeathSound::playHurt()          { postEvent(k_hurt); }
+void DeathSound::playHurt()
+{
+    if (m_hurtCooldownTimer > 0.0f)
+    {
+        return; // debounced: continuous damage can't machine-gun the hurt SFX
+    }
+    postEvent(k_hurt);
+    m_hurtCooldownTimer = k_hurtRetriggerCooldown;
+}
 void DeathSound::playDown()          { postEvent(k_down); }
+void DeathSound::playRevived()       { postEvent(k_revived); }
 void DeathSound::playLockTarget()    { postEvent(k_lockTarget); }
 void DeathSound::playSwitchTarget()  { postEvent(k_switchTarget); }
 

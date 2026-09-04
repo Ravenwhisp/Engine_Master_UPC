@@ -26,7 +26,7 @@ private:
 
     GameObject* raycast(const Vector2& screenPos);
 
-    void raycastAll(GameObject* root, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth);
+    void raycastAll(GameObject* root, const Vector2& screenPos, const Rect2D& parentRect, GameObject*& best, int& bestDepth, int depth, const Vector2& inheritedScale);
 
 
     void sendPointerEnter(GameObject* go, PointerEventData& data);

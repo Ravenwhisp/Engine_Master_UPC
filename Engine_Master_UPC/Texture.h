@@ -1,7 +1,7 @@
 #pragma once
 #include "Resources.h"
 #include "ICacheable.h"
-
+#include <vector>
 
 enum class TextureView : uint8_t
 {
@@ -27,6 +27,7 @@ struct TextureDesc
     uint32_t                width{ 1 };
     uint32_t                height{ 1 };
     uint16_t                arraySize{ 1 };
+    uint16_t                depth{ 1 };       // > 1 makes this a 3D (volume) texture
     uint16_t                mipLevels{ 1 };
     TextureView             views{ TextureView::SRV };
     D3D12_RESOURCE_STATES   initialState{ D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE };
@@ -60,7 +61,7 @@ public:
 
     DescriptorHandle    getSRV()                         const;
     DescriptorHandle    getRTV(uint32_t mip = 0)         const;
-    DescriptorHandle    getDSV()                         const;
+    DescriptorHandle    getDSV(uint32_t arraySlice = 0)  const;
     DescriptorHandle    getUAV(uint32_t mip = 0)         const;
     DescriptorHandle    getContiguousRTV(uint32_t index) const;
 
@@ -110,6 +111,7 @@ private:
     DescriptorHandle    m_srv{};
     DescriptorHandle    m_rtv[MAX_MIPS]{};
     DescriptorHandle    m_dsv{};
+    std::vector<DescriptorHandle> m_dsvArray;
     DescriptorHandle    m_uav[MAX_MIPS]{};
 
     DescriptorHeapBlock* m_contiguousRTV = nullptr;

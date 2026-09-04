@@ -4,7 +4,7 @@
 
 class DeathSound;
 class DeathCharacter;
-class DeathConfig;
+class DeathParticles;
 
 class DeathDash : public AbilityDash
 {
@@ -30,8 +30,8 @@ protected:
 
 private:
     DeathCharacter* m_deathCharacter = nullptr;
-    DeathConfig* m_config = nullptr;
     DeathSound* m_sound = nullptr;
+    DeathParticles* m_particles = nullptr;
 
     Vector3 m_dashStartPosition = Vector3::Zero;
     bool    m_dashDamageDealt = false;        // guard: damage fires only once per dash

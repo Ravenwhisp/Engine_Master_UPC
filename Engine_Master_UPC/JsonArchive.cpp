@@ -2,15 +2,7 @@
 #include "JsonArchive.h"
 #include "Metadata.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/filereadstream.h>
-#include <fstream>
-#include <cstdio>
 
-using namespace rapidjson;
 
 JsonArchive::JsonArchive()
     : m_mode(ArchiveMode::Output)
@@ -378,6 +370,46 @@ void JsonArchive::serialize(DirectX::SimpleMath::Vector3& val, const char* name)
             val.x = (*v)[0].GetFloat();
             val.y = (*v)[1].GetFloat();
             val.z = 0.0f;
+        }
+    }
+}
+
+void JsonArchive::serialize(DirectX::SimpleMath::Vector2& val, const char* name)
+{
+    if (m_mode == ArchiveMode::Output)
+    {
+        if (m_valueStack.empty()) return;
+        rapidjson::Value arr(rapidjson::kArrayType);
+        arr.PushBack(val.x, m_doc.GetAllocator());
+        arr.PushBack(val.y, m_doc.GetAllocator());
+        if (m_typeStack.back() == Context::Object)
+        {
+            rapidjson::Value key(name, m_doc.GetAllocator());
+            m_valueStack.back()->AddMember(key, arr, m_doc.GetAllocator());
+        }
+        else if (m_typeStack.back() == Context::Array)
+        {
+            m_valueStack.back()->PushBack(arr, m_doc.GetAllocator());
+        }
+    }
+    else
+    {
+        if (!m_currentInput) return;
+        const rapidjson::Value* v = nullptr;
+        if (m_currentInput->IsObject())
+        {
+            if (!m_currentInput->HasMember(name)) return;
+            v = &(*m_currentInput)[name];
+        }
+        else if (m_currentInput->IsArray())
+        {
+            if (m_currentArrayIndex >= (int)m_currentInput->Size()) return;
+            v = &(*m_currentInput)[m_currentArrayIndex++];
+        }
+        if (v && v->IsArray() && v->Size() >= 2)
+        {
+            val.x = (*v)[0].GetFloat();
+            val.y = (*v)[1].GetFloat();
         }
     }
 }
