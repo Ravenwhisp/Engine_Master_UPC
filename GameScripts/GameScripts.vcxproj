@@ -352,6 +352,7 @@
     <ClInclude Include="EnergyBallProjectile.h" />
     <ClInclude Include="EnvironmentSound.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="FrustumTestTrigger.h" />
     <ClInclude Include="GameplayEventAction.h" />
     <ClInclude Include="GameplayEventTrigger.h" />
     <ClInclude Include="HapticTester.h" />
@@ -559,6 +560,7 @@
     <ClCompile Include="EnergyBallProjectile.cpp" />
     <ClCompile Include="EnvironmentSound.cpp" />
     <ClCompile Include="GameplayEventAction.cpp" />
+    <ClCompile Include="FrustumTestTrigger.cpp" />
     <ClCompile Include="GameplayEventTrigger.cpp" />
     <ClCompile Include="HapticTester.cpp" />
     <ClCompile Include="HealthDropSpawner.cpp" />
