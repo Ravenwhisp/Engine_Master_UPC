@@ -20,6 +20,7 @@
 #include "ScriptComponent.h"
 #include "ParticleSystemComponent.h"
 #include "TrailComponent.h"
+#include "LineRendererComponent.h"
 #include "OcclusionTargetComponent.h"
 #include "OcclusionOccluderComponent.h"
 
@@ -123,6 +124,7 @@ void ModuleScene::rebuildComponentCaches()
     m_scriptComponents.clear();
     m_particleSystemComponents.clear();
     m_trailComponents.clear();
+    m_lineRendererComponents.clear();
     m_occlusionTargetComponents.clear();
     m_occlusionOccluderComponents.clear();
 
@@ -165,6 +167,11 @@ void ModuleScene::rebuildComponentCaches()
             else if (component->getType() == ComponentType::OCCLUSION_OCCLUDER)
             {
                 m_occlusionOccluderComponents.push_back(static_cast<OcclusionOccluderComponent*>(component));
+            }
+
+            else if (component->getType() == ComponentType::LINE_RENDERER)
+            {
+                m_lineRendererComponents.push_back(static_cast<LineRendererComponent*>(component));
             }
         }
     }
@@ -383,6 +390,15 @@ const std::vector<TrailComponent*>& ModuleScene::getTrailComponents()
 
     return m_trailComponents;
 }
+const std::vector<LineRendererComponent*>& ModuleScene::getLineRendererComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_lineRendererComponents;
+}
 
 const std::vector<OcclusionTargetComponent*>& ModuleScene::getOcclusionTargetComponents()
 {
@@ -414,11 +430,11 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    std::string path = "Assets/Scenes/" + sceneName + ".scene";
+
     clearRuntimeSceneSystems();
     clearComponentCaches();
     m_scene->unloadSoundBanks();
-
-    std::string path = "Assets/Scenes/" + sceneName + ".scene";
 
     JsonArchive archive(ArchiveMode::Input);
     if (!archive.loadFile(path))
@@ -431,10 +447,13 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     auto newScene = std::make_unique<Scene>(ref);
     newScene->serialize(archive);
     newScene->setName(sceneName.c_str());
-    newScene->FixReferences();
-    newScene->initLoadedObjects();
 
     m_scene = std::move(newScene);
+
+    m_scene->FixReferences();
+    m_scene->initLoadedObjects();
+
+
     m_scene->markDirty();
 
     m_staticQuadtree = std::make_unique<Quadtree>();

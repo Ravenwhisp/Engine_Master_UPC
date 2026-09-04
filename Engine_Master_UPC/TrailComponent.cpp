@@ -10,6 +10,8 @@
 #include "imgui_color_gradient.h"
 #include "ModuleTime.h"
 
+#include "ModuleAssets.h"
+#include "ModuleResources.h"
 
 
 
@@ -69,7 +71,24 @@ void TrailComponent::drawUi()
         ImGui::EndPopup();
     }
 
+    ImGui::Checkbox("Bloom", &m_bloom);
+
     drawBezierCurveUI(m_colorCurve);
+
+    ImGui::Button("Texture");
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+        {
+            UID* data = static_cast<UID*>(payload->Data);
+            LoadTexture(data);
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    ImGui::SameLine();
+    ImGui::Text("Loaded: %s", (m_texture != nullptr) ? "YES" : "NO");
 }
 
 void TrailComponent::update()
@@ -114,6 +133,13 @@ void TrailComponent::update()
 
         m_colorOverTime.getColorAt(bezierScale, &trailPoint->get()->color.x);
 
+        if(m_bloom)
+        {
+            trailPoint->get()->color.z *= 2;
+            trailPoint->get()->color.x *= 2;
+            trailPoint->get()->color.y *= 2;
+        }
+
         ++trailPoint;
     }
 
@@ -146,6 +172,13 @@ std::unique_ptr<Component> TrailComponent::clone(GameObject* newOwner) const
    cloned->m_spawnDistance = m_spawnDistance;
    cloned->m_pointLifetime = m_pointLifetime;
    cloned->m_colorOverTime = m_colorOverTime;
+   cloned->m_bloom         = m_bloom;
+
+   cloned->m_textureAssetId = m_textureAssetId;
+   cloned->m_texture        = m_texture;
+   cloned->m_textureAsset   = m_textureAsset;
+   cloned->m_loadRequested  = m_loadRequested;
+
    std::copy(std::begin(m_colorCurve), std::end(m_colorCurve), std::begin(cloned->m_colorCurve));
 
     return cloned;
@@ -159,6 +192,11 @@ void TrailComponent::serialize(IArchive& archive)
     archive.serialize(m_endWidth, "EndWidth");
     archive.serialize(m_spawnDistance, "SpawnDistance");
     archive.serialize(m_pointLifetime, "PointLifetime");
+    archive.serialize(m_bloom, "Bloom");
+
+    archive.beginObject("TextureAssetId");
+    m_textureAssetId.serialize(archive);
+    archive.endObject();
 
     if (archive.mode() == ArchiveMode::Output)
     {
@@ -257,6 +295,30 @@ void TrailComponent::serialize(IArchive& archive)
         m_colorCurve[1] = y;
         m_colorCurve[2] = z;
         m_colorCurve[3] = w;
+
+        m_texture = nullptr;
+        m_textureAsset.reset();
+        m_loadRequested = false;
+
+        if (m_textureAssetId.isValid())
+        {
+            m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+            if (m_textureAsset)
+            {
+                m_loadRequested = true;
+
+                auto texture = app->getModuleResources()->createTexture(*m_textureAsset, true);
+
+                if (texture)
+                {
+                    m_texture = texture;
+                }
+                else
+                {
+                    m_texture = nullptr;
+                }
+            }
+        }
     }
 }
 
@@ -308,3 +370,56 @@ bool TrailComponent::drawBezierCurveUI(float* curveData)
 
     return parameterChanged;
 }
+
+bool TrailComponent::consumeLoadRequest()
+{
+    const bool was = m_loadRequested;
+    m_loadRequested = false;
+    return was;
+}
+
+void TrailComponent::setTextureAssetId(const AssetId& assetId)
+{
+    m_textureAssetId = assetId;
+    m_texture = nullptr;
+    m_textureAsset.reset();
+    m_loadRequested = false;
+
+    if (m_textureAssetId.isValid())
+    {
+        m_textureAsset = app->getModuleAssets()->load<TextureAsset>(m_textureAssetId);
+        if (m_textureAsset)
+        {
+            m_loadRequested = true;
+        }
+    }
+}
+
+void TrailComponent::LoadTexture(UID* data)
+{
+    AssetId* ref = app->getModuleAssets()->findReference(*data);
+    m_textureAssetId = *ref;
+    m_textureAsset = app->getModuleAssets()->load<TextureAsset>(*ref);
+    if (m_textureAsset)
+    {
+        m_loadRequested = true;
+    }
+
+    if (!m_textureAsset || !m_textureAssetId.isValid())
+    {
+        m_texture = nullptr;
+    }
+    else
+    {
+        auto texture = app->getModuleResources()->createTexture(*m_textureAsset, true);
+        if (texture)
+        {
+            m_texture = texture;
+        }
+        else
+        {
+            m_texture = nullptr;
+        }
+    }
+}
+

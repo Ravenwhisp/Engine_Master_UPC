@@ -11,21 +11,31 @@ class RingBuffer;
 
 using Microsoft::WRL::ComPtr;
 
-class TrailComponent;
+class LineRendererComponent;
 
-struct TextureConstantBuffer
+struct GradientColor
+{
+	Vector4 color;
+
+	float percentage;
+	Vector3 padding;
+};
+
+struct GradientConstantBuffer
 {
 	UINT hasTexture = 0;
 	Vector3 padding;
 
+	GradientColor colors[10];
+
 };
 
-class TrailPass : public IRenderPass
+class LineRendererPass : public IRenderPass
 {
 public:
 
-	TrailPass(ComPtr<ID3D12Device4> device);
-	~TrailPass() override = default;
+	LineRendererPass(ComPtr<ID3D12Device4> device);
+	~LineRendererPass() override = default;
 
 	virtual void prepare(const RenderContext& ctx) override;
 	void apply(ID3D12GraphicsCommandList4* commandList) override;
@@ -41,8 +51,8 @@ private:
 	std::unique_ptr<VertexBuffer>	m_vertexBuffer;
 	std::unique_ptr<IndexBuffer>	m_indexBuffer;
 
-	std::vector<TrailComponent*> m_trailComponent;
-	std::vector<VertexTrails> m_vertices;
+	std::vector<LineRendererComponent*> m_lineRendererComponent;
+	std::vector<Vertex> m_vertices;
 	std::vector<uint8_t> m_indices;
 
 	const D3D12_VIEWPORT* m_viewport = nullptr;

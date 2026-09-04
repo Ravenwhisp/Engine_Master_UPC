@@ -858,6 +858,21 @@
     <ClCompile Include="PostProcessCommon.cpp">
       <Filter>Source\Rendering\Post Processing</Filter>
     </ClCompile>
+    <ClCompile Include="ImporterNavMesh.cpp" />
+    <ClCompile Include="ImporterSoundBank.cpp" />
+    <ClCompile Include="NavMeshAsset.cpp" />
+    <ClCompile Include="NavMeshBuildSettings.cpp" />
+    <ClCompile Include="SoundBankAsset.cpp" />
+    <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
+    <ClCompile Include="LineRendererPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
+    <ClCompile Include="LineRendererComponent.cpp">
+      <Filter>GameEntity\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerPass.cpp">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClCompile>
     <ClCompile Include="TransparentPass.cpp">
       <Filter>Source\Rendering</Filter>
     </ClCompile>
@@ -1809,6 +1824,20 @@
     </ClInclude>
     <ClInclude Include="PostProcessCommon.h">
       <Filter>Source\Rendering\Post Processing</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetRef.h" />
+    <ClInclude Include="ImporterSoundBank.h" />
+    <ClInclude Include="SoundBankAsset.h" />
+    <ClInclude Include="ImporterNavMesh.h" />
+    <ClInclude Include="NavMeshAsset.h" />
+    <ClInclude Include="LineRendererPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
+    </ClInclude>
+    <ClInclude Include="LineRendererComponent.h">
+      <Filter>GameEntity\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerPass.h">
+      <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
     <ClInclude Include="TransparentPass.h">
       <Filter>Source\Rendering</Filter>

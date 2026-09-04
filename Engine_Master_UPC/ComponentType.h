@@ -25,6 +25,7 @@
     X(SOUND_SOURCE)         \
     X(PREFAB_INSTANCE)      \
     X(PLAYER_RENDER_BUFFER) \
+    X(LINE_RENDERER)        \
     X(DAMAGE_HIGHLIGHT)     \
     X(FLOW_MAP)             \
     X(DISSOLVE)             \
