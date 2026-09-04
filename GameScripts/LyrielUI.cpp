@@ -167,50 +167,46 @@ void LyrielUI::setupDashCharges(int maxCharges)
 	if (m_charge1Transform2D)
 	{
 		Transform2DAPI::setScale(m_charge1Transform2D, Vector2(m_charge1Scale, m_charge1Scale));
+		Transform2DAPI::setAlpha(m_charge1Transform2D, maxCharges >= 1 ? 1.0f : 0.0f);
 	}
 
 	if (m_charge2Transform2D)
 	{
 		Transform2DAPI::setScale(m_charge2Transform2D, Vector2(m_charge2Scale, m_charge2Scale));
+		Transform2DAPI::setAlpha(m_charge2Transform2D, maxCharges >= 2 ? 1.0f : 0.0f);
 	}
 
 	if (m_charge3Transform2D)
 	{
 		Transform2DAPI::setScale(m_charge3Transform2D, Vector2(m_charge3Scale, m_charge3Scale));
+		Transform2DAPI::setAlpha(m_charge3Transform2D, maxCharges >= 3 ? 1.0f : 0.0f);
 	}
 }
 
 void LyrielUI::updateDashChargesUI(int currentCharges, int maxCharges, float dt)
 {
-	const float target1 = currentCharges >= 1 ? m_chargedScale : m_emptyScale;
-	const float target2 = currentCharges >= 2 ? m_chargedScale : m_emptyScale;
-	const float target3 = currentCharges >= 3 ? m_chargedScale : m_emptyScale;
-
-	if (maxCharges >= 1)
-	{
-		updateChargeVisual(m_charge1Transform2D, m_charge1Scale, target1, dt);
-	}
-
-	if (maxCharges >= 2)
-	{
-		updateChargeVisual(m_charge2Transform2D, m_charge2Scale, target2, dt);
-	}
-
-	if (maxCharges >= 3)
-	{
-		updateChargeVisual(m_charge3Transform2D, m_charge3Scale, target3, dt);
-	}
+	updateChargeVisual(m_charge1Transform2D, m_charge1Scale, currentCharges >= 1 && maxCharges >= 1, dt);
+	updateChargeVisual(m_charge2Transform2D, m_charge2Scale, currentCharges >= 2 && maxCharges >= 2, dt);
+	updateChargeVisual(m_charge3Transform2D, m_charge3Scale, currentCharges >= 3 && maxCharges >= 3, dt);
 }
 
-void LyrielUI::updateChargeVisual(Transform2D* transform, float& currentScale, float targetScale, float dt)
+void LyrielUI::updateChargeVisual(Transform2D* transform, float& currentScale, bool visible, float dt)
 {
 	if (!transform)
 	{
 		return;
 	}
 
+	const float targetScale = visible ? m_chargedScale : m_emptyScale;
+	const float targetAlpha = visible ? 1.0f : 0.0f;
+
 	currentScale = MathAPI::moveTowards(currentScale, targetScale, m_uiScaleSpeed * dt);
+
+	const float currentAlpha = transform->getAlpha();
+	const float newAlpha = MathAPI::moveTowards(currentAlpha, targetAlpha, m_uiScaleSpeed * dt);
+
 	Transform2DAPI::setScale(transform, Vector2(currentScale, currentScale));
+	Transform2DAPI::setAlpha(transform, newAlpha);
 }
 
 IMPLEMENT_SCRIPT(LyrielUI)

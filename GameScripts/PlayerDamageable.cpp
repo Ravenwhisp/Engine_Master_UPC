@@ -6,6 +6,7 @@
 
 #include "PlayerDownState.h"
 #include "PlayerAnimationController.h"
+#include "PersistingCheckpointState.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(PlayerDamageable, Damageable,
     SERIALIZED_COMPONENT_REF(m_healthGlow, "Health Glow", ComponentType::UISLIDER),
@@ -40,6 +41,18 @@ void PlayerDamageable::Start()
 
     m_deathSound  = GameObjectAPI::findScript<DeathSound>(m_owner);
     m_lyrielSound = GameObjectAPI::findScript<LyrielSound>(m_owner);
+    
+    if (PersistingCheckpointState::Get().m_lastCheckpointId > CheckpointId::NONE)
+    {
+        if (m_deathSound)
+        {
+            m_currentHp = PersistingCheckpointState::Get().m_savedDeathHealth;
+        }
+        if (m_lyrielSound)
+        {
+            m_currentHp = PersistingCheckpointState::Get().m_savedLyrielHealth;
+        }
+    }
 
     Transform* rendererTransform = m_renderer.getReferencedComponent();
 
@@ -49,11 +62,11 @@ void PlayerDamageable::Start()
     }
     else
     {
-        m_playerRenderBuffer = Shaders::getPlayerRenderBufferComponent(ComponentAPI::getOwner(rendererTransform));
+        m_damageHighlight = ShadersAPI::getDamageHighlightComponent(ComponentAPI::getOwner(rendererTransform));
 
-        if (m_playerRenderBuffer == nullptr)
+        if (m_damageHighlight == nullptr)
         {
-            Debug::warn("Renderer referenced in PlayerDamageable on '%s' does not have a PlayerRenderbuffer component.", GameObjectAPI::getName(getOwner()));
+            Debug::warn("Renderer referenced in PlayerDamageable on '%s' does not have a DamageHighlight component.", GameObjectAPI::getName(getOwner()));
         }
     }
 }
@@ -71,7 +84,7 @@ void PlayerDamageable::Update()
             m_damageHighlightActive = false;
         }
 
-        Shaders::setDamageHighlightIntensity(m_playerRenderBuffer, m_damageHighlightTimer);
+        ShadersAPI::setDamageHighlightIntensity(m_damageHighlight, m_damageHighlightTimer);
     }
 
     if (!m_haptic) return;
@@ -163,7 +176,7 @@ void PlayerDamageable::playHurtSfx()
 
 void PlayerDamageable::playHurtVfx()
 {
-    if (m_playerRenderBuffer == nullptr)
+    if (m_damageHighlight == nullptr)
     {
         return;
     }

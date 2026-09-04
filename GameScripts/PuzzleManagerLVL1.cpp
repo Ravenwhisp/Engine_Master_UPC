@@ -2,19 +2,21 @@
 #include "PuzzleManagerLVL1.h"
 #include "EnvironmentSound.h"
 
+#include "PersistingCheckpointState.h"
+
 namespace
 {
-    constexpr const char* k_openDoor = "Play_Environment_Open_Door";
+	constexpr const char* k_openDoor = "Play_Environment_Open_Door";
 
-    // Plays the door-open SFX from the door's own GameObject (positional 3D).
-    void playDoorOpen(const ComponentRef<Transform>& doorRef)
-    {
-        Transform* doorTransform = doorRef.getReferencedComponent();
-        if (doorTransform != nullptr)
-        {
-            EnvironmentSound::play(ComponentAPI::getOwner(doorTransform), k_openDoor);
-        }
-    }
+	// Plays the door-open SFX from the door's own GameObject (positional 3D).
+	void playDoorOpen(const ComponentRef<Transform>& doorRef)
+	{
+		Transform* doorTransform = doorRef.getReferencedComponent();
+		if (doorTransform != nullptr)
+		{
+			EnvironmentSound::play(ComponentAPI::getOwner(doorTransform), k_openDoor);
+		}
+	}
 }
 
 IMPLEMENT_SCRIPT_FIELDS(PuzzleManagerLVL1,
@@ -31,7 +33,7 @@ IMPLEMENT_SCRIPT_FIELDS(PuzzleManagerLVL1,
 )
 
 PuzzleManagerLVL1::PuzzleManagerLVL1(GameObject* owner)
-    : Script(owner)
+	: Script(owner)
 {
 }
 
@@ -46,6 +48,13 @@ void PuzzleManagerLVL1::Start()
 	blocker3 = m_navBlocker3.getReferencedComponent()->getOwner();
 	blocker4 = m_navBlocker4.getReferencedComponent()->getOwner();
 
+	for (int i = 0; i < 3; ++i)
+	{
+		if (PersistingCheckpointState::Get().m_solvedPuzzlesPersistent[i])
+		{
+			onPuzzleSolved(i);
+		}
+	}
 }
 
 void PuzzleManagerLVL1::Update()
@@ -63,6 +72,8 @@ void PuzzleManagerLVL1::puzzle1Solved()
 	NavRuntimeBlockerComponent* blocker2Comp = NavigationAPI::getRuntimeBlockerComponent(blocker2);
 	NavigationAPI::setBlocked(blocker1Comp, false);
 	NavigationAPI::setBlocked(blocker2Comp, true);
+
+	PersistingCheckpointState::Get().m_solvedPuzzles[static_cast<size_t>(PuzzleId::PUZZLE1_LEVEL1)] = true;
 }
 
 void PuzzleManagerLVL1::puzzle2Solved()
@@ -94,6 +105,8 @@ void PuzzleManagerLVL1::puzzle2Solved()
 
 	// Chains loop while it lowers (stopped + thud at the bottom in updateBridgeLowering).
 	EnvironmentSound::play(m_bridgeSoundEmitter, "Play_Environment_Chain_Bridge");
+
+	PersistingCheckpointState::Get().m_solvedPuzzles[static_cast<size_t>(PuzzleId::PUZZLE2_LEVEL1)] = true;
 }
 
 void PuzzleManagerLVL1::updateBridgeLowering(float dt)
@@ -148,19 +161,21 @@ void PuzzleManagerLVL1::puzzle3Solved()
 
 	NavRuntimeBlockerComponent* blocker4Comp = NavigationAPI::getRuntimeBlockerComponent(blocker4);
 	NavigationAPI::setBlocked(blocker4Comp, false);
+
+	PersistingCheckpointState::Get().m_solvedPuzzles[static_cast<size_t>(PuzzleId::PUZZLE3_LEVEL1)] = true;
 }
 
 void PuzzleManagerLVL1::onCrystalsActivated(int puzzleID)
 {
-	if(m_puzzles.find(puzzleID) == m_puzzles.end())
+	if (m_puzzles.find(puzzleID) == m_puzzles.end())
 	{
 		Debug::log("Invalid puzzle ID: %d", puzzleID);
 		return;
 	}
 
 	PuzzleData& puzzle = m_puzzles[puzzleID];
-	
-	if(puzzle.puzzleSolved)
+
+	if (puzzle.puzzleSolved)
 	{
 		Debug::log("Puzzle %d already solved, ignoring crystal activation.", puzzleID);
 		return;
@@ -169,7 +184,7 @@ void PuzzleManagerLVL1::onCrystalsActivated(int puzzleID)
 	puzzle.crystalsActivated++;
 
 	Debug::log("Crystal activated! Total activated: %d/%d", puzzle.crystalsActivated, puzzle.totalCrystals);
-	if (isPuzzleSolved(puzzleID))
+	if (puzzle.crystalsActivated >= puzzle.totalCrystals)
 	{
 		onPuzzleSolved(puzzleID);
 	}
@@ -177,8 +192,14 @@ void PuzzleManagerLVL1::onCrystalsActivated(int puzzleID)
 
 bool PuzzleManagerLVL1::isPuzzleSolved(int puzzleID) const
 {
-	const PuzzleData& puzzle = m_puzzles.at(puzzleID);
-	return puzzle.crystalsActivated >= puzzle.totalCrystals;
+	const auto it = m_puzzles.find(puzzleID);
+
+	if (it == m_puzzles.end())
+	{
+		return false;
+	}
+
+	return it->second.puzzleSolved;
 }
 
 void PuzzleManagerLVL1::onPuzzleSolved(int puzzleID)
@@ -205,14 +226,14 @@ void PuzzleManagerLVL1::onPuzzleSolved(int puzzleID)
 
 void PuzzleManagerLVL1::onCrystalsDeactivated(int puzzleID)
 {
-	if(m_puzzles.find(puzzleID) == m_puzzles.end())
+	if (m_puzzles.find(puzzleID) == m_puzzles.end())
 	{
 		Debug::log("Invalid puzzle ID: %d", puzzleID);
 		return;
 	}
 
 	PuzzleData& puzzle = m_puzzles[puzzleID];
-	if(puzzle.puzzleSolved)
+	if (puzzle.puzzleSolved)
 	{
 		Debug::log("Puzzle %d already solved, ignoring crystal deactivation.", puzzleID);
 		return;

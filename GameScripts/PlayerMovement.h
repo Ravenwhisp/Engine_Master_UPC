@@ -34,6 +34,8 @@ public:
         m_constrainToNavMesh = previousConstraint;
     }
 
+    void applyExternalMovement(GameObject* owner, const Vector3& displacement); // needed for the final boss Grasp of the Dead ability
+
     void setMovementMultiplier(float multiplier) { m_movementMultiplier = multiplier; }
     void resetMovementMultiplier() { m_movementMultiplier = 1.0f; }
 

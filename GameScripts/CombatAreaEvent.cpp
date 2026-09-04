@@ -15,6 +15,7 @@ IMPLEMENT_SCRIPT_FIELDS(CombatAreaEvent,
 CombatAreaEvent::CombatAreaEvent(GameObject* owner)
     : GameplayEventAction(owner)
 {
+    m_isPersistent = true;
 }
 
 void CombatAreaEvent::Update()

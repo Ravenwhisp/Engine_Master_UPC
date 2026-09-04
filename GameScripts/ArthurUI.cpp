@@ -1,11 +1,15 @@
 #include "pch.h"
 #include "ArthurUI.h"
+#include "BarrierComponent.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ArthurUI,
 	FIELD_GROUP_COLLAPSE("Health Bar",
 		SERIALIZED_COMPONENT_REF(m_healthBarCanvas, "Health Bar Canvas", ComponentType::TRANSFORM),
 		SERIALIZED_COMPONENT_REF(m_healthBarContainer, "Health Bar Container", ComponentType::TRANSFORM2D),
 		SERIALIZED_COMPONENT_REF(m_healthBarPhase2, "Health Bar Phase 2", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthBarMarker25, "Health Bar 25% Marker", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthBarPhaseMarker, "Health Bar 50% Marker", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthBarMarker75, "Health Bar 75% Marker", ComponentType::TRANSFORM2D),
 		SERIALIZED_FLOAT(m_healthBarDuration, "Health Bar Duration", 0.0f, 10.0f, 0.1f)
 	),
 
@@ -60,6 +64,13 @@ void ArthurUI::Start()
 {
 	setupHealthUI();
 
+	m_barrierComponent = GameObjectAPI::findScript<BarrierComponent>(getOwner());
+
+	if (!m_barrierComponent)
+	{
+		Debug::warn("[ArthurUI] BarrierComponent script is missing.");
+	}
+
 	m_heavySwipeUICanvasTransform = m_heavySwipeUICanvas.getReferencedComponent();
 	m_heavySwipeUIContainerTransform2D = m_heavySwipeUIContainer.getReferencedComponent();
 	m_heavySwipeUIBackgroundTransform2D = m_heavySwipeUIBackground.getReferencedComponent();
@@ -106,6 +117,7 @@ void ArthurUI::Start()
 void ArthurUI::Update()
 {
 	updateHealthUI();
+	updateHealthMarkers();
 }
 
 void ArthurUI::setupHealthUI()
@@ -113,6 +125,13 @@ void ArthurUI::setupHealthUI()
 	m_healthBarCanvasTransform = m_healthBarCanvas.getReferencedComponent();
 	m_healthBarContainerTransform2D = m_healthBarContainer.getReferencedComponent();
 	m_healthBarPhase2Transform2D = m_healthBarPhase2.getReferencedComponent();
+	m_healthBarMarker25Transform2D = m_healthBarMarker25.getReferencedComponent();
+	m_healthBarPhaseMarkerTransform2D = m_healthBarPhaseMarker.getReferencedComponent();
+	m_healthBarMarker75Transform2D = m_healthBarMarker75.getReferencedComponent();
+
+	setHealthMarkerVisible(m_healthBarMarker25Transform2D, false);
+	setHealthMarkerVisible(m_healthBarPhaseMarkerTransform2D, false);
+	setHealthMarkerVisible(m_healthBarMarker75Transform2D, false);
 
 	if (!m_healthBarCanvasTransform)
 	{
@@ -201,7 +220,19 @@ void ArthurUI::showHealthUI(bool show)
 	m_healthBarVisible = show;
 	m_healthBarTimer = m_healthBarDuration;
 
+	if (!show)
+	{
+		setHealthMarkerVisible(m_healthBarMarker25Transform2D, false);
+		setHealthMarkerVisible(m_healthBarPhaseMarkerTransform2D, false);
+		setHealthMarkerVisible(m_healthBarMarker75Transform2D, false);
+	}
+
 	GameObjectAPI::setActive(canvasOwner, true);
+
+	if (show)
+	{
+		updateHealthMarkers();
+	}
 }
 
 void ArthurUI::updateHealthUIPhase()
@@ -213,6 +244,36 @@ void ArthurUI::updateHealthUIPhase()
 
 	m_healthBarPhase2Visible = true;
 	m_healthBarPhase2Timer = m_healthBarDuration;
+}
+
+void ArthurUI::setHealthMarkerVisible(Transform2D* marker, bool visible)
+{
+	if (!marker)
+	{
+		return;
+	}
+
+	Transform2DAPI::setAlpha(marker, visible ? 1.0f : 0.0f);
+}
+
+void ArthurUI::updateHealthMarkers()
+{
+	if (!m_healthBarVisible)
+	{
+		return;
+	}
+
+	if (!m_barrierComponent)
+	{
+		setHealthMarkerVisible(m_healthBarMarker25Transform2D, false);
+		setHealthMarkerVisible(m_healthBarPhaseMarkerTransform2D, false);
+		setHealthMarkerVisible(m_healthBarMarker75Transform2D, false);
+		return;
+	}
+
+	setHealthMarkerVisible(m_healthBarMarker25Transform2D, m_barrierComponent->hasActiveBarrierAt(0.25f));
+	setHealthMarkerVisible(m_healthBarPhaseMarkerTransform2D, m_barrierComponent->hasActiveBarrierAt(0.50f));
+	setHealthMarkerVisible(m_healthBarMarker75Transform2D, m_barrierComponent->hasActiveBarrierAt(0.75f));
 }
 
 void ArthurUI::setupHeavySwipeUI()

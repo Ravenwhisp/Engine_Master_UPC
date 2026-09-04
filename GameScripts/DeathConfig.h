@@ -29,14 +29,11 @@ public:
 
 	// Charged Attack
 	float m_chargedAttackDamage = 40.0f;
-	float m_chargedArcRange = 2.5f;
-	float m_chargedArcAngle = 120.0f;
+	float m_chargedMaxChargeDamage = 80.0f;
+	float m_chargedCircleRadius = 3.0f;
 	float m_chargedMaxChargeTime = 2.0f;
 	float m_chargedMinChargeTime = 0.5f;
 	float m_chargedAttackLockDuration = 0.4f;
-	float m_chargedFinalHitLockDuration = 0.8f;
-	float m_chargedShotArcRange = 3.5f;
-	float m_chargedShotArcAngle = 150.0f;
 	float m_chargedCooldown = 0.0f;
 	float m_chargedMovementSlowdownPercentage = 50.0f;
 	bool m_chargedStunOnMaxCharge = true;
@@ -80,14 +77,11 @@ public:
 
 		FIELD_GROUP_COLLAPSE("Charged Attack",
 			SERIALIZED_FLOAT(m_chargedAttackDamage, "Charged Attack Damage", 0.0f, 200.0f, 1.0f),
-			SERIALIZED_FLOAT(m_chargedArcRange, "Arc Range", 0.5f, 10.0f, 0.1f),
-			SERIALIZED_FLOAT(m_chargedArcAngle, "Arc Angle", 10.0f, 360.0f, 5.0f),
+			SERIALIZED_FLOAT(m_chargedMaxChargeDamage, "Max Charge Damage", 0.0f, 400.0f, 1.0f),
+			SERIALIZED_FLOAT(m_chargedCircleRadius, "Charged Circle Radius", 0.5f, 10.0f, 0.1f),
 			SERIALIZED_FLOAT(m_chargedMaxChargeTime, "Max Charge Time", 0.5f, 5.0f, 0.1f),
 			SERIALIZED_FLOAT(m_chargedMinChargeTime, "Min Charge Time", 0.0f, 3.0f, 0.05f),
 			SERIALIZED_FLOAT(m_chargedAttackLockDuration, "Charged Attack Lock Duration", 0.05f, 2.0f, 0.05f),
-			SERIALIZED_FLOAT(m_chargedFinalHitLockDuration, "Charged Final Hit Lock Duration", 0.05f, 3.0f, 0.05f),
-			SERIALIZED_FLOAT(m_chargedShotArcRange, "Charged Arc Range", 0.5f, 10.0f, 0.1f),
-			SERIALIZED_FLOAT(m_chargedShotArcAngle, "Charged Arc Angle", 10.0f, 360.0f, 5.0f),
 			SERIALIZED_FLOAT(m_chargedCooldown, "Charged Cooldown", 0.0f, 10.0f, 0.01f),
 			SERIALIZED_FLOAT(m_chargedMovementSlowdownPercentage, "Charged Movement Slowdown (%)", 0.0f, 100.0f, 1.0f),
 			SERIALIZED_BOOL(m_chargedStunOnMaxCharge, "Stun On Max Charge"),

@@ -4,6 +4,8 @@
 #include "PersistingPowerupState.h"
 #include "EnvironmentSound.h"
 
+#include "PersistingCheckpointState.h"
+
 #include <cmath>
 
 static const char* powerupTargetNames[] =
@@ -34,6 +36,25 @@ PowerupCollectible::PowerupCollectible(GameObject* owner)
 
 void PowerupCollectible::Start()
 {
+    switch (m_powerupEffect)
+    {
+    case LYRIEL_POWERUP_1:
+        if (PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1))
+        {
+            Debug::log("[PowerupCollectible] Lyriel Powerup 1 already unlocked. Destroying collectible.");
+            GameObjectAPI::removeGameObject(getOwner());
+			return;
+        }
+
+    case DEATH_POWERUP_1:
+        if (PersistingPowerupState::isUnlocked(PowerupId::DeathPowerup1))
+        {
+            Debug::log("[PowerupCollectible] Death Powerup 1 already unlocked. Destroying collectible.");
+            GameObjectAPI::removeGameObject(getOwner());
+            return;
+        }
+    }
+
     m_startPosition = TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner()));
 }
 

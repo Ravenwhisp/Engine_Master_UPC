@@ -4,20 +4,20 @@
 
 class PuzzleManagerLVL1 : public Script
 {
-    DECLARE_SCRIPT(MyScript)
+	DECLARE_SCRIPT(MyScript)
 
-struct PuzzleData
-{
-	int crystalsActivated = 0;
-	int totalCrystals = 0;
-	bool puzzleSolved = false;
-};
+	struct PuzzleData
+	{
+		int crystalsActivated = 0;
+		int totalCrystals = 0;
+		bool puzzleSolved = false;
+	};
 
 public:
-    explicit PuzzleManagerLVL1(GameObject* owner);
+	explicit PuzzleManagerLVL1(GameObject* owner);
 
-    void Start() override;
-    void Update() override;
+	void Start() override;
+	void Update() override;
 
 	ComponentRef<Transform> m_door1;
 	ComponentRef<Transform> m_bridge1;
@@ -43,9 +43,10 @@ public:
 	void onCrystalsActivated(int puzzleID);
 	void onCrystalsDeactivated(int puzzleID);
 
+	bool isPuzzleSolved(int puzzleId) const;
+
 private:
 
-	bool isPuzzleSolved(int puzzleId) const;
 	void onPuzzleSolved(int puzzleId);
 
 	std::unordered_map<int, PuzzleData> m_puzzles;
@@ -59,6 +60,5 @@ private:
 	GameObject* m_bridgeSoundEmitter = nullptr;
 	void updateBridgeLowering(float dt);
 
-    FieldList getExposedFields() const override;
+	FieldList getExposedFields() const override;
 };
-

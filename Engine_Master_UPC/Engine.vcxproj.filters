@@ -618,6 +618,9 @@
     <ClCompile Include="AssetIndex.cpp">
       <Filter>Source\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="AssetId.cpp">
+      <Filter>Source\Assets</Filter>
+    </ClCompile>
     <ClCompile Include="ImporterRegistry.cpp">
       <Filter>Source\Assets\Importers</Filter>
     </ClCompile>

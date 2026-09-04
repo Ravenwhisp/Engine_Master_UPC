@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "LocalMultiplayerSetup.h"
+#include "PlayerGamepadBinding.h"
 
 static const char* setupModeNames[] =
 {
@@ -58,8 +59,8 @@ void LocalMultiplayerSetup::chooseConfiguration()
     switch (m_setupMode)
     {
     case 0:
-        Input::setPlayerKeyboard(0);
-        Input::setPlayerGamepad(1, 0);
+        PlayerGamepadBinding::setKeyboard(0);
+        PlayerGamepadBinding::setGamepad(1, 0);
         if (kbComp && gpComp)
         {
             GameObjectAPI::setActive(kbComp->getOwner(), true);
@@ -68,8 +69,8 @@ void LocalMultiplayerSetup::chooseConfiguration()
         break;
 
     case 1:
-        Input::setPlayerGamepad(0, 0);
-        Input::setPlayerGamepad(1, 1);
+        PlayerGamepadBinding::setGamepad(0, 0);
+        PlayerGamepadBinding::setGamepad(1, 1);
         if (kbComp && gpComp)
         {
             GameObjectAPI::setActive(kbComp->getOwner(), false);
@@ -78,8 +79,8 @@ void LocalMultiplayerSetup::chooseConfiguration()
         break;
 
     default:
-        Input::setPlayerKeyboard(0);
-        Input::setPlayerGamepad(1, 0);
+        PlayerGamepadBinding::setKeyboard(0);
+        PlayerGamepadBinding::setGamepad(1, 0);
         if (kbComp && gpComp)
         {
             GameObjectAPI::setActive(kbComp->getOwner(), true);

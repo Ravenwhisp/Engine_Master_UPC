@@ -31,9 +31,7 @@ protected:
 private:
     void startCharging();
     void fireAttack();
-    void dealDamageInArc(float damage, float range, float angle, bool isChargedShot, bool isMaxCharge) const;
-    void updateAimDirection();
-    void snapFaceAimDirection();
+    void dealDamageInCircle(float damage, float radius, bool isChargedShot, bool isMaxCharge) const;
 
     void updateUI() override;
 
@@ -45,5 +43,4 @@ private:
 
     float   m_chargeTime = 0.0f;
     bool    m_isCharging = false;
-    Vector3 m_aimDirection = { 0.0f, 0.0f, 0.0f };
 };

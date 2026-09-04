@@ -390,6 +390,70 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID,
     }
 }
 
+void ModuleAssets::fixAllAssetReferences()
+{
+    DEBUG_LOG("[ModuleAssets] Fix pass started: refreshing index from metadata...");
+    refresh();
+
+    // Dependency order matters: reimporting a source can change its content
+    // hash (and the hashes of its sub-assets), which invalidates the libIds
+    // stored inside its dependents. Re-baking in this order guarantees each
+    // asset sees the final hashes of everything it references. The heal in
+    // AssetId::serialize fixes the references while each asset is re-baked,
+    // and unchanged sources keep their hash, so the pass is idempotent.
+    const AssetType kOrder[] = {
+        AssetType::TEXTURE,
+        AssetType::MODEL,
+        AssetType::FONT,
+        AssetType::ANIMATION,
+        AssetType::ANIMATION_STATE_MACHINE,
+        AssetType::DATA_CONTAINER,
+        AssetType::PREFAB,
+        AssetType::SCENE
+    };
+
+    size_t totalRebaked = 0;
+
+    for (const AssetType type : kOrder)
+    {
+        std::vector<std::pair<UID, std::filesystem::path>> targets;
+        for (const auto& [uid, entry] : m_index.allEntries())
+        {
+            if (entry.type != type || entry.sourcePath.empty())
+            {
+                continue;
+            }
+            targets.emplace_back(uid, entry.sourcePath);
+        }
+
+        if (targets.empty())
+        {
+            continue;
+        }
+
+        DEBUG_LOG("[ModuleAssets] Fix pass: re-baking %zu %s asset(s)...",
+                  targets.size(), AssetTypeToString(static_cast<uint32_t>(type)));
+
+        for (const auto& [uid, sourcePath] : targets)
+        {
+            AssetId ref(uid, INVALID_ASSET_ID, type);
+            importAsset(sourcePath, ref);
+
+            // Drop cached instances so the next load reads the re-baked data.
+            if (type == AssetType::PREFAB || type == AssetType::SCENE)
+            {
+                unload(ref);
+            }
+        }
+
+        totalRebaked += targets.size();
+    }
+
+    DEBUG_LOG("[ModuleAssets] Fix pass done: %zu asset(s) re-baked in dependency order. "
+              "Watch for [AssetId] healed warnings above to see which references were repaired.",
+              totalRebaked);
+}
+
 AssetId* ModuleAssets::findReference(const UID& uid)
 {
     if (!isValidUID(uid))

@@ -2,8 +2,6 @@
 
 #include "ScriptAPI.h"
 
-class AssetId;
-
 class UIController : public Script
 {
     DECLARE_SCRIPT(UIController)
@@ -17,7 +15,6 @@ public:
     ScriptMethodList getExposedMethods() const override;
 
 	void ChangeScene(const std::string& sceneName);
-    void ChangeScene2(const AssetId& sceneName);
 	void ExitApplication();
     void StartGame(const std::string& sceneName);
 	void PauseGame(bool pause);

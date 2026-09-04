@@ -3,6 +3,8 @@
 #include "ScriptAPI.h"
 #include "UISlider.h"
 
+class CheckpointManager;
+
 struct HitContext
 {
     float damage = 0.0f;

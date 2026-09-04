@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <vector>
 #include <memory>
@@ -74,20 +75,45 @@ struct BoundingRect
         return overlapX && overlapZ;
     }
 
-	bool containsSafe(const Engine::BoundingBox& box) const // getMin/MaxInWorldSpace may not be in correct order, so we need to check both. Meanwhile, this is a safe way to change it
+	bool containsSafe(const Engine::BoundingBox& box) const // The world-space points may not be in min/max order (rotations, negative scale), so check all of them.
     {
-        Vector3 bMin = box.getMinInWorldSpace();
-        Vector3 bMax = box.getMaxInWorldSpace();
+        const Vector3* pts = box.getPoints();
 
-        float realMinX = std::min(bMin.x, bMax.x);
-        float realMaxX = std::max(bMin.x, bMax.x);
-        float realMinZ = std::min(bMin.z, bMax.z);
-        float realMaxZ = std::max(bMin.z, bMax.z);
+        float realMinX = pts[0].x;
+        float realMaxX = pts[0].x;
+        float realMinZ = pts[0].z;
+        float realMaxZ = pts[0].z;
+
+        for (int i = 1; i < 8; ++i)
+        {
+            realMinX = std::min(realMinX, pts[i].x);
+            realMaxX = std::max(realMaxX, pts[i].x);
+            realMinZ = std::min(realMinZ, pts[i].z);
+            realMaxZ = std::max(realMaxZ, pts[i].z);
+        }
 
         if (realMaxX < minX()) return false;
         if (realMinX > maxX()) return false;
         if (realMaxZ < minZ()) return false;
         if (realMinZ > maxZ()) return false;
+
+        return true;
+    }
+
+    // Same as containsFully but robust to rotated/negatively scaled boxes:
+    // tests every world-space corner instead of assuming points[0]/[6] are min/max.
+    bool containsFullySafe(const Engine::BoundingBox& box) const
+    {
+        const Vector3* pts = box.getPoints();
+
+        for (int i = 0; i < 8; ++i)
+        {
+            if (pts[i].x < minX() || pts[i].x > maxX() ||
+                pts[i].z < minZ() || pts[i].z > maxZ())
+            {
+                return false;
+            }
+        }
 
         return true;
     }
@@ -121,6 +147,8 @@ public:
     void gatherRectangles(std::vector<BoundingRect>& out) const;
 
     int getDepth() const { return m_depth; }
+
+    const BoundingRect& getBounds() const { return m_bounds; }
 
     void clearDirty() { m_dirty = false; }
 

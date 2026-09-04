@@ -2,6 +2,7 @@
 #include "GameplayEventTrigger.h"
 
 #include "GameplayEventAction.h"
+#include "PersistingCheckpointState.h"
 
 IMPLEMENT_SCRIPT_FIELDS(GameplayEventTrigger,
     SERIALIZED_BOOL(m_triggerOnlyOnce, "Trigger Only Once")
@@ -14,6 +15,16 @@ GameplayEventTrigger::GameplayEventTrigger(GameObject* owner)
 
 void GameplayEventTrigger::Start()
 {
+    if (!PersistingCheckpointState::Get().IsStartOfLevel())
+    {
+        std::vector<UID>* triggeredEvents = &PersistingCheckpointState::Get().m_triggeredEventsPersistent;
+
+        if (std::find(triggeredEvents->begin(), triggeredEvents->end(), m_owner->GetID()) != triggeredEvents->end())
+        {
+            m_hasTriggered = true;
+        }
+    }
+
     findPlayers();
     findEventActions();
 }
@@ -186,6 +197,7 @@ void GameplayEventTrigger::activateEvent()
         }
 
         eventAction->executeEvent(this);
+        eventAction->saveTriggeredEvent(this);
     }
 }
 

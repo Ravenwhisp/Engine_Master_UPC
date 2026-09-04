@@ -4,6 +4,8 @@
 #include "PlayerDownState.h"
 #include "CooperativeSound.h"
 
+#include "PersistingCheckpointState.h"
+
 IMPLEMENT_SCRIPT_FIELDS(DefeatConditionManager,
     SERIALIZED_COMPONENT_REF(m_player1Transform, "Player 1 Transform", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_player2Transform, "Player 2 Transform", ComponentType::TRANSFORM)

@@ -29,8 +29,7 @@ public:
 
 public:
     float m_maxGauge         = 100.0f;
-    int   m_numSegments      = 5;
-    float m_gainPerExploit   = 12.5f;
+    int   m_numSegments      = 3;
     float m_gracePeriod      = 10.0f;
     float m_decayPerSecond   = 2.0f;
 

@@ -190,6 +190,11 @@ void PopUpController::updateWaiting(ActivePopUp& popUp)
         return;
     }
 
+    if (Time::getTimeScale() == 0.0f)
+    {
+        return;
+    }
+
     switch (popUp.event->getCloseMode())
     {
     case PopUpCloseMode::BothPlayersConfirm:

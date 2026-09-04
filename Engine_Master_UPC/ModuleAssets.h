@@ -44,6 +44,11 @@ public:
     void importAsset(const std::filesystem::path& sourcePath, AssetId& reference);
     bool canImport(const std::filesystem::path& sourcePath) const;
     void registerSubAsset(const Metadata& meta, const UID& parentUID, uint8_t* binaryData, size_t binarySize);
+
+    // Reimports every asset of the Assets folder in dependency order
+    // (sources -> data containers -> prefabs -> scenes) so that every
+    // serialized AssetId is re-baked against the current library hashes.
+    void fixAllAssetReferences();
 #pragma endregion
 
 #pragma region Delete

@@ -28,18 +28,19 @@ void BreakableHealingDrop::Update()
 
 void BreakableHealingDrop::onBreak()
 {
-    if (!m_healthPickupPrefab.m_id.isValid())
+    if (m_healthPickupPrefab.m_id.isValid())
     {
-		Debug::warn("[BreakableHealingDrop] '%s' has no health pickup prefab path set.", GameObjectAPI::getName(getOwner()));
-        return;
+        Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+        const Vector3 breakablePosition = TransformAPI::getGlobalPosition(ownerTransform);
+
+        for (int i = 0; i < m_healthDropQuantity; ++i)
+        {
+            HealthDropSpawner::drop(m_healthPickupPrefab.m_id, breakablePosition, m_healthDropAmount, m_dropRadius, m_dropHeight);
+        }
     }
-
-    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-    const Vector3 breakablePosition = TransformAPI::getGlobalPosition(ownerTransform);
-
-    for (int i = 0; i < m_healthDropQuantity; ++i)
+    else
     {
-        HealthDropSpawner::drop(m_healthPickupPrefab.m_id, breakablePosition, m_healthDropAmount, m_dropRadius, m_dropHeight);
+        Debug::warn("[BreakableHealingDrop] '%s' has no health pickup prefab set. Breaking without spawning health.", GameObjectAPI::getName(getOwner()));
     }
 
     // It's still a barrel/crate breaking → same break SFX.

@@ -34,6 +34,7 @@ void RangedEnemyController::Update()
     updateCurrentTarget();
     updateSomersaultCooldown(dt);
     updateArrowBarrageCooldown(dt);
+    updateSomersaultRangeBuff(dt);
     updateStun(dt);
 }
 
@@ -144,6 +145,57 @@ void RangedEnemyController::updateSomersaultCooldown(float dt)
     {
         m_somersaultCooldownTimer = 0.0f;
     }
+}
+
+void RangedEnemyController::activateSomersaultRangeBuff()
+{
+    if (!m_attackConfig)
+    {
+        return;
+    }
+
+    m_basicAttackRangeBuffTimer = m_attackConfig.get()->m_postSomersaultBuffDuration;
+}
+
+void RangedEnemyController::updateSomersaultRangeBuff(float dt)
+{
+    if (m_basicAttackRangeBuffTimer <= 0.0f)
+    {
+        return;
+    }
+
+    m_basicAttackRangeBuffTimer -= dt;
+
+    if (m_basicAttackRangeBuffTimer < 0.0f)
+    {
+        m_basicAttackRangeBuffTimer = 0.0f;
+    }
+}
+
+bool RangedEnemyController::isSomersaultRangeBuffActive() const
+{
+    return m_basicAttackRangeBuffTimer > 0.0f;
+}
+
+bool RangedEnemyController::isTargetInAttackRange() const
+{
+    if (!hasValidTarget())
+    {
+        return false;
+    }
+
+    const ArcherAttackConfig* cfg = m_attackConfig.get();
+    if (!cfg)
+    {
+        return false;
+    }
+
+    if (isSomersaultRangeBuffActive())
+    {
+        return isCurrentTargetInRange(cfg->m_basicAttackRange + cfg->m_postSomersaultRangeBonus);
+    }
+
+    return isCurrentTargetInRange(cfg->m_basicAttackRange);
 }
 
 Vector3 RangedEnemyController::getDirectionAwayFromClosestPlayer() const

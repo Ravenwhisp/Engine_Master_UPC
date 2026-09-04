@@ -16,6 +16,13 @@ void SceneReferenceResolver::registerComponent(UID id, Component* comp)
     m_componentMap.try_emplace(id, comp);
 }
 
+void SceneReferenceResolver::mergeFrom(const SceneReferenceResolver& other)
+{
+    m_componentMap.insert(other.m_componentMap.begin(), other.m_componentMap.end());
+    m_clonedByPtr.insert(other.m_clonedByPtr.begin(), other.m_clonedByPtr.end());
+    m_clonedByUID.insert(other.m_clonedByUID.begin(), other.m_clonedByUID.end());
+}
+
 Component* SceneReferenceResolver::getClonedComponent(UID id) const
 {
     auto it = m_componentMap.find(id);

@@ -44,4 +44,5 @@ private:
     bool m_defeatCountdownStarted = false;
     float m_defeatTimer = 0.0f;
     float m_defeatDelay = 3.0f;
+
 };
