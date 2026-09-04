@@ -35,6 +35,8 @@ public:
 	bool GetStatic() const { return m_isStatic; }
 	Layer GetLayer() const { return m_layer; }
 	Tag GetTag() const { return m_tag; }
+	bool IsSnapshotClone() const { return m_isSnapshotClone; }
+	void ClearSnapshotClone() { m_isSnapshotClone = false; }
 
 	void SetName(std::string newName) { m_name = newName; }
 	void SetActive(bool newActive);
@@ -90,6 +92,7 @@ private:
 	std::string m_name;
 	bool m_active = true;
 	bool m_isStatic = false;
+	bool m_isSnapshotClone = false;
 	Layer m_layer = Layer::DEFAULT;
 	Tag m_tag = Tag::DEFAULT;
 

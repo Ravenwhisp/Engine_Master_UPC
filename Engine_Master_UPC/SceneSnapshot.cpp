@@ -126,6 +126,7 @@ void SceneSnapshot::applyTo(Scene& scene)
 
     for (const auto& go : scene.m_allObjects)
     {
+        go->ClearSnapshotClone();
         go->init();
     }
 

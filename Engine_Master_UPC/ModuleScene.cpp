@@ -606,6 +606,11 @@ void ModuleScene::syncQuadtreeWithSettings()
 
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
+    if (gameObject.IsSnapshotClone())
+    {
+        return;
+    }
+
     const Layer layer = gameObject.GetLayer();
 
     if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
