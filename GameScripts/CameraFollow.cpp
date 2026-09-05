@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CameraFollow.h"
+#include "CameraShake.h"
 
 IMPLEMENT_SCRIPT_FIELDS(CameraFollow,
     SERIALIZED_COMPONENT_REF(
@@ -64,6 +65,17 @@ CameraFollow::CameraFollow(GameObject* owner)
 
 void CameraFollow::Start()
 {
+    m_cameraShake = GameObjectAPI::findScript<CameraShake>(getOwner());
+}
+
+Vector3 CameraFollow::currentShakeOffset() const
+{
+    if (m_cameraShake == nullptr)
+    {
+        return Vector3(0.0f, 0.0f, 0.0f);
+    }
+
+    return m_cameraShake->getCurrentOffset();
 }
 
 void CameraFollow::beginVerticalOnlyFollow(Transform* anchor)
@@ -280,7 +292,7 @@ void CameraFollow::Update()
 
         TransformAPI::setGlobalPosition(
             cameraTransform,
-            smoothedPosition
+            smoothedPosition + currentShakeOffset()
         );
 
         m_firstUpdateAfterResolve = false;
@@ -365,7 +377,7 @@ void CameraFollow::Update()
 
     TransformAPI::setGlobalPosition(
         cameraTransform,
-        smoothedCameraPosition
+        smoothedCameraPosition + currentShakeOffset()
     );
 }
 

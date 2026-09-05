@@ -19,8 +19,11 @@ public:
 private:
     void applyImpactDamage();
     void syncParticleTransform();
+    void activateEmbeddedParticles();
+    void stopEmbeddedParticles();
 
 public:
+    std::string m_legacyParticlePath;
     PrefabRef m_particlePrefab;
 
 private:

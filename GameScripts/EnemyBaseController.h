@@ -5,8 +5,9 @@
 class AnimationComponent;
 class Transform;
 class EnemySound;
-class EnemyBaseAttackConfig;
+class SharedEnemyParticles;
 
+class EnemyBaseAttackConfig;
 class EnemyBaseDataConfig;
 
 class EnemyBaseController : public Script
@@ -41,6 +42,9 @@ public:
     // Movement/path helpers
     bool moveTowardsTarget();
 
+    // Neighbor separation (anti-overlap steering). Bosses override this to disable it.
+    virtual bool isSeparationEnabled() const { return true; }
+
     virtual void clearPath();
     virtual void resetRepathTimer();
 
@@ -73,9 +77,8 @@ private:
     bool buildPathToTarget();
     bool followPath();
 
-    // Footstep audio is driven from locomotion: ping the EnemySound each frame we step.
-    EnemySound* m_enemySound = nullptr;
-    bool m_enemySoundResolved = false;
+    void refreshNeighborCache();
+    Vector3 computeSeparationOffset(const Vector3& ownerPosition);
 
 protected:
     //These we will not need if we Refactor DetectionAggro to have a base class
@@ -100,6 +103,11 @@ public:
     float m_progressCheckDistance = 0.05f;
     float m_maxNoProgressTime = 0.5f;
 
+    // Neighbor separation (anti-overlap steering)
+    float m_separationRadius = 1.2f;
+    float m_separationStrength = 0.6f;
+    float m_separationQueryInterval = 0.1f;
+
 protected:
     Transform* m_currentTarget = nullptr;
     bool m_deathTriggerSent = false;
@@ -120,4 +128,15 @@ protected:
 
 private:
     static constexpr size_t MAX_PATH_POINTS = 128;
+
+    // Neighbor separation state
+    std::vector<Transform*> m_neighborCache;
+    float m_separationQueryTimer = 0.0f;
+
+    // Footstep audio is driven from locomotion: ping the EnemySound each frame we step.
+    EnemySound* m_enemySound = nullptr;
+    bool m_enemySoundResolved = false;
+
+    SharedEnemyParticles* m_sharedEnemyParticles = nullptr;
+    bool m_sharedEnemyParticlesResolved = false;
 };

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "EnemyStunParticles.h"
+#include "ParticleLifecycle.h"
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyStunParticles,
     SERIALIZED_ASSET_REF(m_stunPrefab, "Stun Particle Prefab", AssetType::PREFAB),
@@ -8,16 +9,29 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyStunParticles,
 
 EnemyStunParticles::EnemyStunParticles(GameObject* owner) : Script(owner) {}
 
-void EnemyStunParticles::Start() {}
+void EnemyStunParticles::Start()
+{
+}
+
+void EnemyStunParticles::OnGameStop()
+{
+    ParticleLifecycle::destroy(m_stunParticle);
+}
+
+void EnemyStunParticles::ensureStunParticle()
+{
+    Transform* t = GameObjectAPI::getTransform(getOwner());
+    Vector3 pos = t ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
+    pos.y += m_heightOffset;
+    ParticleLifecycle::ensurePersistent(m_stunParticle, m_stunPrefab.m_id, pos, Vector3::Zero, nullptr);
+}
 
 void EnemyStunParticles::startStunParticle()
 {
-    stopStunParticle();
-    if (!m_stunPrefab.m_id.isValid()) return;
-    Transform* t = GameObjectAPI::getTransform(getOwner());
-    Vector3 pos  = t ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
-    pos.y       += m_heightOffset;
-    m_stunParticle = GameObjectAPI::instantiatePrefab(m_stunPrefab.m_id, pos, Vector3::Zero);
+    ensureStunParticle();
+    if (!m_stunParticle) return;
+    updateStunParticle();
+    ParticleLifecycle::activate(m_stunParticle);
 }
 
 void EnemyStunParticles::updateStunParticle()
@@ -35,7 +49,7 @@ void EnemyStunParticles::updateStunParticle()
 
 void EnemyStunParticles::stopStunParticle()
 {
-    if (m_stunParticle) { GameObjectAPI::removeGameObject(m_stunParticle); m_stunParticle = nullptr; }
+    ParticleLifecycle::deactivate(m_stunParticle);
 }
 
 IMPLEMENT_SCRIPT(EnemyStunParticles)

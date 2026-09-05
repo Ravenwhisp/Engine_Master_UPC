@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <d3d12.h>
 #include "SimpleMath.h"
 #include "RenderViewType.h"
@@ -12,6 +13,7 @@ struct UIImageCommand;
 struct SkyBoxSettings;
 struct ParticleEmitterCommand;
 class RenderSurface;
+struct SceneLightingSettings;
 
 struct RenderContext
 {
@@ -39,5 +41,12 @@ struct RenderContext
 
     const SSAOSettings* ssaoSettings = nullptr;
     const SSAOFrameData* ssaoData = nullptr;
+
+    D3D12_GPU_VIRTUAL_ADDRESS lightCullingPointListAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS lightCullingSpotListAddress = 0;
+    uint32_t lightCullingTileCountX = 0;
+    uint32_t lightCullingTileCountY = 0;
+
+    const SceneLightingSettings* lightingSettings = nullptr;
 
 };

@@ -6,6 +6,7 @@
 class SkeletonEnemyController;
 class EnemyAttackExecutor;
 class AnimationComponent;
+class SkeletonParticles;
 
 class SkeletonScimitarState : public StateMachineScript
 {
@@ -46,6 +47,7 @@ private:
 	SkeletonEnemyController* m_controller = nullptr;
 	EnemyAttackExecutor* m_attackExecutor = nullptr;
 	AnimationComponent* m_animation = nullptr;
+	SkeletonParticles* m_particles = nullptr;
 
 	Phase m_phase = Phase::Dash;
 	float m_phaseTimer = 0.0f;

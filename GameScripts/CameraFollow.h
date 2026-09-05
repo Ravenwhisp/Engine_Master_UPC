@@ -3,6 +3,7 @@
 #include "ScriptAPI.h"
 
 class Transform;
+class CameraShake;
 
 class CameraFollow : public Script
 {
@@ -82,7 +83,11 @@ private:
         float alpha
     ) const;
 
+    Vector3 currentShakeOffset() const;
+
 private:
+    CameraShake* m_cameraShake = nullptr;
+
     bool m_firstUpdateAfterResolve = true;
 
     bool m_followEnabled = true;

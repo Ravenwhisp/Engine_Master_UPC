@@ -23,6 +23,8 @@ public:
 
     GameObject* getCurrentTarget() const { return m_currentTarget; }
 
+    GameObject* findNearbyTargetInRange(float range) const;
+
 private:
     void updateTargetsInRange();
     void clearInvalidCurrentTarget();

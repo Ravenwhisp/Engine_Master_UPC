@@ -4,7 +4,10 @@
 IMPLEMENT_SCRIPT_FIELDS(SceneCapacityPrewarm,
 	SERIALIZED_INT(
 		m_objectCount,
-		"Object Count"
+		"Object Count",
+		0,
+		1000,
+		10
 	)
 )
 

@@ -4,6 +4,8 @@
 #include "DeathCharacter.h"
 #include "DeathSound.h"
 #include "PlayerAnimationController.h"
+#include "CharacterAnimations.h"
+#include "PlayerState.h"
 #include "EnemyDamageable.h"
 #include "BreakableDamageable.h"
 #include "DeathUI.h"
@@ -11,6 +13,9 @@
 #include "DeathParticles.h"
 
 #include <cmath>
+
+// When fully charged, keep the charge held (aiming) for this long before auto-releasing.
+static constexpr float k_maxChargeHoldGrace = 2.0f;
 
 DeathChargedAttack::DeathChargedAttack(GameObject* owner)
     : ChargedAttackBase(owner)
@@ -44,8 +49,22 @@ void DeathChargedAttack::Update()
     {
         m_chargeTime += Time::getDeltaTime();
 
+        const bool isMaxCharge = m_chargeTime >= m_config->m_chargedMaxChargeTime;
         if (m_chargeTime > m_config->m_chargedMaxChargeTime)
             m_chargeTime = m_config->m_chargedMaxChargeTime;
+
+        if (isMaxCharge)
+            m_maxHoldTimer += Time::getDeltaTime();
+
+        const float chargeRatio = m_config->m_chargedMaxChargeTime > 0.0f
+            ? (m_chargeTime / m_config->m_chargedMaxChargeTime) : 1.0f;
+
+        if (m_character != nullptr)
+        {
+            PlayerAnimationController* anim = m_character->getAnimationController();
+            if (anim != nullptr)
+                anim->setChargeProgress(chargeRatio);
+        }
 
         if (m_deathUI)
         {
@@ -53,14 +72,12 @@ void DeathChargedAttack::Update()
             if (ownerTransform)
             {
                 const Vector3 origin = TransformAPI::getGlobalPosition(ownerTransform);
-                const float chargeRatio = m_chargeTime / m_config->m_chargedMaxChargeTime;
-                const bool isMaxCharge = m_chargeTime >= m_config->m_chargedMaxChargeTime;
                 m_deathUI->showChargedAttackUI();
                 m_deathUI->updateChargedAttackUI(origin, chargeRatio, m_config->m_chargedCircleRadius, isMaxCharge);
             }
         }
 
-        if (Input::isRightTriggerReleased(getPlayerIndex()))
+        if (Input::isRightTriggerReleased(getPlayerIndex()) || m_maxHoldTimer >= k_maxChargeHoldGrace)
         {
             fireAttack();
         }
@@ -85,10 +102,29 @@ bool DeathChargedAttack::canStartSpecificAbility() const
 void DeathChargedAttack::startCharging()
 {
     m_chargeTime   = 0.0f;
+    m_maxHoldTimer = 0.0f;
     m_isCharging   = true;
 
     setAbilityLocked(true);
     applyChargingMovementSlowdown(m_config->m_chargedMovementSlowdownPercentage);
+
+    if (m_attackAnims != nullptr && m_character != nullptr)
+    {
+        PlayerAnimationController* anim = m_character->getAnimationController();
+        if (anim != nullptr)
+        {
+            const AttackAnimInfo info = m_attackAnims->resolve(AttackAnimId::Charged, 0);
+            if (!info.stateName.empty())
+            {
+                anim->beginChargeHold(info.stateName, info.blendIn, info.speed, info.holdPct);
+            }
+        }
+    }
+    
+    if (m_particles != nullptr)
+    {
+        m_particles->SetChargeActive();
+    }
 
     DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
     if (sound != nullptr)
@@ -126,14 +162,40 @@ void DeathChargedAttack::fireAttack()
             sound->playHeavySwing();
     }
 
-    dealDamageInCircle(damage, m_config->m_chargedCircleRadius, isChargedShot, isMaxCharge);
+    m_pendingDamage = damage;
+    m_pendingRadius = m_config->m_chargedCircleRadius;
+    m_pendingChargedShot = isChargedShot;
+    m_pendingMaxCharge = isMaxCharge;
+
     notifyAbilitySuccessfullyStarted();
 
     m_isCharging = false;
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetChargeInactive();
+    }
+
     resetChargingMovementSlowdown();
     m_chargeTime = 0.0f;
 
-    beginAttackPresentation();
+    if (m_character != nullptr)
+    {
+        PlayerAnimationController* anim = m_character->getAnimationController();
+        if (anim != nullptr)
+        {
+            // Always play the full spin (circular damage); charge only adds follow-through.
+            const float chargeRatio = m_config->m_chargedMaxChargeTime > 0.0f
+                ? (m_chargeTime / m_config->m_chargedMaxChargeTime) : 1.0f;
+            anim->endChargeHold(0.55f + 0.45f * chargeRatio);
+        }
+
+        PlayerState* playerState = m_character->getPlayerState();
+        if (playerState != nullptr && !playerState->isDowned())
+            playerState->setState(PlayerStateType::AttackRecovery);
+    }
+
+    resolveCurrentAttackAnim();
     beginAttackWindow(m_config->m_chargedAttackLockDuration);
     startCooldown();
 }
@@ -204,10 +266,6 @@ void DeathChargedAttack::dealDamageInCircle(float damage, float radius, bool isC
 
 void DeathChargedAttack::onAttackWindowUpdate()
 {
-    PlayerAnimationController* anim = m_character ? m_character->getAnimationController() : nullptr;
-    if (anim != nullptr)
-        anim->requestAttack();
-
     if (m_particles != nullptr)
         m_particles->SetScytheActive();
 }
@@ -216,6 +274,11 @@ void DeathChargedAttack::onAttackWindowFinished()
 {
     if (m_particles != nullptr)
         m_particles->SetScytheInactive();
+}
+
+void DeathChargedAttack::onHitFrame()
+{
+    dealDamageInCircle(m_pendingDamage, m_pendingRadius, m_pendingChargedShot, m_pendingMaxCharge);
 }
 
 float DeathChargedAttack::getCooldown() const

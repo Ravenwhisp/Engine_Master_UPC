@@ -10,6 +10,7 @@
 #include "RenderSurface.h"
 #include "Texture.h"
 
+#include <algorithm>
 #include <d3dcompiler.h>
 #include <d3dx12.h>
 
@@ -133,21 +134,27 @@ void DepthReductionPass::ensureReductionTextures(
 
     if (m_pingTexture != nullptr &&
         m_pongTexture != nullptr &&
-        requiredWidth == m_reductionTextureWidth &&
-        requiredHeight == m_reductionTextureHeight)
+        requiredWidth <= m_reductionTextureWidth &&
+        requiredHeight <= m_reductionTextureHeight)
     {
         return;
     }
 
+    // only grow, never shrink - same reasoning as LightCullingPass
+    app->getModuleD3D12()->getCommandQueue()->flush();
+
+    const uint32_t allocWidth = std::max(requiredWidth, m_reductionTextureWidth);
+    const uint32_t allocHeight = std::max(requiredHeight, m_reductionTextureHeight);
+
     m_pingTexture.reset(
         app->getModuleResources()->createDepthMinMaxTexture(
-            requiredWidth,
-            requiredHeight));
+            allocWidth,
+            allocHeight));
 
     m_pongTexture.reset(
         app->getModuleResources()->createDepthMinMaxTexture(
-            requiredWidth,
-            requiredHeight));
+            allocWidth,
+            allocHeight));
 
     if (m_pingTexture != nullptr)
     {
@@ -161,8 +168,8 @@ void DepthReductionPass::ensureReductionTextures(
             L"DepthMinMaxReduction_Pong");
     }
 
-    m_reductionTextureWidth = requiredWidth;
-    m_reductionTextureHeight = requiredHeight;
+    m_reductionTextureWidth = allocWidth;
+    m_reductionTextureHeight = allocHeight;
 
     m_resultTexture = nullptr;
 }

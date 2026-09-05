@@ -11,6 +11,8 @@
 #include "ReaperGauge.h"
 #include "ShadowExecution.h"
 #include "PersistingCheckpointState.h"
+#include "LyrielParticles.h"
+#include "DeathParticles.h"
 
 #include <algorithm>
 
@@ -267,6 +269,49 @@ void EnemyDamageable::applyDamageWithoutShadowMark(const EnemyHitContext& hit)
 	if (hit.attacker)
 	{
 		m_damageSource = hit.attacker;
+	}
+
+	if (hit.attacker != nullptr)
+	{
+		GameObject* attacker = hit.attacker->getOwner();
+		Transform* enemyTransform = GameObjectAPI::getTransform(getOwner());
+		const Vector3 hitPosition = enemyTransform != nullptr
+			? TransformAPI::getGlobalPosition(enemyTransform)
+			: Vector3::Zero;
+
+		if (attacker != nullptr)
+		{
+			switch (hit.attackType)
+			{
+			case PlayerAttackType::LyrielArrow:
+			case PlayerAttackType::LyrielVolley:
+			case PlayerAttackType::LyrielCharged:
+				if (LyrielParticles* lyrielParticles = GameObjectAPI::findScript<LyrielParticles>(attacker))
+				{
+					lyrielParticles->playHitFlash(hitPosition);
+				}
+				break;
+
+			case PlayerAttackType::DeathCharged:
+				if (DeathParticles* deathParticles = GameObjectAPI::findScript<DeathParticles>(attacker))
+				{
+					deathParticles->playChargedHitFlash(hitPosition);
+				}
+				break;
+
+			case PlayerAttackType::DeathBasic:
+			case PlayerAttackType::DeathDash:
+			case PlayerAttackType::DeathTaunt:
+				if (DeathParticles* deathParticles = GameObjectAPI::findScript<DeathParticles>(attacker))
+				{
+					deathParticles->playHitFlash(hitPosition);
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
 	}
 
 	Damageable::takeDamage(hit);

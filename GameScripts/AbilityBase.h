@@ -4,6 +4,8 @@
 #include "CharacterUI.h"
 
 class CharacterBase;
+class AnimationComponent;
+class CharacterAnimations;
 
 class AbilityBase : public Script
 {
@@ -52,6 +54,13 @@ protected:
 
     virtual void onAttackWindowUpdate() {}
     virtual void onAttackWindowFinished() {}
+    virtual void onHitFrame() {}
+
+    virtual int getAttackVariant() const { return 0; }
+
+    bool isAttackWindowActive() const { return m_attackWindowActive; }
+    bool usesAnimHitTiming() const;
+    void resolveCurrentAttackAnim();
 
     Vector3 computeCameraRelativeAimDirection(float deadzoneSq = 0.0001f) const;
 	Vector3 getFallbackFacingDirection() const;
@@ -71,4 +80,19 @@ protected:
     int m_successfulUseCount = 0;
 
     bool m_isEnabled = true; //esto nunca cambia?
+
+    AnimationComponent* m_animComp = nullptr;
+    CharacterAnimations* m_attackAnims = nullptr;
+
+    bool  m_attackWindowActive = false;
+    bool  m_hitFired = false;
+    bool  m_sawOurClip = false;
+    float m_attackWindowElapsed = 0.0f;
+
+    std::string m_curAnimState = "";
+    std::string m_curRecoveryState = "";
+    float m_curAnimSpeed = 1.0f;
+    float m_curAnimBlend = 0.15f;
+    float m_curHitPct = 0.30f;
+    float m_curRecoverPct = 0.90f;
 };

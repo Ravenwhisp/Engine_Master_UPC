@@ -6,7 +6,23 @@
 #include "PlayerStunState.h"
 #include "PlayerState.h"
 
+#include "AssetType.h"
+
 #include <cmath>
+#include <cstring>
+
+namespace
+{
+    // Assets/Prefabs/Particles/VFXRemake/MainCharDamage/PS_MainCharDamage.prefab
+    AssetId getMainCharDamagePrefabId()
+    {
+        return AssetId(
+            15943977396033392323ULL,
+            "1bf8ced93d9fd200d3de5178dbb73cad",
+            AssetType::PREFAB
+        );
+    }
+}
 
 EnemyAttackExecutor::EnemyAttackExecutor(GameObject* owner)
     : Script(owner)
@@ -24,6 +40,47 @@ void EnemyAttackExecutor::Start()
             "[EnemyAttackExecutor] EnemyDetectionAggro script not found"
         );
     }
+}
+
+void EnemyAttackExecutor::Update()
+{
+    m_timedHitVfx.update(Time::getDeltaTime());
+}
+
+void EnemyAttackExecutor::OnGameStop()
+{
+    m_timedHitVfx.clear();
+    m_nextPlayerHitVfxOverride = AssetId();
+}
+
+void EnemyAttackExecutor::setNextPlayerHitVfx(const AssetId& prefabId)
+{
+    m_nextPlayerHitVfxOverride = prefabId;
+}
+
+void EnemyAttackExecutor::playPlayerHitVfx(Transform* targetTransform, const AssetId& prefabId)
+{
+    AssetId resolvedPrefab = prefabId.isValid() ? prefabId : getMainCharDamagePrefabId();
+
+    if (!resolvedPrefab.isValid() || targetTransform == nullptr)
+    {
+        return;
+    }
+
+    const Vector3 position = TransformAPI::getGlobalPosition(targetTransform);
+
+    ParticleLifecycle::spawnOneShotTimed(
+        m_timedHitVfx,
+        resolvedPrefab,
+        position,
+        Vector3::Zero,
+        ParticleLifecycle::kDefaultOneShotLifetime
+    );
+}
+
+bool EnemyAttackExecutor::damageTarget(Transform* targetTransform, float damage, const char* sourceName)
+{
+    return applyDamageToTarget(targetTransform, damage, sourceName);
 }
 
 void EnemyAttackExecutor::applyDamageInRadius(
@@ -511,6 +568,18 @@ bool EnemyAttackExecutor::applyDamageToTarget(
         GameObjectAPI::getName(targetObject),
         damage
     );
+
+    AssetId hitVfx = m_nextPlayerHitVfxOverride.isValid()
+        ? m_nextPlayerHitVfxOverride
+        : getMainCharDamagePrefabId();
+    m_nextPlayerHitVfxOverride = AssetId();
+
+    const bool skipDefaultHeavySwipeVfx = sourceName != nullptr && strcmp(sourceName, "HeavySwipe") == 0;
+
+    if (!skipDefaultHeavySwipeVfx)
+    {
+        playPlayerHitVfx(targetTransform, hitVfx);
+    }
 
     return true;
 }

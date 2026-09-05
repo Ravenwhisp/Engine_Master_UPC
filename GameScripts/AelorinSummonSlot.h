@@ -16,4 +16,5 @@ public:
 
 public:
 	PrefabRef m_enemyPrefab;
+	std::string m_legacyEnemyPath;
 };

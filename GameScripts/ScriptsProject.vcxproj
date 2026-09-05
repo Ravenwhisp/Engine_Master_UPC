@@ -193,6 +193,7 @@
     <ClInclude Include="ArthurUI.h" />
     <ClInclude Include="BoundConfig.h" />
     <ClInclude Include="CameraFollow.h" />
+    <ClInclude Include="CameraShake.h" />
     <ClInclude Include="AudioListenerFollow.h" />
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="CameraTransitionController.h" />
@@ -205,6 +206,8 @@
     <ClInclude Include="CrystalVisuals.h" />
     <ClInclude Include="PersistingManager.h" />
     <ClInclude Include="PersistingCheckpointState.h" />
+    <ClInclude Include="ObjectVfxIds.h" />
+    <ClInclude Include="SpectralPathEntranceVFX.h" />
     <ClInclude Include="CombatAreaEvent.h" />
     <ClInclude Include="DeathParticles.h" />
     <ClInclude Include="ElevatorManager.h" />
@@ -221,6 +224,7 @@
     <ClInclude Include="ArthurBossController.h" />
     <ClInclude Include="ArthurSound.h" />
     <ClInclude Include="ArthurChargingSlam.h" />
+    <ClInclude Include="ArthurParticles.h" />
     <ClInclude Include="ArthurChase.h" />
     <ClInclude Include="ArthurDetectionAggro.h" />
     <ClInclude Include="ArthurEarthHammer.h" />
@@ -289,6 +293,7 @@
     <ClInclude Include="PaladinChargeState.h" />
     <ClInclude Include="PaladinChaseState.h" />
     <ClInclude Include="PaladinVFX.h" />
+    <ClInclude Include="ParticleLifecycle.h" />
     <ClInclude Include="ParticleManager.h" />
     <ClInclude Include="PersistingPowerupState.h" />
     <ClInclude Include="PlayAnimationAction.h" />
@@ -323,12 +328,15 @@
     <ClInclude Include="LyrielDash.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ShadowExecutionConfig.h" />
+    <ClInclude Include="SharedEnemyParticles.h" />
+    <ClInclude Include="SharedPlayerParticles.h" />
     <ClInclude Include="SkeletonAttackConfig.h" />
     <ClInclude Include="SkeletonAttackDebugDraw.h" />
     <ClInclude Include="SkeletonChaseState.h" />
     <ClInclude Include="SkeletonDamageable.h" />
     <ClInclude Include="SkeletonEnemyController.h" />
     <ClInclude Include="SkeletonGuardState.h" />
+    <ClInclude Include="SkeletonParticles.h" />
     <ClInclude Include="SkeletonReviveState.h" />
     <ClInclude Include="SkeletonScimitarState.h" />
     <ClInclude Include="SceneCapacityPrewarm.h" />
@@ -336,6 +344,7 @@
     <ClInclude Include="SpiderEnemyController.h" />
     <ClInclude Include="SpikeTrap.h" />
     <ClInclude Include="PlayerAnimationController.h" />
+    <ClInclude Include="CharacterAnimations.h" />
     <ClInclude Include="PlayerDamageable.h" />
     <ClInclude Include="PlayerDownState.h" />
     <ClInclude Include="PlayerMovement.h" />
@@ -348,6 +357,7 @@
     <ClInclude Include="SummonerEnergyBallState.h" />
     <ClInclude Include="SummonerEnemyController.h" />
     <ClInclude Include="SummonerIdleState.h" />
+    <ClInclude Include="SummonerParticles.h" />
     <ClInclude Include="SummonerRecoverState.h" />
     <ClInclude Include="SummonerSummonState.h" />
     <ClInclude Include="SummonerTeleportState.h" />
@@ -358,6 +368,7 @@
     <ClInclude Include="MenuSound.h" />
     <ClInclude Include="UIPause.h" />
     <ClInclude Include="UISplashScreen.h" />
+    <ClInclude Include="VideoManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AbilityBase.cpp" />
@@ -393,6 +404,7 @@
     <ClCompile Include="ArthurAttackDebugDraw.cpp" />
     <ClCompile Include="ArthurUI.cpp" />
     <ClCompile Include="CameraFollow.cpp" />
+    <ClCompile Include="CameraShake.cpp" />
     <ClCompile Include="AudioListenerFollow.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="CameraTransitionController.cpp" />
@@ -406,6 +418,7 @@
     <ClCompile Include="GameplayEventAction.cpp" />
     <ClCompile Include="PersistingManager.cpp" />
     <ClCompile Include="PersistingCheckpointState.cpp" />
+    <ClCompile Include="SpectralPathEntranceVFX.cpp" />
     <ClCompile Include="CombatAreaEvent.cpp" />
     <ClCompile Include="DeathParticles.cpp" />
     <ClCompile Include="ElevatorManager.cpp" />
@@ -420,6 +433,7 @@
     <ClCompile Include="ArthurBossController.cpp" />
     <ClCompile Include="ArthurSound.cpp" />
     <ClCompile Include="ArthurChargingSlam.cpp" />
+    <ClCompile Include="ArthurParticles.cpp" />
     <ClCompile Include="ArthurChase.cpp" />
     <ClCompile Include="ArthurDetectionAggro.cpp" />
     <ClCompile Include="ArthurEarthHammer.cpp" />
@@ -529,12 +543,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ShadowExecutionConfig.cpp" />
+    <ClCompile Include="SharedEnemyParticles.cpp" />
+    <ClCompile Include="SharedPlayerParticles.cpp" />
     <ClCompile Include="SkeletonAttackConfig.cpp" />
     <ClCompile Include="SkeletonAttackDebugDraw.cpp" />
     <ClCompile Include="SkeletonChaseState.cpp" />
     <ClCompile Include="SkeletonDamageable.cpp" />
     <ClCompile Include="SkeletonEnemyController.cpp" />
     <ClCompile Include="SkeletonGuardState.cpp" />
+    <ClCompile Include="SkeletonParticles.cpp" />
     <ClCompile Include="SkeletonReviveState.cpp" />
     <ClCompile Include="SkeletonScimitarState.cpp" />
     <ClCompile Include="SceneCapacityPrewarm.cpp" />
@@ -542,6 +559,7 @@
     <ClCompile Include="SpiderEnemyController.cpp" />
     <ClCompile Include="SpikeTrap.cpp" />
     <ClCompile Include="PlayerAnimationController.cpp" />
+    <ClCompile Include="CharacterAnimations.cpp" />
     <ClCompile Include="PlayerDamageable.cpp" />
     <ClCompile Include="PlayerDownState.cpp" />
     <ClCompile Include="PlayerMovement.cpp" />
@@ -553,6 +571,7 @@
     <ClCompile Include="SummonerEnergyBallState.cpp" />
     <ClCompile Include="SummonerEnemyController.cpp" />
     <ClCompile Include="SummonerIdleState.cpp" />
+    <ClCompile Include="SummonerParticles.cpp" />
     <ClCompile Include="SummonerRecoverState.cpp" />
     <ClCompile Include="SummonerSummonState.cpp" />
     <ClCompile Include="SummonerTeleportState.cpp" />
@@ -563,6 +582,7 @@
     <ClCompile Include="MenuSound.cpp" />
     <ClCompile Include="UIPause.cpp" />
     <ClCompile Include="UISplashScreen.cpp" />
+    <ClCompile Include="VideoManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -201,6 +201,12 @@
     <ClCompile Include="AelorinTeleportState.cpp" />
     <ClCompile Include="AelorinThresholdStaggerState.cpp" />
     <ClCompile Include="AelorinUI.cpp" />
+    <ClCompile Include="CameraShake.cpp" />
+    <ClCompile Include="CharacterAnimations.cpp" />
+    <ClCompile Include="ArthurParticles.cpp" />
+    <ClCompile Include="SharedEnemyParticles.cpp" />
+    <ClCompile Include="SkeletonParticles.cpp" />
+    <ClCompile Include="SummonerParticles.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -410,6 +416,12 @@
     <ClInclude Include="AelorinTeleportState.h" />
     <ClInclude Include="AelorinThresholdStaggerState.h" />
     <ClInclude Include="AelorinUI.h" />
+    <ClInclude Include="CameraShake.h" />
+    <ClInclude Include="CharacterAnimations.h" />
+    <ClInclude Include="ArthurParticles.h" />
+    <ClInclude Include="SharedEnemyParticles.h" />
+    <ClInclude Include="SkeletonParticles.h" />
+    <ClInclude Include="SummonerParticles.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

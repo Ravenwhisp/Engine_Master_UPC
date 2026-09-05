@@ -5,6 +5,7 @@
 #include "Damageable.h"
 #include "EnemyBaseDataConfig.h"
 #include "EnemySound.h"
+#include "SharedEnemyParticles.h"
 
 static const char* navAgentProfileNames[] =
 {
@@ -20,7 +21,10 @@ IMPLEMENT_SCRIPT_FIELDS(EnemyBaseController,
     SERIALIZED_FLOAT(m_turnSpeedDegrees, "Turn Speed Degrees", 0.0f, 1080.0f, 1.0f),
     SERIALIZED_FLOAT(m_repathInterval, "Repath Interval", 0.0f, 50.0f, 0.1f),
     SERIALIZED_FLOAT(m_pathPointReachDistance, "Path Point Reach Distance", 0.01f, 5.0f, 0.01f),
-    SERIALIZED_VEC3(m_pathSearchExtents, "Path Search Extents")
+    SERIALIZED_VEC3(m_pathSearchExtents, "Path Search Extents"),
+    SERIALIZED_FLOAT(m_separationRadius, "Separation Radius", 0.0f, 5.0f, 0.05f),
+    SERIALIZED_FLOAT(m_separationStrength, "Separation Strength", 0.0f, 2.0f, 0.05f),
+    SERIALIZED_FLOAT(m_separationQueryInterval, "Separation Query Interval", 0.0f, 1.0f, 0.01f)
 )
 
 EnemyBaseController::EnemyBaseController(GameObject* owner)
@@ -211,6 +215,17 @@ bool EnemyBaseController::moveTowardsTarget()
         if (m_enemySound)
         {
             m_enemySound->notifyMoving();
+        }
+
+        if (!m_sharedEnemyParticlesResolved)
+        {
+            m_sharedEnemyParticles = GameObjectAPI::findScript<SharedEnemyParticles>(getOwner());
+            m_sharedEnemyParticlesResolved = true;
+        }
+
+        if (m_sharedEnemyParticles)
+        {
+            m_sharedEnemyParticles->notifyMoving();
         }
     }
 
@@ -519,8 +534,24 @@ bool EnemyBaseController::followPath()
 
     toPoint.Normalize();
 
+    Vector3 moveDirection = toPoint;
+
+    const Vector3 separation = computeSeparationOffset(ownerPosition);
+
+    if (separation.LengthSquared() > 0.0001f)
+    {
+        Vector3 blended = toPoint + separation * m_separationStrength;
+        blended.y = 0.0f;
+
+        if (blended.LengthSquared() > 0.0001f)
+        {
+            blended.Normalize();
+            moveDirection = blended;
+        }
+    }
+
     const float maxStep = m_moveSpeed * Time::getDeltaTime();
-    const Vector3 desiredStepTarget = ownerPosition + toPoint * maxStep;
+    const Vector3 desiredStepTarget = ownerPosition + moveDirection * maxStep;
 
     Vector3 nextPosition;
     if (!NavigationAPI::moveAlongSurface(ownerPosition, desiredStepTarget, nextPosition, m_pathSearchExtents))
@@ -576,4 +607,87 @@ Vector3 EnemyBaseController::getPathDestination() const
     }
 
     return TransformAPI::getGlobalPosition(m_currentTarget);
+}
+
+void EnemyBaseController::refreshNeighborCache()
+{
+    m_separationQueryTimer += Time::getDeltaTime();
+
+    if (m_separationQueryTimer < m_separationQueryInterval)
+    {
+        return;
+    }
+
+    m_separationQueryTimer = 0.0f;
+
+    m_neighborCache.clear();
+
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+
+    const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
+
+    for (GameObject* enemy : enemies)
+    {
+        if (enemy == nullptr)
+        {
+            continue;
+        }
+
+        Transform* enemyTransform = GameObjectAPI::getTransform(enemy);
+
+        if (enemyTransform == nullptr || enemyTransform == ownerTransform)
+        {
+            continue;
+        }
+
+        Damageable* damageable = GameObjectAPI::findScript<Damageable>(enemy);
+
+        if (damageable != nullptr && damageable->isDead())
+        {
+            continue;
+        }
+
+        m_neighborCache.push_back(enemyTransform);
+    }
+}
+
+Vector3 EnemyBaseController::computeSeparationOffset(const Vector3& ownerPosition)
+{
+    if (!isSeparationEnabled() || m_separationRadius <= 0.0f || m_separationStrength <= 0.0f)
+    {
+        return Vector3::Zero;
+    }
+
+    refreshNeighborCache();
+
+    const float radiusSq = m_separationRadius * m_separationRadius;
+
+    Vector3 separation = Vector3::Zero;
+
+    for (Transform* neighbor : m_neighborCache)
+    {
+        if (neighbor == nullptr)
+        {
+            continue;
+        }
+
+        Vector3 away = ownerPosition - TransformAPI::getGlobalPosition(neighbor);
+        away.y = 0.0f;
+
+        const float distSq = away.LengthSquared();
+
+        if (distSq > radiusSq || distSq <= 0.0001f)
+        {
+            continue;
+        }
+
+        const float dist = std::sqrt(distSq);
+        const float weight = 1.0f - (dist / m_separationRadius);
+
+        away /= dist;
+
+        separation += away * weight;
+    }
+
+    return separation;
 }

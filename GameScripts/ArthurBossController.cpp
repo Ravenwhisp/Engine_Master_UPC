@@ -8,12 +8,19 @@
 
 #include "Damageable.h"
 #include "MusicManager.h"
+#include "CameraShake.h"
+#include "CameraTransitionEvent.h"
+#include "CameraTransitionController.h"
 
 #include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(ArthurBossController, EnemyBaseController,
 	SERIALIZED_FLOAT(m_combatRange, "Combat Range", 0.0f, 50.0f, 0.1f),
-	SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER)
+	SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER),
+	SERIALIZED_COMPONENT_REF(m_encounterCinematic, "Encounter Cinematic", ComponentType::TRANSFORM),
+	SERIALIZED_COMPONENT_REF(m_defeatCinematic, "Defeat Cinematic", ComponentType::TRANSFORM),
+	SERIALIZED_FLOAT(m_encounterRoarDelay, "Encounter Roar Delay", 0.0f, 20.0f, 0.05f),
+	SERIALIZED_VEC3(m_deathCamOffset, "Death Cam Offset")
 )
 
 ArthurBossController::ArthurBossController(GameObject* owner) : EnemyBaseController(owner)
@@ -40,6 +47,10 @@ void ArthurBossController::Start()
 
 	m_arthurSound = GameObjectAPI::findScript<ArthurSound>(getOwner());
 
+	GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
+	m_cameraShake = cameraObject ? GameObjectAPI::findScript<CameraShake>(cameraObject) : nullptr;
+	m_cameraTransition = cameraObject ? GameObjectAPI::findScript<CameraTransitionController>(cameraObject) : nullptr;
+
 	m_currentTarget = nullptr;
 	m_deathTriggerSent = false;
 
@@ -64,25 +75,43 @@ void ArthurBossController::drawGizmo()
 void ArthurBossController::Update()
 {
 
-	if (!m_hasStartedEncounter && m_arthurDetectionAggro && m_arthurDetectionAggro->hasAnyTargetInDetectionRange())
+	// Al acercarse los jugadores: primero la cinemática de intro, con Arthur quieto. El combate
+	// solo arranca cuando la transición de cámara vuelve (así no se abalanza a media cinemática).
+	if (!m_hasStartedEncounter && !m_encounterCinematicPlaying
+		&& m_arthurDetectionAggro && m_arthurDetectionAggro->hasAnyTargetInDetectionRange())
 	{
-		m_arthurDetectionAggro->startEncounter();
-		m_hasStartedEncounter = true;
-		if (m_arthurUI)
+		if (playCinematic(m_encounterCinematic))
 		{
-			m_arthurUI->showHealthUI(true);
+			m_encounterCinematicPlaying = true;
+			m_encounterTimer = 0.0f;
+			m_encounterRoarPlayed = false;
+		}
+		else
+		{
+			// Sin cinemática asignada: comportamiento directo de siempre.
+			if (m_arthurSound) m_arthurSound->playIntroRoar();
+			if (m_cameraShake) m_cameraShake->shakeRoar();
+			beginEncounterCombat();
+		}
+	}
+
+	if (m_encounterCinematicPlaying)
+	{
+		m_encounterTimer += Time::getDeltaTime();
+
+		// El rugido cuando la cámara ya se ha acercado a Arthur (ajustable).
+		if (!m_encounterRoarPlayed && m_encounterTimer >= m_encounterRoarDelay)
+		{
+			if (m_arthurSound) m_arthurSound->playIntroRoar();
+			if (m_cameraShake) m_cameraShake->shakeRoar();
+			m_encounterRoarPlayed = true;
 		}
 
-		if (m_arthurSound)
+		// La transición ha vuelto: ahora sí empieza el encuentro.
+		if (m_encounterTimer > 0.1f && !isCinematicRunning())
 		{
-			m_arthurSound->playIntroRoar();
-		}
-
-		// Música de boss. Si Arthur está en su propia escena con el MusicManager
-		// configurado a Level1_Boss, esto setea el mismo estado (inocuo).
-		if (MusicManager* music = MusicManager::Get())
-		{
-			music->SetState_Level1Boss();
+			m_encounterCinematicPlaying = false;
+			beginEncounterCombat();
 		}
 	}
 
@@ -103,6 +132,14 @@ void ArthurBossController::Update()
 				m_arthurSound->stopAllLoops();   // kill galloping/footsteps before the roar
 				m_arthurSound->playDeathRoar();
 			}
+
+			if (m_cameraShake)
+			{
+				m_cameraShake->shakeRoar();
+			}
+
+			repositionDeathShot();
+			playCinematic(m_defeatCinematic);
 
 			if (MusicManager* music = MusicManager::Get())
 			{
@@ -183,11 +220,91 @@ void ArthurBossController::updateBossPhase()
 			m_arthurSound->playPhase2Roar();
 		}
 
+		if (m_cameraShake)
+		{
+			m_cameraShake->shakeRoar();
+		}
+
 		if (m_arthurUI)
 		{
 			m_arthurUI->updateHealthUIPhase();
 		}
 	}
+}
+
+bool ArthurBossController::playCinematic(const ComponentRef<Transform>& cinematicRef)
+{
+	Transform* cinematicTransform = cinematicRef.getReferencedComponent();
+	if (!cinematicTransform)
+	{
+		return false;
+	}
+
+	GameObject* cinematicObject = ComponentAPI::getOwner(cinematicTransform);
+	if (!cinematicObject)
+	{
+		return false;
+	}
+
+	CameraTransitionEvent* cinematic = GameObjectAPI::findScript<CameraTransitionEvent>(cinematicObject);
+	if (!cinematic)
+	{
+		return false;
+	}
+
+	cinematic->play();
+	return true;
+}
+
+void ArthurBossController::beginEncounterCombat()
+{
+	m_hasStartedEncounter = true;
+
+	if (m_arthurDetectionAggro)
+	{
+		m_arthurDetectionAggro->startEncounter();
+	}
+
+	if (m_arthurUI)
+	{
+		m_arthurUI->showHealthUI(true);
+	}
+
+	// Música de boss. Si Arthur está en su propia escena con el MusicManager
+	// configurado a Level1_Boss, esto setea el mismo estado (inocuo).
+	if (MusicManager* music = MusicManager::Get())
+	{
+		music->SetState_Level1Boss();
+	}
+}
+
+bool ArthurBossController::isCinematicRunning() const
+{
+	return m_cameraTransition != nullptr && m_cameraTransition->isTransitioning();
+}
+
+void ArthurBossController::repositionDeathShot()
+{
+	Transform* cinematicRoot = m_defeatCinematic.getReferencedComponent();
+	if (!cinematicRoot)
+	{
+		return;
+	}
+
+	Transform* cameraPoints = TransformAPI::findChildByName(cinematicRoot, "CameraPoints");
+	if (!cameraPoints)
+	{
+		return;
+	}
+
+	Transform* deathPoint = TransformAPI::findChildByName(cameraPoints, "Point1");
+	if (!deathPoint)
+	{
+		return;
+	}
+
+	const Vector3 arthurPosition = TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner()));
+	TransformAPI::setGlobalPosition(deathPoint, arthurPosition + m_deathCamOffset);
 }
 
 void ArthurBossController::updateAttackCooldowns(float dt)

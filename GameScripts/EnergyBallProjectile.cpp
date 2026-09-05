@@ -3,10 +3,22 @@
 
 #include "Damageable.h"
 #include "PlayerState.h"
+#include "ProjectilePool.h"
+#include "EnemyAttackExecutor.h"
+
+IMPLEMENT_SCRIPT_FIELDS(EnergyBallProjectile,
+	SERIALIZED_STRING(m_energyBallParticlePath, "Energy Ball Particle Prefab Path"),
+	SERIALIZED_ASSET_REF(m_energyBallParticlePrefab, "Energy Ball Particle Prefab", AssetType::PREFAB)
+)
 
 EnergyBallProjectile::EnergyBallProjectile(GameObject* owner)
 	: ProjectileBase(owner)
 {
+}
+
+void EnergyBallProjectile::OnGameStop()
+{
+	removeEnergyBallParticle();
 }
 
 void EnergyBallProjectile::launch(const Vector3& startPosition, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage)
@@ -25,26 +37,35 @@ void EnergyBallProjectile::launch(const Vector3& startPosition, const Vector3& d
 	m_damage = damage;
 	m_isLaunched = true;
 	m_inUse = true;
-	
+
 	GameObjectAPI::setActive(getOwner(), true);
 
 	Transform* transform = GameObjectAPI::getTransform(getOwner());
+
 	if (transform)
 	{
 		TransformAPI::setGlobalPosition(transform, startPosition);
 		TransformAPI::lookAt(transform, startPosition + m_direction);
 	}
+
+	ensureEnergyBallParticle();
+	updateEnergyBallParticle();
+
+	if (m_energyBallParticle)
+	{
+		ParticleLifecycle::activate(m_energyBallParticle);
+	}
 }
 
 void EnergyBallProjectile::resetProjectile()
 {
-	m_direction = Vector3::Zero;
+	removeEnergyBallParticle();
 
+	m_direction = Vector3::Zero;
 	m_speed = 0.0f;
 	m_lifetime = 0.0f;
 	m_aliveTimer = 0.0f;
 	m_damage = 0.0f;
-
 	m_target = nullptr;
 	m_isLaunched = false;
 
@@ -106,7 +127,11 @@ void EnergyBallProjectile::Update()
 	m_direction = toTarget;
 
 	TransformAPI::translateGlobal(projectileTransform, m_direction * m_speed * Time::getDeltaTime());
-	TransformAPI::lookAt(projectileTransform, projectilePosition + m_direction);
+
+	const Vector3 updatedPosition = TransformAPI::getGlobalPosition(projectileTransform);
+	TransformAPI::lookAt(projectileTransform, updatedPosition + m_direction);
+
+	updateEnergyBallParticle();
 }
 
 void EnergyBallProjectile::applyImpactDamage()
@@ -130,7 +155,67 @@ void EnergyBallProjectile::applyImpactDamage()
 
 	damageable->takeDamage(m_damage);
 
+	Transform* targetTransform = GameObjectAPI::getTransform(m_target);
+	if (m_pool && targetTransform)
+	{
+		GameObject* summonerObject = m_pool->getOwner();
+		EnemyAttackExecutor* attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(summonerObject);
+
+		if (attackExecutor)
+		{
+			attackExecutor->playPlayerHitVfx(targetTransform);
+		}
+	}
+
 	Debug::log("[EnergyBallProjectile] Damaged target for %.2f.", m_damage);
+}
+
+void EnergyBallProjectile::ensureEnergyBallParticle()
+{
+	Transform* projectileTransform = GameObjectAPI::getTransform(getOwner());
+
+	if (!projectileTransform)
+	{
+		return;
+	}
+
+	const Vector3 position = TransformAPI::getGlobalPosition(projectileTransform);
+	const Vector3 rotation = TransformAPI::getGlobalEulerDegrees(projectileTransform);
+
+	ParticleLifecycle::ensurePersistent(
+		m_energyBallParticle,
+		m_energyBallParticlePrefab.m_id,
+		position,
+		rotation,
+		nullptr
+	);
+
+	if (m_energyBallParticle)
+	{
+		m_energyBallParticleTransform = GameObjectAPI::getTransform(m_energyBallParticle);
+	}
+}
+
+void EnergyBallProjectile::updateEnergyBallParticle()
+{
+	Transform* projectileTransform = GameObjectAPI::getTransform(getOwner());
+
+	if (!projectileTransform || !m_energyBallParticleTransform)
+	{
+		return;
+	}
+
+	const Vector3 position = TransformAPI::getGlobalPosition(projectileTransform);
+	const Vector3 rotation = TransformAPI::getGlobalEulerDegrees(projectileTransform);
+
+	TransformAPI::setGlobalPosition(m_energyBallParticleTransform, position);
+	TransformAPI::setGlobalRotationEuler(m_energyBallParticleTransform, rotation);
+}
+
+void EnergyBallProjectile::removeEnergyBallParticle()
+{
+	ParticleLifecycle::deactivate(m_energyBallParticle);
+	m_energyBallParticleTransform = nullptr;
 }
 
 IMPLEMENT_SCRIPT(EnergyBallProjectile)

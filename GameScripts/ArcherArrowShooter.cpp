@@ -38,7 +38,7 @@ void ArcherArrowShooter::Update()
     if (!nowInAttack && m_inAttack)
     {
         if (m_arrowGO) { GameObjectAPI::removeGameObject(m_arrowGO); m_arrowGO = nullptr; }
-        if (m_particles) m_particles->stopBasicAttackTrail();
+        if (m_particles) m_particles->stopArrowSparks();
         m_inAttack = false;
     }
 
@@ -76,7 +76,7 @@ void ArcherArrowShooter::Update()
                 if (arrow) arrow->launch(spawnPos, dest, 10.0f);
             }
 
-            if (m_particles) m_particles->spawnBasicAttackTrail(spawnPos);
+            if (m_particles) m_particles->spawnArrowSparks(spawnPos);
         }
         m_fired = true;
     }
@@ -87,7 +87,7 @@ void ArcherArrowShooter::Update()
         Transform* arrowT = GameObjectAPI::getTransform(m_arrowGO);
         if (arrowT)
         {
-            m_particles->syncBasicAttackTrail(
+            m_particles->syncArrowSparks(
                 TransformAPI::getGlobalPosition(arrowT),
                 TransformAPI::getGlobalEulerDegrees(arrowT));
         }
@@ -101,7 +101,7 @@ void ArcherArrowShooter::Update()
         {
             GameObjectAPI::removeGameObject(m_arrowGO);
             m_arrowGO = nullptr;
-            if (m_particles) m_particles->stopBasicAttackTrail();
+            if (m_particles) m_particles->stopArrowSparks();
         }
     }
 }

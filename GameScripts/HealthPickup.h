@@ -4,6 +4,8 @@
 
 #include "Pickup.h"
 
+#include <string>
+
 class CooperativeSound;
 
 class HealthPickup : public Pickup
@@ -24,6 +26,7 @@ public:
 public:
     float   m_healAmount            = 10.0f;
     PrefabRef m_collectParticlePrefab;
+    std::string m_legacyCollectParticlePath;
     float   m_spawnHeight           = 1.5f;   // fallback height when no custom spawn-from
     float   m_fallGravity           = 8.0f;
     Vector3 m_landingPosition       = Vector3::Zero;  // target floor position, set by spawner

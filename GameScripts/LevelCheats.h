@@ -21,8 +21,10 @@ public:
 	void SpawnEnemy(int enemyPrefabIndex);
 	void RestoreHealth();
 	void DownState();
-	void restartLevel();
+	void toLevel1();
 	void killEnemies();
+	void toLevel2();
+	void toBossLevel();
 
 private:
 

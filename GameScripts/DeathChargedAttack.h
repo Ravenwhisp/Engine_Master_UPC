@@ -25,6 +25,7 @@ protected:
 
     void onAttackWindowUpdate()     override;
     void onAttackWindowFinished()   override;
+    void onHitFrame()               override;
 
     float getCooldown() const override;
 
@@ -42,5 +43,11 @@ private:
     DeathParticles* m_particles = nullptr;
 
     float   m_chargeTime = 0.0f;
+    float   m_maxHoldTimer = 0.0f;
     bool    m_isCharging = false;
+
+    float   m_pendingDamage = 0.0f;
+    float   m_pendingRadius = 0.0f;
+    bool    m_pendingChargedShot = false;
+    bool    m_pendingMaxCharge = false;
 };

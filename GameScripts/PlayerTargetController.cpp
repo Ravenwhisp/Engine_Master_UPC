@@ -477,6 +477,53 @@ bool PlayerTargetController::shouldSwitchTarget(GameObject* candidate, const Vec
     return candidateScore + m_switchMargin < currentScore;
 }
 
+GameObject* PlayerTargetController::findNearbyTargetInRange(float range) const
+{
+    if (m_targetsInRange.empty() || range <= 0.0f)
+    {
+        return nullptr;
+    }
+
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+    if (ownerTransform == nullptr)
+    {
+        return nullptr;
+    }
+
+    const Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
+
+    GameObject* bestTarget = nullptr;
+    float bestDistSq = range * range;
+
+    for (GameObject* candidate : m_targetsInRange)
+    {
+        if (candidate == nullptr)
+        {
+            continue;
+        }
+
+        Transform* candidateTransform = GameObjectAPI::getTransform(candidate);
+        if (candidateTransform == nullptr)
+        {
+            continue;
+        }
+
+        Vector3 toCandidate = TransformAPI::getGlobalPosition(candidateTransform) - ownerPosition;
+        toCandidate.y = 0.0f;
+
+        const float distSq = toCandidate.LengthSquared();
+        if (distSq > bestDistSq)
+        {
+            continue;
+        }
+
+        bestDistSq = distSq;
+        bestTarget = candidate;
+    }
+
+    return bestTarget;
+}
+
 bool PlayerTargetController::isTargetInRange(GameObject* target) const
 {
     if (target == nullptr)

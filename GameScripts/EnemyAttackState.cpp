@@ -155,6 +155,16 @@ void EnemyAttackState::OnStateUpdate()
         if (m_usePaladinAreaAttack)
         {
             applyPaladinAreaDamage();
+
+            if (m_paladinVFX)
+            {
+                m_paladinVFX->playShieldAttackHits(
+                    m_lockedAttackOrigin,
+                    m_lockedAttackDirection,
+                    attackConfig->m_basicAttackRange,
+                    PaladinBasicAttackWidth
+                );
+            }
         }
         else
         {
@@ -276,6 +286,11 @@ void EnemyAttackState::lockPaladinAttackArea()
             telegraphCenter,
             m_lockedAttackDirection
         );
+    }
+
+    if (m_paladinVFX)
+    {
+        m_paladinVFX->playShieldAttackStart(telegraphCenter, m_lockedAttackDirection);
     }
 
     m_usePaladinAreaAttack = true;
@@ -439,6 +454,16 @@ void EnemyAttackState::tryDamageTarget(
 
     const EnemyBaseAttackConfig* attackConfig =
         m_controller->getAttackConfig();
+
+    if (m_attackExecutor)
+    {
+        m_attackExecutor->damageTarget(
+            targetTransform,
+            attackConfig->m_basicAttackDamage,
+            "EnemyBasicAttack"
+        );
+        return;
+    }
 
     damageable->takeDamage(
         attackConfig->m_basicAttackDamage

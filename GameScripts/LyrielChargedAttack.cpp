@@ -11,12 +11,18 @@
 #include "PlayerState.h"
 #include "BreakableDamageable.h"
 #include "LyrielUI.h"
+#include "LyrielParticles.h"
 #include "LyrielConfig.h"
 #include "PlayerRotation.h"
+#include "CharacterAnimations.h"
+#include "PlayerAnimationController.h"
 
 #include <cmath>
 
 static const float PI = 3.1415926535897931f;
+
+// When fully charged, keep the charge held (aiming) for this long before auto-releasing.
+static constexpr float k_maxChargeHoldGrace = 2.0f;
 
 LyrielChargedAttack::LyrielChargedAttack(GameObject* owner)
     : ChargedAttackBase(owner)
@@ -30,6 +36,7 @@ void LyrielChargedAttack::Start()
     m_lyrielCharacter = dynamic_cast<LyrielCharacter*>(m_character);
     m_config = m_lyrielCharacter->getConfig();
     m_lyrielUI = GameObjectAPI::findScript<LyrielUI>(getOwner());
+    m_particles = GameObjectAPI::findScript<LyrielParticles>(getOwner());
 
     if (m_lyrielCharacter == nullptr)
     {
@@ -45,6 +52,11 @@ void LyrielChargedAttack::Start()
     {
         Debug::warn("[LyrielChargedAttack] LyrielUI not found.");
     }
+
+    if (m_particles == nullptr)
+    {
+        Debug::warn("[LyrielChargedAttack] LyrielParticles not found.");
+    }
 }
 
 void LyrielChargedAttack::Update()
@@ -53,13 +65,22 @@ void LyrielChargedAttack::Update()
 
     if (m_isCharging)
     {
-        if (!Input::isRightTriggerReleased(getPlayerIndex()))
+        if (Input::isRightTriggerReleased(getPlayerIndex()))
         {
-            updateCharge();
+            releaseChargeAndShoot();
         }
         else
         {
-            releaseChargeAndShoot();
+            updateCharge();
+
+            if (m_chargeTimer >= m_lyrielCharacter->getConfig()->m_chargedMaxChargeTime)
+            {
+                m_maxHoldTimer += Time::getDeltaTime();
+                if (m_maxHoldTimer >= k_maxChargeHoldGrace)
+                {
+                    releaseChargeAndShoot();
+                }
+            }
         }
 	}
 }
@@ -128,6 +149,7 @@ void LyrielChargedAttack::beginCharge()
     applyChargingMovementSlowdown(m_config->m_chargedMovementSlowdownPercentage);
 
     m_chargeTimer = 0.0f;
+    m_maxHoldTimer = 0.0f;
     m_currentAimDirection = Vector3::Zero;
 
     Vector3 aimDirection = computeAimDirection();
@@ -145,10 +167,28 @@ void LyrielChargedAttack::beginCharge()
         m_lyrielUI->showChargedAttackUI();
     }
 
+    if (m_attackAnims != nullptr && m_character != nullptr)
+    {
+        PlayerAnimationController* anim = m_character->getAnimationController();
+        if (anim != nullptr)
+        {
+            const AttackAnimInfo info = m_attackAnims->resolve(AttackAnimId::Charged, 0);
+            if (!info.stateName.empty())
+            {
+                anim->beginChargeHold(info.stateName, info.blendIn, info.speed, info.holdPct);
+            }
+        }
+    }
+
     LyrielSound* sound = m_lyrielCharacter != nullptr ? m_lyrielCharacter->getSound() : nullptr;
     if (sound != nullptr)
     {
         sound->startChargedTenseLoop();
+    }
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetChargeActive();
     }
 }
 
@@ -158,6 +198,17 @@ void LyrielChargedAttack::updateCharge()
     if (m_chargeTimer > m_lyrielCharacter->getConfig()->m_chargedMaxChargeTime)
     {
         m_chargeTimer = m_lyrielCharacter->getConfig()->m_chargedMaxChargeTime;
+    }
+
+    const float maxTime = m_lyrielCharacter->getConfig()->m_chargedMaxChargeTime;
+    const float chargeRatio = maxTime > 0.0f ? (m_chargeTimer / maxTime) : 1.0f;
+    if (m_character != nullptr)
+    {
+        PlayerAnimationController* anim = m_character->getAnimationController();
+        if (anim != nullptr)
+        {
+            anim->setChargeProgress(chargeRatio);
+        }
     }
 
     Vector3 aimDirection = computeAimDirection();
@@ -183,6 +234,11 @@ void LyrielChargedAttack::updateCharge()
 void LyrielChargedAttack::releaseChargeAndShoot()
 {
     m_isCharging = false;
+
+    if (m_particles != nullptr)
+    {
+        m_particles->SetChargeInactive();
+    }
 
     resetChargingMovementSlowdown();
 
@@ -248,7 +304,22 @@ void LyrielChargedAttack::releaseChargeAndShoot()
         }
     }
 
-    beginAttackPresentation();
+    if (m_character != nullptr)
+    {
+        PlayerAnimationController* anim = m_character->getAnimationController();
+        if (anim != nullptr)
+        {
+            anim->endChargeHold();
+        }
+
+        PlayerState* playerState = m_character->getPlayerState();
+        if (playerState != nullptr && !playerState->isDowned())
+        {
+            playerState->setState(PlayerStateType::AttackRecovery);
+        }
+    }
+
+    resolveCurrentAttackAnim();
 
     beginAttackWindow(m_lyrielCharacter->getConfig()->m_chargedAttackLockDuration);
     startCooldown();

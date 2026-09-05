@@ -14,7 +14,7 @@ public:
     void Start() override;
     void Update() override;
 
-	void drawGizmo() override;
+    void drawGizmo() override;
 
     FieldList getExposedFields() const override;
 
@@ -24,9 +24,6 @@ public:
     float m_explosionRadius = 5.0f;
     float m_explosionDamage = 30.0f;
 
-    PrefabRef m_explosionEffectParticle;
-
 private:
-	void onBreak() override;
-
+    void onBreak() override;
 };

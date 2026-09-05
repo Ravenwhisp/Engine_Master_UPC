@@ -290,6 +290,7 @@
     <ClInclude Include="ArthurDetectionAggro.h" />
     <ClInclude Include="ArthurEarthHammer.h" />
     <ClInclude Include="ArthurHeavySwipe.h" />
+    <ClInclude Include="ArthurParticles.h" />
     <ClInclude Include="ArthurSideSweep.h" />
     <ClInclude Include="ArthurSound.h" />
     <ClInclude Include="ArthurUI.h" />
@@ -303,11 +304,13 @@
     <ClInclude Include="BreakableHealingDrop.h" />
     <ClInclude Include="BreakableObject.h" />
     <ClInclude Include="CameraFollow.h" />
+    <ClInclude Include="CameraShake.h" />
     <ClInclude Include="CameraSwitcher.h" />
     <ClInclude Include="CameraTransitionController.h" />
     <ClInclude Include="CameraTransitionEvent.h" />
     <ClInclude Include="CameraTransitionStep.h" />
     <ClInclude Include="CameraTransitionStepAction.h" />
+    <ClInclude Include="CharacterAnimations.h" />
     <ClInclude Include="CharacterBase.h" />
     <ClInclude Include="CharacterUI.h" />
     <ClInclude Include="ChargedAttackBase.h" />
@@ -428,6 +431,7 @@
     <ClInclude Include="SeekerSigilProjectile.h" />
     <ClInclude Include="ShadowExecution.h" />
     <ClInclude Include="ShadowExecutionConfig.h" />
+    <ClInclude Include="SharedEnemyParticles.h" />
     <ClInclude Include="ShootTest.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="SkeletonAttackConfig.h" />
@@ -436,6 +440,7 @@
     <ClInclude Include="SkeletonDamageable.h" />
     <ClInclude Include="SkeletonEnemyController.h" />
     <ClInclude Include="SkeletonGuardState.h" />
+    <ClInclude Include="SkeletonParticles.h" />
     <ClInclude Include="SkeletonReviveState.h" />
     <ClInclude Include="SkeletonScimitarState.h" />
     <ClInclude Include="SpiderChaseState.h" />
@@ -445,6 +450,7 @@
     <ClInclude Include="SummonerEnemyController.h" />
     <ClInclude Include="SummonerEnergyBallState.h" />
     <ClInclude Include="SummonerIdleState.h" />
+    <ClInclude Include="SummonerParticles.h" />
     <ClInclude Include="SummonerRecoverState.h" />
     <ClInclude Include="SummonerSummonState.h" />
     <ClInclude Include="SummonerTeleportState.h" />
@@ -498,6 +504,7 @@
     <ClCompile Include="ArthurDetectionAggro.cpp" />
     <ClCompile Include="ArthurEarthHammer.cpp" />
     <ClCompile Include="ArthurHeavySwipe.cpp" />
+    <ClCompile Include="ArthurParticles.cpp" />
     <ClCompile Include="ArthurSideSweep.cpp" />
     <ClCompile Include="ArthurSound.cpp" />
     <ClCompile Include="ArthurUI.cpp" />
@@ -510,11 +517,13 @@
     <ClCompile Include="BreakableHealingDrop.cpp" />
     <ClCompile Include="BreakableObject.cpp" />
     <ClCompile Include="CameraFollow.cpp" />
+    <ClCompile Include="CameraShake.cpp" />
     <ClCompile Include="CameraSwitcher.cpp" />
     <ClCompile Include="CameraTransitionController.cpp" />
     <ClCompile Include="CameraTransitionEvent.cpp" />
     <ClCompile Include="CameraTransitionStep.cpp" />
     <ClCompile Include="CameraTransitionStepAction.cpp" />
+    <ClCompile Include="CharacterAnimations.cpp" />
     <ClCompile Include="CharacterBase.cpp" />
     <ClCompile Include="CharacterUI.cpp" />
     <ClCompile Include="ChargedAttackBase.cpp" />
@@ -639,6 +648,7 @@
     <ClCompile Include="SeekerSigilProjectile.cpp" />
     <ClCompile Include="ShadowExecution.cpp" />
     <ClCompile Include="ShadowExecutionConfig.cpp" />
+    <ClCompile Include="SharedEnemyParticles.cpp" />
     <ClCompile Include="ShootTest.cpp" />
     <ClCompile Include="SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -651,6 +661,7 @@
     <ClCompile Include="SkeletonDamageable.cpp" />
     <ClCompile Include="SkeletonEnemyController.cpp" />
     <ClCompile Include="SkeletonGuardState.cpp" />
+    <ClCompile Include="SkeletonParticles.cpp" />
     <ClCompile Include="SkeletonReviveState.cpp" />
     <ClCompile Include="SkeletonScimitarState.cpp" />
     <ClCompile Include="SpiderChaseState.cpp" />
@@ -659,6 +670,7 @@
     <ClCompile Include="SummonerEnemyController.cpp" />
     <ClCompile Include="SummonerEnergyBallState.cpp" />
     <ClCompile Include="SummonerIdleState.cpp" />
+    <ClCompile Include="SummonerParticles.cpp" />
     <ClCompile Include="SummonerRecoverState.cpp" />
     <ClCompile Include="SummonerSummonState.cpp" />
     <ClCompile Include="SummonerTeleportState.cpp" />
