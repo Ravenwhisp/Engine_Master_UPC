@@ -4,6 +4,7 @@
 #include "SkeletonEnemyController.h"
 #include "SkeletonDamageable.h"
 #include "SkeletonAttackConfig.h"
+#include "SkeletonParticles.h"
 
 SkeletonReviveState::SkeletonReviveState(GameObject* owner)
 	: StateMachineScript(owner)
@@ -15,6 +16,7 @@ void SkeletonReviveState::OnStateEnter()
 	m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
 	m_damageable = GameObjectAPI::findScript<SkeletonDamageable>(getOwner());
 	m_animation = AnimationAPI::getAnimationComponent(getOwner());
+	m_particles = GameObjectAPI::findScript<SkeletonParticles>(getOwner());
 
 	if (!m_controller)
 	{
@@ -32,6 +34,15 @@ void SkeletonReviveState::OnStateEnter()
 	{
 		Debug::error("[SkeletonReviveState] AnimationComponent not found.");
 		return;
+	}
+
+	if (!m_particles)
+	{
+		Debug::warn("[SkeletonReviveState] SkeletonParticles not found.");
+	}
+	else
+	{
+		m_particles->startReviveParticle();
 	}
 
 	m_controller->clearPath();
@@ -81,6 +92,11 @@ void SkeletonReviveState::OnStateUpdate()
 
 void SkeletonReviveState::OnStateExit()
 {
+	if (m_particles)
+	{
+		m_particles->stopReviveParticle();
+	}
+
 	if (m_animation)
 	{
 		AnimationAPI::clearOverrideClip(m_animation, 0.0f);

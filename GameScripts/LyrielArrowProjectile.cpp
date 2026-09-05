@@ -4,8 +4,10 @@
 #include "BreakableDamageable.h"
 #include "LyrielCharacter.h"
 #include "LyrielSound.h"
+#include "ParticleLifecycle.h"
 
 IMPLEMENT_SCRIPT_FIELDS(LyrielArrowProjectile,
+    SERIALIZED_STRING(m_legacyParticlePath, "Particle Prefab Path"),
     SERIALIZED_ASSET_REF(m_particlePrefab, "Particle Prefab", AssetType::PREFAB)
 )
 
@@ -56,6 +58,9 @@ void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3&
         TransformAPI::lookAt(transform, start_position + m_direction);
     }
 
+    GameObjectAPI::setActive(getOwner(), true);
+    activateEmbeddedParticles();
+
     if (m_particlePrefab.m_id.isValid())
     {
         m_particleGO = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_id, start_position, Vector3::Zero, nullptr);
@@ -64,8 +69,6 @@ void LyrielArrowProjectile::launch(const Vector3& start_position, const Vector3&
             syncParticleTransform();
         }
     }
-
-    GameObjectAPI::setActive(getOwner(), true);
 }
 
 void LyrielArrowProjectile::resetProjectile()
@@ -83,6 +86,7 @@ void LyrielArrowProjectile::resetProjectile()
         m_particleGO = nullptr;
     }
 
+    stopEmbeddedParticles();
     ProjectileBase::resetProjectile();
 }
 
@@ -145,6 +149,16 @@ void LyrielArrowProjectile::applyImpactDamage()
     {
         breakableDamageable->takeDamage(m_damage);
     }
+}
+
+void LyrielArrowProjectile::activateEmbeddedParticles()
+{
+    ParticleLifecycle::restart(getOwner());
+}
+
+void LyrielArrowProjectile::stopEmbeddedParticles()
+{
+    ParticleLifecycle::stop(getOwner());
 }
 
 void LyrielArrowProjectile::syncParticleTransform()

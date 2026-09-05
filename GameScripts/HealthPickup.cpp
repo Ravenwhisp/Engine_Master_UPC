@@ -9,6 +9,7 @@
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(HealthPickup, Pickup,
     SERIALIZED_FLOAT(m_healAmount, "Heal Amount",         0.0f, 100.0f, 1.0f),
     SERIALIZED_ASSET_REF(m_collectParticlePrefab, "Collect Particle Prefab", AssetType::PREFAB),
+    SERIALIZED_STRING(m_legacyCollectParticlePath, "Collect Particle Prefab Path"),
     SERIALIZED_FLOAT(m_spawnHeight, "Spawn Height",        0.0f,   5.0f, 0.1f),
     SERIALIZED_FLOAT(m_fallGravity, "Fall Gravity",        0.0f,  20.0f, 0.5f),
     SERIALIZED_FLOAT(m_idleSpeed, "Idle Speed",          0.0f,  10.0f, 0.05f),

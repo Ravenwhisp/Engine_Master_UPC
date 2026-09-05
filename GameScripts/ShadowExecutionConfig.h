@@ -11,7 +11,7 @@ public:
     explicit ShadowExecutionConfig(AssetId& id) : DataContainer(id) {}
 
     float m_timeWindow = 2.5f;
-    float m_executionDuration = 1.0f;
+    float m_executionDuration = 1.46f;
     float m_instaKillThreshold = 0.40f;
     float m_fixedDamage = 35.0f;
     float m_percentageDamage = 0.10f;

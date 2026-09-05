@@ -2,6 +2,7 @@
 #include "SpikeTrap.h"
 #include "PlayerDamageable.h"
 #include "EnvironmentSound.h"
+#include "ParticleLifecycle.h"
 
 IMPLEMENT_SCRIPT_FIELDS(SpikeTrap,
     SERIALIZED_BOOL(alternativeMode, "Alternative Mode"),
@@ -194,26 +195,46 @@ void SpikeTrap::triggerBoxDamage()
 
 void SpikeTrap::addEffect(int type)
 {
+    Transform* effectTransform = nullptr;
+
     if (type == 0)
     {
-        GameObjectAPI::setActive(ComponentAPI::getOwner(m_spikeShineT.getReferencedComponent()), true);
+        effectTransform = m_spikeShineT.getReferencedComponent();
     }
     else if (type == 1)
     {
-        GameObjectAPI::setActive(ComponentAPI::getOwner(m_spectralAuraT.getReferencedComponent()), true);
+        effectTransform = m_spectralAuraT.getReferencedComponent();
     }
+
+    if (effectTransform == nullptr)
+    {
+        return;
+    }
+
+    GameObject* effectObject = ComponentAPI::getOwner(effectTransform);
+    ParticleLifecycle::activate(effectObject);
 }
 
 void SpikeTrap::removeEffect(int type)
 {
+    Transform* effectTransform = nullptr;
+
     if (type == 0)
     {
-        GameObjectAPI::setActive(ComponentAPI::getOwner(m_spikeShineT.getReferencedComponent()), false);
+        effectTransform = m_spikeShineT.getReferencedComponent();
     }
     else if (type == 1)
     {
-        GameObjectAPI::setActive(ComponentAPI::getOwner(m_spectralAuraT.getReferencedComponent()), false);
+        effectTransform = m_spectralAuraT.getReferencedComponent();
     }
+
+    if (effectTransform == nullptr)
+    {
+        return;
+    }
+
+    GameObject* effectObject = ComponentAPI::getOwner(effectTransform);
+    ParticleLifecycle::deactivate(effectObject);
 }
 
 

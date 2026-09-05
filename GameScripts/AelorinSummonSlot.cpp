@@ -4,6 +4,7 @@
 #include "EnemyDamageable.h"
 
 IMPLEMENT_SCRIPT_FIELDS(AelorinSummonSlot,
+	SERIALIZED_STRING(m_legacyEnemyPath, "Enemy Prefab Path"),
 	SERIALIZED_ASSET_REF(m_enemyPrefab, "Enemy Prefab", AssetType::PREFAB)
 )
 
