@@ -11,6 +11,8 @@ struct SceneDataCB
 
     // x = ssaoEnabled
     // y = ssaoDebugView
-    // zw = unused
     DirectX::SimpleMath::Vector4 renderFlags;
+
+    uint32_t tileCountX = 0;
+    uint32_t tileCountY = 0;
 };

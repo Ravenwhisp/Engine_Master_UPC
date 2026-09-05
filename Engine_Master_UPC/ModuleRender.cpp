@@ -103,6 +103,7 @@ bool ModuleRender::init()
     m_dynamicTransparencyMaskPass = std::make_unique<DynamicTransparencyMaskPass>(device);
     m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
+    m_lightCullingPass = std::make_unique<LightCullingPass>(device, m_meshRenderPass);
     m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get());
     m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
@@ -259,6 +260,7 @@ bool ModuleRender::cleanUp()
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
     m_shadowFrustumComputePass.reset();
+    m_lightCullingPass.reset();
     m_depthReductionPass.reset();
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionTargetDepthPass.reset();
@@ -279,6 +281,7 @@ bool ModuleRender::cleanUp()
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
     m_shadowFrustumComputePass.reset();
+    m_lightCullingPass.reset();
     m_depthReductionPass.reset();
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionTargetDepthPass.reset();
@@ -504,6 +507,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .ssaoBlurTexture = ssaoBlurTexture,
         .ssaoSettings = ssaoSettings,
         .ssaoData = nullptr,
+        .lightingSettings = &app->getModuleScene()->getScene()->getLightingSettings(),
     };
 
     {
@@ -558,6 +562,21 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         {
             m_geometryPass->prepare(ctx);
             m_geometryPass->apply(commandList);
+        }
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::LightCullingPass");
+
+        if (m_lightCullingPass != nullptr)
+        {
+            m_lightCullingPass->prepare(ctx);
+            m_lightCullingPass->apply(commandList);
+
+            ctx.lightCullingPointListAddress = m_lightCullingPass->getPointLightIndexBufferAddress();
+            ctx.lightCullingSpotListAddress = m_lightCullingPass->getSpotLightIndexBufferAddress();
+            ctx.lightCullingTileCountX = m_lightCullingPass->getTileCountX();
+            ctx.lightCullingTileCountY = m_lightCullingPass->getTileCountY();
         }
     }
 

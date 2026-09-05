@@ -880,6 +880,7 @@
       <Filter>Source\Components</Filter>
     </ClCompile>
     <ClCompile Include="DepthReductionPass.cpp" />
+    <ClCompile Include="LightCullingPass.cpp" />
     <ClCompile Include="ShadowFrustumComputePass.cpp" />
     <ClCompile Include="VolumetricFogApplyPass.cpp" />
     <ClCompile Include="VolumetricFogComputePass.cpp" />
@@ -1909,6 +1910,7 @@
       <Filter>Source\Components</Filter>
     </ClInclude>
     <ClInclude Include="DepthReductionPass.h" />
+    <ClInclude Include="LightCullingPass.h" />
     <ClInclude Include="ShadowFrustumComputePass.h" />
     <ClInclude Include="VolumetricFogApplyPass.h" />
     <ClInclude Include="VolumetricFogComputePass.h" />
@@ -2859,9 +2861,95 @@
     <FxCompile Include="FontVertexShader.hlsl">
       <Filter>Shaders\UI</Filter>
     </FxCompile>
+    <FxCompile Include="BloomUpsamplePixelShader.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="TransparentVertexShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="TransparentPixelShader.hlsl">
+      <Filter>Shaders\Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="DepthMinMaxInitialComputeShader.hlsl" />
+    <FxCompile Include="LightCullingComputeShader.hlsl" />
+    <FxCompile Include="DepthMinMaxReduceComputeShader.hlsl" />
+    <FxCompile Include="ShadowFrustumComputeShader.hlsl" />
     <FxCompile Include="VolumetricFogApplyPixelShader.hlsl" />
     <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
     <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
     <FxCompile Include="VolumetricFogLightingCS.hlsl" />
+    <FxCompile Include="FlowMapPS.hlsl" />
+    <FxCompile Include="FlowMapVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthVS.hlsl" />
+    <FxCompile Include="OcclusionTargetDepthPS.hlsl" />
+    <FxCompile Include="OcclusionBubbleVS.hlsl" />
+    <FxCompile Include="OcclusionBubblePS.hlsl" />
+    <FxCompile Include="DynamicTransparencyMaskPS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffVS.hlsl" />
+    <FxCompile Include="DynamicTransparencyFalloffPS.hlsl" />
+    <FxCompile Include="VideoVertexShader.hlsl">
+      <Filter>Shaders\Video</Filter>
+    </FxCompile>
+    <FxCompile Include="VideoPixelShader.hlsl">
+      <Filter>Shaders\Video</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </None>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_extra_math.inl">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </None>
+    <None Include="3rdParty\imgui-node-editor-master\imgui_node_editor_internal.inl">
+      <Filter>Third Party\ImGui\imgui-node-editor-master</Filter>
+    </None>
+    <None Include="ForwardCommon.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="GBufferCommon.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="General.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="LightingCBuffers.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="LightTileCullingCommon.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="EngineAPI.inl">
+      <Filter>Source\Inline</Filter>
+    </None>
+    <None Include="MakeSpriteFont.exe">
+      <Filter>Tools</Filter>
+    </None>
+    <None Include="PBRGeneral.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="GeometryCBuffers.hlsli">
+      <Filter>Shaders\Includes</Filter>
+    </None>
+    <None Include="SimpleMath.inl">
+      <Filter>Source\Inline</Filter>
+    </None>
+    <None Include="VolumetricFogCommon.hlsli" />
+    <None Include="PBRLighting.hlsli" />
+    <None Include="DynamicTransparencyFalloffCommon.hlsli" />
+    <None Include="DynamicTransparencyCommon.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Engine.rc">
+      <Filter>Resources\Application</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Engine.ico">
+      <Filter>Resources\Application</Filter>
+    </Image>
+    <Image Include="small.ico">
+      <Filter>Resources\Application</Filter>
+    </Image>
   </ItemGroup>
 </Project>

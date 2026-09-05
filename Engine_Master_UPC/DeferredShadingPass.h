@@ -49,6 +49,9 @@ public:
     D3D12_GPU_VIRTUAL_ADDRESS getSceneDataCBAddress() const { return m_sceneDataCBAddress; }
     D3D12_GPU_VIRTUAL_ADDRESS getLightsCBAddress() const { return m_lightsAddress; }
 
+    D3D12_GPU_VIRTUAL_ADDRESS getPointLightIndexBufferAddress() const { return m_pointLightIndexBufferAddress; }
+    D3D12_GPU_VIRTUAL_ADDRESS getSpotLightIndexBufferAddress() const { return m_spotLightIndexBufferAddress; }
+
 private:
     ComPtr<ID3D12Device4>           m_device;
     ComPtr<ID3D12RootSignature>		m_rootSignature;
@@ -78,5 +81,8 @@ private:
     // SSAO
     D3D12_GPU_DESCRIPTOR_HANDLE m_ssaoSRV{};
     bool m_hasSSAOData = false;
+
+    D3D12_GPU_VIRTUAL_ADDRESS m_pointLightIndexBufferAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS m_spotLightIndexBufferAddress = 0;
 
 };

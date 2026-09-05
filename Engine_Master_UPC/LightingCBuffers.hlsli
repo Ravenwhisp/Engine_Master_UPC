@@ -9,11 +9,13 @@ cbuffer SceneData : register(b1)
     // x = ssaoEnabled
     // y = ssaoDebugView
     float4 renderFlags;
+
+    uint2 tileCount;
 };
 
 #define MAX_DIRECTIONAL_LIGHTS 4
-#define MAX_POINT_LIGHTS 112
-#define MAX_SPOT_LIGHTS 16
+#define MAX_POINT_LIGHTS 256
+#define MAX_SPOT_LIGHTS 64
 
 #define MAX_SHADOW_CASCADES 4
 
