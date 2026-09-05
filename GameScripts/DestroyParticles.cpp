@@ -18,6 +18,11 @@ void DestroyParticles::Start()
 
 void DestroyParticles::Update()
 {
+    if (!m_autoDestroy)
+    {
+        return;
+    }
+
     m_timer += Time::getDeltaTime();
 
     Debug::log("[DestroyParticles] '%s' — %.2f s remaining.", GameObjectAPI::getName(getOwner()), m_lifetime - m_timer);

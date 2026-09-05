@@ -7,6 +7,9 @@ class ArthurAttackConfig;
 class ArthurUI;
 class Damageable;
 class ArthurSound;
+class CameraShake;
+class CameraTransitionEvent;
+class CameraTransitionController;
 
 enum class ArthurBossPhase
 {
@@ -26,6 +29,8 @@ public:
 	void Update() override;
 
 	FieldList getExposedFields() const override;
+
+	bool isSeparationEnabled() const override { return false; }
 
 	// Phase helpers
 	void setPhase(ArthurBossPhase phase);
@@ -67,9 +72,34 @@ private:
 	// Needed to detect if a player is on the area to use Side Sweep
 	Vector3 rotateAroundY(const Vector3& vector, float radians) const;
 
+	// Fires the referenced boss cinematic (encounter / defeat) if its ref is set. Returns true if a
+	// cinematic was started. Plays it as a full cinematic, same as the Paladin / banquet room
+	// transitions (the event's own Lock / Invulnerable / Fade HUD flags decide whether it pauses).
+	bool playCinematic(const ComponentRef<Transform>& cinematicRef);
+
+	// Encounter intro: Arthur stays idle while the cinematic plays; combat only starts once the
+	// camera transition returns, so he never lunges mid-cinematic.
+	void beginEncounterCombat();
+	bool isCinematicRunning() const;
+
+	// Moves the defeat cinematic's first camera point to where Arthur actually died (not his spawn).
+	void repositionDeathShot();
+
 public:
 	float m_combatRange = 3.0f;
 	AssetReference<ArthurAttackConfig> m_attackConfig;
+
+	// Cinematics fired by the boss (no trigger zone). Each ref points at the Transform of the
+	// GameObject that holds the CameraTransitionEvent (+ its CameraPoints child).
+	ComponentRef<Transform> m_encounterCinematic;
+	ComponentRef<Transform> m_defeatCinematic;
+
+	// Seconds into the intro cinematic before Arthur roars (tune so it lands when the camera
+	// reaches him).
+	float m_encounterRoarDelay = 4.0f;
+
+	// Camera offset from Arthur's death position for the defeat close-up (slight zoom).
+	Vector3 m_deathCamOffset = Vector3(7.0f, 10.0f, -7.0f);
 
 private:
 	ArthurDetectionAggro* m_arthurDetectionAggro = nullptr;
@@ -83,6 +113,13 @@ private:
 	bool m_bossDefeated = false;
 	Damageable* m_damageable = nullptr;
 	ArthurSound* m_arthurSound = nullptr;
+	CameraShake* m_cameraShake = nullptr;
+	CameraTransitionController* m_cameraTransition = nullptr;
+
+	// Intro cinematic runtime state.
+	bool m_encounterCinematicPlaying = false;
+	float m_encounterTimer = 0.0f;
+	bool m_encounterRoarPlayed = false;
 
 	const float RADIANS_TO_DEGREES = 180.0f / 3.14159265f;
 

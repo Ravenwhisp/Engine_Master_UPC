@@ -3,13 +3,13 @@
 #include "EnvironmentSound.h"
 #include "EnemyDamageable.h"
 #include "CrystalVisuals.h"
+#include "ParticleLifecycle.h"
+#include "ObjectVfxIds.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(CrystalShadowMark, EnemyShadowMark,
     SERIALIZED_COMPONENT_REF(m_puzzleManager, "PuzzleManager", ComponentType::TRANSFORM),
 	SERIALIZED_INT(m_puzzleID, "Puzzle ID"),
-	SERIALIZED_FLOAT(m_activeTime, "Active Time", 0.0f, 10.0f, 0.1f),
-    SERIALIZED_ASSET_REF(m_crystalSparks, "Crystal Sparks Particle", AssetType::PREFAB),
-    SERIALIZED_ASSET_REF(m_crystalStars, "Crystal Stars Particle", AssetType::PREFAB)
+	SERIALIZED_FLOAT(m_activeTime, "Active Time", 0.0f, 10.0f, 0.1f)
 )
 
 CrystalShadowMark::CrystalShadowMark(GameObject* owner) : EnemyShadowMark(owner) {}
@@ -37,6 +37,11 @@ void CrystalShadowMark::Start()
     {
         Debug::warn("[CrystalMark] CrystalVisuals not found on '%s'.", GameObjectAPI::getName(getOwner()));
     }
+}
+
+void CrystalShadowMark::OnGameStop()
+{
+    ParticleLifecycle::destroy(m_effectObject);
 }
 
 void CrystalShadowMark::Update() 
@@ -112,34 +117,35 @@ bool CrystalShadowMark::processAttack(PlayerAttackType attackType)
     return markExploited;
 }
 
-void CrystalShadowMark::activeEffect()
+void CrystalShadowMark::ensureEffect()
 {
     const Vector3 effectPosition = TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())) + Vector3(0.0f, 1.0f, 0.0f);
+    ParticleLifecycle::ensurePersistent(m_effectObject, ObjectVfxIds::crystalActiveEffect(), effectPosition, Vector3::Zero, nullptr);
+}
 
-    if (effectObject == nullptr)
+void CrystalShadowMark::activeEffect()
+{
+    ensureEffect();
+
+    if (m_effectObject == nullptr)
     {
-        effectObject = GameObjectAPI::instantiatePrefab(m_crystalSparks.m_id, effectPosition, Vector3(0.0f, 0.0f, 0.0f));
+        Debug::warn("[CrystalMark] Could not instantiate crystal effect on '%s'.", GameObjectAPI::getName(getOwner()));
+        return;
     }
 
-    if (effectObject2 == nullptr)
+    Transform* effectTransform = GameObjectAPI::getTransform(m_effectObject);
+    if (effectTransform != nullptr)
     {
-        effectObject2 = GameObjectAPI::instantiatePrefab(m_crystalStars.m_id, effectPosition, Vector3(0.0f, 0.0f, 0.0f));
+        const Vector3 effectPosition = TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())) + Vector3(0.0f, 1.0f, 0.0f);
+        TransformAPI::setGlobalPosition(effectTransform, effectPosition);
     }
+
+    ParticleLifecycle::activate(m_effectObject);
 }
 
 void CrystalShadowMark::deactivateEffect()
 {
-    if (effectObject != nullptr)
-    {
-        GameObjectAPI::removeGameObject(effectObject);
-        effectObject = nullptr;
-    }
-
-    if (effectObject2 != nullptr)
-    {
-        GameObjectAPI::removeGameObject(effectObject2);
-        effectObject2 = nullptr;
-    }
+    ParticleLifecycle::deactivate(m_effectObject);
 }
 
 void CrystalShadowMark::activateCrystal()

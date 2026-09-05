@@ -1,12 +1,21 @@
 #include "pch.h"
 #include "PaladinVFX.h"
+#include "ParticleLifecycle.h"
+#include "EnemyDetectionAggro.h"
+
+#include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS(PaladinVFX,
     SERIALIZED_ASSET_REF(m_walkingDustPrefab, "Walking Dust Prefab", AssetType::PREFAB),
     SERIALIZED_ASSET_REF(m_chargeAttackEffectPrefab, "Charge Attack Effect Prefab", AssetType::PREFAB),
     SERIALIZED_ASSET_REF(m_basicAttackEffectPrefab, "Basic Attack Effect Prefab", AssetType::PREFAB),
+    SERIALIZED_STRING(m_shieldAttackParticlesPath, "Shield Attack Particles Prefab Path"),
+    SERIALIZED_ASSET_REF(m_shieldAttackParticlesPrefab, "Shield Attack Particles Prefab", AssetType::PREFAB),
+    SERIALIZED_STRING(m_shieldAttackHitPath, "Shield Attack Hit Prefab Path"),
+    SERIALIZED_ASSET_REF(m_shieldAttackHitPrefab, "Shield Attack Hit Prefab", AssetType::PREFAB),
     SERIALIZED_FLOAT(walkingDustYOffset, "Walking Dust Y Offset", -5.0f, 5.0f, 0.05f),
-    SERIALIZED_FLOAT(walkingDustForwardOffset, "Walking Dust Forward Offset", -5.0f, 5.0f, 0.05f)
+    SERIALIZED_FLOAT(walkingDustForwardOffset, "Walking Dust Forward Offset", -5.0f, 5.0f, 0.05f),
+    SERIALIZED_FLOAT(m_shieldAttackParticlesYOffset, "Shield Attack Particles Y Offset", -5.0f, 5.0f, 0.05f)
 )
 
 PaladinVFX::PaladinVFX(GameObject* owner)
@@ -16,20 +25,25 @@ PaladinVFX::PaladinVFX(GameObject* owner)
 
 void PaladinVFX::Start()
 {
-    walkingDustEffect = nullptr;
     walkingDustActive = false;
-
-    chargeAttackEffect = nullptr;
     chargeAttackEffectActive = false;
-
-    basicAttackTelegraph = nullptr;
-
-    basicAttackEffect = nullptr;
     basicAttackEffectTimer = 0.0f;
+    m_detectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
+}
+
+void PaladinVFX::OnGameStop()
+{
+    m_timedHitVfx.clear();
+    ParticleLifecycle::destroy(walkingDustEffect);
+    ParticleLifecycle::destroy(chargeAttackEffect);
+    ParticleLifecycle::destroy(basicAttackTelegraph);
+    ParticleLifecycle::destroy(basicAttackEffect);
 }
 
 void PaladinVFX::Update()
 {
+    m_timedHitVfx.update(Time::getDeltaTime());
+
     if (walkingDustActive && walkingDustEffect)
     {
         updateWalkingDustPosition();
@@ -84,7 +98,6 @@ void PaladinVFX::startBasicAttackTelegraph(
     const Vector3& rotation
 )
 {
-    removeBasicAttackTelegraph();
     addBasicAttackTelegraph(position, rotation);
 }
 
@@ -95,7 +108,6 @@ void PaladinVFX::stopBasicAttackTelegraph()
 
 void PaladinVFX::playBasicAttackEffect()
 {
-    removeBasicAttackEffect();
     addBasicAttackEffect();
 
     if (basicAttackEffect)
@@ -105,6 +117,112 @@ void PaladinVFX::playBasicAttackEffect()
     else
     {
         basicAttackEffectTimer = 0.0f;
+    }
+}
+
+void PaladinVFX::playShieldAttackStart(const Vector3& position, const Vector3& direction)
+{
+    if (!m_shieldAttackParticlesPrefab.m_id.isValid())
+    {
+        return;
+    }
+
+    Vector3 flatDirection = direction;
+    flatDirection.y = 0.0f;
+
+    Vector3 rotation = Vector3::Zero;
+    if (flatDirection.LengthSquared() > 0.0001f)
+    {
+        flatDirection.Normalize();
+        const float yawDegrees = std::atan2(flatDirection.x, flatDirection.z) * (180.0f / 3.14159265f);
+        rotation = Vector3(0.0f, yawDegrees, 0.0f);
+    }
+
+    Vector3 spawnPosition = position;
+    spawnPosition.y += m_shieldAttackParticlesYOffset;
+
+    GameObject* instance = GameObjectAPI::instantiatePrefab(m_shieldAttackParticlesPrefab.m_id, spawnPosition, rotation, nullptr);
+    if (instance != nullptr)
+    {
+        m_timedHitVfx.scheduleDestroy(instance, ParticleLifecycle::kDefaultOneShotLifetime);
+    }
+}
+
+void PaladinVFX::spawnShieldAttackHit(const Vector3& position)
+{
+    ParticleLifecycle::spawnOneShotTimed(
+        m_timedHitVfx,
+        m_shieldAttackHitPrefab.m_id,
+        position,
+        Vector3::Zero,
+        ParticleLifecycle::kDefaultOneShotLifetime
+    );
+}
+
+bool PaladinVFX::isTargetInRectangle(
+    Transform* targetTransform,
+    const Vector3& origin,
+    const Vector3& direction,
+    float length,
+    float width
+) const
+{
+    if (!targetTransform || length <= 0.0f || width <= 0.0f)
+    {
+        return false;
+    }
+
+    Vector3 flatDirection = direction;
+    flatDirection.y = 0.0f;
+
+    if (flatDirection.LengthSquared() < 0.0001f)
+    {
+        return false;
+    }
+
+    flatDirection.Normalize();
+
+    Vector3 rightDirection(flatDirection.z, 0.0f, -flatDirection.x);
+
+    Vector3 toTarget = TransformAPI::getGlobalPosition(targetTransform) - origin;
+    toTarget.y = 0.0f;
+
+    const float forwardDistance = flatDirection.Dot(toTarget);
+
+    if (forwardDistance < 0.0f || forwardDistance > length)
+    {
+        return false;
+    }
+
+    const float lateralDistance = rightDirection.Dot(toTarget);
+    const float halfWidth = width * 0.5f;
+
+    return lateralDistance >= -halfWidth && lateralDistance <= halfWidth;
+}
+
+void PaladinVFX::playShieldAttackHits(
+    const Vector3& origin,
+    const Vector3& direction,
+    float length,
+    float width
+)
+{
+    if (!m_shieldAttackHitPrefab.m_id.isValid() || !m_detectionAggro)
+    {
+        return;
+    }
+
+    Transform* lyrielTransform = m_detectionAggro->getLyrielTransform();
+    Transform* deathTransform = m_detectionAggro->getDeathTransform();
+
+    if (isTargetInRectangle(lyrielTransform, origin, direction, length, width))
+    {
+        spawnShieldAttackHit(TransformAPI::getGlobalPosition(lyrielTransform));
+    }
+
+    if (isTargetInRectangle(deathTransform, origin, direction, length, width))
+    {
+        spawnShieldAttackHit(TransformAPI::getGlobalPosition(deathTransform));
     }
 }
 
@@ -202,15 +320,49 @@ Vector3 PaladinVFX::getOwnerRotation() const
     return TransformAPI::getGlobalEulerDegrees(ownerTransform);
 }
 
-void PaladinVFX::addWalkingDust()
+void PaladinVFX::ensureWalkingDust()
 {
-    removeWalkingDust();
-
-    walkingDustEffect = GameObjectAPI::instantiatePrefab(
+    ParticleLifecycle::ensurePersistent(
+        walkingDustEffect,
         m_walkingDustPrefab.m_id,
         getWalkingDustPosition(),
         getOwnerRotation()
     );
+}
+
+void PaladinVFX::ensureChargeAttackEffect()
+{
+    ParticleLifecycle::ensurePersistent(
+        chargeAttackEffect,
+        m_chargeAttackEffectPrefab.m_id,
+        getChargeAttackEffectPosition(),
+        getOwnerRotation()
+    );
+}
+
+void PaladinVFX::ensureBasicAttackTelegraph(const Vector3& position, const Vector3& rotation)
+{
+    ParticleLifecycle::ensurePersistent(
+        basicAttackTelegraph,
+        m_basicAttackEffectPrefab.m_id,
+        position,
+        rotation
+    );
+}
+
+void PaladinVFX::ensureBasicAttackEffect()
+{
+    ParticleLifecycle::ensurePersistent(
+        basicAttackEffect,
+        m_basicAttackEffectPrefab.m_id,
+        getBasicAttackEffectPosition(),
+        getOwnerRotation()
+    );
+}
+
+void PaladinVFX::addWalkingDust()
+{
+    ensureWalkingDust();
 
     if (!walkingDustEffect)
     {
@@ -219,22 +371,25 @@ void PaladinVFX::addWalkingDust()
         );
 
         walkingDustActive = false;
+        return;
     }
+
+    updateWalkingDustPosition();
+    ParticleLifecycle::activate(walkingDustEffect);
 }
 
 void PaladinVFX::removeWalkingDust()
+{
+    ParticleLifecycle::deactivate(walkingDustEffect);
+}
+
+void PaladinVFX::updateWalkingDustPosition()
 {
     if (!walkingDustEffect)
     {
         return;
     }
 
-    GameObjectAPI::removeGameObject(walkingDustEffect);
-    walkingDustEffect = nullptr;
-}
-
-void PaladinVFX::updateWalkingDustPosition()
-{
     Transform* walkingDustTransform =
         GameObjectAPI::getTransform(walkingDustEffect);
 
@@ -256,13 +411,7 @@ void PaladinVFX::updateWalkingDustPosition()
 
 void PaladinVFX::addChargeAttackEffect()
 {
-    removeChargeAttackEffect();
-
-    chargeAttackEffect = GameObjectAPI::instantiatePrefab(
-        m_chargeAttackEffectPrefab.m_id,
-        getChargeAttackEffectPosition(),
-        getOwnerRotation()
-    );
+    ensureChargeAttackEffect();
 
     if (!chargeAttackEffect)
     {
@@ -271,22 +420,25 @@ void PaladinVFX::addChargeAttackEffect()
         );
 
         chargeAttackEffectActive = false;
+        return;
     }
+
+    updateChargeAttackEffectPosition();
+    ParticleLifecycle::activate(chargeAttackEffect);
 }
 
 void PaladinVFX::removeChargeAttackEffect()
+{
+    ParticleLifecycle::deactivate(chargeAttackEffect);
+}
+
+void PaladinVFX::updateChargeAttackEffectPosition()
 {
     if (!chargeAttackEffect)
     {
         return;
     }
 
-    GameObjectAPI::removeGameObject(chargeAttackEffect);
-    chargeAttackEffect = nullptr;
-}
-
-void PaladinVFX::updateChargeAttackEffectPosition()
-{
     Transform* chargeAttackEffectTransform =
         GameObjectAPI::getTransform(chargeAttackEffect);
 
@@ -314,62 +466,61 @@ void PaladinVFX::addBasicAttackTelegraph(
     Vector3 spawnPosition = position;
     spawnPosition.y += basicAttackTelegraphYOffset;
 
-    basicAttackTelegraph =
-        GameObjectAPI::instantiatePrefab(
-            m_basicAttackEffectPrefab.m_id,
-            spawnPosition,
-            rotation
-        );
+    ensureBasicAttackTelegraph(spawnPosition, rotation);
 
     if (!basicAttackTelegraph)
     {
         Debug::warn(
             "[PaladinVFX] Could not instantiate BasicAttackTelegraph."
         );
+        return;
     }
+
+    Transform* telegraphTransform = GameObjectAPI::getTransform(basicAttackTelegraph);
+    if (telegraphTransform)
+    {
+        TransformAPI::setGlobalPosition(telegraphTransform, spawnPosition);
+        TransformAPI::setGlobalRotationEuler(telegraphTransform, rotation);
+    }
+
+    ParticleLifecycle::activate(basicAttackTelegraph);
 }
 
 void PaladinVFX::removeBasicAttackTelegraph()
 {
-    if (!basicAttackTelegraph)
-    {
-        return;
-    }
-
-    GameObjectAPI::removeGameObject(basicAttackTelegraph);
-    basicAttackTelegraph = nullptr;
+    ParticleLifecycle::deactivate(basicAttackTelegraph);
 }
 
 void PaladinVFX::addBasicAttackEffect()
 {
-    basicAttackEffect = GameObjectAPI::instantiatePrefab(
-        m_basicAttackEffectPrefab.m_id,
-        getBasicAttackEffectPosition(),
-        getOwnerRotation()
-    );
+    ensureBasicAttackEffect();
 
     if (!basicAttackEffect)
     {
         Debug::warn(
             "[PaladinVFX] Could not instantiate BasicAttackEffect prefab."
         );
+        return;
     }
+
+    Transform* effectTransform = GameObjectAPI::getTransform(basicAttackEffect);
+    if (effectTransform)
+    {
+        TransformAPI::setGlobalPosition(effectTransform, getBasicAttackEffectPosition());
+        TransformAPI::setGlobalRotationEuler(effectTransform, getOwnerRotation());
+    }
+
+    ParticleLifecycle::activate(basicAttackEffect);
 }
 
 void PaladinVFX::removeBasicAttackEffect()
 {
-    if (!basicAttackEffect)
-    {
-        return;
-    }
-
-    GameObjectAPI::removeGameObject(basicAttackEffect);
-    basicAttackEffect = nullptr;
+    ParticleLifecycle::deactivate(basicAttackEffect);
 }
 
 void PaladinVFX::updateBasicAttackEffectLifetime(float deltaTime)
 {
-    if (!basicAttackEffect)
+    if (!basicAttackEffect || basicAttackEffectTimer <= 0.0f)
     {
         return;
     }

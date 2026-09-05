@@ -3,9 +3,24 @@
 
 #include "ProjectileBase.h"
 
+namespace
+{
+	std::unique_ptr<Script> createProjectilePool(GameObject* owner)
+	{
+		return std::make_unique<ProjectilePool>(owner);
+	}
+
+	const bool s_registeredProjectilePool =
+		(::registerScript("ProjectilePool", &createProjectilePool), true);
+	const bool s_registeredArrowPool =
+		(::registerScript("ArrowPool", &createProjectilePool), true);
+}
+
 IMPLEMENT_SCRIPT_FIELDS(ProjectilePool,
 	SERIALIZED_INT(m_maxProjectiles, "Max Projectiles"),
-	SERIALIZED_ASSET_REF(m_projectilePrefab, "Projectile Prefab", AssetType::PREFAB)
+	SERIALIZED_INT(m_legacyMaxArrows, "Max Arrows"),
+	SERIALIZED_ASSET_REF(m_projectilePrefab, "Projectile Prefab", AssetType::PREFAB),
+	SERIALIZED_STRING(m_legacyPrefabPath, "Arrow Prefab path")
 )
 
 ProjectilePool::ProjectilePool(GameObject* owner)
@@ -16,21 +31,29 @@ ProjectilePool::ProjectilePool(GameObject* owner)
 void ProjectilePool::Start()
 {
 	m_projectiles.clear();
+}
 
-	for (int i = 0; i < m_maxProjectiles; ++i)
-	{
-		if (!createProjectile())
-		{
-			Debug::log("[ProjectilePoolBase] Failed to create projectile %d", i);
-			break;
-		}
-	}
+int ProjectilePool::resolveMaxProjectiles() const
+{
+	return m_maxProjectiles > m_legacyMaxArrows ? m_maxProjectiles : m_legacyMaxArrows;
 }
 
 bool ProjectilePool::createProjectile()
 {
 	if (!m_projectilePrefab.m_id.isValid())
 	{
+		Debug::error(
+			"[ProjectilePool] '%s' has no projectile prefab assigned. Set Projectile Prefab to LyrielArrow (not the VFX remake).",
+			GameObjectAPI::getName(getOwner()));
+		return false;
+	}
+
+	// The Lyriel VFX remake is not a safe pooled projectile; the original arrow prefab is.
+	if (m_projectilePrefab.m_id.m_uid == 14628721139268362793ULL)
+	{
+		Debug::error(
+			"[ProjectilePool] '%s' has the Lyriel VFX remake as Projectile Prefab. Assign Assets/Models/Weapons/Arrow/LyrielArrow.prefab.",
+			GameObjectAPI::getName(getOwner()));
 		return false;
 	}
 
@@ -43,6 +66,9 @@ bool ProjectilePool::createProjectile()
 
 	if (!projectileObject)
 	{
+		Debug::error(
+			"[ProjectilePool] '%s' failed to instantiate the assigned projectile prefab.",
+			GameObjectAPI::getName(getOwner()));
 		return false;
 	}
 
@@ -72,7 +98,17 @@ ProjectileBase* ProjectilePool::acquireProjectile()
 		}
 	}
 
-	return nullptr;
+	if (static_cast<int>(m_projectiles.size()) >= resolveMaxProjectiles())
+	{
+		return nullptr;
+	}
+
+	if (!createProjectile())
+	{
+		return nullptr;
+	}
+
+	return m_projectiles.back();
 }
 
 void ProjectilePool::releaseProjectile(ProjectileBase* projectile)
@@ -84,5 +120,3 @@ void ProjectilePool::releaseProjectile(ProjectileBase* projectile)
 
 	projectile->resetProjectile();
 }
-
-IMPLEMENT_SCRIPT(ProjectilePool)

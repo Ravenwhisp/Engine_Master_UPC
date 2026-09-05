@@ -66,8 +66,12 @@ void ArcherSomersaultState::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
-    if (m_particles) m_particles->updateChargeParticle();
     moveSomersault();
+
+    if (m_particles)
+    {
+        m_particles->updateChargeParticle();
+    }
 
     if (m_stateTimer >= m_archerController->m_attackConfig.get()->m_somersaultDuration)
     {

@@ -31,6 +31,24 @@
 #include <limits>
 #include <algorithm>
 
+namespace
+{
+    
+    void flattenSubtree(std::unique_ptr<GameObject> root, std::vector<std::unique_ptr<GameObject>>& out)
+    {
+        out.push_back(std::move(root));
+
+        for (size_t i = 0; i < out.size(); ++i)
+        {
+            std::vector<std::unique_ptr<GameObject>> children = out[i]->releaseChildren();
+            for (auto& child : children)
+            {
+                out.push_back(std::move(child));
+            }
+        }
+    }
+}
+
 
 Scene::Scene(AssetId& id) : Asset(id, AssetType::SCENE)
 {
@@ -218,6 +236,9 @@ void Scene::removeGameObject(UID uuid)
 
     if (!target)
     {
+        
+        DEBUG_WARN("[Scene] removeGameObject: uid=%llu not found, removal request dropped.",
+                   (unsigned long long)uuid);
         return;
     }
 
@@ -246,6 +267,15 @@ void Scene::removePendingGameObjects()
 
 void Scene::flushPendingGameObjects()
 {
+    // Register the prefab subtrees queued by addGameObject while the update
+    // pass was running. Safe now: no loop is iterating m_allObjects anymore.
+    for (size_t i = 0; i < m_pendingPrefabAdds.size(); ++i)
+    {
+        PendingPrefabAdd pending = std::move(m_pendingPrefabAdds[i]);
+        registerAddedObjects(std::move(pending.objects), pending.resolver.get());
+    }
+    m_pendingPrefabAdds.clear();
+
     if (m_pendingObjectsToAdd.empty())
     {
         return;
@@ -309,19 +339,43 @@ void Scene::releasePendingDestroyedGameObjects()
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver)
 {
-    const std::string rootName = gameObject ? gameObject->GetName() : "<null>";
+    if (gameObject == nullptr)
+    {
+        return;
+    }
 
-    std::vector<std::unique_ptr<GameObject>> all;
-    all.push_back(std::move(gameObject));
+    std::vector<std::unique_ptr<GameObject>> objects;
+    flattenSubtree(std::move(gameObject), objects);
 
-    for (size_t i = 0; i < all.size(); ++i)
-        for (auto& child : all[i]->releaseChildren())
-            all.push_back(std::move(child));
+    if (m_isUpdating)
+    {
+        PendingPrefabAdd pending;
+        if (externalResolver)
+        {
+            pending.resolver = std::make_unique<SceneReferenceResolver>();
+            pending.resolver->mergeFrom(*externalResolver);
+        }
+        pending.objects = std::move(objects);
+        m_pendingPrefabAdds.push_back(std::move(pending));
+        return;
+    }
+
+    registerAddedObjects(std::move(objects), externalResolver);
+}
+
+void Scene::registerAddedObjects(std::vector<std::unique_ptr<GameObject>> objects, const SceneReferenceResolver* externalResolver)
+{
+    if (objects.empty())
+    {
+        return;
+    }
+
+    const std::string rootName = objects.front()->GetName();
 
     std::vector<GameObject*> newGOs;
-    newGOs.reserve(all.size());
+    newGOs.reserve(objects.size());
 
-    for (auto& go : all)
+    for (auto& go : objects)
     {
         GameObject* raw = go.get();
         newGOs.push_back(raw);
@@ -392,8 +446,19 @@ void Scene::destroyGameObject(GameObject* gameObject)
 
     removeFromRootList(gameObject);
 
+    if (extractPendingGameObject(gameObject))
+    {
+        markDirty();
+        return;
+    }
+
     auto mapIt = m_objectIndexMap.find(gameObject);
-    if (mapIt == m_objectIndexMap.end()) return;
+    if (mapIt == m_objectIndexMap.end())
+    {
+        DEBUG_WARN("[Scene] destroyGameObject: '%s' (uid=%llu) is not owned by this scene, ignoring.",
+                   gameObject->GetName().c_str(), (unsigned long long)gameObject->GetID());
+        return;
+    }
 
     const size_t idx = mapIt->second;
     const size_t lastIdx = m_allObjects.size() - 1;
@@ -415,6 +480,73 @@ void Scene::destroyGameObject(GameObject* gameObject)
     m_allObjects.pop_back();
     m_objectIndexMap.erase(mapIt);
     markDirty();
+}
+
+bool Scene::extractPendingGameObject(GameObject* gameObject)
+{
+    if (gameObject == nullptr)
+    {
+        return false;
+    }
+
+    // Flat pending adds (createGameObject / createGameObjectWithUID).
+    for (auto it = m_pendingObjectsToAdd.begin(); it != m_pendingObjectsToAdd.end(); ++it)
+    {
+        if (it->get() == gameObject)
+        {
+            m_pendingDestroyedObjects.push_back(
+                PendingDestroyedGameObject{ std::move(*it), 0 });
+            m_pendingObjectsToAdd.erase(it);
+            return true;
+        }
+    }
+
+    // Pending prefab batches: the object plus any of its transform
+    // descendants living in the same batch are released together.
+    for (PendingPrefabAdd& pending : m_pendingPrefabAdds)
+    {
+        std::vector<std::unique_ptr<GameObject>>& objects = pending.objects;
+
+        const bool inBatch = std::any_of(
+            objects.begin(), objects.end(),
+            [gameObject](const std::unique_ptr<GameObject>& owned) { return owned.get() == gameObject; });
+
+        if (!inBatch)
+        {
+            continue;
+        }
+
+        std::vector<GameObject*> subtree{ gameObject };
+        for (size_t i = 0; i < subtree.size(); ++i)
+        {
+            for (GameObject* child : subtree[i]->GetTransform()->getAllChildren())
+            {
+                subtree.push_back(child);
+            }
+        }
+
+        for (auto it = objects.begin(); it != objects.end(); )
+        {
+            if (std::find(subtree.begin(), subtree.end(), it->get()) == subtree.end())
+            {
+                ++it;
+                continue;
+            }
+
+            if (Transform* parentTransform = it->get()->GetTransform()->getRoot())
+            {
+                parentTransform->removeChild(it->get()->GetID());
+            }
+
+            m_pendingDestroyedObjects.push_back(
+                PendingDestroyedGameObject{ std::move(*it), 0 });
+            it = objects.erase(it);
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
@@ -631,6 +763,19 @@ void Scene::clearScene()
     }
 
     m_pendingDestroyedObjects.clear();
+
+    for (PendingPrefabAdd& pending : m_pendingPrefabAdds)
+    {
+        for (auto& object : pending.objects)
+        {
+            if (object)
+            {
+                object->cleanUp();
+            }
+        }
+    }
+
+    m_pendingPrefabAdds.clear();
 
     for (auto& go : m_allObjects)
     {

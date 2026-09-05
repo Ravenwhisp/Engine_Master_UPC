@@ -27,6 +27,12 @@ public:
     void executeEvent(GameplayEventTrigger* trigger) override;
     void stopEvent(GameplayEventTrigger* trigger) override;
 
+    // Fire this cinematic directly (without a GameplayEventTrigger zone), e.g. from a boss
+    // event. Same behaviour as being activated by a trigger (respects this event's own Lock /
+    // Invulnerable / Fade HUD flags).
+    void play() { executeEvent(nullptr); }
+    void stop() { stopEvent(nullptr); }
+
     FieldList getExposedFields() const override;
 
     const std::vector<Transform*>& getTargetPoints() const { return m_targetPoints; }

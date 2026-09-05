@@ -4,6 +4,7 @@
 #include "CharacterBase.h"
 #include "PlayerController.h"
 #include "PlayerMovement.h"
+#include "PlayerAnimationController.h"
 
 #define PI 3.1415926535897931f
 
@@ -101,6 +102,15 @@ void AbilityDash::startDash()
 
     m_isDashing = true;
 
+    if (m_character != nullptr)
+    {
+        PlayerAnimationController* anim = m_character->getAnimationController();
+        if (anim != nullptr)
+        {
+            anim->setDashing(true, getDashDuration());
+        }
+    }
+
     notifyAbilitySuccessfullyStarted();
 
     setAbilityLocked(true);
@@ -123,6 +133,16 @@ void AbilityDash::updateDash(float dt)
 void AbilityDash::stopDash()
 {
     m_isDashing = false;
+
+    if (m_character != nullptr)
+    {
+        PlayerAnimationController* anim = m_character->getAnimationController();
+        if (anim != nullptr)
+        {
+            anim->setDashing(false);
+        }
+    }
+
     onDashEnded();
     m_dashTimer = 0.0f;
     m_dashDirection = Vector3::Zero;

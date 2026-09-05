@@ -19,6 +19,12 @@ public:
     void Teleport();
     void ToggleInvincibility();
     void SpawnEnemy(int enemyPrefabIndex);
+    void RestoreHealth();
+    void DownState();
+    void toLevel1();
+    void killEnemies();
+    void toLevel2();
+    void toBossLevel();
 
 private:
 

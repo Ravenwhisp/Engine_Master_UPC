@@ -6,6 +6,7 @@
 class SkeletonEnemyController;
 class SkeletonDamageable;
 class AnimationComponent;
+class SkeletonParticles;
 
 class SkeletonReviveState : public StateMachineScript
 {
@@ -39,6 +40,7 @@ private:
 	SkeletonEnemyController* m_controller = nullptr;
 	SkeletonDamageable* m_damageable = nullptr;
 	AnimationComponent* m_animation = nullptr;
+	SkeletonParticles* m_particles = nullptr;
 
 	Phase m_phase = Phase::ReviveStart;
 

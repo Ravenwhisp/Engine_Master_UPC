@@ -19,8 +19,6 @@ public:
 	void OnStateExit() override;
 
 private:
-	void stopWalkingDust();
-
 	MeleeEnemyController* m_paladinController = nullptr;
 	AnimationComponent* m_animation = nullptr;
 	PaladinVFX* m_paladinVFX = nullptr;
