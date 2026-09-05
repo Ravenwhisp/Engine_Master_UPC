@@ -44,7 +44,7 @@ public:
     uint32_t getTileCountY() const { return m_constants.tileCountY; }
 
 private:
-    static constexpr uint32_t TILE_SIZE = 8;
+    static constexpr uint32_t TILE_SIZE = 16;
     static constexpr uint32_t MAX_LIGHTS_PER_TILE = 64;
 
     static uint32_t divideRoundUp(uint32_t value, uint32_t divisor);
