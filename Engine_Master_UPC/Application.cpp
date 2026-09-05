@@ -16,6 +16,7 @@
 #include "MD5.h"
 #include "FileIO.h"
 #include <sstream>
+#include <unordered_map>
 #include "ModuleEventSystem.h"
 #include "ModuleGameView.h"
 #include "ModuleNavigation.h"
@@ -120,6 +121,30 @@ bool Application::init()
                             m_moduleMusic->loadBank(initRef);
                         }
                     }
+
+                    std::unordered_map<std::string, std::string> sceneLibIds;
+                    while (std::getline(stream, line))
+                    {
+                        line.erase(0, line.find_first_not_of(" \n\r\t"));
+                        line.erase(line.find_last_not_of(" \n\r\t") + 1);
+
+                        if (line.rfind("scene ", 0) != 0)
+                        {
+                            continue;
+                        }
+
+                        const size_t sep = line.find_last_of(' ');
+                        if (sep <= 6 || sep + 1 >= line.size())
+                        {
+                            continue;
+                        }
+
+                        std::string name = line.substr(6, sep - 6);
+                        std::string libId = line.substr(sep + 1);
+                        sceneLibIds[std::move(name)] = std::move(libId);
+                    }
+
+                    m_moduleScene->setBuildSceneLibIds(std::move(sceneLibIds));
 
                     AssetId ref(uid, sceneHash, AssetType::SCENE);
                     m_moduleScene->loadScene(ref);
