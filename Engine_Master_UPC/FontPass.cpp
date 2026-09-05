@@ -312,7 +312,7 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		UITextCommand command;
 		command.text = buffer;
 		command.x = 10.0f;
-		command.y = 10.0f;
+		command.y = 25.0f;
 		command.color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f);
 		command.scale = 1.0f;
 		command.fontId = DEBUG_FONT_ID;
@@ -329,7 +329,7 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		UITextCommand command;
 		command.text = buffer;
 		command.x = 10.0f;
-		command.y = 10.0f;
+		command.y = 40.0f;
 		command.color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f);
 		command.scale = 1.0f;
 		command.fontId = DEBUG_FONT_ID;
@@ -346,7 +346,7 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		UITextCommand command;
 		command.text = buffer;
 		command.x = 10.0f;
-		command.y = 10.0f;
+		command.y = 55.0f;
 		command.color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f);
 		command.scale = 1.0f;
 		command.fontId = DEBUG_FONT_ID;
