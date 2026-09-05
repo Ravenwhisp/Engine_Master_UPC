@@ -31,24 +31,6 @@
 #include <limits>
 #include <algorithm>
 
-namespace
-{
-    
-    void flattenSubtree(std::unique_ptr<GameObject> root, std::vector<std::unique_ptr<GameObject>>& out)
-    {
-        out.push_back(std::move(root));
-
-        for (size_t i = 0; i < out.size(); ++i)
-        {
-            std::vector<std::unique_ptr<GameObject>> children = out[i]->releaseChildren();
-            for (auto& child : children)
-            {
-                out.push_back(std::move(child));
-            }
-        }
-    }
-}
-
 
 Scene::Scene(AssetId& id) : Asset(id, AssetType::SCENE)
 {
@@ -104,7 +86,7 @@ void Scene::update()
 
         for (const auto& go : m_allObjects)
         {
-            if (go->GetActive())
+            if (go && go->GetActive())
             {
                 go->update();
             }
@@ -112,7 +94,7 @@ void Scene::update()
 
         for (const auto& go : m_allObjects)
         {
-            if (go->GetActive())
+            if (go && go->GetActive())
             {
                 go->lateUpdate();
             }
@@ -202,6 +184,11 @@ GameObject* Scene::findGameObjectByUID(UID uuid)
 {
     for (const auto& root : m_allObjects)
     {
+        if (!root)
+        {
+            continue;
+        }
+
         if (root->GetID() == uuid)
         {
             return root.get();
@@ -236,9 +223,6 @@ void Scene::removeGameObject(UID uuid)
 
     if (!target)
     {
-        
-        DEBUG_WARN("[Scene] removeGameObject: uid=%llu not found, removal request dropped.",
-                   (unsigned long long)uuid);
         return;
     }
 
@@ -267,15 +251,6 @@ void Scene::removePendingGameObjects()
 
 void Scene::flushPendingGameObjects()
 {
-    // Register the prefab subtrees queued by addGameObject while the update
-    // pass was running. Safe now: no loop is iterating m_allObjects anymore.
-    for (size_t i = 0; i < m_pendingPrefabAdds.size(); ++i)
-    {
-        PendingPrefabAdd pending = std::move(m_pendingPrefabAdds[i]);
-        registerAddedObjects(std::move(pending.objects), pending.resolver.get());
-    }
-    m_pendingPrefabAdds.clear();
-
     if (m_pendingObjectsToAdd.empty())
     {
         return;
@@ -327,7 +302,10 @@ void Scene::releasePendingDestroyedGameObjects()
     {
         if (commandQueue->isFenceComplete(it->fenceValue))
         {
-            it->gameObject->cleanUp();
+            if (it->gameObject)
+            {
+                it->gameObject->cleanUp();
+            }
             it = m_pendingDestroyedObjects.erase(it);
         }
         else
@@ -339,46 +317,40 @@ void Scene::releasePendingDestroyedGameObjects()
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver)
 {
-    if (gameObject == nullptr)
+    if (!gameObject)
     {
+        DEBUG_WARN("[Scene] Refusing to add a null GameObject.");
         return;
     }
 
-    std::vector<std::unique_ptr<GameObject>> objects;
-    flattenSubtree(std::move(gameObject), objects);
+    const std::string rootName = gameObject->GetName();
 
-    if (m_isUpdating)
-    {
-        PendingPrefabAdd pending;
-        if (externalResolver)
+    std::vector<std::unique_ptr<GameObject>> all;
+    all.push_back(std::move(gameObject));
+    GameObject* rootObject = all.front().get();
+
+    for (size_t i = 0; i < all.size(); ++i)
+        for (auto& child : all[i]->releaseChildren())
         {
-            pending.resolver = std::make_unique<SceneReferenceResolver>();
-            pending.resolver->mergeFrom(*externalResolver);
+            if (!child)
+            {
+                continue;
+            }
+            all.push_back(std::move(child));
         }
-        pending.objects = std::move(objects);
-        m_pendingPrefabAdds.push_back(std::move(pending));
-        return;
-    }
-
-    registerAddedObjects(std::move(objects), externalResolver);
-}
-
-void Scene::registerAddedObjects(std::vector<std::unique_ptr<GameObject>> objects, const SceneReferenceResolver* externalResolver)
-{
-    if (objects.empty())
-    {
-        return;
-    }
-
-    const std::string rootName = objects.front()->GetName();
 
     std::vector<GameObject*> newGOs;
-    newGOs.reserve(objects.size());
+    newGOs.reserve(all.size());
 
-    for (auto& go : objects)
+    for (auto& go : all)
     {
         GameObject* raw = go.get();
         newGOs.push_back(raw);
+        // Clones (prefab instances, snapshot restores) carry this flag from
+        // GameObject::clone(); it must not survive adoption into a live scene,
+        // otherwise moveGameObjectInQuadtrees() skips them forever and they
+        // never appear in frustum-culled render lists.
+        raw->ClearSnapshotClone();
         m_allObjects.push_back(std::move(go));
         m_objectIndexMap[raw] = m_allObjects.size() - 1;
         if (raw->GetTransform()->getRoot() == nullptr)
@@ -408,6 +380,11 @@ void Scene::registerAddedObjects(std::vector<std::unique_ptr<GameObject>> object
             c->fixReferences(resolver);
     }
 
+    // Objects added through this API must have one consistent initialization
+    // path. Previously prefab spawning initialized only the root after the
+    // object was already exposed to the scene systems.
+    rootObject->init();
+
     // Track the new objects in the quadtrees right away (this also rebuilds
     // the tree if they lie outside the built bounds). Done after the fix
     // pass so MeshRenderers already have valid bounding boxes.
@@ -427,7 +404,7 @@ void Scene::registerAddedObjects(std::vector<std::unique_ptr<GameObject>> object
     }
 
     DEBUG_LOG("[Scene] '%s' added (+%zu subtree objects): references fixed, quadtrees updated.",
-              rootName.c_str(), newGOs.size());
+        rootName.c_str(), newGOs.size());
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
@@ -446,18 +423,19 @@ void Scene::destroyGameObject(GameObject* gameObject)
 
     removeFromRootList(gameObject);
 
-    if (extractPendingGameObject(gameObject))
+    auto mapIt = m_objectIndexMap.find(gameObject);
+    if (mapIt == m_objectIndexMap.end()) return;
+
+    // Renderer caches contain raw component pointers. Detach them before the
+    // object can be cleaned up by the deferred destruction queue.
+    if (app->getModuleScene())
     {
-        markDirty();
-        return;
+        app->getModuleScene()->invalidateComponentCaches();
     }
 
-    auto mapIt = m_objectIndexMap.find(gameObject);
-    if (mapIt == m_objectIndexMap.end())
+    if (m_defaultCamera && m_defaultCamera->getOwner() == gameObject)
     {
-        DEBUG_WARN("[Scene] destroyGameObject: '%s' (uid=%llu) is not owned by this scene, ignoring.",
-                   gameObject->GetName().c_str(), (unsigned long long)gameObject->GetID());
-        return;
+        m_defaultCamera = nullptr;
     }
 
     const size_t idx = mapIt->second;
@@ -480,73 +458,6 @@ void Scene::destroyGameObject(GameObject* gameObject)
     m_allObjects.pop_back();
     m_objectIndexMap.erase(mapIt);
     markDirty();
-}
-
-bool Scene::extractPendingGameObject(GameObject* gameObject)
-{
-    if (gameObject == nullptr)
-    {
-        return false;
-    }
-
-    // Flat pending adds (createGameObject / createGameObjectWithUID).
-    for (auto it = m_pendingObjectsToAdd.begin(); it != m_pendingObjectsToAdd.end(); ++it)
-    {
-        if (it->get() == gameObject)
-        {
-            m_pendingDestroyedObjects.push_back(
-                PendingDestroyedGameObject{ std::move(*it), 0 });
-            m_pendingObjectsToAdd.erase(it);
-            return true;
-        }
-    }
-
-    // Pending prefab batches: the object plus any of its transform
-    // descendants living in the same batch are released together.
-    for (PendingPrefabAdd& pending : m_pendingPrefabAdds)
-    {
-        std::vector<std::unique_ptr<GameObject>>& objects = pending.objects;
-
-        const bool inBatch = std::any_of(
-            objects.begin(), objects.end(),
-            [gameObject](const std::unique_ptr<GameObject>& owned) { return owned.get() == gameObject; });
-
-        if (!inBatch)
-        {
-            continue;
-        }
-
-        std::vector<GameObject*> subtree{ gameObject };
-        for (size_t i = 0; i < subtree.size(); ++i)
-        {
-            for (GameObject* child : subtree[i]->GetTransform()->getAllChildren())
-            {
-                subtree.push_back(child);
-            }
-        }
-
-        for (auto it = objects.begin(); it != objects.end(); )
-        {
-            if (std::find(subtree.begin(), subtree.end(), it->get()) == subtree.end())
-            {
-                ++it;
-                continue;
-            }
-
-            if (Transform* parentTransform = it->get()->GetTransform()->getRoot())
-            {
-                parentTransform->removeChild(it->get()->GetID());
-            }
-
-            m_pendingDestroyedObjects.push_back(
-                PendingDestroyedGameObject{ std::move(*it), 0 });
-            it = objects.erase(it);
-        }
-
-        return true;
-    }
-
-    return false;
 }
 
 bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
@@ -660,6 +571,11 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
 
     for (const auto& obj : m_allObjects)
     {
+        if (!obj || !obj->GetTransform())
+        {
+            continue;
+        }
+
         if (obj->GetTransform()->getRoot() != nullptr)
             continue;
 
@@ -667,8 +583,18 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
 
         for (size_t j = result.size() - 1; j < result.size(); ++j)
         {
+            if (!result[j] || !result[j]->GetTransform())
+            {
+                continue;
+            }
+
             for (GameObject* child : result[j]->GetTransform()->getAllChildren())
-                result.push_back(child);
+            {
+                if (child && child->GetTransform())
+                {
+                    result.push_back(child);
+                }
+            }
         }
     }
 
@@ -752,6 +678,11 @@ void Scene::clearScene()
 {
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
+    if (app->getModuleScene())
+    {
+        app->getModuleScene()->invalidateComponentCaches();
+    }
+
     clearTriggers();
 
     for (auto& pending : m_pendingDestroyedObjects)
@@ -764,22 +695,20 @@ void Scene::clearScene()
 
     m_pendingDestroyedObjects.clear();
 
-    for (PendingPrefabAdd& pending : m_pendingPrefabAdds)
+    for (auto& go : m_allObjects)
     {
-        for (auto& object : pending.objects)
+        if (go)
         {
-            if (object)
-            {
-                object->cleanUp();
-            }
+            go->cleanUp();
         }
     }
 
-    m_pendingPrefabAdds.clear();
-
-    for (auto& go : m_allObjects)
+    for (auto& go : m_pendingObjectsToAdd)
     {
-        go->cleanUp();
+        if (go)
+        {
+            go->cleanUp();
+        }
     }
 
     m_rootObjects.clear();

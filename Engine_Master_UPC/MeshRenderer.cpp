@@ -49,7 +49,10 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset)
         Vector3 boundsMin = meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
         Vector3 boundsMax = meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
         m_boundingBox = Engine::BoundingBox(boundsMin, boundsMax);
-        m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+        if (m_owner && m_owner->GetTransform())
+        {
+            m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+        }
     }
 }
 
@@ -226,11 +229,21 @@ void MeshRenderer::debugDraw()
 
 void MeshRenderer::onTransformChange()
 {
+    if (!m_owner || !m_owner->GetTransform())
+    {
+        return;
+    }
+
     m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
 }
 
 void MeshRenderer::update()
 {
+    if (!m_owner || !m_owner->GetTransform())
+    {
+        return;
+    }
+
     if (m_skin)
     {
         m_skin->lateUpdate(m_owner, *this);
