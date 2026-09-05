@@ -110,6 +110,9 @@ public:
 #pragma region Systems
     void initializeRuntimeSceneSystems();
     void clearRuntimeSceneSystems();
+
+    // Removes raw component pointers before Scene starts deferred cleanup.
+    void invalidateComponentCaches();
 #pragma endregion
 
     Scene* getScene() { return m_scene.get(); }

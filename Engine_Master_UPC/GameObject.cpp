@@ -247,11 +247,22 @@ bool GameObject::init()
 {
     for (const std::unique_ptr<Component>& component : m_components)
     {
-        component->init();
+        if (component)
+        {
+            component->init();
+        }
     }
+    if (!m_transform)
+    {
+        return false;
+    }
+
     for (GameObject* child : m_transform->getAllChildren())
     {
-        child->init();
+        if (child)
+        {
+            child->init();
+        }
     }
     return true;
 }
@@ -295,6 +306,7 @@ bool GameObject::cleanUp()
         component->cleanUp();
     }
     m_components.clear();
+    m_transform = nullptr;
 
     return true;
 }
@@ -711,7 +723,10 @@ void GameObject::onTransformChange()
 {
     for (const auto& component : m_components)
     {
-        component->onTransformChange();
+        if (component)
+        {
+            component->onTransformChange();
+        }
     }
 
     app->getModuleScene()->moveGameObjectInQuadtrees(*this);

@@ -86,7 +86,7 @@ void Scene::update()
 
         for (const auto& go : m_allObjects)
         {
-            if (go->GetActive())
+            if (go && go->GetActive())
             {
                 go->update();
             }
@@ -94,7 +94,7 @@ void Scene::update()
 
         for (const auto& go : m_allObjects)
         {
-            if (go->GetActive())
+            if (go && go->GetActive())
             {
                 go->lateUpdate();
             }
@@ -184,6 +184,11 @@ GameObject* Scene::findGameObjectByUID(UID uuid)
 {
     for (const auto& root : m_allObjects)
     {
+        if (!root)
+        {
+            continue;
+        }
+
         if (root->GetID() == uuid)
         {
             return root.get();
@@ -297,7 +302,10 @@ void Scene::releasePendingDestroyedGameObjects()
     {
         if (commandQueue->isFenceComplete(it->fenceValue))
         {
-            it->gameObject->cleanUp();
+            if (it->gameObject)
+            {
+                it->gameObject->cleanUp();
+            }
             it = m_pendingDestroyedObjects.erase(it);
         }
         else
@@ -309,14 +317,27 @@ void Scene::releasePendingDestroyedGameObjects()
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver)
 {
-    const std::string rootName = gameObject ? gameObject->GetName() : "<null>";
+    if (!gameObject)
+    {
+        DEBUG_WARN("[Scene] Refusing to add a null GameObject.");
+        return;
+    }
+
+    const std::string rootName = gameObject->GetName();
 
     std::vector<std::unique_ptr<GameObject>> all;
     all.push_back(std::move(gameObject));
+    GameObject* rootObject = all.front().get();
 
     for (size_t i = 0; i < all.size(); ++i)
         for (auto& child : all[i]->releaseChildren())
+        {
+            if (!child)
+            {
+                continue;
+            }
             all.push_back(std::move(child));
+        }
 
     std::vector<GameObject*> newGOs;
     newGOs.reserve(all.size());
@@ -325,6 +346,11 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneRef
     {
         GameObject* raw = go.get();
         newGOs.push_back(raw);
+        // Clones (prefab instances, snapshot restores) carry this flag from
+        // GameObject::clone(); it must not survive adoption into a live scene,
+        // otherwise moveGameObjectInQuadtrees() skips them forever and they
+        // never appear in frustum-culled render lists.
+        raw->ClearSnapshotClone();
         m_allObjects.push_back(std::move(go));
         m_objectIndexMap[raw] = m_allObjects.size() - 1;
         if (raw->GetTransform()->getRoot() == nullptr)
@@ -353,6 +379,11 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneRef
         for (Component* c : obj->GetAllComponents())
             c->fixReferences(resolver);
     }
+
+    // Objects added through this API must have one consistent initialization
+    // path. Previously prefab spawning initialized only the root after the
+    // object was already exposed to the scene systems.
+    rootObject->init();
 
     // Track the new objects in the quadtrees right away (this also rebuilds
     // the tree if they lie outside the built bounds). Done after the fix
@@ -394,6 +425,18 @@ void Scene::destroyGameObject(GameObject* gameObject)
 
     auto mapIt = m_objectIndexMap.find(gameObject);
     if (mapIt == m_objectIndexMap.end()) return;
+
+    // Renderer caches contain raw component pointers. Detach them before the
+    // object can be cleaned up by the deferred destruction queue.
+    if (app->getModuleScene())
+    {
+        app->getModuleScene()->invalidateComponentCaches();
+    }
+
+    if (m_defaultCamera && m_defaultCamera->getOwner() == gameObject)
+    {
+        m_defaultCamera = nullptr;
+    }
 
     const size_t idx = mapIt->second;
     const size_t lastIdx = m_allObjects.size() - 1;
@@ -528,6 +571,11 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
 
     for (const auto& obj : m_allObjects)
     {
+        if (!obj || !obj->GetTransform())
+        {
+            continue;
+        }
+
         if (obj->GetTransform()->getRoot() != nullptr)
             continue;
 
@@ -535,8 +583,18 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
 
         for (size_t j = result.size() - 1; j < result.size(); ++j)
         {
+            if (!result[j] || !result[j]->GetTransform())
+            {
+                continue;
+            }
+
             for (GameObject* child : result[j]->GetTransform()->getAllChildren())
-                result.push_back(child);
+            {
+                if (child && child->GetTransform())
+                {
+                    result.push_back(child);
+                }
+            }
         }
     }
 
@@ -620,6 +678,11 @@ void Scene::clearScene()
 {
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
+    if (app->getModuleScene())
+    {
+        app->getModuleScene()->invalidateComponentCaches();
+    }
+
     clearTriggers();
 
     for (auto& pending : m_pendingDestroyedObjects)
@@ -634,7 +697,18 @@ void Scene::clearScene()
 
     for (auto& go : m_allObjects)
     {
-        go->cleanUp();
+        if (go)
+        {
+            go->cleanUp();
+        }
+    }
+
+    for (auto& go : m_pendingObjectsToAdd)
+    {
+        if (go)
+        {
+            go->cleanUp();
+        }
     }
 
     m_rootObjects.clear();

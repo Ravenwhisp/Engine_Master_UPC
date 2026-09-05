@@ -41,7 +41,7 @@ private:
     AssetId m_navMesh;
     SSAOSettings m_ssao;
 
-    CameraComponent* m_defaultCamera;
+    CameraComponent* m_defaultCamera = nullptr;
     std::vector<GameObject*> m_rootObjects;
 
     std::vector<UID> m_objectsToRemove;
