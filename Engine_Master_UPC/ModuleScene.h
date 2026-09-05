@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <filesystem> 
 
 class Scene;
@@ -40,6 +41,11 @@ private:
     std::string m_pendingSceneLoad;
     std::shared_ptr<Scene> m_pendingScene;
     AssetId m_pendingSceneAssetId;
+
+    // Scene name -> libId translations exported in build.cfg. Populated in
+    // GAME_RELEASE so loadScene(std::string) can resolve names against the
+    // Library instead of the (missing) Assets/Scenes folder.
+    std::unordered_map<std::string, std::string> m_buildSceneLibIds;
 
     std::vector<MeshRenderer*>            m_meshRenderers;
     std::vector<LightComponent*>          m_lightComponents;
@@ -75,6 +81,8 @@ public:
     void requestSceneChange(const std::string& sceneName);
     void requestSceneChange(std::shared_ptr<Scene> scene);
     void requestSceneChange(const AssetId& ref);
+
+    void setBuildSceneLibIds(std::unordered_map<std::string, std::string> map);
 
     bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
 

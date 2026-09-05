@@ -25,6 +25,7 @@
 #include "OcclusionOccluderComponent.h"
 
 #include "ScenePicking.h"
+#include "MD5.h"
 
 #include <unordered_set>
 
@@ -52,6 +53,11 @@ void ModuleScene::requestSceneChange(std::shared_ptr<Scene> scene)
 void ModuleScene::requestSceneChange(const AssetId& ref)
 {
     m_pendingSceneAssetId = ref;
+}
+
+void ModuleScene::setBuildSceneLibIds(std::unordered_map<std::string, std::string> map)
+{
+    m_buildSceneLibIds = std::move(map);
 }
 
 void ModuleScene::onGameStop()
@@ -430,6 +436,16 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+#ifdef GAME_RELEASE
+    const auto it = m_buildSceneLibIds.find(sceneName);
+    if (it != m_buildSceneLibIds.end())
+    {
+        return loadScene(AssetId(hashToUID(it->second), it->second, AssetType::SCENE));
+    }
+
+    DEBUG_ERROR("[ModuleScene] Scene '%s' has no name translation in build.cfg; falling back to Assets path.", sceneName.c_str());
+#endif
+
     std::string path = "Assets/Scenes/" + sceneName + ".scene";
 
     clearRuntimeSceneSystems();
@@ -541,6 +557,8 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     }
 
     m_scene->resolveLoadedBankNames();
+
+    initializeRuntimeSceneSystems();
 
     return true;
 }
