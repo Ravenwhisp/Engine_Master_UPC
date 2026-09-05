@@ -3,7 +3,6 @@
 
 namespace
 {
-    constexpr float BasicAttackUIYOffset = 0.05f;
     constexpr float RadiansToDegrees = 57.2957795f;
 }
 
@@ -20,16 +19,26 @@ IMPLEMENT_SCRIPT_FIELDS(
         ),
 
         SERIALIZED_COMPONENT_REF(
-            m_basicAttackUIBackground,
-            "Basic Attack UI Background",
+            m_basicAttackUITelegraph,
+            "Basic Attack UI Telegraph",
             ComponentType::TRANSFORM2D
         ),
 
         SERIALIZED_COMPONENT_REF(
-            m_basicAttackUIGlow,
-            "Basic Attack UI Glow",
+            m_basicAttackUIImpact,
+            "Basic Attack UI Impact",
             ComponentType::TRANSFORM2D
-        )
+        ),
+
+        SERIALIZED_FLOAT(m_basicAttackUIWidthMultiplier, "Width Multiplier", 0.1f, 5.0f, 0.01f),
+        SERIALIZED_FLOAT(m_basicAttackUILengthMultiplier, "Length Multiplier", 0.1f, 5.0f, 0.01f),
+
+        SERIALIZED_FLOAT(m_basicAttackUIForwardOffset, "Forward Offset", -5.0f, 5.0f, 0.01f),
+        SERIALIZED_FLOAT(m_basicAttackUISideOffset, "Side Offset", -5.0f, 5.0f, 0.01f),
+        SERIALIZED_FLOAT(m_basicAttackUIHeightOffset, "Height Offset", 0.0f, 1.0f, 0.01f),
+
+        SERIALIZED_FLOAT(m_basicAttackUITelegraphAlpha, "Telegraph Alpha", 0.0f, 1.0f, 0.01f),
+        SERIALIZED_FLOAT(m_basicAttackUIImpactAlpha, "Impact Alpha", 0.0f, 1.0f, 0.01f)
     )
 )
 
@@ -43,11 +52,11 @@ void PaladinUI::Start()
     m_basicAttackUICanvasTransform =
         m_basicAttackUICanvas.getReferencedComponent();
 
-    m_basicAttackUIBackgroundTransform2D =
-        m_basicAttackUIBackground.getReferencedComponent();
+    m_basicAttackUITelegraphTransform2D =
+        m_basicAttackUITelegraph.getReferencedComponent();
 
-    m_basicAttackUIGlowTransform2D =
-        m_basicAttackUIGlow.getReferencedComponent();
+    m_basicAttackUIImpactTransform2D =
+        m_basicAttackUIImpact.getReferencedComponent();
 
     Transform* ownerTransform =
         GameObjectAPI::getTransform(getOwner());
@@ -63,46 +72,46 @@ void PaladinUI::Start()
 
     if (m_basicAttackUICanvasTransform)
     {
-        if (!m_basicAttackUIBackgroundTransform2D)
+        if (!m_basicAttackUITelegraphTransform2D)
         {
-            Transform* backgroundTransform =
+            Transform* telegraphTransform =
                 TransformAPI::findChildByName(
                     m_basicAttackUICanvasTransform,
-                    "Background"
+                    "Telegraph"
                 );
 
-            if (backgroundTransform)
+            if (telegraphTransform)
             {
-                GameObject* backgroundObject =
-                    ComponentAPI::getOwner(backgroundTransform);
+                GameObject* telegraphObject =
+                    ComponentAPI::getOwner(telegraphTransform);
 
-                m_basicAttackUIBackgroundTransform2D =
+                m_basicAttackUITelegraphTransform2D =
                     static_cast<Transform2D*>(
                         GameObjectAPI::getComponent(
-                            backgroundObject,
+                            telegraphObject,
                             ComponentType::TRANSFORM2D
                         )
                         );
             }
         }
 
-        if (!m_basicAttackUIGlowTransform2D)
+        if (!m_basicAttackUIImpactTransform2D)
         {
-            Transform* glowTransform =
+            Transform* impactTransform =
                 TransformAPI::findChildByName(
                     m_basicAttackUICanvasTransform,
-                    "Glow"
+                    "Impact"
                 );
 
-            if (glowTransform)
+            if (impactTransform)
             {
-                GameObject* glowObject =
-                    ComponentAPI::getOwner(glowTransform);
+                GameObject* impactObject =
+                    ComponentAPI::getOwner(impactTransform);
 
-                m_basicAttackUIGlowTransform2D =
+                m_basicAttackUIImpactTransform2D =
                     static_cast<Transform2D*>(
                         GameObjectAPI::getComponent(
-                            glowObject,
+                            impactObject,
                             ComponentType::TRANSFORM2D
                         )
                         );
@@ -118,33 +127,36 @@ void PaladinUI::setupBasicAttackUI(
     float length
 )
 {
-    if (!m_basicAttackUIBackgroundTransform2D ||
-        !m_basicAttackUIGlowTransform2D)
+    const Vector2 attackAreaScale(
+        width * m_basicAttackUIWidthMultiplier,
+        length * m_basicAttackUILengthMultiplier
+    );
+
+    if (m_basicAttackUITelegraphTransform2D)
     {
-        return;
+        Transform2DAPI::setScale(
+            m_basicAttackUITelegraphTransform2D,
+            attackAreaScale
+        );
+
+        Transform2DAPI::setAlpha(
+            m_basicAttackUITelegraphTransform2D,
+            0.0f
+        );
     }
 
-    const Vector2 attackAreaScale(width, length);
+    if (m_basicAttackUIImpactTransform2D)
+    {
+        Transform2DAPI::setScale(
+            m_basicAttackUIImpactTransform2D,
+            attackAreaScale
+        );
 
-    Transform2DAPI::setScale(
-        m_basicAttackUIBackgroundTransform2D,
-        attackAreaScale
-    );
-
-    Transform2DAPI::setScale(
-        m_basicAttackUIGlowTransform2D,
-        attackAreaScale
-    );
-
-    Transform2DAPI::setAlpha(
-        m_basicAttackUIBackgroundTransform2D,
-        0.0f
-    );
-
-    Transform2DAPI::setAlpha(
-        m_basicAttackUIGlowTransform2D,
-        0.0f
-    );
+        Transform2DAPI::setAlpha(
+            m_basicAttackUIImpactTransform2D,
+            0.0f
+        );
+    }
 }
 
 void PaladinUI::showBasicAttackUI(
@@ -152,9 +164,7 @@ void PaladinUI::showBasicAttackUI(
     const Vector3& forwardDirection
 )
 {
-    if (!m_basicAttackUICanvasTransform ||
-        !m_basicAttackUIBackgroundTransform2D ||
-        !m_basicAttackUIGlowTransform2D)
+    if (!m_basicAttackUICanvasTransform)
     {
         return;
     }
@@ -174,17 +184,26 @@ void PaladinUI::showBasicAttackUI(
         forwardDirection
     );
 
-    Transform2DAPI::setAlpha(
-        m_basicAttackUIBackgroundTransform2D,
-        0.45f
-    );
+    if (m_basicAttackUITelegraphTransform2D)
+    {
+        Transform2DAPI::setAlpha(
+            m_basicAttackUITelegraphTransform2D,
+            m_basicAttackUITelegraphAlpha
+        );
+    }
 
-    Transform2DAPI::setAlpha(
-        m_basicAttackUIGlowTransform2D,
-        0.0f
-    );
+    if (m_basicAttackUIImpactTransform2D)
+    {
+        Transform2DAPI::setAlpha(
+            m_basicAttackUIImpactTransform2D,
+            0.0f
+        );
+    }
 
-    GameObjectAPI::setActive(canvasObject, true);
+    GameObjectAPI::setActive(
+        canvasObject,
+        true
+    );
 }
 
 void PaladinUI::updateBasicAttackUIPose(
@@ -207,8 +226,18 @@ void PaladinUI::updateBasicAttackUIPose(
 
     flatForward.Normalize();
 
+    Vector3 right(
+        -flatForward.z,
+        0.0f,
+        flatForward.x
+    );
+
+    right.Normalize();
+
     Vector3 adjustedPosition = centerPosition;
-    adjustedPosition.y += BasicAttackUIYOffset;
+    adjustedPosition += flatForward * m_basicAttackUIForwardOffset;
+    adjustedPosition += right * m_basicAttackUISideOffset;
+    adjustedPosition.y += m_basicAttackUIHeightOffset;
 
     const float yawDegrees =
         std::atan2(
@@ -235,7 +264,41 @@ void PaladinUI::updateBasicAttackUIPose(
 
 void PaladinUI::showBasicAttackImpact()
 {
-    hideBasicAttackUI();
+    if (!m_basicAttackUICanvasTransform)
+    {
+        return;
+    }
+
+    GameObject* canvasObject =
+        ComponentAPI::getOwner(
+            m_basicAttackUICanvasTransform
+        );
+
+    if (!canvasObject)
+    {
+        return;
+    }
+
+    GameObjectAPI::setActive(
+        canvasObject,
+        true
+    );
+
+    if (m_basicAttackUITelegraphTransform2D)
+    {
+        Transform2DAPI::setAlpha(
+            m_basicAttackUITelegraphTransform2D,
+            0.0f
+        );
+    }
+
+    if (m_basicAttackUIImpactTransform2D)
+    {
+        Transform2DAPI::setAlpha(
+            m_basicAttackUIImpactTransform2D,
+            m_basicAttackUIImpactAlpha
+        );
+    }
 }
 
 void PaladinUI::hideBasicAttackUI()
@@ -255,7 +318,10 @@ void PaladinUI::hideBasicAttackUI()
         return;
     }
 
-    GameObjectAPI::setActive(canvasObject, false);
+    GameObjectAPI::setActive(
+        canvasObject,
+        false
+    );
 }
 
 IMPLEMENT_SCRIPT(PaladinUI)

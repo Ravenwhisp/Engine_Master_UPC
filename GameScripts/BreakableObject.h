@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "ScriptAPI.h"
+#include "ParticleLifecycle.h"
 
 class Transform;
 class NavRuntimeBlockerComponent;
@@ -13,8 +14,8 @@ public:
     explicit BreakableObject(GameObject* owner);
 
     void Start() override;
-
-    FieldList getExposedFields() const override;
+    void Update() override;
+    void OnGameStop() override;
 
     virtual void onBreak();
     bool isBroken() const { return m_isBroken; }
@@ -22,15 +23,15 @@ public:
     virtual bool canBeTargetedDuringCombat() const { return false; }
 
 protected:
-	Transform* m_normalObjectTransform = nullptr;
-	Transform* m_brokenObjectTransform = nullptr;
+    Transform* m_normalObjectTransform = nullptr;
+    Transform* m_brokenObjectTransform = nullptr;
     void breakObject();
+    Vector3 getBreakEffectPosition() const;
+    void spawnBreakBaseEffect();
 
-public:
-    PrefabRef m_dustEffectParticle;
+    ParticleLifecycle::TimedParticleTracker m_timedBreakEffects;
 
 private:
     bool m_isBroken = false;
     NavRuntimeBlockerComponent* m_navBlocker = nullptr;
-
 };

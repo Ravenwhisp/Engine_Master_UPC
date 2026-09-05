@@ -21,11 +21,10 @@ void LevelCheats::Update()
     if (KeyComboPressed(KeyCode::W)) AutoLose();
     if (KeyComboPressed(KeyCode::E)) Teleport();
     if (KeyComboPressed(KeyCode::T)) ToggleInvincibility();
-    if (KeyComboPressed(KeyCode::Num3)) SpawnEnemy(0);
-    if (KeyComboPressed(KeyCode::Num4)) SpawnEnemy(1);
+    //if (KeyComboPressed(KeyCode::Num3)) SpawnEnemy(0);
+    //if (KeyComboPressed(KeyCode::Num4)) SpawnEnemy(1);
 	if (KeyComboPressed(KeyCode::Up)) SpawnEnemy(2);
 	if (KeyComboPressed(KeyCode::Down)) SpawnEnemy(3);
-    if (KeyComboPressed(KeyCode::D)) restartLevel();
 	if (KeyComboPressed(KeyCode::F)) killEnemies();
     if (Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::A))
     {
@@ -53,6 +52,21 @@ void LevelCheats::Update()
             DownState(); 
         }
     }
+	if(Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::D))
+    {
+        if (KeyComboPressed(KeyCode::Num1))
+        {
+            toLevel1();
+        }
+        else if (KeyComboPressed(KeyCode::Num2))
+        {
+            toLevel2();
+        }
+        else if (KeyComboPressed(KeyCode::Num3))
+        {
+            toBossLevel();
+		}
+	}
 }
 
 bool LevelCheats::KeyComboPressed(KeyCode mainKey)
@@ -174,7 +188,7 @@ void LevelCheats::DownState()
     }
 }
 
-void LevelCheats::restartLevel()
+void LevelCheats::toLevel1()
 {
     Debug::log("Restart Level activated!");
     SceneAPI::requestSceneChange("Level1");
@@ -194,6 +208,18 @@ void LevelCheats::killEnemies()
             damageable->takeDamage(damageable->getCurrentHp());
         }
     }
+}
+
+void LevelCheats::toLevel2()
+{
+    Debug::log("Teleport to Level 2 activated!");
+    SceneAPI::requestSceneChange("Level2");
+}
+
+void LevelCheats::toBossLevel()
+{
+    Debug::log("Teleport to Boss Level activated!");
+    SceneAPI::requestSceneChange("BossLevel");
 }
 
 IMPLEMENT_SCRIPT(LevelCheats)

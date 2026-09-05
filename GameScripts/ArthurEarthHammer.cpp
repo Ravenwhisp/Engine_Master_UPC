@@ -6,6 +6,8 @@
 #include "EnemyAttackExecutor.h"
 #include "ArthurUI.h"
 #include "ArthurSound.h"
+#include "ArthurParticles.h"
+#include "CameraShake.h"
 
 ArthurEarthHammer::ArthurEarthHammer(GameObject* owner)
     : StateMachineScript(owner)
@@ -19,6 +21,10 @@ void ArthurEarthHammer::OnStateEnter()
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
     m_arthurSound = GameObjectAPI::findScript<ArthurSound>(getOwner());
+    m_arthurParticles = GameObjectAPI::findScript<ArthurParticles>(getOwner());
+
+    GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
+    m_cameraShake = cameraObject ? GameObjectAPI::findScript<CameraShake>(cameraObject) : nullptr;
 
     m_stateTimer = 0.0f;
     m_hasAppliedImpact = false;
@@ -59,6 +65,11 @@ void ArthurEarthHammer::OnStateEnter()
     if (m_arthurSound)
     {
         m_arthurSound->playHammerPreparing();   // wind-up
+    }
+
+    if (m_arthurParticles)
+    {
+        m_arthurParticles->startEarthHammerShockwave();
     }
 
     Debug::log("[ArthurEarthHammer] ENTER");
@@ -103,6 +114,11 @@ void ArthurEarthHammer::OnStateExit()
         m_arthurUI->hideEarthHammerUI();
     }
 
+    if (m_arthurParticles)
+    {
+        m_arthurParticles->stopEarthHammerShockwave();
+    }
+
     Debug::log("[ArthurEarthHammer] EXIT");
 }
 
@@ -137,6 +153,16 @@ void ArthurEarthHammer::applyImpact()
     if (m_arthurSound)
     {
         m_arthurSound->playHammerImpact();
+    }
+
+    if (m_arthurParticles)
+    {
+        m_arthurParticles->playEarthHammerImpact(center);
+    }
+
+    if (m_cameraShake)
+    {
+        m_cameraShake->shakeImpact();
     }
 }
 

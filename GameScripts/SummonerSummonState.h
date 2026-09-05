@@ -3,6 +3,8 @@
 #include "ScriptAPI.h"
 #include "StateMachineScript.h"
 
+#include <vector>
+
 class SummonerEnemyController;
 class AnimationComponent;
 
@@ -20,7 +22,11 @@ public:
 private:
 	SummonerEnemyController* m_controller = nullptr;
 	AnimationComponent* m_animation = nullptr;
+	class SummonerParticles* m_particles = nullptr;
 
 	float m_stateTimer = 0.0f;
 	bool m_hasSummoned = false;
+	bool m_hasScheduledSummonVfx = false;
+
+	std::vector<Vector3> m_plannedSummonPositions;
 };

@@ -14,11 +14,15 @@ public:
 
     FieldList getExposedFields() const override;
 
+    void setAutoDestroy(bool enabled) { m_autoDestroy = enabled; }
+    bool autoDestroyEnabled() const { return m_autoDestroy; }
+
 public:
     float m_lifetime = 2.0f;
 
 private:
     float m_timer = 0.0f;
+    bool m_autoDestroy = true;
 };
 
 

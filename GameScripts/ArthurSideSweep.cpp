@@ -6,6 +6,7 @@
 #include "EnemyAttackExecutor.h"
 #include "ArthurUI.h"
 #include "ArthurSound.h"
+#include "CameraShake.h"
 
 IMPLEMENT_SCRIPT_FIELDS(ArthurSideSweep,
     SERIALIZED_INT(m_sweepSide, "Sweep Side")
@@ -23,6 +24,9 @@ void ArthurSideSweep::OnStateEnter()
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
     m_arthurUI = GameObjectAPI::findScript<ArthurUI>(getOwner());
     m_arthurSound = GameObjectAPI::findScript<ArthurSound>(getOwner());
+
+    GameObject* cameraObject = SceneAPI::getDefaultCameraGameObject();
+    m_cameraShake = cameraObject ? GameObjectAPI::findScript<CameraShake>(cameraObject) : nullptr;
 
     m_stateTimer = 0.0f;
     m_hasAppliedHit = false;
@@ -137,6 +141,11 @@ void ArthurSideSweep::applyHit()
     if (m_arthurSound)
     {
         m_arthurSound->playSideImpact();
+    }
+
+    if (m_cameraShake)
+    {
+        m_cameraShake->shakeLight();
     }
 
     Debug::log("[ArthurSideSweep] Hit applied. Side: %d", m_sweepSide);

@@ -2,6 +2,8 @@
 
 #include "ProjectileBase.h"
 
+#include <string>
+
 class EnergyBallProjectile : public ProjectileBase
 {
 	DECLARE_SCRIPT(EnergyBallProjectile)
@@ -10,14 +12,27 @@ public:
 	explicit EnergyBallProjectile(GameObject* owner);
 
 	void Update() override;
+	void OnGameStop() override;
+
+	FieldList getExposedFields() const override;
 
 	void launch(const Vector3& startPosition, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage);
 	void resetProjectile() override;
 
 private:
 	void applyImpactDamage();
+	void ensureEnergyBallParticle();
+	void updateEnergyBallParticle();
+	void removeEnergyBallParticle();
+
+public:
+	PrefabRef m_energyBallParticlePrefab;
+	std::string m_energyBallParticlePath = "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level2/Summoner/PS_EnergyBall.prefab";
 
 private:
+	GameObject* m_energyBallParticle = nullptr;
+	Transform* m_energyBallParticleTransform = nullptr;
+
 	Vector3 m_direction = Vector3::Zero;
 
 	float m_speed = 0.0f;

@@ -31,10 +31,20 @@ public:
 
 private:
     ComponentRef<Transform> m_basicAttackUICanvas;
-    ComponentRef<Transform2D> m_basicAttackUIBackground;
-    ComponentRef<Transform2D> m_basicAttackUIGlow;
+    ComponentRef<Transform2D> m_basicAttackUITelegraph;
+    ComponentRef<Transform2D> m_basicAttackUIImpact;
 
     Transform* m_basicAttackUICanvasTransform = nullptr;
-    Transform2D* m_basicAttackUIBackgroundTransform2D = nullptr;
-    Transform2D* m_basicAttackUIGlowTransform2D = nullptr;
+    Transform2D* m_basicAttackUITelegraphTransform2D = nullptr;
+    Transform2D* m_basicAttackUIImpactTransform2D = nullptr;
+
+    float m_basicAttackUIWidthMultiplier = 1.0f;
+    float m_basicAttackUILengthMultiplier = 1.0f;
+
+    float m_basicAttackUIForwardOffset = 0.0f;
+    float m_basicAttackUISideOffset = 0.0f;
+    float m_basicAttackUIHeightOffset = 0.05f;
+
+    float m_basicAttackUITelegraphAlpha = 0.45f;
+    float m_basicAttackUIImpactAlpha = 1.0f;
 };

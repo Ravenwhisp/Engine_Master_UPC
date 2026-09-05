@@ -7,6 +7,7 @@ class PlayerAnimationController;
 class HeartbeatHaptic;
 class DeathSound;
 class LyrielSound;
+class SharedPlayerParticles;
 
 class PlayerDamageable : public Damageable
 {
@@ -40,6 +41,7 @@ private:
     HeartbeatHaptic* m_haptic = nullptr;
     DeathSound*  m_deathSound  = nullptr;
     LyrielSound* m_lyrielSound = nullptr;
+    SharedPlayerParticles* m_playerParticles = nullptr;
     DamageHighlightComponent* m_damageHighlight = nullptr;
 
     ComponentRef<Transform> m_renderer;

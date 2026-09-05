@@ -4,6 +4,7 @@
 #include "SkeletonEnemyController.h"
 #include "SkeletonAttackConfig.h"
 #include "EnemyAttackExecutor.h"
+#include "SkeletonParticles.h"
 
 SkeletonScimitarState::SkeletonScimitarState(GameObject* owner)
 	: StateMachineScript(owner)
@@ -15,6 +16,7 @@ void SkeletonScimitarState::OnStateEnter()
 	m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
 	m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
 	m_animation = AnimationAPI::getAnimationComponent(getOwner());
+	m_particles = GameObjectAPI::findScript<SkeletonParticles>(getOwner());
 
 	if (!m_controller)
 	{
@@ -32,6 +34,11 @@ void SkeletonScimitarState::OnStateEnter()
 	{
 		Debug::error("[SkeletonScimitarState] AnimationComponent not found.");
 		return;
+	}
+
+	if (!m_particles)
+	{
+		Debug::warn("[SkeletonScimitarState] SkeletonParticles not found.");
 	}
 
 	m_controller->clearPath();
@@ -210,6 +217,18 @@ void SkeletonScimitarState::applyHit(bool shouldStun)
 
 	const Vector3 center = TransformAPI::getGlobalPosition(ownerTransform);
 	const Vector3 forward = TransformAPI::getForward(ownerTransform);
+
+	if (m_particles && m_attackExecutor)
+	{
+		if (shouldStun)
+		{
+			m_attackExecutor->setNextPlayerHitVfx(m_particles->getThirdAttackHitVfxId());
+		}
+		else
+		{
+			m_attackExecutor->setNextPlayerHitVfx(m_particles->getShieldHitVfxId());
+		}
+	}
 
 	if (shouldStun)
 	{

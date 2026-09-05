@@ -41,6 +41,8 @@ public:
 
 	FieldList getExposedFields() const override;
 
+	bool isSeparationEnabled() const override { return false; }
+
 	Transform* getLyrielTransform() const;
 	Transform* getDeathTransform() const;
 

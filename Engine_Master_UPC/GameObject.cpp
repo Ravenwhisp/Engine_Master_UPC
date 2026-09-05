@@ -136,6 +136,13 @@ bool GameObject::AddClonedComponent(std::unique_ptr<Component> component)
 
 bool GameObject::RemoveComponent(Component* componentToRemove)
 {
+    if (componentToRemove == nullptr || componentToRemove == m_transform)
+    {
+        // The Transform cannot be removed: GameObject always owns exactly one
+        // and GetTransform() would dangle.
+        return false;
+    }
+
     auto it = std::find_if(m_components.begin(), m_components.end(), [componentToRemove](const std::unique_ptr<Component>& ptr) { return ptr.get() == componentToRemove; });
 
     if (it == m_components.end())
@@ -295,6 +302,10 @@ bool GameObject::cleanUp()
         component->cleanUp();
     }
     m_components.clear();
+
+    // The Transform is owned by m_components: after cleanup it no longer
+    // exists, so GetTransform() must not keep handing out the old pointer.
+    m_transform = nullptr;
 
     return true;
 }
