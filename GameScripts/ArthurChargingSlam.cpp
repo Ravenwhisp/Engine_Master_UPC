@@ -96,7 +96,7 @@ void ArthurChargingSlam::OnStateEnter()
 
 void ArthurChargingSlam::OnStateUpdate()
 {
-    if (!m_arthurController || !m_attackConfig.get() || !m_attackExecutor || !m_animation)
+    if (!m_arthurController || !m_arthurController->m_attackConfig.get() || !m_attackExecutor || !m_animation)
     {
         return;
     }
@@ -108,11 +108,11 @@ void ArthurChargingSlam::OnStateUpdate()
 
     m_stateTimer += Time::getDeltaTime();
 
-    float chargingDuration = m_attackConfig.get()->m_chargingSlamHitTime;
+    float chargingDuration = m_arthurController->m_attackConfig.get()->m_chargingSlamHitTime;
 
     if (m_arthurController->isPhase2())
     {
-        chargingDuration = m_attackConfig.get()->m_chargingSlamPhase2HitTime;
+        chargingDuration = m_arthurController->m_attackConfig.get()->m_chargingSlamPhase2HitTime;
     }
 
     if (!m_hasStartedDash)
@@ -136,7 +136,7 @@ void ArthurChargingSlam::OnStateUpdate()
         m_hasAppliedImpact = true;
     }
 
-    if (m_hasAppliedImpact && m_stateTimer >= m_attackConfig.get()->m_chargingSlamTotalDuration)
+    if (m_hasAppliedImpact && m_stateTimer >= m_arthurController->m_attackConfig.get()->m_chargingSlamTotalDuration)
     {
         goToRecover();
         return;
@@ -236,11 +236,11 @@ void ArthurChargingSlam::updateDash()
 
     const float remainingDistance = toDestination.Length();
 
-    float dashSpeed = m_attackConfig.get()->m_chargingSlamDashSpeed;
+    float dashSpeed = m_arthurController->m_attackConfig.get()->m_chargingSlamDashSpeed;
 
     if (m_arthurController->isPhase2())
     {
-        dashSpeed = m_attackConfig.get()->m_chargingSlamPhase2DashSpeed;
+        dashSpeed = m_arthurController->m_attackConfig.get()->m_chargingSlamPhase2DashSpeed;
     }
 
     const float stepDistance = dashSpeed * Time::getDeltaTime();
@@ -276,7 +276,7 @@ void ArthurChargingSlam::tryApplyDashDamage(Transform* targetTransform, bool& ha
         return;
     }
 
-    if (!m_attackExecutor || !m_attackConfig.get())
+    if (!m_attackExecutor || !m_arthurController->m_attackConfig.get())
     {
         return;
     }
@@ -289,7 +289,7 @@ void ArthurChargingSlam::tryApplyDashDamage(Transform* targetTransform, bool& ha
 
     Vector3 center = TransformAPI::getGlobalPosition(ownerTransform);
 
-    const bool damaged = m_attackExecutor->tryDamageTargetInRadius(targetTransform, center, m_attackConfig.get()->m_chargingSlamDashHitRadius, m_attackConfig.get()->m_chargingSlamDashDamage, "ChargingSlamDash");
+    const bool damaged = m_attackExecutor->tryDamageTargetInRadius(targetTransform, center, m_arthurController->m_attackConfig.get()->m_chargingSlamDashHitRadius, m_arthurController->m_attackConfig.get()->m_chargingSlamDashDamage, "ChargingSlamDash");
 
     if (damaged)
     {
@@ -299,7 +299,7 @@ void ArthurChargingSlam::tryApplyDashDamage(Transform* targetTransform, bool& ha
 
 void ArthurChargingSlam::applyImpact()
 {
-    if (!m_attackExecutor || !m_attackConfig.get())
+    if (!m_attackExecutor || !m_arthurController->m_attackConfig.get())
     {
         return;
     }
@@ -311,7 +311,7 @@ void ArthurChargingSlam::applyImpact()
         m_arthurUI->startChargingSlamImpactUI();
     }
 
-    m_attackExecutor->applyDamageAndStunInRadius(m_lockedTargetPosition, m_attackConfig.get()->m_chargingSlamImpactRadius, m_attackConfig.get()->m_chargingSlamFinalAreaImpactDamage, m_attackConfig.get()->m_chargingSlamImpactStunDuration, "ChargingSlamImpact");
+    m_attackExecutor->applyDamageAndStunInRadius(m_lockedTargetPosition, m_arthurController->m_attackConfig.get()->m_chargingSlamImpactRadius, m_arthurController->m_attackConfig.get()->m_chargingSlamFinalAreaImpactDamage, m_arthurController->m_attackConfig.get()->m_chargingSlamImpactStunDuration, "ChargingSlamImpact");
 
     if (m_arthurSound)
     {
@@ -324,14 +324,14 @@ void ArthurChargingSlam::applyImpact()
 
 void ArthurChargingSlam::goToRecover()
 {
-    if (!m_attackConfig.get() || !m_animation)
+    if (!m_arthurController->m_attackConfig.get() || !m_animation)
     {
         return;
     }
 
     if (m_arthurController)
     {
-        m_arthurController->setRecoveryDuration(m_attackConfig.get()->m_chargingSlamRecoveryDuration);
+        m_arthurController->setRecoveryDuration(m_arthurController->m_attackConfig.get()->m_chargingSlamRecoveryDuration);
     }
 
     Debug::log("[ArthurChargingSlam] Going to Recover.");
@@ -341,16 +341,16 @@ void ArthurChargingSlam::goToRecover()
 
 float ArthurChargingSlam::getChargingDuration() const
 {
-    if (!m_attackConfig.get())
+    if (!m_arthurController->m_attackConfig.get())
     {
         return 0.0f;
     }
 
-    float chargingDuration = m_attackConfig.get()->m_chargingSlamHitTime;
+    float chargingDuration = m_arthurController->m_attackConfig.get()->m_chargingSlamHitTime;
 
     if (m_arthurController && m_arthurController->isPhase2())
     {
-        chargingDuration = m_attackConfig.get()->m_chargingSlamPhase2HitTime;
+        chargingDuration = m_arthurController->m_attackConfig.get()->m_chargingSlamPhase2HitTime;
     }
 
     return chargingDuration;
@@ -358,16 +358,16 @@ float ArthurChargingSlam::getChargingDuration() const
 
 float ArthurChargingSlam::getDashSpeed() const
 {
-    if (!m_attackConfig.get())
+    if (!m_arthurController->m_attackConfig.get())
     {
         return 0.0f;
     }
 
-    float dashSpeed = m_attackConfig.get()->m_chargingSlamDashSpeed;
+    float dashSpeed = m_arthurController->m_attackConfig.get()->m_chargingSlamDashSpeed;
 
     if (m_arthurController && m_arthurController->isPhase2())
     {
-        dashSpeed = m_attackConfig.get()->m_chargingSlamPhase2DashSpeed;
+        dashSpeed = m_arthurController->m_attackConfig.get()->m_chargingSlamPhase2DashSpeed;
     }
 
     return dashSpeed;
@@ -431,13 +431,13 @@ void ArthurChargingSlam::setupAnimationDashSection()
 
 void ArthurChargingSlam::setupAnimationImpactSection()
 {
-    if (!m_animation || !m_attackConfig.get())
+    if (!m_animation || !m_arthurController->m_attackConfig.get())
     {
         return;
     }
 
     const float animationImpactDuration = m_animEndTime - m_animImpactStartTime;
-    const float gameplayImpactDuration = m_attackConfig.get()->m_chargingSlamTotalDuration - m_stateTimer;
+    const float gameplayImpactDuration = m_arthurController->m_attackConfig.get()->m_chargingSlamTotalDuration - m_stateTimer;
 
     const float speed = getSafeSectionSpeed(animationImpactDuration, gameplayImpactDuration);
 

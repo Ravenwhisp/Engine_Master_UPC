@@ -1,0 +1,1284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <ItemGroup>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{d0700f9a-4b99-483f-bff3-1d3a8147b395}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems">
+      <UniqueIdentifier>{b253a0ac-b25d-4893-96c3-e43c1186a91c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\Music">
+      <UniqueIdentifier>{f1a2b3c4-d5e6-47a8-9b0c-1d2e3f4a5b6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{c31886a9-4077-449c-804f-6fcf551707ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player">
+      <UniqueIdentifier>{ea20d3d3-b809-4bab-b577-5f4740898a79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player\Targeting">
+      <UniqueIdentifier>{3061405a-a204-4131-a028-1ff12d239d69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player\States">
+      <UniqueIdentifier>{efb0d3d4-8d69-407b-8da8-4ffc1137e7a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player\Bound">
+      <UniqueIdentifier>{34f33962-8cb1-448d-a276-35c10310aef1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player\Transform">
+      <UniqueIdentifier>{fb6b58e2-7f9f-44b4-9755-36d7239c1bd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player\Animation">
+      <UniqueIdentifier>{f6c7d8e9-a0b1-2345-f012-345678901235}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Combat">
+      <UniqueIdentifier>{d4713e17-7ef0-4338-a2ce-d04eea529fa6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies">
+      <UniqueIdentifier>{994356b7-31d7-4286-a7d0-f22fa651b995}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Character">
+      <UniqueIdentifier>{a1f2e3d4-b5c6-7890-abcd-ef1234567890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Character\Death">
+      <UniqueIdentifier>{b2e3f4a5-c6d7-8901-bcde-f01234567891}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Character\Death\Abilities">
+      <UniqueIdentifier>{c3f4a5b6-d7e8-9012-cdef-012345678902}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Character\Lyriel">
+      <UniqueIdentifier>{d4a5b6c7-e8f9-0123-def0-123456789013}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Character\Lyriel\Abilities">
+      <UniqueIdentifier>{e5b6c7d8-f9a0-1234-ef01-234567890124}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Arthur">
+      <UniqueIdentifier>{4f70e375-e641-46b1-8fc4-77b2d8034816}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Arthur\States">
+      <UniqueIdentifier>{10e43235-b0ea-4590-a473-24e5c1676a4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Archer">
+      <UniqueIdentifier>{3e7ea8a6-7ef4-49db-9f2a-bb5ede53a53d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Archer\States">
+      <UniqueIdentifier>{f68d01a4-01d5-4bd7-97e1-24d97173d687}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Variants">
+      <UniqueIdentifier>{3dc318e1-4e10-4bdb-8d4b-fa15527c4478}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay">
+      <UniqueIdentifier>{4ca7c366-15f4-4471-b3a6-dbfca40a14c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Puzzles">
+      <UniqueIdentifier>{5258ec66-1d97-4672-a686-3d60947602f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Traps">
+      <UniqueIdentifier>{29f49c70-b8aa-4257-97d8-dc2e18fdd700}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\HealthDrop">
+      <UniqueIdentifier>{d8de068a-39f8-435a-ad86-ecaf9ed6e761}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Cheats">
+      <UniqueIdentifier>{d5132a89-df51-4500-9e6b-d5d5d8419279}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Breakables">
+      <UniqueIdentifier>{f97590e1-7313-42ac-9fdb-ee5330e20301}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Powerups">
+      <UniqueIdentifier>{2aff9aad-d5be-40f1-a331-13a9ec37a9a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Paladin">
+      <UniqueIdentifier>{920d4967-84f4-4616-9099-b8b0c3eeb8af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\BaseStates">
+      <UniqueIdentifier>{0112598d-0a85-4d82-8391-69ed7ed3e0ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Arthur\UI">
+      <UniqueIdentifier>{a529141b-b492-4638-98db-84183f71004d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game UI">
+      <UniqueIdentifier>{e135fa5e-751a-4bac-acd9-1ede1f2173ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Archer\UI">
+      <UniqueIdentifier>{973f9bea-e3b9-4558-8f7f-a2a715e0920b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Character\Lyriel\UI">
+      <UniqueIdentifier>{48566356-9253-4bd3-8d73-5c8666a2adca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Character\Death\UI">
+      <UniqueIdentifier>{c0d34b51-4e99-4a88-847b-b50081a02770}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player\Targeting\Lyriel">
+      <UniqueIdentifier>{f1d67fa5-e3f2-45e4-9809-bb393a7f43f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Player\Targeting\Death">
+      <UniqueIdentifier>{f0ae8d07-3265-48a1-985a-fbc989dd6a40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Paladin\States">
+      <UniqueIdentifier>{354fd5fd-3f85-4b65-a21e-b65564c3e224}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Events">
+      <UniqueIdentifier>{baef95a7-49dc-4f68-9fbe-d1220cdade01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Events\Camera">
+      <UniqueIdentifier>{4f36a9ae-6441-4cb1-a5b0-d1d06d4dc161}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Events\PopUp">
+      <UniqueIdentifier>{f5133925-52af-42ef-9418-8a5323556ee6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interaction/Gameplay\Events\PlayerObjectives">
+      <UniqueIdentifier>{7a51092b-902d-4bdd-9711-bbb01813d5fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Spider">
+      <UniqueIdentifier>{2756d9fe-4d41-4d85-a715-98bb1ff81954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Spider\States">
+      <UniqueIdentifier>{70c0d2f4-bb1c-4722-94b0-9a8fdd52a250}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Summoner">
+      <UniqueIdentifier>{40f7a28b-a4c4-4292-a8a2-0beb5186ca95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Summoner\States">
+      <UniqueIdentifier>{beb2a869-b60a-4dd2-a54c-ca787632f525}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Combat\Projectiles">
+      <UniqueIdentifier>{90bff8f3-21b4-4d10-b4a9-921262cc9328}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Skeleton">
+      <UniqueIdentifier>{30f114ea-79b4-442b-9bb2-9dfc8072e06d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Skeleton\States">
+      <UniqueIdentifier>{bee86649-753b-4746-bc39-122ddb51888b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Movement">
+      <UniqueIdentifier>{59fd20a4-f8fa-40db-81e4-287d22402309}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\Checkpoints">
+      <UniqueIdentifier>{0f665952-af70-44af-8a12-0776d009bf1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\Checkpoints\Events">
+      <UniqueIdentifier>{b70f8551-d726-4848-a743-f27a359de712}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Systems\Checkpoints\Events\Level1">
+      <UniqueIdentifier>{3e016832-71fe-45ec-a36a-8528048419f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Aelorin">
+      <UniqueIdentifier>{1d70caa4-1ddd-4cb3-a1f9-59e1e10af941}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Aelorin\States">
+      <UniqueIdentifier>{f090f243-95d2-4ec6-873c-b42f9f8b2b88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Aelorin\States\Combat">
+      <UniqueIdentifier>{9096c954-dc28-4c7f-a954-bcde71212b80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enemies\Aelorin\UI">
+      <UniqueIdentifier>{c7d23cbd-96c5-4175-a8b4-628cdd048398}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="DebugDrawTest.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerDamageable.h">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerVitalsMonitor.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="OutlineStyleSetup.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerAnimationController.h">
+      <Filter>Player\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerTargetController.h">
+      <Filter>Player\Targeting</Filter>
+    </ClInclude>
+    <ClInclude Include="TargetIndicatorUI.h">
+      <Filter>Player\Targeting</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerState.h">
+      <Filter>Player\States</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerDownState.h">
+      <Filter>Player\States</Filter>
+    </ClInclude>
+    <ClInclude Include="Bound.h">
+      <Filter>Player\Bound</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerRotation.h">
+      <Filter>Player\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerMovement.h">
+      <Filter>Player\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Damageable.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="DefeatConditionManager.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDamageTrigger.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyShadowMark.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowExecution.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="ReaperGauge.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="CooperativeSound.h">
+      <Filter>Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyDamageable.h">
+      <Filter>Enemies</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyDetectionAggro.h">
+      <Filter>Enemies</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterBase.h">
+      <Filter>Character</Filter>
+    </ClInclude>
+    <ClInclude Include="AbilityBase.h">
+      <Filter>Character</Filter>
+    </ClInclude>
+    <ClInclude Include="AbilityDash.h">
+      <Filter>Character</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathCharacter.h">
+      <Filter>Character\Death</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathSound.h">
+      <Filter>Character\Death</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathAbilityBase.h">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathBasicAttack.h">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathChargedAttack.h">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathDash.h">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathTaunt.h">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielCharacter.h">
+      <Filter>Character\Lyriel</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielSound.h">
+      <Filter>Character\Lyriel</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielAbilityBase.h">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielBasicAttack.h">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielChargedAttack.h">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielArrowVolley.h">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielDash.h">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClInclude>
+    <ClInclude Include="UIController.h">
+      <Filter>Game UI</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuSound.h">
+      <Filter>Game UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIPause.h">
+      <Filter>Game UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UISplashScreen.h">
+      <Filter>Game UI</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurAttackConfig.h">
+      <Filter>Enemies\Arthur</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurAttackDebugDraw.h">
+      <Filter>Enemies\Arthur</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerStunState.h">
+      <Filter>Player\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurChase.h">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClInclude>
+    <ClInclude Include="RangedEnemyController.h">
+      <Filter>Enemies\Archer</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherChaseState.h">
+      <Filter>Enemies\Archer\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherAttackConfig.h">
+      <Filter>Enemies\Archer</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyAttackExecutor.h">
+      <Filter>Enemies</Filter>
+    </ClInclude>
+    <ClInclude Include="DestroyParticles.h">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="CrystalShadowMark.h">
+      <Filter>Interaction/Gameplay\Puzzles</Filter>
+    </ClInclude>
+    <ClInclude Include="HealthDropSpawner.h">
+      <Filter>Interaction/Gameplay\HealthDrop</Filter>
+    </ClInclude>
+    <ClInclude Include="LightZoneManager.h">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="LightZoneTrigger.h">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicManager.h">
+      <Filter>Systems\Music</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicStates.h">
+      <Filter>Systems\Music</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicStateEvent.h">
+      <Filter>Interaction/Gameplay\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Pickup.h">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="PuzzleManagerLVL1.h">
+      <Filter>Interaction/Gameplay\Puzzles</Filter>
+    </ClInclude>
+    <ClInclude Include="HealthPickup.h">
+      <Filter>Interaction/Gameplay\HealthDrop</Filter>
+    </ClInclude>
+    <ClInclude Include="SpikeTrap.h">
+      <Filter>Interaction/Gameplay\Traps</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurDetectionAggro.h">
+      <Filter>Enemies\Arthur</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurBossController.h">
+      <Filter>Enemies\Arthur</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurSound.h">
+      <Filter>Enemies\Arthur</Filter>
+    </ClInclude>
+    <ClInclude Include="BarrierComponent.h">
+      <Filter>Enemies\Variants</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedDeathEnemyState.h">
+      <Filter>Enemies\Variants</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelCheats.h">
+      <Filter>Interaction/Gameplay\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Level2Cheats.h">
+      <Filter>Interaction/Gameplay\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakableHealingDrop.h">
+      <Filter>Interaction/Gameplay\Breakables</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakableObject.h">
+      <Filter>Interaction/Gameplay\Breakables</Filter>
+    </ClInclude>
+    <ClInclude Include="EnvironmentSound.h">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="AmbientSoundLoop.h">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakableDamageable.h">
+      <Filter>Interaction/Gameplay\Breakables</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakableExplosive.h">
+      <Filter>Interaction/Gameplay\Breakables</Filter>
+    </ClInclude>
+    <ClInclude Include="PersistingPowerupState.h">
+      <Filter>Interaction/Gameplay\Powerups</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerupCollectible.h">
+      <Filter>Interaction/Gameplay\Powerups</Filter>
+    </ClInclude>
+    <ClInclude Include="HeartbeatHaptic.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyBaseController.h">
+      <Filter>Enemies</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyStunParticles.h">
+      <Filter>Enemies</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyDeathState.h">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyIdleState.h">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyRecoverState.h">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherArrowBarrageState.h">
+      <Filter>Enemies\Archer\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherArrowProjectile.h">
+      <Filter>Enemies\Archer</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherArrowShooter.h">
+      <Filter>Enemies\Archer</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherGuardParticles.h">
+      <Filter>Enemies\Archer</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemySound.h">
+      <Filter>Enemies</Filter>
+    </ClInclude>
+    <ClInclude Include="PaladinSound.h">
+      <Filter>Enemies\Paladin</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherSound.h">
+      <Filter>Enemies\Archer</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherSomersaultState.h">
+      <Filter>Enemies\Archer\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurChargingSlam.h">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurEarthHammer.h">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurHeavySwipe.h">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurSideSweep.h">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ArthurUI.h">
+      <Filter>Enemies\Arthur\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="ArcherUI.h">
+      <Filter>Enemies\Archer\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielUI.h">
+      <Filter>Character\Lyriel\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterUI.h">
+      <Filter>Character</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathUI.h">
+      <Filter>Character\Death\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielConfig.h">
+      <Filter>Character\Lyriel</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathConfig.h">
+      <Filter>Character\Death</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielTargetIndicatorUI.h">
+      <Filter>Player\Targeting\Lyriel</Filter>
+    </ClInclude>
+    <ClInclude Include="DeathTargetIndicatorUI.h">
+      <Filter>Player\Targeting\Death</Filter>
+    </ClInclude>
+    <ClInclude Include="GameplayEventTrigger.h">
+      <Filter>Interaction/Gameplay\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="GameplayEventAction.h">
+      <Filter>Interaction/Gameplay\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraTransitionEvent.h">
+      <Filter>Interaction/Gameplay\Events\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraTransitionController.h">
+      <Filter>Interaction/Gameplay\Events\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyStunnedState.h">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClInclude>
+    <ClInclude Include="PaladinChaseState.h">
+      <Filter>Enemies\Paladin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="PaladinAttackConfig.h">
+      <Filter>Enemies\Paladin</Filter>
+    </ClInclude>
+    <ClInclude Include="MeleeEnemyController.h">
+      <Filter>Enemies\Paladin</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyBaseAttackConfig.h">
+      <Filter>Enemies</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyAttackState.h">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClInclude>
+    <ClInclude Include="PaladinChargeState.h">
+      <Filter>Enemies\Paladin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="HUDFader.h" />
+    <ClInclude Include="CameraFollow.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioListenerFollow.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraSwitcher.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="LocalMultiplayerSetup.h">
+      <Filter>Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerController.h">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="TestingButton.h">
+      <Filter>Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerArea.h">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="PopUpEvent.h">
+      <Filter>Interaction/Gameplay\Events\PopUp</Filter>
+    </ClInclude>
+    <ClInclude Include="PopUpController.h">
+      <Filter>Interaction/Gameplay\Events\PopUp</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectiveTypes.h">
+      <Filter>Interaction/Gameplay\Events\PlayerObjectives</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectiveEvent.h">
+      <Filter>Interaction/Gameplay\Events\PlayerObjectives</Filter>
+    </ClInclude>
+    <ClInclude Include="SpiderChaseState.h">
+      <Filter>Enemies\Spider\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SpiderEnemyController.h">
+      <Filter>Enemies\Spider</Filter>
+    </ClInclude>
+    <ClInclude Include="SummonerAttackConfig.h">
+      <Filter>Enemies\Summoner</Filter>
+    </ClInclude>
+    <ClInclude Include="SummonerEnemyController.h">
+      <Filter>Enemies\Summoner</Filter>
+    </ClInclude>
+    <ClInclude Include="SummonerIdleState.h">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SummonerTeleportState.h">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SummonerSummonState.h">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SummonerRecoverState.h">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SummonerEnergyBallState.h">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClInclude>
+    <ClInclude Include="EnergyBallProjectile.h">
+      <Filter>Enemies\Summoner</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectileBase.h">
+      <Filter>Combat\Projectiles</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectilePool.h">
+      <Filter>Combat\Projectiles</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielArrowProjectile.h">
+      <Filter>Combat\Projectiles</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraTransitionStep.h" />
+    <ClInclude Include="CameraTransitionStepAction.h" />
+    <ClInclude Include="MoveObjectAlongPathAction.h" />
+    <ClInclude Include="MoveObjectToTransformAction.h" />
+    <ClInclude Include="PlayAnimationAction.h" />
+    <ClInclude Include="DeathParticles.h">
+      <Filter>Character\Death</Filter>
+    </ClInclude>
+    <ClInclude Include="LyrielParticles.h">
+      <Filter>Character\Lyriel</Filter>
+    </ClInclude>
+    <ClInclude Include="CombatAreaEvent.h" />
+    <ClInclude Include="SkeletonAttackConfig.h">
+      <Filter>Enemies\Skeleton</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonDamageable.h">
+      <Filter>Enemies\Skeleton</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonEnemyController.h">
+      <Filter>Enemies\Skeleton</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonScimitarState.h">
+      <Filter>Enemies\Skeleton\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonReviveState.h">
+      <Filter>Enemies\Skeleton\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonGuardState.h">
+      <Filter>Enemies\Skeleton\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonChaseState.h">
+      <Filter>Enemies\Skeleton\States</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonAttackDebugDraw.h">
+      <Filter>Enemies\Skeleton</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraTransitionStepAction.h" />
+    <ClInclude Include="MoveObjectAlongPathAction.h" />
+    <ClInclude Include="MoveObjectToTransformAction.h" />
+    <ClInclude Include="PlayAnimationAction.h" />
+    <ClInclude Include="PaladinVFX.h">
+      <Filter>Enemies\Paladin</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedDeathController.h" />
+    <ClInclude Include="ParticleManager.h" />
+    <ClInclude Include="EnemyForcedMovement.h">
+      <Filter>Enemies\Movement</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundConfig.h" />
+    <ClInclude Include="ChargedAttackBase.h" />
+    <ClInclude Include="PlayerAttackType.h" />
+    <ClInclude Include="EnemyBaseDataConfig.h" />
+    <ClInclude Include="CrystalVisuals.h">
+      <Filter>Interaction/Gameplay\Puzzles</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint1_Level1_Event.h">
+      <Filter>Systems\Checkpoints\Events\Level1</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckpointEvent.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerGamepadBinding.h" />
+    <ClInclude Include="ShadowExecutionConfig.h" />
+    <ClInclude Include="PaladinUI.h">
+      <Filter>Enemies\Paladin</Filter>
+    </ClInclude>
+    <ClInclude Include="PersistingManager.h" />
+    <ClInclude Include="PersistingCheckpointState.h" />
+    <ClInclude Include="AelorinAttackConfig.h">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinAttackExecutor.h">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinBossController.h">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinDamageable.h">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinDebugDraw.h">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinDetectionAggro.h">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClInclude>
+    <ClInclude Include="SeekerSigilProjectile.h">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinIdleState.h">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinPhaseTransitionState.h">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinTeleportState.h">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinThresholdStaggerState.h">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinGraspOfTheDeadState.h">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinNovaState.h">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinRisenSpiresState.h">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinSeekerSigilsState.h">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinSpiritCannonState.h">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinSummonSlot.h">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneCapacityPrewarm.h" />
+    <ClInclude Include="AelorinSoulCataclysmState.h">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinExhaustionState.h">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="PuzzleManagerLVL2.h" />
+    <ClInclude Include="AelorinUI.h">
+      <Filter>Enemies\Aelorin\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinDeathState.h">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="AelorinSummonState.h">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClInclude>
+    <ClInclude Include="ElevatorManager.h" />
+    <ClInclude Include="AelorinLavaController.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="EngineDependencies\SimpleMath.cpp" />
+    <ClCompile Include="DebugDrawTest.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerDamageable.cpp">
+      <Filter>Player</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerVitalsMonitor.cpp">
+      <Filter>Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="OutlineStyleSetup.cpp">
+      <Filter>Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerAnimationController.cpp">
+      <Filter>Player\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerTargetController.cpp">
+      <Filter>Player\Targeting</Filter>
+    </ClCompile>
+    <ClCompile Include="TargetIndicatorUI.cpp">
+      <Filter>Player\Targeting</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerState.cpp">
+      <Filter>Player\States</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerDownState.cpp">
+      <Filter>Player\States</Filter>
+    </ClCompile>
+    <ClCompile Include="Bound.cpp">
+      <Filter>Player\Bound</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerRotation.cpp">
+      <Filter>Player\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerMovement.cpp">
+      <Filter>Player\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Damageable.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="DefeatConditionManager.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDamageTrigger.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyShadowMark.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowExecution.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="ReaperGauge.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="CooperativeSound.cpp">
+      <Filter>Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyDamageable.cpp">
+      <Filter>Enemies</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemySound.cpp">
+      <Filter>Enemies</Filter>
+    </ClCompile>
+    <ClCompile Include="PaladinSound.cpp">
+      <Filter>Enemies\Paladin</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherSound.cpp">
+      <Filter>Enemies\Archer</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyDetectionAggro.cpp">
+      <Filter>Enemies</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterBase.cpp">
+      <Filter>Character</Filter>
+    </ClCompile>
+    <ClCompile Include="AbilityBase.cpp">
+      <Filter>Character</Filter>
+    </ClCompile>
+    <ClCompile Include="AbilityDash.cpp">
+      <Filter>Character</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathCharacter.cpp">
+      <Filter>Character\Death</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathSound.cpp">
+      <Filter>Character\Death</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathAbilityBase.cpp">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathBasicAttack.cpp">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathChargedAttack.cpp">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathDash.cpp">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathTaunt.cpp">
+      <Filter>Character\Death\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielCharacter.cpp">
+      <Filter>Character\Lyriel</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielSound.cpp">
+      <Filter>Character\Lyriel</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielAbilityBase.cpp">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielBasicAttack.cpp">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielChargedAttack.cpp">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielArrowVolley.cpp">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielDash.cpp">
+      <Filter>Character\Lyriel\Abilities</Filter>
+    </ClCompile>
+    <ClCompile Include="UIController.cpp">
+      <Filter>Game UI</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuSound.cpp">
+      <Filter>Game UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIPause.cpp">
+      <Filter>Game UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UISplashScreen.cpp">
+      <Filter>Game UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurAttackConfig.cpp">
+      <Filter>Enemies\Arthur</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurAttackDebugDraw.cpp">
+      <Filter>Enemies\Arthur</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerStunState.cpp">
+      <Filter>Player\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurChase.cpp">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClCompile>
+    <ClCompile Include="RangedEnemyController.cpp">
+      <Filter>Enemies\Archer</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherChaseState.cpp">
+      <Filter>Enemies\Archer\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherAttackConfig.cpp">
+      <Filter>Enemies\Archer</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyAttackExecutor.cpp">
+      <Filter>Enemies</Filter>
+    </ClCompile>
+    <ClCompile Include="DestroyParticles.cpp">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="CrystalShadowMark.cpp">
+      <Filter>Interaction/Gameplay\Puzzles</Filter>
+    </ClCompile>
+    <ClCompile Include="HealthDropSpawner.cpp">
+      <Filter>Interaction/Gameplay\HealthDrop</Filter>
+    </ClCompile>
+    <ClCompile Include="LightZoneManager.cpp">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="LightZoneTrigger.cpp">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="MusicManager.cpp">
+      <Filter>Systems\Music</Filter>
+    </ClCompile>
+    <ClCompile Include="MusicStateEvent.cpp">
+      <Filter>Interaction/Gameplay\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Pickup.cpp">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="PuzzleManagerLVL1.cpp">
+      <Filter>Interaction/Gameplay\Puzzles</Filter>
+    </ClCompile>
+    <ClCompile Include="HealthPickup.cpp">
+      <Filter>Interaction/Gameplay\HealthDrop</Filter>
+    </ClCompile>
+    <ClCompile Include="SpikeTrap.cpp">
+      <Filter>Interaction/Gameplay\Traps</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurDetectionAggro.cpp">
+      <Filter>Enemies\Arthur</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurBossController.cpp">
+      <Filter>Enemies\Arthur</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurSound.cpp">
+      <Filter>Enemies\Arthur</Filter>
+    </ClCompile>
+    <ClCompile Include="BarrierComponent.cpp">
+      <Filter>Enemies\Variants</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkedDeathEnemyState.cpp">
+      <Filter>Enemies\Variants</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelCheats.cpp">
+      <Filter>Interaction/Gameplay\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Level2Cheats.cpp">
+      <Filter>Interaction/Gameplay\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakableHealingDrop.cpp">
+      <Filter>Interaction/Gameplay\Breakables</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakableObject.cpp">
+      <Filter>Interaction/Gameplay\Breakables</Filter>
+    </ClCompile>
+    <ClCompile Include="EnvironmentSound.cpp">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="AmbientSoundLoop.cpp">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakableDamageable.cpp">
+      <Filter>Interaction/Gameplay\Breakables</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakableExplosive.cpp">
+      <Filter>Interaction/Gameplay\Breakables</Filter>
+    </ClCompile>
+    <ClCompile Include="PersistingPowerupState.cpp">
+      <Filter>Interaction/Gameplay\Powerups</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerupCollectible.cpp">
+      <Filter>Interaction/Gameplay\Powerups</Filter>
+    </ClCompile>
+    <ClCompile Include="HeartbeatHaptic.cpp">
+      <Filter>Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyBaseController.cpp">
+      <Filter>Enemies</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyStunParticles.cpp">
+      <Filter>Enemies</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyDeathState.cpp">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyIdleState.cpp">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyRecoverState.cpp">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherArrowBarrageState.cpp">
+      <Filter>Enemies\Archer\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherArrowProjectile.cpp">
+      <Filter>Enemies\Archer</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherArrowShooter.cpp">
+      <Filter>Enemies\Archer</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherGuardParticles.cpp">
+      <Filter>Enemies\Archer</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherSomersaultState.cpp">
+      <Filter>Enemies\Archer\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurChargingSlam.cpp">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurEarthHammer.cpp">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurHeavySwipe.cpp">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurSideSweep.cpp">
+      <Filter>Enemies\Arthur\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ArthurUI.cpp">
+      <Filter>Enemies\Arthur\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ArcherUI.cpp">
+      <Filter>Enemies\Archer\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielUI.cpp">
+      <Filter>Character\Lyriel\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterUI.cpp">
+      <Filter>Character</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathUI.cpp">
+      <Filter>Character\Death\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyStunnedState.cpp">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClCompile>
+    <ClCompile Include="PaladinChaseState.cpp">
+      <Filter>Enemies\Paladin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="MeleeEnemyController.cpp">
+      <Filter>Enemies\Paladin</Filter>
+    </ClCompile>
+    <ClCompile Include="PaladinAttackConfig.cpp">
+      <Filter>Enemies\Paladin</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyBaseAttackConfig.cpp">
+      <Filter>Enemies</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyAttackState.cpp">
+      <Filter>Enemies\BaseStates</Filter>
+    </ClCompile>
+    <ClCompile Include="PaladinChargeState.cpp">
+      <Filter>Enemies\Paladin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielConfig.cpp">
+      <Filter>Character\Lyriel</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathConfig.cpp">
+      <Filter>Character\Death</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielTargetIndicatorUI.cpp">
+      <Filter>Player\Targeting\Lyriel</Filter>
+    </ClCompile>
+    <ClCompile Include="DeathTargetIndicatorUI.cpp">
+      <Filter>Player\Targeting\Death</Filter>
+    </ClCompile>
+    <ClCompile Include="GameplayEventTrigger.cpp">
+      <Filter>Interaction/Gameplay\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraTransitionEvent.cpp">
+      <Filter>Interaction/Gameplay\Events\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraTransitionController.cpp">
+      <Filter>Interaction/Gameplay\Events\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="HUDFader.cpp" />
+    <ClCompile Include="CameraFollow.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioListenerFollow.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraSwitcher.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="LocalMultiplayerSetup.cpp">
+      <Filter>Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerController.cpp">
+      <Filter>Player</Filter>
+    </ClCompile>
+    <ClCompile Include="TestingButton.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="TriggerArea.cpp">
+      <Filter>Interaction/Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="PopUpEvent.cpp">
+      <Filter>Interaction/Gameplay\Events\PopUp</Filter>
+    </ClCompile>
+    <ClCompile Include="PopUpController.cpp">
+      <Filter>Interaction/Gameplay\Events\PopUp</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectiveEvent.cpp">
+      <Filter>Interaction/Gameplay\Events\PlayerObjectives</Filter>
+    </ClCompile>
+    <ClCompile Include="SpiderChaseState.cpp">
+      <Filter>Enemies\Spider\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SpiderEnemyController.cpp">
+      <Filter>Enemies\Spider</Filter>
+    </ClCompile>
+    <ClCompile Include="SummonerEnemyController.cpp">
+      <Filter>Enemies\Summoner</Filter>
+    </ClCompile>
+    <ClCompile Include="SummonerIdleState.cpp">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SummonerTeleportState.cpp">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SummonerSummonState.cpp">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SummonerRecoverState.cpp">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SummonerEnergyBallState.cpp">
+      <Filter>Enemies\Summoner\States</Filter>
+    </ClCompile>
+    <ClCompile Include="EnergyBallProjectile.cpp">
+      <Filter>Enemies\Summoner</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectileBase.cpp">
+      <Filter>Combat\Projectiles</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectilePool.cpp">
+      <Filter>Combat\Projectiles</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielArrowProjectile.cpp">
+      <Filter>Combat\Projectiles</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraTransitionStep.cpp" />
+    <ClCompile Include="CameraTransitionStepAction.cpp" />
+    <ClCompile Include="MoveObjectAlongPathAction.cpp" />
+    <ClCompile Include="MoveObjectToTransformAction.cpp" />
+    <ClCompile Include="PlayAnimationAction.cpp" />
+    <ClCompile Include="DeathParticles.cpp">
+      <Filter>Character\Death</Filter>
+    </ClCompile>
+    <ClCompile Include="LyrielParticles.cpp">
+      <Filter>Character\Lyriel</Filter>
+    </ClCompile>
+    <ClCompile Include="CombatAreaEvent.cpp" />
+    <ClCompile Include="SkeletonAttackConfig.cpp">
+      <Filter>Enemies\Skeleton</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletonDamageable.cpp">
+      <Filter>Enemies\Skeleton</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletonEnemyController.cpp">
+      <Filter>Enemies\Skeleton</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletonScimitarState.cpp">
+      <Filter>Enemies\Skeleton\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletonReviveState.cpp">
+      <Filter>Enemies\Skeleton\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletonGuardState.cpp">
+      <Filter>Enemies\Skeleton\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletonChaseState.cpp">
+      <Filter>Enemies\Skeleton\States</Filter>
+    </ClCompile>
+    <ClCompile Include="SkeletonAttackDebugDraw.cpp">
+      <Filter>Enemies\Skeleton</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraTransitionStepAction.cpp" />
+    <ClCompile Include="MoveObjectAlongPathAction.cpp" />
+    <ClCompile Include="MoveObjectToTransformAction.cpp" />
+    <ClCompile Include="PlayAnimationAction.cpp" />
+    <ClCompile Include="PaladinVFX.cpp">
+      <Filter>Enemies\Paladin</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkedDeathController.cpp" />
+    <ClCompile Include="ParticleManager.cpp" />
+    <ClCompile Include="EnemyForcedMovement.cpp">
+      <Filter>Enemies\Movement</Filter>
+    </ClCompile>
+    <ClCompile Include="ChargedAttackBase.cpp" />
+    <ClCompile Include="EnemyBaseDataConfig.cpp" />
+    <ClCompile Include="CrystalVisuals.cpp">
+      <Filter>Interaction/Gameplay\Puzzles</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint1_Level1_Event.cpp">
+      <Filter>Systems\Checkpoints\Events\Level1</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckpointEvent.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerGamepadBinding.cpp" />
+    <ClCompile Include="ShadowExecutionConfig.cpp" />
+    <ClCompile Include="PaladinUI.cpp">
+      <Filter>Enemies\Paladin</Filter>
+    </ClCompile>
+    <ClCompile Include="GameplayEventAction.cpp" />
+    <ClCompile Include="PersistingManager.cpp" />
+    <ClCompile Include="PersistingCheckpointState.cpp" />
+    <ClCompile Include="AelorinAttackExecutor.cpp">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinBossController.cpp">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinDamageable.cpp">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinDebugDraw.cpp">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinDetectionAggro.cpp">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClCompile>
+    <ClCompile Include="SeekerSigilProjectile.cpp">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinIdleState.cpp">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinPhaseTransitionState.cpp">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinTeleportState.cpp">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinThresholdStaggerState.cpp">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinGraspOfTheDeadState.cpp">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinNovaState.cpp">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinRisenSpiresState.cpp">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinSeekerSigilsState.cpp">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinSpiritCannonState.cpp">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinSummonSlot.cpp">
+      <Filter>Enemies\Aelorin</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneCapacityPrewarm.cpp" />
+    <ClCompile Include="AelorinSoulCataclysmState.cpp">
+      <Filter>Enemies\Aelorin\States\Combat</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinExhaustionState.cpp">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="PuzzleManagerLVL2.cpp" />
+    <ClCompile Include="AelorinUI.cpp">
+      <Filter>Enemies\Aelorin\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinDeathState.cpp">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="AelorinSummonState.cpp">
+      <Filter>Enemies\Aelorin\States</Filter>
+    </ClCompile>
+    <ClCompile Include="ElevatorManager.cpp" />
+    <ClCompile Include="AelorinLavaController.cpp" />
+  </ItemGroup>
+</Project>

@@ -25,6 +25,7 @@ class ModuleHaptics;
 class ModuleMusic;
 class ModuleScripting;
 class ModuleVideo;
+class ModuleFont;
 
 class CameraComponent;
 class Settings;
@@ -66,6 +67,7 @@ public:
     ModuleMusic*                getModuleMusic() { return m_moduleMusic; }
     ModuleScripting*            getModuleScripting() { return m_moduleScripting; }
     ModuleVideo*                getModuleVideo() { return m_moduleVideo; }
+    ModuleFont*                 getModuleFont() { return m_moduleFont; }
 
     Settings*                   getSettings() { return m_settings; }
     ThreadPool*                 getThreadPool() { return m_threadPool; }
@@ -110,6 +112,7 @@ private:
     ModuleMusic*            m_moduleMusic = nullptr;
     ModuleScripting*        m_moduleScripting = nullptr;
     ModuleVideo*            m_moduleVideo = nullptr;
+    ModuleFont*             m_moduleFont = nullptr;
 
     Settings*               m_settings = nullptr;
     ThreadPool*             m_threadPool = nullptr;

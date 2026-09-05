@@ -6,11 +6,13 @@
 class CameraTransitionController;
 class GameplayEventTrigger;
 class CameraTransitionStep;
+class CameraFollow;
 
 enum class CameraTransitionMode
 {
     TimedCinematic = 0,
-    HoldWhileTriggered
+    HoldWhileTriggered,
+    VerticalFollow
 };
 
 class CameraTransitionEvent : public GameplayEventAction
@@ -36,9 +38,25 @@ public:
 
     float getReturnDuration() const { return m_returnDuration; }
 
-    CameraTransitionMode getTransitionMode() const { return static_cast<CameraTransitionMode>(m_transitionMode); }
-    bool isTimedCinematicMode() const { return getTransitionMode() == CameraTransitionMode::TimedCinematic; }
-    bool isHoldWhileTriggeredMode() const { return getTransitionMode() == CameraTransitionMode::HoldWhileTriggered; }
+    CameraTransitionMode getTransitionMode() const
+    {
+        return static_cast<CameraTransitionMode>(m_transitionMode);
+    }
+
+    bool isTimedCinematicMode() const
+    {
+        return getTransitionMode() == CameraTransitionMode::TimedCinematic;
+    }
+
+    bool isHoldWhileTriggeredMode() const
+    {
+        return getTransitionMode() == CameraTransitionMode::HoldWhileTriggered;
+    }
+
+    bool isVerticalFollowMode() const
+    {
+        return getTransitionMode() == CameraTransitionMode::VerticalFollow;
+    }
 
     bool shouldLockGameplayInput() const { return m_lockGameplayInput; }
     bool shouldMakePlayersInvulnerable() const { return m_makePlayersInvulnerable; }
@@ -46,11 +64,14 @@ public:
 
 private:
     void findTargetPoints();
+
     Transform* findCameraPointsRoot() const;
     CameraTransitionController* findCameraTransitionController() const;
+    CameraFollow* findCameraFollow() const;
 
 public:
-    int m_transitionMode = static_cast<int>(CameraTransitionMode::TimedCinematic);
+    int m_transitionMode =
+        static_cast<int>(CameraTransitionMode::TimedCinematic);
 
     float m_returnDuration = 1.5f;
 

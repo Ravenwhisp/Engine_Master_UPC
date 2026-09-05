@@ -20,10 +20,13 @@
 #include "ScriptComponent.h"
 #include "ParticleSystemComponent.h"
 #include "TrailComponent.h"
+#include "LineRendererComponent.h"
 #include "OcclusionTargetComponent.h"
 #include "OcclusionOccluderComponent.h"
 
 #include "ScenePicking.h"
+
+#include <unordered_set>
 
 ModuleScene::ModuleScene()
 {
@@ -121,6 +124,7 @@ void ModuleScene::rebuildComponentCaches()
     m_scriptComponents.clear();
     m_particleSystemComponents.clear();
     m_trailComponents.clear();
+    m_lineRendererComponents.clear();
     m_occlusionTargetComponents.clear();
     m_occlusionOccluderComponents.clear();
 
@@ -163,6 +167,11 @@ void ModuleScene::rebuildComponentCaches()
             else if (component->getType() == ComponentType::OCCLUSION_OCCLUDER)
             {
                 m_occlusionOccluderComponents.push_back(static_cast<OcclusionOccluderComponent*>(component));
+            }
+
+            else if (component->getType() == ComponentType::LINE_RENDERER)
+            {
+                m_lineRendererComponents.push_back(static_cast<LineRendererComponent*>(component));
             }
         }
     }
@@ -381,6 +390,15 @@ const std::vector<TrailComponent*>& ModuleScene::getTrailComponents()
 
     return m_trailComponents;
 }
+const std::vector<LineRendererComponent*>& ModuleScene::getLineRendererComponents()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    return m_lineRendererComponents;
+}
 
 const std::vector<OcclusionTargetComponent*>& ModuleScene::getOcclusionTargetComponents()
 {
@@ -412,11 +430,11 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+    std::string path = "Assets/Scenes/" + sceneName + ".scene";
+
     clearRuntimeSceneSystems();
     clearComponentCaches();
     m_scene->unloadSoundBanks();
-
-    std::string path = "Assets/Scenes/" + sceneName + ".scene";
 
     JsonArchive archive(ArchiveMode::Input);
     if (!archive.loadFile(path))
@@ -429,10 +447,13 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     auto newScene = std::make_unique<Scene>(ref);
     newScene->serialize(archive);
     newScene->setName(sceneName.c_str());
-    newScene->FixReferences();
-    newScene->initLoadedObjects();
 
     m_scene = std::move(newScene);
+
+    m_scene->FixReferences();
+    m_scene->initLoadedObjects();
+
+
     m_scene->markDirty();
 
     m_staticQuadtree = std::make_unique<Quadtree>();
@@ -455,6 +476,7 @@ bool ModuleScene::loadScene(const std::string& sceneName)
 
 #ifdef GAME_RELEASE
     app->getSettings()->frustumCulling.enabled = true;
+    DEBUG_LOG("[ModuleScene] GAME_RELEASE: frustum culling forced ON for scene '%s'.", sceneName.c_str());
 #endif
 
     rebuildComponentCaches();
@@ -508,6 +530,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 
 #ifdef GAME_RELEASE
     app->getSettings()->frustumCulling.enabled = true;
+    DEBUG_LOG("[ModuleScene] GAME_RELEASE: frustum culling forced ON for scene '%s'.", sceneName);
 #endif
 
     rebuildComponentCaches();
@@ -582,11 +605,13 @@ void ModuleScene::syncQuadtreeWithSettings()
     {
         if (!m_staticQuadtree->getIsBuilded())
         {
+            DEBUG_LOG("[ModuleScene] Frustum culling ON: building static quadtree...");
             m_staticQuadtree->build(m_staticLayers);
         }
 
         if (!m_dynamicQuadtree->getIsBuilded())
         {
+            DEBUG_LOG("[ModuleScene] Frustum culling ON: building dynamic quadtree...");
             m_dynamicQuadtree->build(m_dynamicLayers);
         }
     }
@@ -594,11 +619,13 @@ void ModuleScene::syncQuadtreeWithSettings()
     {
         if (m_staticQuadtree->getIsBuilded())
         {
+            DEBUG_LOG("[ModuleScene] Frustum culling OFF: clearing static quadtree (full render lists from now on).");
             m_staticQuadtree->clear();
         }
 
         if (m_dynamicQuadtree->getIsBuilded())
         {
+            DEBUG_LOG("[ModuleScene] Frustum culling OFF: clearing dynamic quadtree (full render lists from now on).");
             m_dynamicQuadtree->clear();
         }
     }
@@ -606,13 +633,33 @@ void ModuleScene::syncQuadtreeWithSettings()
 
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
+    if (gameObject.IsSnapshotClone())
+    {
+        return;
+    }
+
     const Layer layer = gameObject.GetLayer();
 
-    if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+    const bool dynamic = std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end();
+    const bool isStatic = std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end();
+
+    if (!dynamic && !isStatic)
+    {
+        static std::unordered_set<const GameObject*> s_warnedLayers;
+        if (s_warnedLayers.insert(&gameObject).second)
+        {
+            DEBUG_WARN("[Quadtree] Object '%s' has layer '%s' which is in neither the static nor dynamic layer "
+                       "lists; it will never be culled or found by quadtree area queries.",
+                       gameObject.GetName().c_str(), LayerToString(layer));
+        }
+        return;
+    }
+
+    if (dynamic)
     {
         m_dynamicQuadtree->move(gameObject);
     }
-    else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    else
     {
         m_staticQuadtree->move(gameObject);
     }

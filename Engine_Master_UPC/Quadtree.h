@@ -24,6 +24,10 @@ private:
 
     Scene* m_scene = nullptr;
     bool isBuilded = false;
+    bool m_rebuilding = false;
+    mutable bool m_warnedNoRoot = false;
+
+    std::vector<Layer> m_layers;
 
     std::unique_ptr<QuadNode> m_root;
     std::vector<QuadNode*> m_dirtyNodes;
@@ -59,5 +63,6 @@ public:
     void remove(GameObject& object);
 
 private:
-    void insert(GameObject& object);
+    bool insert(GameObject& object);
+    void rebuild();
 };

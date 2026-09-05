@@ -129,7 +129,7 @@ public:
     void removeGameObject(UID uuid);
     void markGameObjectForRemoval(UID uuid);
 
-    void addGameObject(std::unique_ptr<GameObject> gameObject);
+    void addGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver = nullptr);
     void destroyGameObject(GameObject* gameObject);
     bool isInHierarchy(GameObject* root, GameObject* candidate) const;
     GameObject* findInWindowHierarchy(GameObject* current, UID uuid);

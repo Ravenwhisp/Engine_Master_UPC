@@ -3,6 +3,9 @@
 #include "imgui_color_gradient.h"
 #include <vector>
 #include "AssetReference.h"
+#include <TextureAsset.h>
+
+class Texture;
 
 class TrailComponent : public Component
 {
@@ -25,7 +28,16 @@ public:
 
 	void CreatePoint();
 
-	AssetId& getTextureAssetId() { return m_textureAsset; }
+
+	void requestLoad() { m_loadRequested = true; }
+
+	Texture* getTexture()			           const { return m_texture.get(); }
+	const AssetId& getTextureAssetId()         const { return m_textureAssetId; }
+	TextureAsset* getTextureAsset()            const { return m_textureAsset.get(); }
+
+	bool consumeLoadRequest();
+	void setTextureAssetId(const AssetId& assetId);
+
 
 	std::vector<std::shared_ptr<TrailPoint>>& getTrailPoints() { return m_points; }
 
@@ -50,7 +62,12 @@ private:
 	float	m_spawnDistance;
 	float	m_pointLifetime;
 	
-	AssetId m_textureAsset{};
+	AssetId m_textureAssetId{};
+	std::shared_ptr<Texture> m_texture = nullptr;
+	std::shared_ptr<TextureAsset> m_textureAsset = nullptr;
+	bool m_loadRequested = false;
+
+	void LoadTexture(UID* data);
 
 	ImGradient m_colorOverTime;
 	ImGradientMark* m_draggingMark = nullptr;
@@ -59,7 +76,9 @@ private:
 	bool drawBezierCurveUI(float* curveData);
 	float m_colorCurve[4] = { 0.000f, 0.000f, 1.000f, 1.000f };
 
-	bool m_generate = false;
+	bool m_bloom = false;
+
+	bool m_generate = true;
 };
 
 

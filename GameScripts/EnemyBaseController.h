@@ -7,6 +7,8 @@ class Transform;
 class EnemySound;
 class EnemyBaseAttackConfig;
 
+class EnemyBaseDataConfig;
+
 class EnemyBaseController : public Script
 {
 public:
@@ -24,7 +26,9 @@ public:
     virtual bool hasValidTarget() const;
 
     // Attack config access (non-pure virtual: returns nullptr by default for controllers without one)
+    virtual const EnemyBaseDataConfig* getBaseDataConfig() const;
     virtual const EnemyBaseAttackConfig* getAttackConfig() const { return nullptr; }
+
 
     float getDistanceToCurrentTarget() const;
     bool isCurrentTargetInRange(float range) const;
@@ -89,6 +93,12 @@ public:
     float m_pathPointReachDistance = 0.25f;
 
     Vector3 m_pathSearchExtents = Vector3(5.0f, 5.0f, 5.0f);
+
+    // Movement Progress Check
+    Vector3 m_lastProgressPosition = Vector3::Zero;
+    float m_noProgressTime = 0.0f;
+    float m_progressCheckDistance = 0.05f;
+    float m_maxNoProgressTime = 0.5f;
 
 protected:
     Transform* m_currentTarget = nullptr;

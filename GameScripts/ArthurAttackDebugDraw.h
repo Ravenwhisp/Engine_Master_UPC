@@ -2,7 +2,7 @@
 
 #include "ScriptAPI.h"
 
-class ArthurAttackConfig;
+class ArthurBossController;
 
 class ArthurAttackDebugDraw : public Script
 {
@@ -27,7 +27,7 @@ public:
     float m_heightOffset = 0.15f;
 
 private:
-    AssetReference<ArthurAttackConfig> m_attackConfig;
+    ArthurBossController* m_arthurController = nullptr;
 
 private:
     void drawHeavySwipeCone() const;

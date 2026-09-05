@@ -3,6 +3,8 @@
 #include "ScriptAPI.h"
 #include "StateMachineScript.h"
 
+class EnemyDamageable;
+
 class EnemyDeathState : public StateMachineScript
 {
 	DECLARE_SCRIPT(EnemyDeathState)
@@ -31,7 +33,7 @@ protected:
 	void startDestroyCountdown(float delay);
 
 protected:
-	float m_destroyDelay = 2.0f;
+	float m_dissolveDelay = 2.0f;
 	float m_deathTimer = 0.0f;
 	
 	PrefabRef m_healthPrefab;
@@ -42,7 +44,11 @@ protected:
 	float m_dropHeight = 1.0f;  // Y offset from floor to enemy center (arc spawn point)
 
 private:
+	EnemyDamageable* m_enemyDamageable = nullptr;
+	bool m_dissolveStarted = false;
+
 	bool m_waitingToDestroy = false;
 	bool m_deathFinished = false;
 	bool m_deathPaused = false;
+	bool m_destroyQueued = false;
 };

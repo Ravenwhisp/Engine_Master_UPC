@@ -7,6 +7,7 @@
 
 #include "Prefab.h"
 #include "AssetReference.h"
+#include "SceneReferenceResolver.h"
 
 #include "UID.h"
 #include "Scene.h"
@@ -77,6 +78,21 @@ namespace {
         {
             regeneratePrefabInstanceUIDs(child);
         }
+    }
+
+    void registerPrefabReferences(const GameObject* original, GameObject* clone, SceneReferenceResolver& resolver)
+    {
+        resolver.registerGameObject(original, clone);
+
+        const auto& originalComponents = original->GetAllComponents();
+        const auto& clonedComponents = clone->GetAllComponents();
+        for (size_t i = 0; i < originalComponents.size() && i < clonedComponents.size(); ++i)
+            resolver.registerComponent(originalComponents[i]->getID(), clonedComponents[i]);
+
+        const auto& originalChildren = original->GetTransform()->getAllChildren();
+        const auto& clonedChildren = clone->GetTransform()->getAllChildren();
+        for (size_t i = 0; i < originalChildren.size() && i < clonedChildren.size(); ++i)
+            registerPrefabReferences(originalChildren[i], clonedChildren[i], resolver);
     }
 
 } // anonymous namespace
@@ -288,12 +304,27 @@ bool PrefabManager::createVariant(const fs::path& src, const fs::path& dst)
 
 GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
 {
-    auto clone = prefab.spawnClone();
-    if (!clone) return nullptr;
+    DEBUG_LOG("[Prefab] Spawning prefab '%s' (source: '%s')...",
+              prefab.GetName().c_str(), prefab.m_sourcePath.string().c_str());
 
-    regeneratePrefabInstanceUIDs(clone.get());
+    auto clone = prefab.spawnClone();
+    if (!clone)
+    {
+        DEBUG_WARN("[Prefab] spawnClone() returned null for prefab '%s'.", prefab.GetName().c_str());
+        return nullptr;
+    }
 
     GameObject* go = clone.get();
+
+    // Map original prefab UIDs -> clone objects. Scene::addGameObject merges
+    // these mappings into its resolver, so the clone's components resolve
+    // their references (script fields, UI targets, component refs) against
+    // this instance in a single pass.
+    SceneReferenceResolver resolver;
+    registerPrefabReferences(&prefab, go, resolver);
+    DEBUG_LOG("[Prefab] '%s': prefab UID mappings registered.", go->GetName().c_str());
+
+    regeneratePrefabInstanceUIDs(clone.get());
 
     auto* preComp = static_cast<PrefabInstanceComponent*>(go->AddComponentWithUID(ComponentType::PREFAB_INSTANCE, GenerateUID()));
     if (preComp)
@@ -304,7 +335,7 @@ GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
 
     if (scene)
     {
-        scene->addGameObject(std::move(clone));
+        scene->addGameObject(std::move(clone), &resolver);
         go->init();
     }
 
@@ -317,7 +348,11 @@ GameObject* PrefabManager::spawnPrefab(const AssetId& ref, Scene* scene)
 
     AssetId mutableRef = ref;
     auto prefab = m_moduleAssets->load<Prefab>(mutableRef);
-    if (!prefab) return nullptr;
+    if (!prefab)
+    {
+        DEBUG_WARN("[Prefab] Failed to load prefab asset (uid=%llu).", (unsigned long long)ref.m_uid);
+        return nullptr;
+    }
 
     return spawnPrefab(*prefab, scene);
 }

@@ -13,6 +13,13 @@ using Microsoft::WRL::ComPtr;
 
 class TrailComponent;
 
+struct TextureConstantBuffer
+{
+	UINT hasTexture = 0;
+	Vector3 padding;
+
+};
+
 class TrailPass : public IRenderPass
 {
 public:

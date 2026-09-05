@@ -9,6 +9,8 @@
 #include "DeathChargedAttack.h"
 #include "DeathTaunt.h"
 
+#include "PersistingCheckpointState.h"
+
 #include <cmath>
 #include <vector>
 
@@ -56,6 +58,11 @@ void DeathCharacter::Start()
         Debug::log("[DeathCharacter] PlayerMovement not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
     }
 
+    if (!PersistingCheckpointState::Get().IsStartOfLevel())
+    {
+        TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(m_owner),
+            PersistingCheckpointState::Get().m_savedDeathRespawn);
+    }
 }
 
 void DeathCharacter::Update()

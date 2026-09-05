@@ -127,6 +127,7 @@ void ArcherSomersaultState::finishSomersault()
         return;
     }
 
+    m_archerController->activateSomersaultRangeBuff();
     m_archerController->consumeSomersaultCooldown();
 
     AnimationAPI::sendTrigger(m_animation, "ToChase");

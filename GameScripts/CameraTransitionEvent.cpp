@@ -4,17 +4,24 @@
 #include "GameplayEventTrigger.h"
 #include "CameraTransitionController.h"
 #include "CameraTransitionStep.h"
+#include "CameraFollow.h"
 
 static const char* cameraTransitionModeNames[] =
 {
     "Timed Cinematic",
-    "Hold While Triggered"
+    "Hold While Triggered",
+    "Vertical Follow"
 };
 
-constexpr int cameraTransitionModeCount = 2;
+constexpr int cameraTransitionModeCount = 3;
 
 IMPLEMENT_SCRIPT_FIELDS(CameraTransitionEvent,
-    SERIALIZED_ENUM_INT(m_transitionMode, "Transition Mode", cameraTransitionModeNames, cameraTransitionModeCount),
+    SERIALIZED_ENUM_INT(
+        m_transitionMode,
+        "Transition Mode",
+        cameraTransitionModeNames,
+        cameraTransitionModeCount
+    ),
     SERIALIZED_BOOL(m_lockGameplayInput, "Lock Gameplay Input"),
     SERIALIZED_BOOL(m_makePlayersInvulnerable, "Make Players Invulnerable"),
     SERIALIZED_BOOL(m_fadeHud, "Fade HUD"),
@@ -24,6 +31,7 @@ IMPLEMENT_SCRIPT_FIELDS(CameraTransitionEvent,
 CameraTransitionEvent::CameraTransitionEvent(GameObject* owner)
     : GameplayEventAction(owner)
 {
+    m_isPersistent = true;
 }
 
 void CameraTransitionEvent::Start()
@@ -32,7 +40,10 @@ void CameraTransitionEvent::Start()
 
     if (m_targetPoints.empty())
     {
-        Debug::warn("CameraTransitionEvent on '%s' could not find any points under 'CameraPoints'.", GameObjectAPI::getName(getOwner()));
+        Debug::warn(
+            "CameraTransitionEvent on '%s' could not find any points under 'CameraPoints'.",
+            GameObjectAPI::getName(getOwner())
+        );
     }
 }
 
@@ -43,10 +54,48 @@ void CameraTransitionEvent::executeEvent(GameplayEventTrigger* trigger)
         return;
     }
 
-    CameraTransitionController* cameraTransitionController = findCameraTransitionController();
+    // VERTICAL FOLLOW
+
+    if (isVerticalFollowMode())
+    {
+        CameraFollow* cameraFollow = findCameraFollow();
+
+        if (cameraFollow == nullptr)
+        {
+            Debug::warn(
+                "CameraTransitionEvent on '%s' could not find CameraFollow on the default camera.",
+                GameObjectAPI::getName(getOwner())
+            );
+            return;
+        }
+
+        Transform* anchor = getTargetPoint(0);
+
+        if (anchor == nullptr)
+        {
+            Debug::warn(
+                "CameraTransitionEvent on '%s' could not find Point1 for Vertical Follow.",
+                GameObjectAPI::getName(getOwner())
+            );
+            return;
+        }
+
+        cameraFollow->beginVerticalOnlyFollow(anchor);
+        return;
+    }
+
+    // ------------------------------------------------------------
+    // ORIGINAL CAMERA TRANSITION MODES
+    // ------------------------------------------------------------
+    CameraTransitionController* cameraTransitionController =
+        findCameraTransitionController();
+
     if (cameraTransitionController == nullptr)
     {
-        Debug::warn("CameraTransitionEvent on '%s' could not find CameraTransitionController on the default camera.",GameObjectAPI::getName(getOwner()));
+        Debug::warn(
+            "CameraTransitionEvent on '%s' could not find CameraTransitionController on the default camera.",
+            GameObjectAPI::getName(getOwner())
+        );
         return;
     }
 
@@ -55,15 +104,38 @@ void CameraTransitionEvent::executeEvent(GameplayEventTrigger* trigger)
 
 void CameraTransitionEvent::stopEvent(GameplayEventTrigger* trigger)
 {
+    // Vertical Follow is released directly through CameraFollow.
+    if (isVerticalFollowMode())
+    {
+        CameraFollow* cameraFollow = findCameraFollow();
+
+        if (cameraFollow == nullptr)
+        {
+            Debug::warn(
+                "CameraTransitionEvent on '%s' could not find CameraFollow on the default camera.",
+                GameObjectAPI::getName(getOwner())
+            );
+            return;
+        }
+
+        cameraFollow->endVerticalOnlyFollow();
+        return;
+    }
+
     if (!isHoldWhileTriggeredMode())
     {
         return;
     }
 
-    CameraTransitionController* cameraTransitionController = findCameraTransitionController();
+    CameraTransitionController* cameraTransitionController =
+        findCameraTransitionController();
+
     if (cameraTransitionController == nullptr)
     {
-        Debug::warn("CameraTransitionEvent on '%s' could not find CameraTransitionController on the default camera.", GameObjectAPI::getName(getOwner()));
+        Debug::warn(
+            "CameraTransitionEvent on '%s' could not find CameraTransitionController on the default camera.",
+            GameObjectAPI::getName(getOwner())
+        );
         return;
     }
 
@@ -96,6 +168,7 @@ void CameraTransitionEvent::findTargetPoints()
     m_transitionSteps.clear();
 
     Transform* cameraPointsRoot = findCameraPointsRoot();
+
     if (cameraPointsRoot == nullptr)
     {
         return;
@@ -106,7 +179,9 @@ void CameraTransitionEvent::findTargetPoints()
         char pointName[32];
         sprintf_s(pointName, "Point%d", i);
 
-        Transform* point = TransformAPI::findChildByName(cameraPointsRoot, pointName);
+        Transform* point =
+            TransformAPI::findChildByName(cameraPointsRoot, pointName);
+
         if (point == nullptr)
         {
             break;
@@ -114,12 +189,26 @@ void CameraTransitionEvent::findTargetPoints()
 
         m_targetPoints.push_back(point);
 
-        GameObject* pointObject = ComponentAPI::getOwner(point);
-        CameraTransitionStep* transitionStep = GameObjectAPI::findScript<CameraTransitionStep>(pointObject);
+        CameraTransitionStep* transitionStep = nullptr;
 
-        if (transitionStep == nullptr)
+        if (!isVerticalFollowMode())
         {
-            Debug::warn("CameraTransitionEvent on '%s' found camera point '%s' without CameraTransitionStep.", GameObjectAPI::getName(getOwner()), pointName);
+            GameObject* pointObject =
+                ComponentAPI::getOwner(point);
+
+            transitionStep =
+                GameObjectAPI::findScript<CameraTransitionStep>(
+                    pointObject
+                );
+
+            if (transitionStep == nullptr)
+            {
+                Debug::warn(
+                    "CameraTransitionEvent on '%s' found camera point '%s' without CameraTransitionStep.",
+                    GameObjectAPI::getName(getOwner()),
+                    pointName
+                );
+            }
         }
 
         m_transitionSteps.push_back(transitionStep);
@@ -129,20 +218,44 @@ void CameraTransitionEvent::findTargetPoints()
 Transform* CameraTransitionEvent::findCameraPointsRoot() const
 {
     GameObject* owner = getOwner();
-    Transform* ownerTransform = GameObjectAPI::getTransform(owner);
+    Transform* ownerTransform =
+        GameObjectAPI::getTransform(owner);
 
-    return TransformAPI::findChildByName(ownerTransform, "CameraPoints");
+    return TransformAPI::findChildByName(
+        ownerTransform,
+        "CameraPoints"
+    );
 }
 
-CameraTransitionController* CameraTransitionEvent::findCameraTransitionController() const
+CameraTransitionController*
+CameraTransitionEvent::findCameraTransitionController() const
 {
-    GameObject* defaultCamera = SceneAPI::getDefaultCameraGameObject();
+    GameObject* defaultCamera =
+        SceneAPI::getDefaultCameraGameObject();
+
     if (defaultCamera == nullptr)
     {
         return nullptr;
     }
 
-    return GameObjectAPI::findScript<CameraTransitionController>(defaultCamera);
+    return GameObjectAPI::findScript<CameraTransitionController>(
+        defaultCamera
+    );
+}
+
+CameraFollow* CameraTransitionEvent::findCameraFollow() const
+{
+    GameObject* defaultCamera =
+        SceneAPI::getDefaultCameraGameObject();
+
+    if (defaultCamera == nullptr)
+    {
+        return nullptr;
+    }
+
+    return GameObjectAPI::findScript<CameraFollow>(
+        defaultCamera
+    );
 }
 
 IMPLEMENT_SCRIPT(CameraTransitionEvent)

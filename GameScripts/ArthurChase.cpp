@@ -34,7 +34,7 @@ void ArthurChase::OnStateEnter()
 
 void ArthurChase::OnStateUpdate()
 {
-	if (!m_arthurController || !m_arthurAttackConfig.get() || !m_animation)
+	if (!m_arthurController || !m_arthurController->m_attackConfig.get() || !m_animation)
 	{
 		return;
 	}
@@ -92,11 +92,11 @@ void ArthurChase::OnStateUpdate()
 	}
 
 	// Heavy Swipe
-	if (m_arthurController->getDistanceToCurrentTarget() <= m_arthurAttackConfig.get()->m_heavySwipeRange)
+	if (m_arthurController->getDistanceToCurrentTarget() <= m_arthurController->m_attackConfig.get()->m_heavySwipeRange)
 	{
 		if (m_arthurController->isCurrentTargetInsideHeavySwipeArea(
-			m_arthurAttackConfig.get()->m_heavySwipeRange,
-			m_arthurAttackConfig.get()->m_heavySwipeHalfAngleDegrees))
+			m_arthurController->m_attackConfig.get()->m_heavySwipeRange,
+			m_arthurController->m_attackConfig.get()->m_heavySwipeHalfAngleDegrees))
 		{
 			m_arthurController->faceCurrentTarget();
 			AnimationAPI::sendTrigger(m_animation, "ToHeavySwipe");

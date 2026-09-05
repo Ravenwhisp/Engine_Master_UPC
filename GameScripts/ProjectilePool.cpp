@@ -38,7 +38,7 @@ bool ProjectilePool::createProjectile()
 		m_projectilePrefab.m_id,
 		Vector3::Zero,
 		Vector3::Zero,
-		nullptr
+		getOwner()
 	);
 
 	if (!projectileObject)

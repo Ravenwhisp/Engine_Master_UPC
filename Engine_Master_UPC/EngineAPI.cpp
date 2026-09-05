@@ -53,6 +53,9 @@
 
 #include "HierarchyUtils.h"
 
+#include "UIText.h"
+#include "UICommands.h"
+
 #include <DetourNavMeshQuery.h>
 
 void registerScript(const char* scriptName, ScriptFactory::Creator creator)
@@ -920,16 +923,50 @@ namespace SceneAPI
         std::vector<GameObject*> candidates;
 
 		auto* sceneModule = app->getModuleScene();
-
-        if ((static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Static)) != 0)
+        if (!sceneModule)
         {
-            auto staticResult = sceneModule->getStaticQuadtree()->queryInArea(center, radius);
+            return candidates;
+        }
+
+        const bool staticRequested = (static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Static)) != 0;
+        const bool dynamicRequested = (static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Dynamic)) != 0;
+
+        auto* staticQuadtree = sceneModule->getStaticQuadtree();
+        auto* dynamicQuadtree = sceneModule->getDynamicQuadtree();
+
+        const bool useStatic = staticRequested && staticQuadtree && staticQuadtree->getIsBuilded();
+        const bool useDynamic = dynamicRequested && dynamicQuadtree && dynamicQuadtree->getIsBuilded();
+
+        if (useStatic)
+        {
+            auto staticResult = staticQuadtree->queryInArea(center, radius);
             candidates.insert(candidates.end(), staticResult.begin(), staticResult.end());
         }
-        if ((static_cast<uint8_t>(target) & static_cast<uint8_t>(QuadtreeTarget::Dynamic)) != 0)
+        if (useDynamic)
         {
-            auto dynamicResult = sceneModule->getDynamicQuadtree()->queryInArea(center, radius);
+            auto dynamicResult = dynamicQuadtree->queryInArea(center, radius);
             candidates.insert(candidates.end(), dynamicResult.begin(), dynamicResult.end());
+        }
+
+        // The quadtrees are only built when frustum culling is enabled. When
+        // they are not available, fall back to a brute-force pass over the
+        // scene so gameplay queries do not silently return nothing.
+        if (!useStatic && !useDynamic)
+        {
+            for (GameObject* gameObject : sceneModule->getScene()->getAllGameObjects())
+            {
+                if (!gameObject || !gameObject->GetActive())
+                {
+                    continue;
+                }
+
+                if (!gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+                {
+                    continue;
+                }
+
+                candidates.push_back(gameObject);
+            }
         }
 
         std::vector<GameObject*> result;
@@ -3217,6 +3254,135 @@ namespace AudioAPI
     }
 }
 
+namespace UITextAPI
+{
+#pragma region Component getters
+    UIText* getTextComponent(GameObject* gameObject)
+    {
+        if (!gameObject)
+            return nullptr;
+
+        return gameObject->GetComponentAs<UIText>(ComponentType::UITEXT);
+    }
+
+    const UIText* getTextComponent(const GameObject* gameObject)
+    {
+        if (!gameObject)
+            return nullptr;
+
+        return gameObject->GetComponentAs<UIText>(ComponentType::UITEXT);
+    }
+#pragma endregion
+
+#pragma region Basic properties
+    const char* getText(const UIText* component)
+    {
+        if (!component)
+            return "";
+
+        return component->getText().c_str();
+    }
+
+    void setText(UIText* component, const char* text)
+    {
+        if (component)
+            component->setText(text ? text : "");
+    }
+
+    float getScale(const UIText* component)
+    {
+        if (!component)
+            return 1.0f;
+
+        return component->getFontScale();
+    }
+
+    void setScale(UIText* component, float scale)
+    {
+        if (component)
+            component->setFontScale(scale);
+    }
+
+    void setColor(UIText* component, float r, float g, float b, float a)
+    {
+        if (component)
+            component->setColor({ r, g, b, a });
+    }
+#pragma endregion
+
+#pragma region Effects
+    void setOutline(UIText* component, bool enabled)
+    {
+        if (!component)
+            return;
+
+        component->enableOutline(enabled);
+    }
+
+    void setOutline(UIText* component, bool enabled, float size, float r, float g, float b, float a)
+    {
+        if (!component)
+            return;
+
+        component->setOutlineSize(size);
+        component->setOutlineColor({ r,g,b,a });
+        component->enableOutline(enabled);
+    }
+
+    void setShadow(UIText* component, bool enabled)
+    {
+        if (!component)
+            return;
+
+        component->enableShadow(enabled);
+    }
+
+    void setShadow(UIText* component, bool enabled, float offsetX, float offsetY, float r, float g, float b, float a)
+    {
+        if (!component)
+            return;
+
+        component->setShadowOffset(offsetX, offsetY);
+        component->setShadowColor({ r,g,b,a });
+        component->enableShadow(enabled);
+    }
+
+    void setGlow(UIText* component, bool enabled)
+    {
+        if (!component)
+            return;
+
+        component->enableGlow(enabled);
+    }
+
+    void setGlow(UIText* component, bool enabled, float size, float r, float g, float b, float a)
+    {
+        if (!component)
+            return;
+
+        component->setGlowSize(size);
+        component->setGlowColor({ r,g,b,a });
+        component->enableGlow(enabled);
+    }
+
+    void setWave(UIText* component, bool enabled)
+    {
+        if (!component)
+            return;
+
+        component->enableWave(enabled);
+    }
+
+    void setWave(UIText* component, bool enabled, float amplitude, float frequency, float speed)
+    {
+        if (!component)
+            return;
+
+        component->setWave(amplitude, frequency, speed);
+        component->enableWave(enabled);
+    }
+#pragma endregion
+}
 namespace Shaders
 {
     PlayerRenderBufferComponent* Shaders::getPlayerRenderBufferComponent(GameObject* gameObject)

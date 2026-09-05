@@ -16,6 +16,9 @@ public:
 
     void executeEvent(GameplayEventTrigger* trigger) override;
 
+    bool isActive() const { return m_isActive; }
+    bool hasCompleted() const { return m_hasCompleted; }
+
     FieldList getExposedFields() const override;
 
 private:

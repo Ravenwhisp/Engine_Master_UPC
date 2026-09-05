@@ -295,7 +295,7 @@ void ModuleUI::buildUIImage(GameObject* gameObject, const Rect2D& myRect, Canvas
     }
 }
 
-void ModuleUI::buildUIText(GameObject* gameObject, const Rect2D& myRect) 
+void ModuleUI::buildUIText(GameObject* gameObject, const Rect2D& myRect)
 {
     UIText* uiText = gameObject->GetComponentAs<UIText>(ComponentType::UITEXT);
 
@@ -304,12 +304,5 @@ void ModuleUI::buildUIText(GameObject* gameObject, const Rect2D& myRect)
         return;
     }
 
-    UITextCommand command;
-    command.text = stringToWString(uiText->getText());
-    command.x = myRect.x;
-    command.y = myRect.y;
-    command.color = uiText->getColor();
-    command.scale = uiText->getFontScale();
-
-    m_textCommands.push_back(std::move(command));
+    m_textCommands.push_back(uiText->buildCommand(myRect));
 }

@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <unordered_set>
 
 Quadtree::Quadtree() = default;
 Quadtree::~Quadtree() = default;
@@ -26,30 +27,34 @@ void Quadtree::init(Scene* scene, const ddVec3& baseColor, const ddVec3& culledC
 
 void Quadtree::build(const std::vector<Layer> layers)
 {
+    m_layers = layers;
+
     const std::vector<GameObject*>& objects = m_scene->getAllGameObjects();
     float minX = std::numeric_limits<float>::max();
     float minZ = std::numeric_limits<float>::max();
     float maxX = std::numeric_limits<float>::lowest();
     float maxZ = std::numeric_limits<float>::lowest();
 
+    size_t eligible = 0;
+
     for (const auto& go : objects)
     {
-        if (!go->GetActive())
-        {
-            continue;
-        }
-
-		const bool layerMatch = layers.empty() || std::find(layers.begin(), layers.end(), go->GetLayer()) != layers.end();
+        // Inactive objects are included too: gatherObjects filters by active
+        // per query, and skipping them here would leave them untracked when
+        // they are activated later.
+        const bool layerMatch = layers.empty() || std::find(layers.begin(), layers.end(), go->GetLayer()) != layers.end();
         if (!layerMatch)
         {
             continue;
         }
 
         auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-        if (!mesh)
+        if (!mesh || !mesh->hasMesh())
         {
             continue;
         }
+
+        ++eligible;
 
         Engine::BoundingBox boundingBox = mesh->getBoundingBox();
 
@@ -75,7 +80,8 @@ void Quadtree::build(const std::vector<Layer> layers)
 
     if (minX == std::numeric_limits<float>::max())
     {
-        DEBUG_LOG("[Quadtree] No MeshRenderers found to build quadtree (total GOs: %zu)", objects.size());
+        DEBUG_WARN("[Quadtree] Build found NO MeshRenderers with meshes (total GOs: %zu). "
+                   "Queries will return nothing until an object is inserted.", objects.size());
         isBuilded = true;
         return;
     }
@@ -91,11 +97,6 @@ void Quadtree::build(const std::vector<Layer> layers)
 
     for (const auto& go : objects)
     {
-        if (!go->GetActive())
-        {
-            continue;
-        }
-
         const bool layerMatch =
             layers.empty() ||
             std::find(layers.begin(), layers.end(), go->GetLayer()) != layers.end();
@@ -105,12 +106,26 @@ void Quadtree::build(const std::vector<Layer> layers)
             continue;
         }
 
+        auto* mesh = go->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+        if (!mesh || !mesh->hasMesh())
+        {
+            continue;
+        }
+
         insert(*go);
     }
 
-    DEBUG_LOG("[Quadtree] Built with %zu objects (of %zu total GOs)",
-              m_objectLocationMap.size(), objects.size());
+    DEBUG_LOG("[Quadtree] Built with %zu objects (%zu eligible of %zu total GOs)",
+              m_objectLocationMap.size(), eligible, objects.size());
+
+    if (m_objectLocationMap.size() != eligible)
+    {
+        DEBUG_WARN("[Quadtree] %zu eligible objects were not inserted during build.",
+                   eligible - m_objectLocationMap.size());
+    }
+
     isBuilded = true;
+    m_warnedNoRoot = false;
 }
 
 void Quadtree::update()
@@ -125,14 +140,73 @@ void Quadtree::clear()
     m_root.reset();
 
     isBuilded = false;
+    m_warnedNoRoot = false;
 }
 
-void Quadtree::insert(GameObject& object)
+bool Quadtree::insert(GameObject& object)
 {
+    auto* model = object.GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+    if (!model)
+    {
+        // Not an error: non-visual objects (spawners, triggers, lights...) are
+        // simply not tracked by the quadtree.
+        return false;
+    }
+
+    if (!model->hasMesh())
+    {
+        static std::unordered_set<GameObject*> s_noMeshWarned;
+        if (s_noMeshWarned.insert(&object).second)
+        {
+            DEBUG_WARN("[Quadtree] '%s' cannot be tracked: its MeshRenderer has no mesh loaded (references not fixed?).",
+                       object.GetName().c_str());
+        }
+        return false;
+    }
+
     if (!m_root)
+    {
+        if (!m_warnedNoRoot)
+        {
+            DEBUG_WARN("[Quadtree] Insert of '%s' ignored: quadtree is not built yet.", object.GetName().c_str());
+            m_warnedNoRoot = true;
+        }
+        return false;
+    }
+
+    const Engine::BoundingBox& box = model->getBoundingBox();
+
+    if (!m_rebuilding && !m_root->getBounds().containsFullySafe(box))
+    {
+        // The object lies outside the area the tree was built for (e.g. a
+        // prefab spawned at runtime). Grow the tree instead of silently
+        // dropping the object: it would never be rendered or found by
+        // quadtree-based gameplay queries.
+        DEBUG_WARN("[Quadtree] Object '%s' lies outside the quadtree bounds, rebuilding.", object.GetName().c_str());
+        rebuild();
+        if (!m_root)
+            return false;
+    }
+
+    // After a rebuild the object was already inserted by build(); avoid a
+    // duplicate entry.
+    if (m_objectLocationMap.count(&object) == 0)
+    {
+        m_root->insert(object);
+    }
+
+    return m_objectLocationMap.count(&object) > 0;
+}
+
+void Quadtree::rebuild()
+{
+    if (m_rebuilding)
         return;
 
-    m_root->insert(object);
+    m_rebuilding = true;
+    clear();
+    build(m_layers);
+    m_rebuilding = false;
 }
 
 void Quadtree::remove(GameObject& object)
@@ -166,7 +240,14 @@ std::vector<GameObject*> Quadtree::query() const
     std::vector<GameObject*> result;
 
     if (!m_root)
+    {
+        if (!m_warnedNoRoot)
+        {
+            DEBUG_WARN("[Quadtree] query() called but the quadtree is not built; returning nothing.");
+            m_warnedNoRoot = true;
+        }
         return result;
+    }
 
     m_root->gatherObjects(frustum, result);
 
@@ -179,6 +260,12 @@ std::vector<GameObject*> Quadtree::queryInArea(const Vector2& center, const floa
 
     if (!m_root)
     {
+        if (!m_warnedNoRoot)
+        {
+            DEBUG_WARN("[Quadtree] queryInArea() called but the quadtree is not built; returning nothing "
+                       "(gameplay area queries will find no objects).");
+            m_warnedNoRoot = true;
+        }
         return result;
     }
 
