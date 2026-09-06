@@ -601,11 +601,17 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		};
 		sortByTotal(currentTimings);
 		sortByTotal(spikeTimings);
+		const std::vector<ModuleScene::ScriptTiming>& scopeSourceTimings = sceneModule->getLastSpikeFrame() > 0
+			? spikeTimings
+			: currentTimings;
+		const std::string scopeScriptName = scopeSourceTimings.empty()
+			? std::string()
+			: scopeSourceTimings.front().scriptName;
 		scopeTimings.erase(
 			std::remove_if(scopeTimings.begin(), scopeTimings.end(),
-				[](const ModuleScene::ScriptScopeTiming& timing)
+				[&scopeScriptName](const ModuleScene::ScriptScopeTiming& timing)
 				{
-					return timing.scriptName != "SpikeTrap";
+					return timing.scriptName != scopeScriptName;
 				}),
 			scopeTimings.end());
 		std::sort(scopeTimings.begin(), scopeTimings.end(),
@@ -698,9 +704,11 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 
 		if (!scopeTimings.empty())
 		{
+			profilerText += L"\n";
+			profilerText += toWide(scopeScriptName, 24);
 			profilerText += sceneModule->getLastSpikeFrame() > 0
-				? L"\nSpikeTrap detail (captured spike)\n"
-				: L"\nSpikeTrap detail (current frame)\n";
+				? L" detail (captured spike)\n"
+				: L" detail (current frame)\n";
 			appendScopeLines(profilerText, scopeTimings);
 		}
 

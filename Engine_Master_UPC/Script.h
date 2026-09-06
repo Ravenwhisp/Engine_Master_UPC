@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "IFieldContainer.h"
 
 #include "ScriptMethodInfo.h"
@@ -31,8 +33,16 @@ public:
 
     GameObject* getOwner() const { return m_owner; }
 
+    // Assigned by ScriptComponent from its registered asset name. This lets
+    // profiling helpers identify the script without each script repeating it.
+    const std::string& getProfilerName() const { return m_profilerName; }
+    void setProfilerName(const std::string& name) { m_profilerName = name; }
+
     virtual void drawGizmo() {}
 
 protected:
     GameObject* m_owner = nullptr;
+
+private:
+    std::string m_profilerName;
 };

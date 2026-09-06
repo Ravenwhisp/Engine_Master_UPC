@@ -18,6 +18,10 @@ ScriptComponent::ScriptComponent(UID id, GameObject* owner)
 void ScriptComponent::setScript(std::unique_ptr<Script> script)
 {
     m_script = std::move(script);
+    if (m_script)
+    {
+        m_script->setProfilerName(m_scriptName);
+    }
     resetStartState();
 }
 
@@ -29,6 +33,10 @@ Script* ScriptComponent::getScript() const
 void ScriptComponent::setScriptName(const std::string& scriptName)
 {
     m_scriptName = scriptName;
+    if (m_script)
+    {
+        m_script->setProfilerName(m_scriptName);
+    }
 }
 
 const std::string& ScriptComponent::getScriptName() const

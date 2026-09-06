@@ -4,43 +4,6 @@
 #include "EnvironmentSound.h"
 #include "ParticleLifecycle.h"
 
-#include <chrono>
-
-namespace
-{
-    class SpikeTrapProfileScope
-    {
-    public:
-        SpikeTrapProfileScope(GameObject* owner, const char* scopeName)
-            : m_owner(owner), m_scopeName(scopeName), m_enabled(ScriptProfilerAPI::isEnabled())
-        {
-            if (m_enabled)
-            {
-                m_start = Clock::now();
-            }
-        }
-
-        ~SpikeTrapProfileScope()
-        {
-            if (!m_enabled)
-            {
-                return;
-            }
-
-            const float elapsedMs = std::chrono::duration<float, std::milli>(Clock::now() - m_start).count();
-            ScriptProfilerAPI::recordScope("SpikeTrap", m_scopeName, m_owner, elapsedMs);
-        }
-
-    private:
-        using Clock = std::chrono::steady_clock;
-
-        GameObject* m_owner = nullptr;
-        const char* m_scopeName = nullptr;
-        bool m_enabled = false;
-        Clock::time_point m_start{};
-    };
-}
-
 IMPLEMENT_SCRIPT_FIELDS(SpikeTrap,
     SERIALIZED_BOOL(alternativeMode, "Alternative Mode"),
     SERIALIZED_FLOAT(a_duration, "Active Duration", 0.0f, 50.0f, 0.1f),
@@ -64,13 +27,13 @@ void SpikeTrap::Start()
     ownerTransform = GameObjectAPI::getTransform(owner);
 
     {
-        SpikeTrapProfileScope profile(owner, "Start: find children");
+        SCRIPT_PROFILE_SCOPE("Start: find children");
         m_normalSpike = TransformAPI::findChildByName(ownerTransform, "Normal");
 	    m_spectralSpike = TransformAPI::findChildByName(ownerTransform, "Spectral");
     }
 
     {
-        SpikeTrapProfileScope profile(owner, "Start: cache players");
+        SCRIPT_PROFILE_SCOPE("Start: cache players");
         const std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
         for (GameObject* player : players)
         {
@@ -109,7 +72,7 @@ void SpikeTrap::Update()
     {
         case SpikeTrap::WAIT:
             {
-                SpikeTrapProfileScope profile(owner, "WAIT: set position");
+                SCRIPT_PROFILE_SCOPE("WAIT: set position");
                 if (spikeType == 0)
                 {
 				    normalSpikePosition.y = waitPositionY;
@@ -125,28 +88,28 @@ void SpikeTrap::Update()
             if (currentTime >= p_duration && spikeType == 0)
             {
                 {
-                    SpikeTrapProfileScope profile(owner, "Activate: set position");
+                    SCRIPT_PROFILE_SCOPE("Activate: set position");
                     normalSpikePosition.y = activePositionY;
 				    TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
                 }
                 state = ACTIVE;
                 currentTime = 0.0f;
 				{
-                    SpikeTrapProfileScope profile(owner, "Activate: particles");
+                    SCRIPT_PROFILE_SCOPE("Activate: particles");
                     addEffect(0);
                 }
             }
 			else if(currentTime >= p_duration && spikeType == 1)
             {
                 {
-                    SpikeTrapProfileScope profile(owner, "Activate: set position");
+                    SCRIPT_PROFILE_SCOPE("Activate: set position");
 				    spectralSpikePosition.y = activePositionY;
                     TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
                 }
                 state = ACTIVE;
 				currentTime = 0.0f;
 				{
-                    SpikeTrapProfileScope profile(owner, "Activate: particles");
+                    SCRIPT_PROFILE_SCOPE("Activate: particles");
                     addEffect(1);
                 }
             }
@@ -154,13 +117,13 @@ void SpikeTrap::Update()
 
         case SpikeTrap::ACTIVE:
 			{
-                SpikeTrapProfileScope profile(owner, "ACTIVE: trigger damage");
+                SCRIPT_PROFILE_SCOPE("ACTIVE: trigger damage");
                 triggerBoxDamage();
             }
             if (currentTime >= a_duration && spikeType == 0)
             {
 				{
-                    SpikeTrapProfileScope profile(owner, "Deactivate: set positions");
+                    SCRIPT_PROFILE_SCOPE("Deactivate: set positions");
                     normalSpikePosition.y = startPositionY;
 				    spectralSpikePosition.y = waitPositionY;
 				    TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
@@ -171,14 +134,14 @@ void SpikeTrap::Update()
                 currentTime = 0.0f;
 				damagedPlayers.clear();
 				{
-                    SpikeTrapProfileScope profile(owner, "Deactivate: particles");
+                    SCRIPT_PROFILE_SCOPE("Deactivate: particles");
                     removeEffect(0);
                 }
             }
 			else if (currentTime >= a_duration && spikeType == 1)
 			{
 				{
-                    SpikeTrapProfileScope profile(owner, "Deactivate: set positions");
+                    SCRIPT_PROFILE_SCOPE("Deactivate: set positions");
                     normalSpikePosition.y = waitPositionY;
 				    spectralSpikePosition.y = startPositionY;
                     TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
@@ -189,7 +152,7 @@ void SpikeTrap::Update()
 				currentTime = 0.0f;
                 damagedPlayers.clear();
 				{
-                    SpikeTrapProfileScope profile(owner, "Deactivate: particles");
+                    SCRIPT_PROFILE_SCOPE("Deactivate: particles");
                     removeEffect(1);
                 }
 			}
@@ -202,7 +165,7 @@ void SpikeTrap::Update()
     // Single hook for all 4 transition branches (normal/spectral × extend/retract).
     if (state != previousState)
     {
-        SpikeTrapProfileScope profile(owner, "Transition: sound");
+        SCRIPT_PROFILE_SCOPE("Transition: sound");
         if (state == ACTIVE)
         {
             EnvironmentSound::playGrouped(
@@ -241,13 +204,13 @@ void SpikeTrap::damagePlayer(GameObject* player)
 
     PlayerDamageable* damageable = nullptr;
     {
-        SpikeTrapProfileScope profile(owner, "Damage: find PlayerDamageable");
+        SCRIPT_PROFILE_SCOPE("Damage: find PlayerDamageable");
         damageable = GameObjectAPI::findScript<PlayerDamageable>(player);
     }
     if (damageable)
     {
         {
-            SpikeTrapProfileScope profile(owner, "Damage: apply player damage");
+            SCRIPT_PROFILE_SCOPE("Damage: apply player damage");
             damageable->takeDamage(trapDamage);
         }
         damagedPlayers.insert(player);
@@ -259,7 +222,7 @@ void SpikeTrap::triggerBoxDamage()
     GameObject* owner = getOwner();
     Vector3 trapPosition;
     {
-        SpikeTrapProfileScope profile(owner, "Trigger: get trap position");
+        SCRIPT_PROFILE_SCOPE("Trigger: get trap position");
         Transform* ownerTransform = GameObjectAPI::getTransform(owner);
         trapPosition = TransformAPI::getGlobalPosition(ownerTransform);
     }
@@ -271,7 +234,7 @@ void SpikeTrap::triggerBoxDamage()
     }
 
     {
-        SpikeTrapProfileScope profile(owner, "Trigger: collision/damage loop");
+        SCRIPT_PROFILE_SCOPE("Trigger: collision/damage loop");
         Transform* playerTransform = GameObjectAPI::getTransform(player);
         const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
         if (containsPoint(trapPosition, playerPosition))
