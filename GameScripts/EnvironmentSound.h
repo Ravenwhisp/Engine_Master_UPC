@@ -12,4 +12,8 @@ public:
     // playingID. For loops, stop them by posting the matching Stop_ event. No-op (and a
     // warning) if the emitter has no SOUND_SOURCE.
     static uint32_t play(GameObject* emitter, const char* eventName);
+
+    // Queues a positional event and keeps only the nearest emitter for the same
+    // event/group during this frame and the requested cooldown window.
+    static void playGrouped(GameObject* emitter, const char* eventName, const char* groupName, uint32_t cooldownMs = 100);
 };

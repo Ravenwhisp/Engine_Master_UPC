@@ -69,6 +69,28 @@ void SpikeTrap::Start()
 	    m_spectralSpike = TransformAPI::findChildByName(ownerTransform, "Spectral");
     }
 
+    {
+        SpikeTrapProfileScope profile(owner, "Start: cache players");
+        const std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
+        for (GameObject* player : players)
+        {
+            const char* name = GameObjectAPI::getName(player);
+            if (!name)
+            {
+                continue;
+            }
+
+            if (strcmp(name, "Lyriel") == 0)
+            {
+                m_lyriel = player;
+            }
+            else if (strcmp(name, "Death") == 0)
+            {
+                m_death = player;
+            }
+        }
+    }
+
     spikeType = alternativeMode ? 1 : 0;
 
     currentTime = 0.0f;
@@ -183,11 +205,13 @@ void SpikeTrap::Update()
         SpikeTrapProfileScope profile(owner, "Transition: sound");
         if (state == ACTIVE)
         {
-            EnvironmentSound::play(getOwner(), "Play_Environment_Extend_Spikes");
+            EnvironmentSound::playGrouped(
+                getOwner(), "Play_Environment_Extend_Spikes", "SpikeTraps", 100);
         }
         else if (state == WAIT)
         {
-            EnvironmentSound::play(getOwner(), "Play_Environment_Retract_Spikes");
+            EnvironmentSound::playGrouped(
+                getOwner(), "Play_Environment_Retract_Spikes", "SpikeTraps", 100);
         }
     }
 
@@ -239,45 +263,24 @@ void SpikeTrap::triggerBoxDamage()
         Transform* ownerTransform = GameObjectAPI::getTransform(owner);
         trapPosition = TransformAPI::getGlobalPosition(ownerTransform);
     }
-    std::vector<GameObject*> playersInScene;
+
+    GameObject* player = spikeType == 0 ? m_lyriel : m_death;
+    if (!player)
     {
-        SpikeTrapProfileScope profile(owner, "Trigger: find players by tag");
-        playersInScene = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
+        return;
     }
+
     {
         SpikeTrapProfileScope profile(owner, "Trigger: collision/damage loop");
-        for (GameObject* player : playersInScene)
+        Transform* playerTransform = GameObjectAPI::getTransform(player);
+        const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
+        if (containsPoint(trapPosition, playerPosition))
         {
-            const char* name = GameObjectAPI::getName(player);
-
-            if(name && strcmp(name, "Lyriel") == 0 && spikeType == 0)
-            {
-
-                Transform* playerTransform = GameObjectAPI::getTransform(player);
-                const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
-                if (containsPoint(trapPosition, playerPosition))
-                {
-                    damagePlayer(player);
-                }
-                else
-                {
-                    damagedPlayers.erase(player);
-                }
-            }
-            if(name && strcmp(name, "Death") == 0 && spikeType == 1)
-            {
-
-                Transform* playerTransform = GameObjectAPI::getTransform(player);
-                const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
-                if (containsPoint(trapPosition, playerPosition))
-                {
-                    damagePlayer(player);
-                }
-                else
-                {
-                    damagedPlayers.erase(player);
-                }
-            }
+            damagePlayer(player);
+        }
+        else
+        {
+            damagedPlayers.erase(player);
         }
     }
 }

@@ -3231,6 +3231,20 @@ namespace AudioAPI
         return NULL;
     }
 
+    void queueGroupedEvent(
+        ComponentSoundSource* component,
+        const char* bankName,
+        const char* eventName,
+        const char* groupName,
+        float priority,
+        uint32_t cooldownMs)
+    {
+        if (component)
+        {
+            component->queueGroupedEvent(bankName, eventName, groupName, priority, cooldownMs);
+        }
+    }
+
     void stopEvent(ComponentSoundSource* component, uint32_t playingID)
     {
         if (component)

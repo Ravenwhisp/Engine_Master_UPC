@@ -4,6 +4,7 @@
 #include <AK/SoundEngine/Common/AkSoundEngine.h>
 
 #include <filesystem>
+#include <cstring>
 #include <string>
 
 #include "Application.h"
@@ -38,12 +39,16 @@ bool ModuleMusic::init()
 
 void ModuleMusic::update()
 {
+	flushGroupedSoundRequests();
 	m_wwiseManager.update();
 	m_playbackTracker.update();
 }
 
 bool ModuleMusic::cleanUp()
 {
+	m_groupedSoundRequests.clear();
+	m_groupedSoundLastPlay.clear();
+
 	m_initBnk.unload();
 	m_initBnk.cleanUp();
 
@@ -158,6 +163,57 @@ uint32_t ModuleMusic::postEvent(const char* bankName, const char* eventName, uin
 	return 0;
 }
 
+void ModuleMusic::queueGroupedEvent(const char* bankName, const char* eventName, const char* groupName, uint64_t emitterID, float priority, uint32_t cooldownMs)
+{
+	if (!bankName || !eventName || !groupName || emitterID == 0)
+	{
+		return;
+	}
+
+	std::string key;
+	key.reserve(strlen(bankName) + strlen(eventName) + strlen(groupName) + 2);
+	key += bankName;
+	key += '\x1f';
+	key += eventName;
+	key += '\x1f';
+	key += groupName;
+
+	auto [it, inserted] = m_groupedSoundRequests.try_emplace(key);
+	GroupedSoundRequest& request = it->second;
+	if (inserted || priority < request.priority)
+	{
+		request.bankName = bankName;
+		request.eventName = eventName;
+		request.emitterID = emitterID;
+		request.priority = priority;
+		request.cooldownMs = cooldownMs;
+	}
+}
+
+void ModuleMusic::flushGroupedSoundRequests()
+{
+	const auto now = std::chrono::steady_clock::now();
+	for (const auto& [key, request] : m_groupedSoundRequests)
+	{
+		const auto lastPlay = m_groupedSoundLastPlay.find(key);
+		if (lastPlay != m_groupedSoundLastPlay.end())
+		{
+			const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPlay->second).count();
+			if (elapsedMs < request.cooldownMs)
+			{
+				continue;
+			}
+		}
+
+		if (postEvent(request.bankName.c_str(), request.eventName.c_str(), request.emitterID) != 0)
+		{
+			m_groupedSoundLastPlay[key] = now;
+		}
+	}
+
+	m_groupedSoundRequests.clear();
+}
+
 void ModuleMusic::stopEvent(uint32_t playingID)
 {
 	AK::SoundEngine::StopPlayingID(static_cast<AkPlayingID>(playingID));
@@ -228,6 +284,8 @@ void ModuleMusic::setRTPC(const char* rtpcName, float value)
 void ModuleMusic::stopAllSounds()
 {
 	m_wwiseManager.stopAll();
+	m_groupedSoundRequests.clear();
+	m_groupedSoundLastPlay.clear();
 	m_musicStarted = false;
 }
 #pragma endregion
