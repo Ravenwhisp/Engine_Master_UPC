@@ -101,7 +101,29 @@ bool DynamicTransparencyMaskPass::buildRegionForTarget(OcclusionTargetComponent*
 
     bool hasProjectedPoint = false;
 
-    accumulateProjectedBounds(targetRoot, minX, minY, maxX, maxY, minDepth, hasProjectedPoint);
+    Transform* targetTransform = targetRoot->GetTransform();
+
+    if (targetTransform == nullptr)
+        return false;
+
+    Matrix targetWorld = targetTransform->getGlobalMatrix();
+
+    Vector3 targetScale = Vector3::One;
+    Quaternion targetRotation = Quaternion::Identity;
+    Vector3 targetPosition = Vector3::Zero;
+
+    Matrix stableTargetWorld = targetWorld;
+
+    if (targetWorld.Decompose(targetScale, targetRotation, targetPosition))
+    {
+        stableTargetWorld =
+            Matrix::CreateScale(targetScale) *
+            Matrix::CreateTranslation(targetPosition);
+    }
+
+    const Matrix orientationNeutralTransform = targetWorld.Invert() * stableTargetWorld;
+
+    accumulateProjectedBounds(targetRoot, orientationNeutralTransform, minX, minY, maxX, maxY, minDepth, hasProjectedPoint);
 
     if (!hasProjectedPoint)
         return false;
@@ -122,7 +144,7 @@ bool DynamicTransparencyMaskPass::buildRegionForTarget(OcclusionTargetComponent*
     return true;
 }
 
-void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObject, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, bool& hasProjectedPoint) const
+void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObject, const Matrix& orientationNeutralTransform, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, bool& hasProjectedPoint) const
 {
     if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy())
         return;
@@ -138,9 +160,9 @@ void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObje
 
         for (UINT i = 0; i < 8; ++i)
         {
-            const Vector3& point = points[i];
+            const Vector3 stableWorldPoint = Vector3::Transform(points[i], orientationNeutralTransform);
 
-            DirectX::XMVECTOR worldPoint = DirectX::XMVectorSet(point.x, point.y, point.z, 1.0f);
+            DirectX::XMVECTOR worldPoint = DirectX::XMVectorSet(stableWorldPoint.x, stableWorldPoint.y, stableWorldPoint.z, 1.0f);
             DirectX::XMVECTOR clipPoint = DirectX::XMVector4Transform(worldPoint, viewProjectionXM);
 
             DirectX::XMFLOAT4 clip;
@@ -176,7 +198,7 @@ void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObje
         return;
 
     for (GameObject* child : transform->getAllChildren())
-        accumulateProjectedBounds(child, minX, minY, maxX, maxY, minDepth, hasProjectedPoint);
+        accumulateProjectedBounds(child, orientationNeutralTransform, minX, minY, maxX, maxY, minDepth, hasProjectedPoint);
 }
 
 void DynamicTransparencyMaskPass::prepare(const RenderContext& ctx)

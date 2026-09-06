@@ -4,6 +4,7 @@
 
 #include "Transform.h"
 #include "GameObject.h"
+
 #include <string>
 
 #include "Application.h"
@@ -14,13 +15,12 @@
 #include "MaterialAsset.h"
 #include "SceneReferenceResolver.h"
 
-#include <unordered_set>
-
 MeshRenderer::~MeshRenderer() = default;
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 {
-    std::unique_ptr<MeshRenderer> newMeshRenderer = std::make_unique<MeshRenderer>(m_uuid, newOwner);
+    std::unique_ptr<MeshRenderer> newMeshRenderer =
+        std::make_unique<MeshRenderer>(m_uuid, newOwner);
 
     newMeshRenderer->setActive(this->isActive());
 
@@ -33,192 +33,323 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     {
         newMeshRenderer->m_skin = m_skin->clone();
     }
+
     newMeshRenderer->m_renderMode = m_renderMode;
+
+    newMeshRenderer->m_boundingBox.setBounds(
+        m_boundingBox.getMin(),
+        m_boundingBox.getMax()
+    );
+
+    newMeshRenderer->m_customBoundingBox = m_customBoundingBox;
+
+    newMeshRenderer->updateBoundingBoxWorld();
 
     return newMeshRenderer;
 }
 
-void MeshRenderer::addMesh(MeshAsset& meshAsset)
+
+void MeshRenderer::addMesh(MeshAsset& meshAsset, bool recalculateBounds)
 {
     auto mesh = app->getModuleResources()->createMesh(meshAsset);
+
     if (mesh)
     {
         m_mesh = mesh;
+
         recompute();
 
-        Vector3 boundsMin = meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
-        Vector3 boundsMax = meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
-        m_boundingBox = Engine::BoundingBox(boundsMin, boundsMax);
-        if (m_owner && m_owner->GetTransform())
+        if (recalculateBounds)
         {
-            m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
-        }
-    }
-}
+            Vector3 boundsMin =
+                meshAsset.getBoundsCenter() - meshAsset.getBoundsExtents();
 
-std::shared_ptr<BasicMesh>& MeshRenderer::getMesh()
-{
-    if (!m_mesh && m_meshAsset.isValid())
-    {
-        m_meshAsset.m_type = AssetType::MESH;
-        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
-        if (meshAsset)
-        {
-            DEBUG_WARN("[MeshRenderer] '%s': mesh was null at render time; lazily loaded asset %llu "
-                       "(fixReferences had not loaded it).",
-                       m_owner->GetName().c_str(), (unsigned long long)m_meshAsset.m_uid);
-            addMesh(*meshAsset);
-        }
-        else
-        {
-            static std::unordered_set<const MeshRenderer*> s_failedOnce;
-            if (s_failedOnce.insert(this).second)
-            {
-                DEBUG_WARN("[MeshRenderer] '%s': FAILED to lazily load mesh asset %llu.",
-                           m_owner->GetName().c_str(), (unsigned long long)m_meshAsset.m_uid);
-            }
-        }
-    }
-    return m_mesh;
-}
+            Vector3 boundsMax =
+                meshAsset.getBoundsCenter() + meshAsset.getBoundsExtents();
 
-std::vector<std::shared_ptr<BasicMaterial>>& MeshRenderer::getMaterials()
-{
-    if (m_materials.size() != m_materialAssets.size())
-    {
-        static std::unordered_set<const MeshRenderer*> s_lazyWarned;
-        if (s_lazyWarned.insert(this).second)
-        {
-            DEBUG_WARN("[MeshRenderer] '%s': materials missing at render time (%zu refs vs %zu loaded); lazily loading.",
-                       m_owner->GetName().c_str(), m_materialAssets.size(), m_materials.size());
+            m_boundingBox.setBounds(boundsMin, boundsMax);
+            m_customBoundingBox = false;
         }
 
-        m_materials.clear();
-        for (auto& matRef : m_materialAssets)
-        {
-            if (matRef.isValid())
-            {
-                matRef.m_type = AssetType::MATERIAL;
-                auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
-                if (matAsset)
-                    addMaterial(*matAsset);
-            }
-        }
+        updateBoundingBoxWorld();
     }
-    return m_materials;
 }
 
 void MeshRenderer::recompute()
 {
     m_triangles = 0;
+
     if (m_mesh)
     {
         for (const auto& submesh : m_mesh->getSubmeshes())
+        {
             m_triangles += submesh.indexCount / 3;
+        }
     }
+}
+
+void MeshRenderer::recalculateBoundingBox()
+{
+    if (!m_meshAsset.isValid())
+    {
+        return;
+    }
+
+    m_meshAsset.m_type = AssetType::MESH;
+
+    auto meshAsset =
+        app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+
+    if (!meshAsset)
+    {
+        return;
+    }
+
+    Vector3 boundsMin =
+        meshAsset->getBoundsCenter() - meshAsset->getBoundsExtents();
+
+    Vector3 boundsMax =
+        meshAsset->getBoundsCenter() + meshAsset->getBoundsExtents();
+
+    m_boundingBox.setBounds(boundsMin, boundsMax);
+    m_customBoundingBox = false;
+
+    updateBoundingBoxWorld();
+}
+
+void MeshRenderer::updateBoundingBoxWorld()
+{
+    if (!m_owner)
+    {
+        return;
+    }
+
+    Transform* transform = m_owner->GetTransform();
+
+    if (!transform)
+    {
+        return;
+    }
+
+    m_boundingBox.update(transform->getGlobalMatrix());
 }
 
 void MeshRenderer::addMaterial(MaterialAsset& materialAsset)
 {
-    auto material = app->getModuleResources()->createMaterial(materialAsset);
-    if (material) 
+    auto material =
+        app->getModuleResources()->createMaterial(materialAsset);
+
+    if (material)
     {
         m_materials.push_back(material);
     }
 }
 
-
 void MeshRenderer::drawUi()
 {
     ImGui::Separator();
 
-    if(m_meshAsset.isValid())
+    if (m_meshAsset.isValid())
     {
-        ImGui::Text("Mesh: %s", std::to_string(m_meshAsset.m_uid).c_str());
+        ImGui::Text(
+            "Mesh: %s",
+            std::to_string(m_meshAsset.m_uid).c_str()
+        );
     }
-	else
+    else
     {
         ImGui::Text("Mesh: None");
     }
 
-    static const char* RENDER_TYPES[(int)RenderMode::COUNT] = { "Default", "Transparent", "Flow Map" };
-    int typeIndex = static_cast<int>(m_renderMode);
-    if (ImGui::Combo("Render Mode", &typeIndex, RENDER_TYPES, (int)RenderMode::COUNT))
+    static const char* RENDER_TYPES[(int)RenderMode::COUNT] =
     {
-        m_renderMode = static_cast<RenderMode>(typeIndex);
+        "Default",
+        "Transparent",
+        "Flow Map"
+    };
+
+    int typeIndex = static_cast<int>(m_renderMode);
+
+    if (ImGui::Combo(
+        "Render Mode",
+        &typeIndex,
+        RENDER_TYPES,
+        (int)RenderMode::COUNT))
+    {
+        m_renderMode =
+            static_cast<RenderMode>(typeIndex);
     }
 
-    // --- Mesh drop target ---
     ImGui::Button("Drop Mesh Here");
+
     if (ImGui::BeginDragDropTarget())
     {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MESH"))
+        if (const ImGuiPayload* payload =
+            ImGui::AcceptDragDropPayload("ASSET_MESH"))
         {
-            UID* ref = static_cast<UID*>(payload->Data);
-            AssetId* assetRef = app->getModuleAssets()->findReference(*ref);
-            auto meshAsset = app->getModuleAssets()->load<MeshAsset>(*assetRef);
+            UID* ref =
+                static_cast<UID*>(payload->Data);
+
+            AssetId* assetRef =
+                app->getModuleAssets()->findReference(*ref);
+
+            auto meshAsset =
+                app->getModuleAssets()->load<MeshAsset>(*assetRef);
+
             if (meshAsset)
             {
                 addMesh(*meshAsset);
             }
         }
+
         ImGui::EndDragDropTarget();
     }
 
-    if(m_materialAssets.empty())
-	{
-		ImGui::Text("Materials: None");
+    if (m_materialAssets.empty())
+    {
+        ImGui::Text("Materials: None");
     }
-    else {
+    else
+    {
         ImGui::Text("Materials:");
+
         for (const auto& materialRef : m_materialAssets)
         {
-            ImGui::BulletText("%s", std::to_string(materialRef.m_uid).c_str());
+            ImGui::BulletText(
+                "%s",
+                std::to_string(materialRef.m_uid).c_str()
+            );
         }
     }
 
     if (m_skinAsset.isValid())
     {
-        ImGui::Text("Skin: %s", std::to_string(m_meshAsset.m_uid).c_str());
+        ImGui::Text(
+            "Skin: %s",
+            std::to_string(m_skinAsset.m_uid).c_str()
+        );
     }
     else
     {
         ImGui::Text("Skin: None");
     }
 
-    // --- Material drop target ---
     ImGui::Button("Drop Material Here");
+
     if (ImGui::BeginDragDropTarget())
     {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MATERIAL"))
+        if (const ImGuiPayload* payload =
+            ImGui::AcceptDragDropPayload("ASSET_MATERIAL"))
         {
-            UID* ref = static_cast<UID*>(payload->Data);
-            AssetId* assetRef = app->getModuleAssets()->findReference(*ref);
-            auto materialAsset = app->getModuleAssets()->load<MaterialAsset>(*assetRef);
+            UID* ref =
+                static_cast<UID*>(payload->Data);
+
+            AssetId* assetRef =
+                app->getModuleAssets()->findReference(*ref);
+
+            auto materialAsset =
+                app->getModuleAssets()->load<MaterialAsset>(*assetRef);
+
             if (materialAsset)
             {
                 addMaterial(*materialAsset);
             }
         }
+
         ImGui::EndDragDropTarget();
     }
 
     ImGui::Separator();
 
-    ImGui::Text("Triangles: %d", (int)m_triangles);
+    ImGui::Text("Triangles: %d", m_triangles);
 
-    auto min = m_boundingBox.getMin();
-    auto max = m_boundingBox.getMax();
-    ImGui::Text("Local Min: %.3f %.3f %.3f", min.x, min.y, min.z);
-    ImGui::Text("Local Max: %.3f %.3f %.3f", max.x, max.y, max.z);
+    ImGui::Separator();
+
+    ImGui::Text("Bounding Box");
+
+    Vector3 boundsMin =
+        m_boundingBox.getMin();
+
+    Vector3 boundsMax =
+        m_boundingBox.getMax();
+
+    float minValues[3] =
+    {
+        boundsMin.x,
+        boundsMin.y,
+        boundsMin.z
+    };
+
+    float maxValues[3] =
+    {
+        boundsMax.x,
+        boundsMax.y,
+        boundsMax.z
+    };
+
+    bool boundsChanged = false;
+
+    if (ImGui::DragFloat3(
+        "Local Min",
+        minValues,
+        0.01f))
+    {
+        boundsMin = Vector3(
+            minValues[0],
+            minValues[1],
+            minValues[2]
+        );
+
+        boundsChanged = true;
+    }
+
+    if (ImGui::DragFloat3(
+        "Local Max",
+        maxValues,
+        0.01f))
+    {
+        boundsMax = Vector3(
+            maxValues[0],
+            maxValues[1],
+            maxValues[2]
+        );
+
+        boundsChanged = true;
+    }
+
+    if (boundsChanged)
+    {
+        m_boundingBox.setBounds(
+            boundsMin,
+            boundsMax
+        );
+
+        m_customBoundingBox = true;
+
+        updateBoundingBoxWorld();
+    }
+
+    if (m_customBoundingBox)
+    {
+        ImGui::TextDisabled("Custom bounds");
+    }
+    else
+    {
+        ImGui::TextDisabled("Mesh bounds");
+    }
+
+    if (ImGui::Button("Recalculate Bounding Box"))
+    {
+        recalculateBoundingBox();
+    }
 
     if (m_skin)
     {
         ImGui::Separator();
         ImGui::Text("Skin");
+
         m_skin->drawUi();
     }
-
 }
 
 void MeshRenderer::debugDraw()
@@ -229,12 +360,7 @@ void MeshRenderer::debugDraw()
 
 void MeshRenderer::onTransformChange()
 {
-    if (!m_owner || !m_owner->GetTransform())
-    {
-        return;
-    }
-
-    m_boundingBox.update(m_owner->GetTransform()->getGlobalMatrix());
+    updateBoundingBoxWorld();
 }
 
 void MeshRenderer::update()
@@ -246,7 +372,10 @@ void MeshRenderer::update()
 
     if (m_skin)
     {
-        m_skin->lateUpdate(m_owner, *this);
+        m_skin->lateUpdate(
+            m_owner,
+            *this
+        );
     }
 }
 
@@ -257,31 +386,62 @@ void MeshRenderer::serialize(IArchive& archive)
     if (archive.mode() == ArchiveMode::Input)
     {
         AssetId ref;
+
         archive.beginObject("MeshAssetId");
         ref.serialize(archive);
         archive.endObject();
+
         setMeshReference(ref);
 
         archive.beginObject("SkinAssetId");
         ref.serialize(archive);
         archive.endObject();
+
         setSkinReference(ref);
         ensureSkin().setSkinReference(ref);
 
         uint32_t materialCount = 0;
+
         archive.beginArray(materialCount, "Materials");
+
         for (uint32_t i = 0; i < materialCount; ++i)
         {
             archive.beginObject();
+
             ref.serialize(archive);
             addMaterialReference(ref);
+
             archive.endObject();
         }
+
         archive.endArray();
 
         UINT renderMode = static_cast<UINT>(m_renderMode);
         archive.serialize(renderMode, "Render Mode");
         m_renderMode = static_cast<RenderMode>(renderMode);
+
+        JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
+
+        if (jsonArchive && jsonArchive->hasKey("BoundingBox"))
+        {
+            archive.beginObject("BoundingBox");
+
+            archive.serialize(m_customBoundingBox, "Custom");
+
+            Vector3 boundsMin;
+            Vector3 boundsMax;
+
+            archive.serialize(boundsMin, "Min");
+            archive.serialize(boundsMax, "Max");
+
+            m_boundingBox.setBounds(boundsMin, boundsMax);
+
+            archive.endObject();
+        }
+        else
+        {
+            m_customBoundingBox = false;
+        }
     }
     else
     {
@@ -293,19 +453,36 @@ void MeshRenderer::serialize(IArchive& archive)
         m_skinAsset.serialize(archive);
         archive.endObject();
 
-        uint32_t materialCount = static_cast<uint32_t>(m_materialAssets.size());
+        uint32_t materialCount =
+            static_cast<uint32_t>(m_materialAssets.size());
+
         archive.beginArray(materialCount, "Materials");
 
         for (uint32_t i = 0; i < materialCount; ++i)
         {
             archive.beginObject();
+
             m_materialAssets[i].serialize(archive);
+
             archive.endObject();
         }
+
         archive.endArray();
 
         UINT renderMode = static_cast<UINT>(m_renderMode);
         archive.serialize(renderMode, "Render Mode");
+
+        archive.beginObject("BoundingBox");
+
+        archive.serialize(m_customBoundingBox, "Custom");
+
+        Vector3 boundsMin = m_boundingBox.getMin();
+        Vector3 boundsMax = m_boundingBox.getMax();
+
+        archive.serialize(boundsMin, "Min");
+        archive.serialize(boundsMax, "Max");
+
+        archive.endObject();
     }
 }
 
@@ -319,13 +496,11 @@ void MeshRenderer::addMaterialReference(AssetId& materialRef)
     m_materialAssets.push_back(materialRef);
 }
 
-
 Skin& MeshRenderer::ensureSkin()
 {
     if (!m_skin)
     {
         m_skin = std::make_unique<Skin>();
-
     }
 
     return *m_skin;
@@ -341,44 +516,51 @@ void MeshRenderer::clearSkin()
     m_skin.reset();
 }
 
-void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
+void MeshRenderer::fixReferences(
+    const SceneReferenceResolver& resolver)
 {
-
     m_mesh = nullptr;
     m_materials.clear();
 
-
     if (m_meshAsset.isValid())
     {
-        m_meshAsset.m_type = AssetType::MESH;
-        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        m_meshAsset.m_type =
+            AssetType::MESH;
+
+        auto meshAsset =
+            app->getModuleAssets()->load<MeshAsset>(
+                m_meshAsset
+            );
+
         if (meshAsset)
-            addMesh(*meshAsset);
-        else
-            DEBUG_WARN("[MeshRenderer] '%s': failed to load mesh asset %llu during fixReferences.",
-                       m_owner->GetName().c_str(), (unsigned long long)m_meshAsset.m_uid);
+        {
+            addMesh(
+                *meshAsset,
+                !m_customBoundingBox
+            );
+        }
     }
 
     for (auto& matRef : m_materialAssets)
     {
         if (matRef.isValid())
         {
-            matRef.m_type = AssetType::MATERIAL;
-            auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+            matRef.m_type =
+                AssetType::MATERIAL;
+
+            auto matAsset =
+                app->getModuleAssets()->load<MaterialAsset>(
+                    matRef
+                );
+
             if (matAsset)
+            {
                 addMaterial(*matAsset);
-            else
-                DEBUG_WARN("[MeshRenderer] '%s': failed to load material asset %llu during fixReferences.",
-                           m_owner->GetName().c_str(), (unsigned long long)matRef.m_uid);
+            }
         }
     }
 
     recompute();
 
-    if (!m_mesh || m_materials.size() != m_materialAssets.size())
-    {
-        DEBUG_WARN("[MeshRenderer] '%s': fixReferences incomplete (mesh=%s, materials=%zu/%zu).",
-                   m_owner->GetName().c_str(), m_mesh ? "ok" : "NONE",
-                   m_materials.size(), m_materialAssets.size());
-    }
+    updateBoundingBoxWorld();
 }

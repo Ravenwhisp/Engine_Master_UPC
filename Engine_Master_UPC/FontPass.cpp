@@ -289,7 +289,7 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
 
 		wchar_t buffer[64];
-		swprintf_s(buffer, L"FPS: %.0f", fps);
+		swprintf_s(buffer, L"FPS: %.2f", fps);
 
 		UITextCommand command;
 		command.text = buffer;
