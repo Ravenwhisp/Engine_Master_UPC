@@ -31,14 +31,11 @@ EnemyAttackExecutor::EnemyAttackExecutor(GameObject* owner)
 
 void EnemyAttackExecutor::Start()
 {
-    m_enemyDetectionAggro =
-        GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
+    m_enemyDetectionAggro = GameObjectAPI::findScript<EnemyDetectionAggro>(getOwner());
 
     if (!m_enemyDetectionAggro)
     {
-        Debug::error(
-            "[EnemyAttackExecutor] EnemyDetectionAggro script not found"
-        );
+        Debug::error("[EnemyAttackExecutor] EnemyDetectionAggro script not found");
     }
 }
 
@@ -95,11 +92,8 @@ void EnemyAttackExecutor::applyDamageInRadius(
         return;
     }
 
-    Transform* lyrielTransform =
-        m_enemyDetectionAggro->getLyrielTransform();
-
-    Transform* deathTransform =
-        m_enemyDetectionAggro->getDeathTransform();
+    Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
+    Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
 
     tryDamageTargetInRadius(
         lyrielTransform,
@@ -131,11 +125,8 @@ void EnemyAttackExecutor::applyDamageAndStunInRadius(
         return;
     }
 
-    Transform* lyrielTransform =
-        m_enemyDetectionAggro->getLyrielTransform();
-
-    Transform* deathTransform =
-        m_enemyDetectionAggro->getDeathTransform();
+    Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
+    Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
 
     tryDamageAndStunTargetInRadius(
         lyrielTransform,
@@ -170,11 +161,8 @@ int EnemyAttackExecutor::applyDamageInCone(
         return 0;
     }
 
-    Transform* lyrielTransform =
-        m_enemyDetectionAggro->getLyrielTransform();
-
-    Transform* deathTransform =
-        m_enemyDetectionAggro->getDeathTransform();
+    Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
+    Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
 
     int hits = 0;
 
@@ -207,6 +195,63 @@ int EnemyAttackExecutor::applyDamageInCone(
     return hits;
 }
 
+void EnemyAttackExecutor::applyDamageAndStunInCone(
+    const Vector3& center,
+    const Vector3& direction,
+    float range,
+    float halfAngleDegrees,
+    float damage,
+    float stunDuration,
+    const char* sourceName
+)
+{
+    if (!m_enemyDetectionAggro)
+    {
+        return;
+    }
+
+    Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
+    Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
+
+    const bool lyrielDamaged = tryDamageTargetInCone(
+        lyrielTransform,
+        center,
+        direction,
+        range,
+        halfAngleDegrees,
+        damage,
+        sourceName
+    );
+
+    if (lyrielDamaged)
+    {
+        applyStunToTarget(
+            lyrielTransform,
+            stunDuration,
+            sourceName
+        );
+    }
+
+    const bool deathDamaged = tryDamageTargetInCone(
+        deathTransform,
+        center,
+        direction,
+        range,
+        halfAngleDegrees,
+        damage,
+        sourceName
+    );
+
+    if (deathDamaged)
+    {
+        applyStunToTarget(
+            deathTransform,
+            stunDuration,
+            sourceName
+        );
+    }
+}
+
 int EnemyAttackExecutor::applyDamageInRectangle(
     const Vector3& origin,
     const Vector3& direction,
@@ -221,11 +266,8 @@ int EnemyAttackExecutor::applyDamageInRectangle(
         return 0;
     }
 
-    Transform* lyrielTransform =
-        m_enemyDetectionAggro->getLyrielTransform();
-
-    Transform* deathTransform =
-        m_enemyDetectionAggro->getDeathTransform();
+    Transform* lyrielTransform = m_enemyDetectionAggro->getLyrielTransform();
+    Transform* deathTransform = m_enemyDetectionAggro->getDeathTransform();
 
     int hits = 0;
 
@@ -271,16 +313,14 @@ bool EnemyAttackExecutor::tryDamageTargetInRadius(
         return false;
     }
 
-    GameObject* targetObject =
-        ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
 
     if (!targetObject)
     {
         return false;
     }
 
-    Vector3 targetPosition =
-        TransformAPI::getGlobalPosition(targetTransform);
+    Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
 
     Vector3 difference = targetPosition - center;
     difference.y = 0.0f;
@@ -344,16 +384,14 @@ bool EnemyAttackExecutor::tryDamageTargetInCone(
         return false;
     }
 
-    GameObject* targetObject =
-        ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
 
     if (!targetObject)
     {
         return false;
     }
 
-    Vector3 targetPosition =
-        TransformAPI::getGlobalPosition(targetTransform);
+    Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
 
     Vector3 toTarget = targetPosition - center;
     toTarget.y = 0.0f;
@@ -397,11 +435,9 @@ bool EnemyAttackExecutor::tryDamageTargetInCone(
         dot = -1.0f;
     }
 
-    constexpr float degreesToRadians =
-        3.14159265f / 180.0f;
+    constexpr float degreesToRadians = 3.14159265f / 180.0f;
 
-    const float minDot =
-        std::cos(halfAngleDegrees * degreesToRadians);
+    const float minDot = std::cos(halfAngleDegrees * degreesToRadians);
 
     if (dot < minDot)
     {
@@ -435,8 +471,7 @@ bool EnemyAttackExecutor::tryDamageTargetInRectangle(
         return false;
     }
 
-    GameObject* targetObject =
-        ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
 
     if (!targetObject)
     {
@@ -459,14 +494,12 @@ bool EnemyAttackExecutor::tryDamageTargetInRectangle(
         -flatDirection.x
     );
 
-    Vector3 targetPosition =
-        TransformAPI::getGlobalPosition(targetTransform);
+    Vector3 targetPosition = TransformAPI::getGlobalPosition(targetTransform);
 
     Vector3 toTarget = targetPosition - origin;
     toTarget.y = 0.0f;
 
-    const float forwardDistance =
-        flatDirection.Dot(toTarget);
+    const float forwardDistance = flatDirection.Dot(toTarget);
 
     if (forwardDistance < 0.0f ||
         forwardDistance > length)
@@ -474,9 +507,7 @@ bool EnemyAttackExecutor::tryDamageTargetInRectangle(
         return false;
     }
 
-    const float lateralDistance =
-        rightDirection.Dot(toTarget);
-
+    const float lateralDistance = rightDirection.Dot(toTarget);
     const float halfWidth = width * 0.5f;
 
     if (lateralDistance < -halfWidth ||
@@ -536,24 +567,21 @@ bool EnemyAttackExecutor::applyDamageToTarget(
         return false;
     }
 
-    GameObject* targetObject =
-        ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
 
     if (!targetObject)
     {
         return false;
     }
 
-    Damageable* damageable =
-        GameObjectAPI::findScript<Damageable>(targetObject);
+    Damageable* damageable = GameObjectAPI::findScript<Damageable>(targetObject);
 
     if (!damageable)
     {
         return false;
     }
 
-    PlayerState* playerState =
-        GameObjectAPI::findScript<PlayerState>(targetObject);
+    PlayerState* playerState = GameObjectAPI::findScript<PlayerState>(targetObject);
 
     if (playerState && playerState->isDowned())
     {
@@ -572,6 +600,7 @@ bool EnemyAttackExecutor::applyDamageToTarget(
     AssetId hitVfx = m_nextPlayerHitVfxOverride.isValid()
         ? m_nextPlayerHitVfxOverride
         : getMainCharDamagePrefabId();
+
     m_nextPlayerHitVfxOverride = AssetId();
 
     const bool skipDefaultHeavySwipeVfx = sourceName != nullptr && strcmp(sourceName, "HeavySwipe") == 0;
@@ -600,16 +629,14 @@ void EnemyAttackExecutor::applyStunToTarget(
         return;
     }
 
-    GameObject* targetObject =
-        ComponentAPI::getOwner(targetTransform);
+    GameObject* targetObject = ComponentAPI::getOwner(targetTransform);
 
     if (!targetObject)
     {
         return;
     }
 
-    PlayerStunState* stunState =
-        GameObjectAPI::findScript<PlayerStunState>(targetObject);
+    PlayerStunState* stunState = GameObjectAPI::findScript<PlayerStunState>(targetObject);
 
     if (!stunState)
     {

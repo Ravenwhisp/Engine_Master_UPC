@@ -55,15 +55,28 @@ void AelorinDamageable::takeDamage(const HitContext& ctx)
     const EnemyHitContext& enemyCtx = static_cast<const EnemyHitContext&>(ctx);
 
     resetLastShadowMarkResult();
-    processShadowMarkHit(enemyCtx.attackType);
 
-    if (isShadowExecution(enemyCtx))
+    const bool shadowMarkExploited = processShadowMarkHit(enemyCtx.attackType);
+
+    // Boss is already sitting on a threshold
+    if (m_thresholdLocked)
     {
-        processShadowExecution(enemyCtx);
+        if (shadowMarkExploited)
+        {
+            processThresholdBreak(enemyCtx);
+        }
+
         return;
     }
 
+    // Apply normal damage
     processNormalDamage(enemyCtx);
+
+    // If same hit both exploited the Shadow Mark and reached the threshold -> break it
+    if (shadowMarkExploited && m_thresholdLocked)
+    {
+        processThresholdBreak(enemyCtx);
+    }
 }
 
 const std::vector<AelorinThreshold>& AelorinDamageable::getActiveThresholds() const
@@ -89,11 +102,6 @@ const AelorinThreshold* AelorinDamageable::getCurrentThreshold() const
 bool AelorinDamageable::hasCurrentThreshold() const
 {
     return m_currentThresholdIndex < getActiveThresholds().size();
-}
-
-bool AelorinDamageable::isShadowExecution(const EnemyHitContext& ctx) const
-{
-    return ctx.attackType == PlayerAttackType::ShadowExecution;
 }
 
 float AelorinDamageable::getCurrentThresholdPercent() const
@@ -164,7 +172,7 @@ void AelorinDamageable::processNormalDamage(const EnemyHitContext& ctx)
     }
 }
 
-void AelorinDamageable::processShadowExecution(const EnemyHitContext& ctx)
+void AelorinDamageable::processThresholdBreak(const EnemyHitContext& ctx)
 {
     const AelorinThreshold* threshold = getCurrentThreshold();
 
@@ -175,11 +183,10 @@ void AelorinDamageable::processShadowExecution(const EnemyHitContext& ctx)
 
     if (!m_thresholdLocked)
     {
-        Debug::log("[AelorinDamageable] Shadow Execution ignored. The current threshold has not been reached.");
         return;
     }
 
-    Debug::log("[AelorinDamageable] Shadow Execution broke the %.0f%% threshold.", threshold->percent * 100.0f);
+    Debug::log("[AelorinDamageable] Shadow Mark broke the %.0f%% threshold.", threshold->percent * 100.0f);
 
     switch (threshold->type)
     {

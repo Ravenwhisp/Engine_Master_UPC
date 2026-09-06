@@ -89,8 +89,12 @@ void AelorinSeekerSigilsState::OnStateUpdate()
 		return;
 	}
 
-	const AelorinAttackConfig* config = m_controller->getAelorinAttackConfig();
+	if (m_controller->trySendPriorityInterrupt(m_animation))
+	{
+		return;
+	}
 
+	const AelorinAttackConfig* config = m_controller->getAelorinAttackConfig();
 	if (!config)
 	{
 		return;
@@ -145,6 +149,11 @@ void AelorinSeekerSigilsState::OnStateUpdate()
 
 void AelorinSeekerSigilsState::OnStateExit()
 {
+	if (m_aelorinUI)
+	{
+		m_aelorinUI->cancelSeekerSigils();
+	}
+
 	m_aelorinUI = nullptr;
 	m_waveTimer = 0.0f;
 	m_currentWave = 0;

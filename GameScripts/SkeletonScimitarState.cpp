@@ -5,6 +5,7 @@
 #include "SkeletonAttackConfig.h"
 #include "EnemyAttackExecutor.h"
 #include "SkeletonParticles.h"
+#include "SkeletonUI.h"
 
 SkeletonScimitarState::SkeletonScimitarState(GameObject* owner)
 	: StateMachineScript(owner)
@@ -17,6 +18,7 @@ void SkeletonScimitarState::OnStateEnter()
 	m_attackExecutor = GameObjectAPI::findScript<EnemyAttackExecutor>(getOwner());
 	m_animation = AnimationAPI::getAnimationComponent(getOwner());
 	m_particles = GameObjectAPI::findScript<SkeletonParticles>(getOwner());
+	m_skeletonUI = GameObjectAPI::findScript<SkeletonUI>(getOwner());
 
 	if (!m_controller)
 	{
@@ -41,12 +43,22 @@ void SkeletonScimitarState::OnStateEnter()
 		Debug::warn("[SkeletonScimitarState] SkeletonParticles not found.");
 	}
 
+	if (!m_skeletonUI)
+	{
+		Debug::warn("[SkeletonScimitarState] SkeletonUI not found.");
+	}
+
 	m_controller->clearPath();
 	m_controller->resetRepathTimer();
 	m_controller->updateCurrentTarget();
 
 	m_previousAnimationSpeed = AnimationAPI::getSpeedMultiplier(m_animation);
 	AnimationAPI::setSpeedMultiplier(m_animation, m_controller->m_attackConfig.get()->m_attackAnimationSpeed);
+
+	if (m_skeletonUI)
+	{
+		m_skeletonUI->hideScimitarUI();
+	}
 
 	changePhase(Phase::Dash);
 
@@ -66,12 +78,11 @@ void SkeletonScimitarState::OnStateUpdate()
 		return;
 	}
 
-	m_controller->faceCurrentTarget();
-
 	m_phaseTimer += Time::getDeltaTime();
 
 	if (m_phase == Phase::Dash)
 	{
+		m_controller->faceCurrentTarget();
 		updateDash();
 		return;
 	}
@@ -79,6 +90,25 @@ void SkeletonScimitarState::OnStateUpdate()
 	if (m_phase == Phase::Attack1 || m_phase == Phase::Attack2 || m_phase == Phase::Attack3)
 	{
 		updateAttack();
+		return;
+	}
+
+	if (m_phase == Phase::Reaim1 || m_phase == Phase::Reaim2)
+	{
+		m_controller->faceCurrentTarget();
+
+		if (m_phaseTimer >= m_reaimDuration)
+		{
+			if (m_phase == Phase::Reaim1)
+			{
+				changePhase(Phase::Attack2);
+			}
+			else
+			{
+				changePhase(Phase::Attack3);
+			}
+		}
+
 		return;
 	}
 
@@ -100,11 +130,16 @@ void SkeletonScimitarState::OnStateExit()
 	if (m_animation)
 	{
 		AnimationAPI::clearOverrideClip(m_animation, 0.0f);
+		AnimationAPI::setSpeedMultiplier(m_animation, m_previousAnimationSpeed);
+	}
+
+	if (m_skeletonUI)
+	{
+		m_skeletonUI->hideScimitarUI();
 	}
 
 	m_phaseTimer = 0.0f;
 	m_hasAppliedHit = false;
-	AnimationAPI::setSpeedMultiplier(m_animation, m_previousAnimationSpeed);
 
 	Debug::log("[SkeletonScimitarState] EXIT");
 }
@@ -120,9 +155,15 @@ void SkeletonScimitarState::changePhase(Phase phase)
 		return;
 	}
 
+	if (m_skeletonUI)
+	{
+		m_skeletonUI->hideScimitarUI();
+	}
+
 	if (phase == Phase::Attack1 || phase == Phase::Attack2 || phase == Phase::Attack3)
 	{
 		AnimationAPI::playOverrideClip(m_animation, "Skeleton_Attak", 0.05, false);
+		setupAttackTelegraph();
 	}
 }
 
@@ -149,7 +190,6 @@ void SkeletonScimitarState::updateDash()
 
 void SkeletonScimitarState::updateAttack()
 {
-	// Last Attack can stun
 	if (!m_hasAppliedHit && m_phaseTimer >= getScimitarAttackHitTime())
 	{
 		const bool shouldStun = m_phase == Phase::Attack3;
@@ -164,7 +204,7 @@ void SkeletonScimitarState::updateAttack()
 
 	if (m_phase == Phase::Attack1)
 	{
-		changePhase(Phase::Attack2);
+		changePhase(Phase::Reaim1);
 		return;
 	}
 
@@ -196,15 +236,14 @@ void SkeletonScimitarState::updateBackstep()
 
 	if (m_phaseTimer >= m_controller->m_attackConfig.get()->m_stepBackDuration)
 	{
-		changePhase(Phase::Attack3);
+		changePhase(Phase::Reaim2);
 		return;
 	}
 }
 
-void SkeletonScimitarState::applyHit(bool shouldStun)
+void SkeletonScimitarState::setupAttackTelegraph()
 {
-	Transform* currentTarget = m_controller->getCurrentTarget();
-	if (!currentTarget)
+	if (!m_skeletonUI || !m_controller || !m_controller->m_attackConfig.get())
 	{
 		return;
 	}
@@ -215,8 +254,40 @@ void SkeletonScimitarState::applyHit(bool shouldStun)
 		return;
 	}
 
+	const Vector3 origin = TransformAPI::getGlobalPosition(ownerTransform);
+	const Vector3 forward = TransformAPI::getForward(ownerTransform);
+
+	const float range =
+		m_phase == Phase::Attack3
+		? m_controller->m_attackConfig.get()->m_scimitarStunHitRange
+		: m_controller->m_attackConfig.get()->m_basicAttackRange;
+
+	m_skeletonUI->setupScimitarUI(
+		range,
+		m_controller->m_attackConfig.get()->m_scimitarHalfAngleDegrees
+	);
+
+	m_skeletonUI->showScimitarTelegraph(
+		origin,
+		forward
+	);
+}
+
+void SkeletonScimitarState::applyHit(bool shouldStun)
+{
+	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+	if (!ownerTransform)
+	{
+		return;
+	}
+
 	const Vector3 center = TransformAPI::getGlobalPosition(ownerTransform);
 	const Vector3 forward = TransformAPI::getForward(ownerTransform);
+
+	if (m_skeletonUI)
+	{
+		m_skeletonUI->showScimitarImpact();
+	}
 
 	if (m_particles && m_attackExecutor)
 	{
@@ -232,8 +303,7 @@ void SkeletonScimitarState::applyHit(bool shouldStun)
 
 	if (shouldStun)
 	{
-		m_attackExecutor->tryDamageAndStunSingleTargetInCone(
-			currentTarget,
+		m_attackExecutor->applyDamageAndStunInCone(
 			center,
 			forward,
 			m_controller->m_attackConfig.get()->m_scimitarStunHitRange,
@@ -245,8 +315,7 @@ void SkeletonScimitarState::applyHit(bool shouldStun)
 	}
 	else
 	{
-		m_attackExecutor->tryDamageTargetInCone(
-			currentTarget,
+		m_attackExecutor->applyDamageInCone(
 			center,
 			forward,
 			m_controller->m_attackConfig.get()->m_basicAttackRange,

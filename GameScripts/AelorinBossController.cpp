@@ -11,12 +11,14 @@
 #include "SeekerSigilProjectile.h"
 
 #include "AelorinSummonSlot.h"
+#include "Transform2D.h"
 
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(AelorinBossController, EnemyBaseController,
+	SERIALIZED_BOOL(m_debugForcePhaseTransition, "DEBUG - Force Phase Transition"),
 	SERIALIZED_ASSET_REF(m_attackConfig, "Attack Config", AssetType::DATA_CONTAINER),
 	SERIALIZED_COMPONENT_REF(m_seekerSigilsProjectilePool, "Seeker Sigils Projectile Pool", ComponentType::TRANSFORM),
 	SERIALIZED_COMPONENT_REF(m_seekerSigilsLargeProjectilePool, "Seeker Sigils Large Projectile Pool", ComponentType::TRANSFORM),
@@ -26,7 +28,15 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(AelorinBossController, EnemyBaseController,
 	SERIALIZED_COMPONENT_REF(m_teleportAnchorsRoot, "Teleport Anchors Root", ComponentType::TRANSFORM),
 	SERIALIZED_COMPONENT_REF(m_phase1SummonFormation, "Phase 1 Summon Formation", ComponentType::TRANSFORM),
 	SERIALIZED_COMPONENT_REF(m_phase2SummonFormation, "Phase 2 Summon Formation", ComponentType::TRANSFORM),
-	SERIALIZED_COMPONENT_REF(m_soulCataclysmCenter, "Soul Cataclysm Center", ComponentType::TRANSFORM)
+	SERIALIZED_COMPONENT_REF(m_soulCataclysmCenter, "Soul Cataclysm Center", ComponentType::TRANSFORM),
+
+	FIELD_GROUP_COLLAPSE("Shadow Mark Placement",
+		SERIALIZED_COMPONENT_REF(m_shadowMarkPlacement,	"Shadow Mark Placement", ComponentType::TRANSFORM2D),
+		SERIALIZED_FLOAT(m_shadowMarkPhase1Y, "Phase 1 Y", -1000.0f, 1000.0f, 1.0f),
+		SERIALIZED_FLOAT(m_shadowMarkPhase1Scale, "Phase 1 Scale", 0.1f, 5.0f, 0.1f),
+		SERIALIZED_FLOAT(m_shadowMarkPhase2Y, "Phase 2 Y", -1000.0f, 1000.0f, 1.0f),
+		SERIALIZED_FLOAT(m_shadowMarkPhase2Scale, "Phase 2 Scale", 0.1f, 5.0f, 0.1f)
+	)
 )
 
 AelorinBossController::AelorinBossController(GameObject* owner) : EnemyBaseController(owner)
@@ -104,6 +114,8 @@ void AelorinBossController::Start()
 	{
 		Debug::error("[AelorinBossController] Large Seeker Sigils ProjectilePool not found.");
 	}
+
+	applyShadowMarkPlacement();
 }
 
 //void AelorinBossController::drawGizmo()
@@ -113,6 +125,15 @@ void AelorinBossController::Start()
 
 void AelorinBossController::Update()
 {
+	if (m_debugForcePhaseTransition)
+	{
+		if (!isPhase2())
+		{
+			requestPhaseTransition();
+			Debug::log("[AelorinBossController] DEBUG: Forced Phase Transition.");
+		}
+	}
+
 	updateEncounter();
 	updateTeleportCooldown();
 	updateSummonTimer();	
@@ -342,6 +363,8 @@ void AelorinBossController::beginPhase2()
 	GameObjectAPI::setActive(m_phase2GameObject, true);
 
 	setPhase(Phase::Phase2);
+
+	applyShadowMarkPlacement();
 
 	m_phaseTransitionRequested = false;
 	m_phaseTransitionTriggered = false;
@@ -791,6 +814,34 @@ void AelorinBossController::spawnHealthDrops()
 	}
 }
 
+bool AelorinBossController::trySendPriorityInterrupt(AnimationComponent* animation)
+{
+	if (!animation)
+	{
+		return false;
+	}
+
+	// Highest priority
+	if (isPhase2() && trySendDeathTrigger(animation))
+	{
+		return true;
+	}
+
+	// Phase 1 only
+	if (trySendPhaseTransitionTrigger(animation))
+	{
+		return true;
+	}
+
+	// Standard / Fury threshold stagger
+	if (trySendThresholdStaggerTrigger(animation))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 // These two will not be needed
 Transform* AelorinBossController::acquireCurrentTarget()
 {
@@ -856,6 +907,43 @@ void AelorinBossController::updateSummonTimer()
 	{
 		m_summonTimerRemaining = 0.0f;
 	}
+}
+
+void AelorinBossController::applyShadowMarkPlacement()
+{
+	Transform2D* placement = m_shadowMarkPlacement.getReferencedComponent();
+	if (!placement)
+	{
+		return;
+	}
+
+	GameObject* placementObject = ComponentAPI::getOwner(placement);
+	if (!placementObject)
+	{
+		return;
+	}
+
+	Transform* placementTransform = GameObjectAPI::getTransform(placementObject);
+	Transform* bossTransform = GameObjectAPI::getTransform(getOwner());
+	if (!placementTransform || !bossTransform)
+	{
+		return;
+	}
+
+	const Vector3 bossPosition = TransformAPI::getGlobalPosition(bossTransform);
+
+	if (isPhase2())
+	{
+		const Vector3 offset(0.0f, m_shadowMarkPhase2Y,	0.0f);
+		TransformAPI::setGlobalPosition(placementTransform,	bossPosition + offset);
+		Transform2DAPI::setScale(placement,	Vector2(m_shadowMarkPhase2Scale, m_shadowMarkPhase2Scale));
+
+		return;
+	}
+
+	const Vector3 offset(0.0f, m_shadowMarkPhase1Y, 0.0f);
+	TransformAPI::setGlobalPosition(placementTransform,	bossPosition + offset);
+	Transform2DAPI::setScale(placement, Vector2(m_shadowMarkPhase1Scale, m_shadowMarkPhase1Scale));
 }
 
 std::vector<AelorinAbility> AelorinBossController::buildAbilityPool() const

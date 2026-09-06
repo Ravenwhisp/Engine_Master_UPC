@@ -50,17 +50,7 @@ void AelorinIdleState::OnStateUpdate()
 		return;
 	}
 
-	if (m_controller->isPhase2() && m_controller->trySendDeathTrigger(m_animation))
-	{
-		return;
-	}
-
-	if (m_controller->trySendPhaseTransitionTrigger(m_animation))
-	{
-		return;
-	}
-
-	if (m_controller->trySendThresholdStaggerTrigger(m_animation))
+	if (m_controller->trySendPriorityInterrupt(m_animation))
 	{
 		return;
 	}

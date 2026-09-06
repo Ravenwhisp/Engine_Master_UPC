@@ -96,6 +96,11 @@ void AelorinNovaState::OnStateUpdate()
 		return;
 	}
 
+	if (m_controller->trySendPriorityInterrupt(m_animation))
+	{
+		return;
+	}
+
 	const AelorinAttackConfig* config = m_controller->getAelorinAttackConfig();
 	if (!config)
 	{
@@ -135,6 +140,11 @@ void AelorinNovaState::OnStateUpdate()
 
 void AelorinNovaState::OnStateExit()
 {
+	if (m_aelorinUI)
+	{
+		m_aelorinUI->cancelNova();
+	}
+
 	m_aelorinUI = nullptr;
 	m_stateTimer = 0.0f;
 	m_novaCenter = Vector3::Zero;

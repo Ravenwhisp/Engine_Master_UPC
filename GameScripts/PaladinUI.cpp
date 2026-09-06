@@ -66,7 +66,7 @@ void PaladinUI::Start()
         m_basicAttackUICanvasTransform =
             TransformAPI::findChildByName(
                 ownerTransform,
-                "Paladin Attack UI"
+                "PaladinAttackUI"
             );
     }
 

@@ -443,6 +443,7 @@
     <ClInclude Include="SkeletonParticles.h" />
     <ClInclude Include="SkeletonReviveState.h" />
     <ClInclude Include="SkeletonScimitarState.h" />
+    <ClInclude Include="SkeletonUI.h" />
     <ClInclude Include="SpiderChaseState.h" />
     <ClInclude Include="SpiderEnemyController.h" />
     <ClInclude Include="SpikeTrap.h" />
@@ -664,6 +665,7 @@
     <ClCompile Include="SkeletonParticles.cpp" />
     <ClCompile Include="SkeletonReviveState.cpp" />
     <ClCompile Include="SkeletonScimitarState.cpp" />
+    <ClCompile Include="SkeletonUI.cpp" />
     <ClCompile Include="SpiderChaseState.cpp" />
     <ClCompile Include="SpiderEnemyController.cpp" />
     <ClCompile Include="SpikeTrap.cpp" />
