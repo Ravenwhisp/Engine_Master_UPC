@@ -173,6 +173,15 @@ void Damageable::setupUI()
         m_healthBar2Slider = m_healthBar2.getReferencedComponent();
     }
 
+    // Keep a stable object handle alongside each raw component pointer. Scene
+    // can validate GameObject membership without dereferencing stale memory.
+    m_healthBarSliderOwner = m_healthBarSlider
+        ? ComponentAPI::getOwner(m_healthBarSlider)
+        : nullptr;
+    m_healthBar2SliderOwner = m_healthBar2Slider
+        ? ComponentAPI::getOwner(m_healthBar2Slider)
+        : nullptr;
+
     m_previousHp = m_currentHp;
 
     if (m_healthBarSlider)
@@ -188,6 +197,21 @@ void Damageable::setupUI()
 
 void Damageable::updateUI()
 {
+    if (m_healthBarSlider &&
+        (!m_healthBarSliderOwner || !SceneAPI::containsGameObject(m_healthBarSliderOwner)))
+    {
+        m_healthBarSlider = nullptr;
+        m_healthBarSliderOwner = nullptr;
+    }
+
+    if (m_healthBar2Slider &&
+        (!m_healthBar2SliderOwner || !SceneAPI::containsGameObject(m_healthBar2SliderOwner)))
+    {
+        m_healthBar2Slider = nullptr;
+        m_healthBar2SliderOwner = nullptr;
+        m_uiTimer = 0.0f;
+    }
+
     if (m_healthBarSlider)
     {
         SliderAPI::setFillAmount(m_healthBarSlider, getHpPercent());

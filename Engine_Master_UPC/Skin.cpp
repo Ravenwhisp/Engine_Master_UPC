@@ -5,6 +5,7 @@
 #include "ModuleAssets.h"
 #include "ModuleResources.h"
 #include "ModuleD3D12.h"
+#include "ModuleScene.h"
 
 #include "GameObject.h"
 #include "Transform.h"
@@ -12,6 +13,7 @@
 #include "MeshAsset.h"
 #include "SkinAsset.h"
 #include "AnimationComponent.h"
+#include "Scene.h"
 
 #include <imgui.h>
 #include <algorithm>
@@ -102,6 +104,8 @@ std::unique_ptr<Skin> Skin::clone() const
 
     cloned->m_skin.reset();
     cloned->m_jointTransforms.clear();
+    cloned->m_jointObjectIds.clear();
+    cloned->m_jointSceneVersion = 0;
     cloned->m_skinBindingsResolved = false;
 
     cloned->m_matrixPalette.clear();
@@ -139,7 +143,10 @@ void Skin::lateUpdate(GameObject* owner, MeshRenderer& renderer)
         }
     }
 
-    rebuildMatrixPalette();
+    if (!rebuildMatrixPalette())
+    {
+        return;
+    }
 
     if (!ensureSourceVerticesCached(renderer))
         return;
@@ -243,7 +250,10 @@ bool Skin::resolveSkinBindings(GameObject* owner)
     const auto& joints = m_skin->getJoints();
 
     m_jointTransforms.clear();
+    m_jointObjectIds.clear();
+    m_jointSceneVersion = 0;
     m_jointTransforms.reserve(joints.size());
+    m_jointObjectIds.reserve(joints.size());
 
     for (const SkinJoint& joint : joints)
     {
@@ -251,14 +261,20 @@ bool Skin::resolveSkinBindings(GameObject* owner)
         if (!jointGo || !jointGo->GetTransform())
         {
             m_jointTransforms.clear();
+            m_jointObjectIds.clear();
             m_skinBindingsResolved = false;
             return false;
         }
 
         m_jointTransforms.push_back(jointGo->GetTransform());
+        m_jointObjectIds.push_back(jointGo->GetID());
     }
 
     m_skinBindingsResolved = true;
+    Scene* scene = app && app->getModuleScene()
+        ? app->getModuleScene()->getScene()
+        : nullptr;
+    m_jointSceneVersion = scene ? scene->getObjectRegistryVersion() : 0;
     return true;
 }
 
@@ -266,6 +282,8 @@ void Skin::invalidateSkinningRuntime()
 {
     m_skin.reset();
     m_jointTransforms.clear();
+    m_jointObjectIds.clear();
+    m_jointSceneVersion = 0;
     m_matrixPalette.clear();
     m_normalPalette.clear();
 
@@ -279,13 +297,53 @@ void Skin::invalidateSkinningRuntime()
     m_skinBindingsResolved = false;
 }
 
-void Skin::rebuildMatrixPalette()
+bool Skin::rebuildMatrixPalette()
 {
     if (!m_skin || !m_skinBindingsResolved)
-        return;
+        return false;
 
     const auto& joints = m_skin->getJoints();
-    const size_t count = std::min(joints.size(), m_jointTransforms.size());
+    if (joints.size() != m_jointTransforms.size() ||
+        joints.size() != m_jointObjectIds.size())
+    {
+        m_jointTransforms.clear();
+        m_jointObjectIds.clear();
+        m_skinBindingsResolved = false;
+        return false;
+    }
+
+    Scene* scene = app && app->getModuleScene()
+        ? app->getModuleScene()->getScene()
+        : nullptr;
+    if (!scene)
+    {
+        return false;
+    }
+
+    const size_t count = joints.size();
+
+    // Refresh raw pointers only after the scene object registry changes.
+    // Normal animation frames keep the direct-pointer path.
+    if (m_jointSceneVersion != scene->getObjectRegistryVersion())
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            GameObject* jointObject = scene->findGameObjectByUID(m_jointObjectIds[i]);
+            Transform* liveTransform = jointObject ? jointObject->GetTransform() : nullptr;
+            if (!liveTransform)
+            {
+                m_jointTransforms.clear();
+                m_jointObjectIds.clear();
+                m_jointSceneVersion = 0;
+                m_skinBindingsResolved = false;
+                return false;
+            }
+
+            m_jointTransforms[i] = liveTransform;
+        }
+
+        m_jointSceneVersion = scene->getObjectRegistryVersion();
+    }
 
     if (m_matrixPalette.size() != count)
         m_matrixPalette.resize(count, Matrix::Identity);
@@ -310,6 +368,8 @@ void Skin::rebuildMatrixPalette()
         m_matrixPalette[i] = skinMatrix;
         m_normalPalette[i] = BuildNormalMatrixFromSkinMatrix(skinMatrix);
     }
+
+    return true;
 }
 
 bool Skin::ensureSourceVerticesCached(MeshRenderer& renderer)

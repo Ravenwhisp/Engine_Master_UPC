@@ -647,7 +647,7 @@ void EnemyBaseController::refreshNeighborCache()
             continue;
         }
 
-        m_neighborCache.push_back(enemyTransform);
+        m_neighborCache.push_back(enemy);
     }
 }
 
@@ -664,8 +664,17 @@ Vector3 EnemyBaseController::computeSeparationOffset(const Vector3& ownerPositio
 
     Vector3 separation = Vector3::Zero;
 
-    for (Transform* neighbor : m_neighborCache)
+    for (GameObject* neighborObject : m_neighborCache)
     {
+        // Scene removes objects from its O(1) index before the GPU-fenced
+        // destruction actually releases them. Never dereference a cached
+        // neighbor after it has left that index.
+        if (!SceneAPI::containsGameObject(neighborObject))
+        {
+            continue;
+        }
+
+        Transform* neighbor = GameObjectAPI::getTransform(neighborObject);
         if (neighbor == nullptr)
         {
             continue;

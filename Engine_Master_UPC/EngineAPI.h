@@ -171,6 +171,8 @@ namespace ApplicationAPI
 
 namespace SceneAPI
 {
+    // Safe pointer-membership check. It does not dereference gameObject.
+    ENGINE_API bool containsGameObject(const GameObject* gameObject);
     ENGINE_API std::vector<GameObject*> findAllGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
     ENGINE_API std::vector<GameObject*> findAllGameObjectsByTag(Tag tag, bool onlyActive = true);
 

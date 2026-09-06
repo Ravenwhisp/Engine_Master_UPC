@@ -67,7 +67,7 @@ private:
     bool resolveSkinBindings(GameObject* owner);
     void invalidateSkinningRuntime();
 
-    void rebuildMatrixPalette();
+    bool rebuildMatrixPalette();
 
     bool ensureSourceVerticesCached(MeshRenderer& renderer);
     void cacheSourceVertices(const MeshAsset& meshAsset);
@@ -82,6 +82,8 @@ private:
 
     std::shared_ptr<SkinAsset> m_skin;
     std::vector<Transform*> m_jointTransforms;
+    std::vector<UID> m_jointObjectIds;
+    uint64_t m_jointSceneVersion = 0;
     bool m_skinBindingsResolved = false;
 
     std::vector<Matrix> m_matrixPalette;

@@ -48,6 +48,7 @@ private:
 
     std::unordered_map<GameObject*, size_t> m_objectIndexMap;
     std::unordered_map<UID, GameObject*> m_objectUidMap;
+    uint64_t m_objectRegistryVersion = 1;
 
     bool m_componentCacheDirty = true;
 
@@ -136,6 +137,7 @@ public:
     void initLoadedObjects();
 
     GameObject* findGameObjectByUID(UID uuid);
+    uint64_t getObjectRegistryVersion() const { return m_objectRegistryVersion; }
     void removeGameObject(UID uuid);
     void markGameObjectForRemoval(UID uuid);
 
