@@ -262,6 +262,13 @@ namespace Debug
     ENGINE_API void error(const char* message, ...);
 }
 
+namespace ScriptProfilerAPI
+{
+    ENGINE_API bool isEnabled();
+    ENGINE_API void recordScope(const char* scriptName, const char* scopeName,
+        const GameObject* gameObject, float cpuMs);
+}
+
 namespace CameraAPI
 {
     ENGINE_API CameraComponent* getCameraComponent(GameObject* gameObject);
@@ -447,6 +454,8 @@ namespace AudioAPI
     ENGINE_API ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject);
     ENGINE_API const ComponentSoundSource* getSoundSourceComponent(const GameObject* gameObject);
     ENGINE_API uint32_t postEvent(ComponentSoundSource* component, const char* bankName, const char* eventName);
+    ENGINE_API void queueGroupedEvent(ComponentSoundSource* component, const char* bankName,
+        const char* eventName, const char* groupName, float priority, uint32_t cooldownMs);
     ENGINE_API void stopEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void pauseEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void resumeEvent(ComponentSoundSource* component, uint32_t playingID);

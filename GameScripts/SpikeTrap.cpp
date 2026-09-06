@@ -26,8 +26,33 @@ void SpikeTrap::Start()
     owner = getOwner();
     ownerTransform = GameObjectAPI::getTransform(owner);
 
-    m_normalSpike = TransformAPI::findChildByName(ownerTransform, "Normal");
-	m_spectralSpike = TransformAPI::findChildByName(ownerTransform, "Spectral");
+    {
+        SCRIPT_PROFILE_SCOPE("Start: find children");
+        m_normalSpike = TransformAPI::findChildByName(ownerTransform, "Normal");
+	    m_spectralSpike = TransformAPI::findChildByName(ownerTransform, "Spectral");
+    }
+
+    {
+        SCRIPT_PROFILE_SCOPE("Start: cache players");
+        const std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
+        for (GameObject* player : players)
+        {
+            const char* name = GameObjectAPI::getName(player);
+            if (!name)
+            {
+                continue;
+            }
+
+            if (strcmp(name, "Lyriel") == 0)
+            {
+                m_lyriel = player;
+            }
+            else if (strcmp(name, "Death") == 0)
+            {
+                m_death = player;
+            }
+        }
+    }
 
     spikeType = alternativeMode ? 1 : 0;
 
@@ -46,62 +71,91 @@ void SpikeTrap::Update()
     switch (state)
     {
         case SpikeTrap::WAIT:
-            
-            if (spikeType == 0)
             {
-				normalSpikePosition.y = waitPositionY;
-                TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
-            }
-            else if (spikeType == 1)
-            {
-				spectralSpikePosition.y = waitPositionY;
-				TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
+                SCRIPT_PROFILE_SCOPE("WAIT: set position");
+                if (spikeType == 0)
+                {
+				    normalSpikePosition.y = waitPositionY;
+                    TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
+                }
+                else if (spikeType == 1)
+                {
+				    spectralSpikePosition.y = waitPositionY;
+				    TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
+                }
             }
 
             if (currentTime >= p_duration && spikeType == 0)
             {
-                normalSpikePosition.y = activePositionY;
-				TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
+                {
+                    SCRIPT_PROFILE_SCOPE("Activate: set position");
+                    normalSpikePosition.y = activePositionY;
+				    TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
+                }
                 state = ACTIVE;
                 currentTime = 0.0f;
-				addEffect(0);
+				{
+                    SCRIPT_PROFILE_SCOPE("Activate: particles");
+                    addEffect(0);
+                }
             }
 			else if(currentTime >= p_duration && spikeType == 1)
             {
-				spectralSpikePosition.y = activePositionY;
-                TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
+                {
+                    SCRIPT_PROFILE_SCOPE("Activate: set position");
+				    spectralSpikePosition.y = activePositionY;
+                    TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
+                }
                 state = ACTIVE;
 				currentTime = 0.0f;
-				addEffect(1);
+				{
+                    SCRIPT_PROFILE_SCOPE("Activate: particles");
+                    addEffect(1);
+                }
             }
             break;
 
         case SpikeTrap::ACTIVE:
-			triggerBoxDamage();
+			{
+                SCRIPT_PROFILE_SCOPE("ACTIVE: trigger damage");
+                triggerBoxDamage();
+            }
             if (currentTime >= a_duration && spikeType == 0)
             {
-				normalSpikePosition.y = startPositionY;
-				spectralSpikePosition.y = waitPositionY;
-				TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
-                TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
+				{
+                    SCRIPT_PROFILE_SCOPE("Deactivate: set positions");
+                    normalSpikePosition.y = startPositionY;
+				    spectralSpikePosition.y = waitPositionY;
+				    TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
+                    TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
+                }
 				spikeType = 1;
                 state = WAIT;
                 currentTime = 0.0f;
 				damagedPlayers.clear();
-				removeEffect(0);
+				{
+                    SCRIPT_PROFILE_SCOPE("Deactivate: particles");
+                    removeEffect(0);
+                }
             }
 			else if (currentTime >= a_duration && spikeType == 1)
 			{
-				normalSpikePosition.y = waitPositionY;
-				spectralSpikePosition.y = startPositionY;
-                TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
-                TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
+				{
+                    SCRIPT_PROFILE_SCOPE("Deactivate: set positions");
+                    normalSpikePosition.y = waitPositionY;
+				    spectralSpikePosition.y = startPositionY;
+                    TransformAPI::setPosition(m_normalSpike, normalSpikePosition);
+                    TransformAPI::setPosition(m_spectralSpike, spectralSpikePosition);
+                }
 				spikeType = 0;
 				state = WAIT;
 				currentTime = 0.0f;
                 damagedPlayers.clear();
-				removeEffect(1);
-            }
+				{
+                    SCRIPT_PROFILE_SCOPE("Deactivate: particles");
+                    removeEffect(1);
+                }
+			}
             break;
 
         default:
@@ -111,13 +165,16 @@ void SpikeTrap::Update()
     // Single hook for all 4 transition branches (normal/spectral × extend/retract).
     if (state != previousState)
     {
+        SCRIPT_PROFILE_SCOPE("Transition: sound");
         if (state == ACTIVE)
         {
-            EnvironmentSound::play(getOwner(), "Play_Environment_Extend_Spikes");
+            EnvironmentSound::playGrouped(
+                getOwner(), "Play_Environment_Extend_Spikes", "SpikeTraps", 100);
         }
         else if (state == WAIT)
         {
-            EnvironmentSound::play(getOwner(), "Play_Environment_Retract_Spikes");
+            EnvironmentSound::playGrouped(
+                getOwner(), "Play_Environment_Retract_Spikes", "SpikeTraps", 100);
         }
     }
 
@@ -145,10 +202,17 @@ void SpikeTrap::damagePlayer(GameObject* player)
     // Skip if this player was already damaged
     if (damagedPlayers.count(player)) return;
 
-    PlayerDamageable* damageable = GameObjectAPI::findScript<PlayerDamageable>(player);
+    PlayerDamageable* damageable = nullptr;
+    {
+        SCRIPT_PROFILE_SCOPE("Damage: find PlayerDamageable");
+        damageable = GameObjectAPI::findScript<PlayerDamageable>(player);
+    }
     if (damageable)
     {
-        damageable->takeDamage(trapDamage);
+        {
+            SCRIPT_PROFILE_SCOPE("Damage: apply player damage");
+            damageable->takeDamage(trapDamage);
+        }
         damagedPlayers.insert(player);
     }
 }
@@ -156,40 +220,31 @@ void SpikeTrap::damagePlayer(GameObject* player)
 void SpikeTrap::triggerBoxDamage()
 {
     GameObject* owner = getOwner();
-    Transform* ownerTransform = GameObjectAPI::getTransform(owner);
-    const Vector3 trapPosition = TransformAPI::getGlobalPosition(ownerTransform);
-    std::vector<GameObject*> playersInScene = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
-    for (GameObject* player : playersInScene)
+    Vector3 trapPosition;
     {
-		const char* name = GameObjectAPI::getName(player);
-        
-        if(name && strcmp(name, "Lyriel") == 0 && spikeType == 0)
+        SCRIPT_PROFILE_SCOPE("Trigger: get trap position");
+        Transform* ownerTransform = GameObjectAPI::getTransform(owner);
+        trapPosition = TransformAPI::getGlobalPosition(ownerTransform);
+    }
+
+    GameObject* player = spikeType == 0 ? m_lyriel : m_death;
+    if (!player)
+    {
+        return;
+    }
+
+    {
+        SCRIPT_PROFILE_SCOPE("Trigger: collision/damage loop");
+        Transform* playerTransform = GameObjectAPI::getTransform(player);
+        const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
+        if (containsPoint(trapPosition, playerPosition))
         {
-            Transform* playerTransform = GameObjectAPI::getTransform(player);
-            const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
-            if (containsPoint(trapPosition, playerPosition))
-            {
-                damagePlayer(player);
-            }
-            else
-            {
-                damagedPlayers.erase(player);
-            }
-		}
-        if(name && strcmp(name, "Death") == 0 && spikeType == 1)
+            damagePlayer(player);
+        }
+        else
         {
-            Transform* playerTransform = GameObjectAPI::getTransform(player);
-            const Vector3 playerPosition = TransformAPI::getGlobalPosition(playerTransform);
-            if (containsPoint(trapPosition, playerPosition))
-            {
-                damagePlayer(player);
-            }
-            else
-            {
-                damagedPlayers.erase(player);
-            }
-		}
-        
+            damagedPlayers.erase(player);
+        }
     }
 }
 

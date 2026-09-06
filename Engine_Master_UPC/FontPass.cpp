@@ -8,6 +8,7 @@
 #include "ModuleD3D12.h"
 #include "ModuleTime.h"
 #include "ModuleFont.h"
+#include "ModuleScene.h"
 
 #include "Settings.h"
 #include "CommandQueue.h"
@@ -352,6 +353,373 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		command.y = 55.0f;
 		command.color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.4f, 1.0f);
 		command.scale = 1.0f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
+	}
+
+	if (m_settings->debugGame.showRenderTimings)
+	{
+		std::vector<ModuleRender::RenderPassTiming> timings =
+			app->getModuleRender()->getRenderPassTimings();
+
+		std::sort(timings.begin(), timings.end(),
+			[](const ModuleRender::RenderPassTiming& lhs, const ModuleRender::RenderPassTiming& rhs)
+			{
+				return lhs.gpuMs > rhs.gpuMs;
+			});
+
+		float totalGpuMs = 0.0f;
+		float totalCpuMs = 0.0f;
+		for (const ModuleRender::RenderPassTiming& timing : timings)
+		{
+			totalGpuMs += timing.gpuMs;
+			totalCpuMs += timing.cpuMs;
+		}
+
+		wchar_t totalBuffer[128];
+		swprintf_s(totalBuffer, L"Measured total: GPU %.2f ms | CPU submit %.2f ms", totalGpuMs, totalCpuMs);
+
+		std::wstring timingText = L"Render timings (GPU delayed, sorted by GPU)\n";
+		timingText += totalBuffer;
+		timingText += L'\n';
+
+		const Application::FrameCpuTimings& frameCpu = app->getFrameCpuTimings();
+		wchar_t frameCpuBuffer[192];
+		swprintf_s(
+			frameCpuBuffer,
+			L"Frame CPU: Update %.2f | PreRender %.2f | Render %.2f | PostRender %.2f ms",
+			frameCpu.updateMs,
+			frameCpu.preRenderMs,
+			frameCpu.renderMs,
+			frameCpu.postRenderMs);
+		timingText += frameCpuBuffer;
+		timingText += L'\n';
+
+		for (const ModuleRender::RenderPassTiming& timing : timings)
+		{
+			const std::wstring name(timing.name.begin(), timing.name.end());
+			wchar_t timingBuffer[192];
+			swprintf_s(
+				timingBuffer,
+				L"%-30ls GPU %7.3f ms | CPU %7.3f ms",
+				name.c_str(),
+				timing.gpuMs,
+				timing.cpuMs);
+			timingText += timingBuffer;
+			timingText += L'\n';
+		}
+
+		UITextCommand command;
+		command.text = std::move(timingText);
+		command.x = 10.0f;
+		command.y = 75.0f;
+		command.color = DirectX::XMFLOAT4(1.0f, 0.85f, 0.2f, 1.0f);
+		command.scale = 0.85f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
+	}
+
+	if (m_settings->debugGame.showUpdateTimings)
+	{
+		std::vector<Application::ModuleUpdateTiming> timings = app->getModuleUpdateTimings();
+		std::sort(timings.begin(), timings.end(),
+			[](const Application::ModuleUpdateTiming& lhs, const Application::ModuleUpdateTiming& rhs)
+			{
+				return lhs.cpuMs > rhs.cpuMs;
+			});
+
+		float measuredTotalMs = 0.0f;
+		for (const Application::ModuleUpdateTiming& timing : timings)
+		{
+			measuredTotalMs += timing.cpuMs;
+		}
+
+		wchar_t totalBuffer[128];
+		swprintf_s(totalBuffer, L"Measured modules: %.3f ms | Full Update: %.3f ms",
+			measuredTotalMs, app->getFrameCpuTimings().updateMs);
+
+		std::wstring timingText = L"Update timings (CPU, sorted by cost)\n";
+		timingText += totalBuffer;
+		timingText += L'\n';
+
+		for (const Application::ModuleUpdateTiming& timing : timings)
+		{
+			if (timing.cpuMs < 0.005f)
+			{
+				continue;
+			}
+
+			std::wstring name;
+			for (const char* character = timing.name; *character != '\0'; ++character)
+			{
+				name.push_back(static_cast<wchar_t>(*character));
+			}
+			wchar_t timingBuffer[160];
+			swprintf_s(timingBuffer, L"%-30ls CPU %7.3f ms", name.c_str(), timing.cpuMs);
+			timingText += timingBuffer;
+			timingText += L'\n';
+		}
+
+		const ModuleScene::DetailedUpdateTimings& sceneTimings =
+			app->getModuleScene()->getDetailedUpdateTimings();
+		timingText += L"\nScene detail\n";
+
+		wchar_t detailBuffer[224];
+		swprintf_s(detailBuffer, L"GameObjects update       %7.3f ms | %u calls",
+			sceneTimings.gameObjectsUpdateMs, sceneTimings.gameObjectUpdateCalls);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"GameObjects lateUpdate   %7.3f ms | %u calls",
+			sceneTimings.gameObjectsLateUpdateMs, sceneTimings.gameObjectLateUpdateCalls);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Trigger system           %7.3f ms",
+			sceneTimings.triggerSystemMs);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Pending remove/release   %7.3f ms | %u / %u items",
+			sceneTimings.removePendingMs + sceneTimings.releaseDestroyedMs,
+			sceneTimings.pendingRemovalRequests, sceneTimings.releasedDestroyedObjects);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Pending additions        %7.3f ms | %u items",
+			sceneTimings.flushPendingMs, sceneTimings.pendingAdditions);
+		timingText += detailBuffer;
+		timingText += L'\n';
+
+		swprintf_s(detailBuffer, L"Quadtree resolve static  %7.3f ms | %u dirty nodes",
+			sceneTimings.staticQuadtreeUpdateMs, sceneTimings.staticQuadtreeDirtyNodes);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Quadtree resolve dynamic %7.3f ms | %u dirty nodes",
+			sceneTimings.dynamicQuadtreeUpdateMs, sceneTimings.dynamicQuadtreeDirtyNodes);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Quadtree moves static    %7.3f ms | %u calls",
+			sceneTimings.staticQuadtreeMoveMs, sceneTimings.staticQuadtreeMoveCalls);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Quadtree moves dynamic   %7.3f ms | %u calls",
+			sceneTimings.dynamicQuadtreeMoveMs, sceneTimings.dynamicQuadtreeMoveCalls);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Frustum queries static   %7.3f ms | %u calls | %u results",
+			sceneTimings.staticQuadtreeQueryMs, sceneTimings.staticQuadtreeQueryCalls,
+			sceneTimings.staticQuadtreeQueryResults);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Frustum queries dynamic  %7.3f ms | %u calls | %u results",
+			sceneTimings.dynamicQuadtreeQueryMs, sceneTimings.dynamicQuadtreeQueryCalls,
+			sceneTimings.dynamicQuadtreeQueryResults);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Area queries             %7.3f ms | %u calls | %u results",
+			sceneTimings.quadtreeAreaQueryMs, sceneTimings.quadtreeAreaQueryCalls,
+			sceneTimings.quadtreeAreaQueryResults);
+		timingText += detailBuffer;
+		timingText += L'\n';
+
+		struct ComponentTimingLine
+		{
+			ComponentType type;
+			float updateMs;
+			float lateUpdateMs;
+			uint32_t updateCalls;
+			uint32_t lateUpdateCalls;
+		};
+
+		std::vector<ComponentTimingLine> componentTimings;
+		componentTimings.reserve(ModuleScene::COMPONENT_TYPE_COUNT);
+		for (size_t i = 0; i < ModuleScene::COMPONENT_TYPE_COUNT; ++i)
+		{
+			const uint32_t updateCalls = sceneTimings.componentUpdateCalls[i];
+			const uint32_t lateUpdateCalls = sceneTimings.componentLateUpdateCalls[i];
+			if (updateCalls == 0 && lateUpdateCalls == 0)
+			{
+				continue;
+			}
+
+			componentTimings.push_back({
+				static_cast<ComponentType>(i),
+				sceneTimings.componentUpdateMs[i],
+				sceneTimings.componentLateUpdateMs[i],
+				updateCalls,
+				lateUpdateCalls });
+		}
+
+		std::sort(componentTimings.begin(), componentTimings.end(),
+			[](const ComponentTimingLine& lhs, const ComponentTimingLine& rhs)
+			{
+				return lhs.updateMs + lhs.lateUpdateMs > rhs.updateMs + rhs.lateUpdateMs;
+			});
+
+		timingText += L"\nComponents (top CPU costs)\n";
+		const size_t componentLines = std::min<size_t>(componentTimings.size(), 8);
+		for (size_t i = 0; i < componentLines; ++i)
+		{
+			const ComponentTimingLine& timing = componentTimings[i];
+			const char* typeName = ComponentTypeToString(timing.type);
+			std::wstring wideTypeName;
+			for (const char* character = typeName; *character != '\0'; ++character)
+			{
+				wideTypeName.push_back(static_cast<wchar_t>(*character));
+			}
+
+			swprintf_s(detailBuffer, L"%-22ls U %7.3f (%u) | L %7.3f (%u)",
+				wideTypeName.c_str(), timing.updateMs, timing.updateCalls,
+				timing.lateUpdateMs, timing.lateUpdateCalls);
+			timingText += detailBuffer;
+			timingText += L'\n';
+		}
+
+		UITextCommand command;
+		command.text = std::move(timingText);
+		command.x = m_settings->debugGame.showRenderTimings ? 650.0f : 10.0f;
+		command.y = 75.0f;
+		command.color = DirectX::XMFLOAT4(0.3f, 0.85f, 1.0f, 1.0f);
+		command.scale = 0.85f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
+	}
+
+	if (m_settings->debugGame.showScriptProfiler)
+	{
+		const ModuleScene* sceneModule = app->getModuleScene();
+		std::vector<ModuleScene::ScriptTiming> currentTimings = sceneModule->getCurrentScriptTimings();
+		std::vector<ModuleScene::ScriptTiming> spikeTimings = sceneModule->getLastSpikeScriptTimings();
+		std::vector<ModuleScene::ScriptScopeTiming> scopeTimings = sceneModule->getLastSpikeFrame() > 0
+			? sceneModule->getLastSpikeScriptScopeTimings()
+			: sceneModule->getCurrentScriptScopeTimings();
+
+		auto sortByTotal = [](std::vector<ModuleScene::ScriptTiming>& values)
+		{
+			std::sort(values.begin(), values.end(),
+				[](const ModuleScene::ScriptTiming& lhs, const ModuleScene::ScriptTiming& rhs)
+				{
+					return lhs.totalMs > rhs.totalMs;
+				});
+		};
+		sortByTotal(currentTimings);
+		sortByTotal(spikeTimings);
+		const std::vector<ModuleScene::ScriptTiming>& scopeSourceTimings = sceneModule->getLastSpikeFrame() > 0
+			? spikeTimings
+			: currentTimings;
+		const std::string scopeScriptName = scopeSourceTimings.empty()
+			? std::string()
+			: scopeSourceTimings.front().scriptName;
+		scopeTimings.erase(
+			std::remove_if(scopeTimings.begin(), scopeTimings.end(),
+				[&scopeScriptName](const ModuleScene::ScriptScopeTiming& timing)
+				{
+					return timing.scriptName != scopeScriptName;
+				}),
+			scopeTimings.end());
+		std::sort(scopeTimings.begin(), scopeTimings.end(),
+			[](const ModuleScene::ScriptScopeTiming& lhs, const ModuleScene::ScriptScopeTiming& rhs)
+			{
+				return lhs.totalMs > rhs.totalMs;
+			});
+
+		auto toWide = [](const std::string& value, size_t maxLength)
+		{
+			const size_t length = std::min(value.size(), maxLength);
+			std::wstring result;
+			result.reserve(length);
+			for (size_t i = 0; i < length; ++i)
+			{
+				result.push_back(static_cast<wchar_t>(value[i]));
+			}
+			return result;
+		};
+
+		auto appendScriptLines = [&](std::wstring& text, const std::vector<ModuleScene::ScriptTiming>& values)
+		{
+			const size_t lineCount = std::min<size_t>(values.size(), 8);
+			for (size_t i = 0; i < lineCount; ++i)
+			{
+				const ModuleScene::ScriptTiming& timing = values[i];
+				const float averageMs = timing.calls > 0
+					? timing.totalMs / static_cast<float>(timing.calls)
+					: 0.0f;
+				const std::wstring scriptName = toWide(timing.scriptName, 24);
+				const std::wstring objectName = toWide(timing.maxGameObjectName, 22);
+				wchar_t line[320];
+				swprintf_s(line, L"%-24ls T %6.3f | N %3u | Avg %6.3f | Max %6.3f | %ls #%llu",
+					scriptName.c_str(), timing.totalMs, timing.calls, averageMs,
+					timing.maxMs, objectName.c_str(),
+					static_cast<unsigned long long>(timing.maxGameObjectId));
+				text += line;
+				text += L'\n';
+			}
+		};
+
+		auto appendScopeLines = [&](std::wstring& text, const std::vector<ModuleScene::ScriptScopeTiming>& values)
+		{
+			const size_t lineCount = std::min<size_t>(values.size(), 12);
+			for (size_t i = 0; i < lineCount; ++i)
+			{
+				const ModuleScene::ScriptScopeTiming& timing = values[i];
+				const float averageMs = timing.calls > 0
+					? timing.totalMs / static_cast<float>(timing.calls)
+					: 0.0f;
+				const std::wstring scopeName = toWide(timing.scopeName, 31);
+				const std::wstring objectName = toWide(timing.maxGameObjectName, 17);
+				wchar_t line[320];
+				swprintf_s(line, L"  %-31ls T %6.3f | N %3u | Avg %6.3f | Max %6.3f | %ls #%llu",
+					scopeName.c_str(), timing.totalMs, timing.calls, averageMs, timing.maxMs,
+					objectName.c_str(), static_cast<unsigned long long>(timing.maxGameObjectId));
+				text += line;
+				text += L'\n';
+			}
+		};
+
+		wchar_t header[192];
+		swprintf_s(header, L"Current frame %llu: %.3f ms | %zu script classes",
+			static_cast<unsigned long long>(sceneModule->getScriptProfilerFrame()),
+			sceneModule->getCurrentScriptTotalMs(), currentTimings.size());
+
+		std::wstring profilerText = L"Script profiler (T total, N calls)\n";
+		profilerText += header;
+		profilerText += L'\n';
+		appendScriptLines(profilerText, currentTimings);
+
+		profilerText += L"\n";
+		if (sceneModule->getLastSpikeFrame() > 0)
+		{
+			swprintf_s(header, L"Last spike frame %llu: %.3f ms (threshold %.1f ms)",
+				static_cast<unsigned long long>(sceneModule->getLastSpikeFrame()),
+				sceneModule->getLastSpikeScriptTotalMs(),
+				sceneModule->getScriptSpikeThresholdMs());
+			profilerText += header;
+			profilerText += L'\n';
+			appendScriptLines(profilerText, spikeTimings);
+		}
+		else
+		{
+			swprintf_s(header, L"Waiting for a frame above %.1f ms...",
+				sceneModule->getScriptSpikeThresholdMs());
+			profilerText += header;
+			profilerText += L'\n';
+		}
+
+		if (!scopeTimings.empty())
+		{
+			profilerText += L"\n";
+			profilerText += toWide(scopeScriptName, 24);
+			profilerText += sceneModule->getLastSpikeFrame() > 0
+				? L" detail (captured spike)\n"
+				: L" detail (current frame)\n";
+			appendScopeLines(profilerText, scopeTimings);
+		}
+
+		UITextCommand command;
+		command.text = std::move(profilerText);
+		command.x = 10.0f;
+		if (m_settings->debugGame.showRenderTimings) command.x += 650.0f;
+		if (m_settings->debugGame.showUpdateTimings) command.x += 650.0f;
+		command.y = 75.0f;
+		command.color = DirectX::XMFLOAT4(1.0f, 0.45f, 0.75f, 1.0f);
+		command.scale = 0.80f;
 		command.fontId = DEBUG_FONT_ID;
 		drawText(commandList, command);
 	}

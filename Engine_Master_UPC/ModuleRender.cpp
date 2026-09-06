@@ -59,6 +59,8 @@
 
 #include "OptickProfiler.h"
 
+#include <typeinfo>
+
 #pragma region GameLoop
 bool ModuleRender::init()
 {
@@ -67,6 +69,8 @@ bool ModuleRender::init()
 
     auto  d3d12 = app->getModuleD3D12();
     auto* device = d3d12->getDevice();
+
+    initRenderProfiler(device);
 
     m_ringBuffer = app->getModuleResources()->createRingBuffer(30);
     //m_structuredRingBuffer = app->getModuleResources()->createRingBuffer(30);
@@ -253,6 +257,8 @@ bool ModuleRender::cleanUp()
     {
         app->getModuleD3D12()->getCommandQueue()->flush();
     }
+
+    releaseRenderProfiler();
 
     m_ssaoBlurPass.reset();
     m_ssaoPass.reset();
@@ -462,14 +468,213 @@ void ModuleRender::transitionResource(ComPtr<ID3D12GraphicsCommandList> commandL
     commandList->ResourceBarrier(1, &barrier);
 }
 
+void ModuleRender::initRenderProfiler(ID3D12Device4* device)
+{
+    if (device == nullptr)
+    {
+        return;
+    }
+
+    D3D12_QUERY_HEAP_DESC queryHeapDesc{};
+    queryHeapDesc.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
+    queryHeapDesc.Count = FRAMES_IN_FLIGHT * MAX_PROFILED_RENDER_PASSES * 2;
+
+    if (FAILED(device->CreateQueryHeap(&queryHeapDesc, IID_PPV_ARGS(&m_timestampQueryHeap))))
+    {
+        DEBUG_WARN("[RenderProfiler] Could not create the GPU timestamp query heap.");
+        return;
+    }
+
+    const UINT64 bufferSize = static_cast<UINT64>(queryHeapDesc.Count) * sizeof(uint64_t);
+    const CD3DX12_HEAP_PROPERTIES readbackHeap(D3D12_HEAP_TYPE_READBACK);
+    const CD3DX12_RESOURCE_DESC readbackDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
+    if (FAILED(device->CreateCommittedResource(
+        &readbackHeap,
+        D3D12_HEAP_FLAG_NONE,
+        &readbackDesc,
+        D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr,
+        IID_PPV_ARGS(&m_timestampReadbackBuffer))))
+    {
+        DEBUG_WARN("[RenderProfiler] Could not create the GPU timestamp readback buffer.");
+        m_timestampQueryHeap.Reset();
+        return;
+    }
+
+    m_timestampReadbackBuffer->SetName(L"RenderProfiler Timestamp Readback");
+
+    if (FAILED(m_timestampReadbackBuffer->Map(0, nullptr, reinterpret_cast<void**>(&m_timestampReadbackData))))
+    {
+        DEBUG_WARN("[RenderProfiler] Could not map the GPU timestamp readback buffer.");
+        m_timestampReadbackBuffer.Reset();
+        m_timestampQueryHeap.Reset();
+        return;
+    }
+
+    auto commandQueue = app->getModuleD3D12()->getCommandQueue()->getD3D12CommandQueue();
+    if (commandQueue == nullptr || FAILED(commandQueue->GetTimestampFrequency(&m_timestampFrequency)))
+    {
+        DEBUG_WARN("[RenderProfiler] Could not obtain the GPU timestamp frequency.");
+        releaseRenderProfiler();
+    }
+}
+
+void ModuleRender::releaseRenderProfiler()
+{
+    if (m_timestampReadbackBuffer != nullptr && m_timestampReadbackData != nullptr)
+    {
+        const D3D12_RANGE writtenRange{ 0, 0 };
+        m_timestampReadbackBuffer->Unmap(0, &writtenRange);
+    }
+
+    m_timestampReadbackData = nullptr;
+    m_timestampFrequency = 0;
+    m_timestampReadbackBuffer.Reset();
+    m_timestampQueryHeap.Reset();
+    m_currentRenderTimings.clear();
+    m_displayRenderTimings.clear();
+    m_latestGpuTimings.clear();
+    m_gpuFramesPending.fill(false);
+    m_renderProfilingActive = false;
+}
+
+void ModuleRender::beginRenderProfiling(ID3D12GraphicsCommandList4* commandList, RenderViewType viewType)
+{
+    m_renderProfilingActive =
+        commandList != nullptr &&
+        viewType == RenderViewType::Game &&
+        m_settings != nullptr &&
+        m_settings->debugGame.showRenderTimings &&
+        m_timestampQueryHeap != nullptr &&
+        m_timestampReadbackData != nullptr &&
+        m_timestampFrequency != 0;
+
+    if (!m_renderProfilingActive)
+    {
+        return;
+    }
+
+    m_profileFrameSlot = app->getModuleD3D12()->getCurrentFrameIndex();
+
+    // ModuleD3D12 has already waited for this back-buffer slot's fence, so
+    // timestamps from its previous use can be read without stalling the GPU.
+    if (m_gpuFramesPending[m_profileFrameSlot])
+    {
+        const uint32_t base = m_profileFrameSlot * MAX_PROFILED_RENDER_PASSES * 2;
+        const uint32_t count = m_gpuPassCounts[m_profileFrameSlot];
+
+        for (uint32_t index = 0; index < count; ++index)
+        {
+            const uint64_t start = m_timestampReadbackData[base + index * 2];
+            const uint64_t end = m_timestampReadbackData[base + index * 2 + 1];
+
+            if (end >= start)
+            {
+                const double milliseconds =
+                    static_cast<double>(end - start) * 1000.0 /
+                    static_cast<double>(m_timestampFrequency);
+                m_latestGpuTimings[m_gpuPassNames[m_profileFrameSlot][index]] =
+                    static_cast<float>(milliseconds);
+            }
+        }
+    }
+
+    m_displayRenderTimings = m_currentRenderTimings;
+    for (RenderPassTiming& timing : m_displayRenderTimings)
+    {
+        const auto gpuTiming = m_latestGpuTimings.find(timing.name);
+        if (gpuTiming != m_latestGpuTimings.end())
+        {
+            timing.gpuMs = gpuTiming->second;
+        }
+    }
+
+    m_currentRenderTimings.clear();
+    m_currentRenderTimings.reserve(MAX_PROFILED_RENDER_PASSES);
+    m_profilePassCount = 0;
+    m_gpuFramesPending[m_profileFrameSlot] = false;
+}
+
+uint32_t ModuleRender::beginRenderPassProfile(ID3D12GraphicsCommandList4* commandList, const char* name)
+{
+    if (!m_renderProfilingActive || commandList == nullptr || name == nullptr ||
+        m_profilePassCount >= MAX_PROFILED_RENDER_PASSES)
+    {
+        return INVALID_PROFILE_INDEX;
+    }
+
+    const uint32_t profileIndex = m_profilePassCount++;
+    const uint32_t queryIndex =
+        m_profileFrameSlot * MAX_PROFILED_RENDER_PASSES * 2 + profileIndex * 2;
+
+    m_gpuPassNames[m_profileFrameSlot][profileIndex] = name;
+    commandList->EndQuery(m_timestampQueryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, queryIndex);
+    m_currentCpuPassStart = std::chrono::steady_clock::now();
+
+    return profileIndex;
+}
+
+void ModuleRender::endRenderPassProfile(ID3D12GraphicsCommandList4* commandList, uint32_t profileIndex)
+{
+    if (!m_renderProfilingActive || commandList == nullptr || profileIndex == INVALID_PROFILE_INDEX)
+    {
+        return;
+    }
+
+    const auto endCpu = std::chrono::steady_clock::now();
+    const float cpuMilliseconds =
+        std::chrono::duration<float, std::milli>(endCpu - m_currentCpuPassStart).count();
+    const uint32_t queryIndex =
+        m_profileFrameSlot * MAX_PROFILED_RENDER_PASSES * 2 + profileIndex * 2 + 1;
+
+    commandList->EndQuery(m_timestampQueryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, queryIndex);
+    m_currentRenderTimings.push_back({
+        m_gpuPassNames[m_profileFrameSlot][profileIndex],
+        cpuMilliseconds,
+        0.0f
+    });
+}
+
+void ModuleRender::endRenderProfiling(ID3D12GraphicsCommandList4* commandList)
+{
+    if (!m_renderProfilingActive || commandList == nullptr || m_profilePassCount == 0)
+    {
+        m_renderProfilingActive = false;
+        return;
+    }
+
+    const uint32_t firstQuery = m_profileFrameSlot * MAX_PROFILED_RENDER_PASSES * 2;
+    const uint32_t queryCount = m_profilePassCount * 2;
+    const UINT64 destinationOffset = static_cast<UINT64>(firstQuery) * sizeof(uint64_t);
+
+    commandList->ResolveQueryData(
+        m_timestampQueryHeap.Get(),
+        D3D12_QUERY_TYPE_TIMESTAMP,
+        firstQuery,
+        queryCount,
+        m_timestampReadbackBuffer.Get(),
+        destinationOffset);
+
+    m_gpuPassCounts[m_profileFrameSlot] = m_profilePassCount;
+    m_gpuFramesPending[m_profileFrameSlot] = true;
+    m_renderProfilingActive = false;
+}
+
 void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const RenderCamera& camera, RenderSurface& outputSurface, bool renderDebug, RenderViewType viewType) 
 {
     PERF_RENDER(renderDebug ? "ModuleRender::renderScene(Editor)" : "ModuleRender::renderScene(Game)");
 
+    beginRenderProfiling(commandList, viewType);
+
     const float w = static_cast<float>(outputSurface.getWidth());
     const float h = static_cast<float>(outputSurface.getHeight());
 
-    app->getModuleUI()->buildCommandsForViewport(w, h);
+    {
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "UI command build");
+        app->getModuleUI()->buildCommandsForViewport(w, h);
+        endRenderPassProfile(commandList, profileIndex);
+    }
 
     D3D12_VIEWPORT viewport = { 0.0f, 0.0f, w, h, 0.0f, 1.0f };
     D3D12_RECT     scissorRect = { 0, 0, static_cast<LONG>(w), static_cast<LONG>(h) };
@@ -512,61 +717,74 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
     {
         PERF_RENDER("ModuleRender::renderScene::SkinningComputePass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Skinning compute");
 
         if (m_skinningComputePass)
         {
             m_skinningComputePass->prepare(ctx);
             m_skinningComputePass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::Background");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Background clear");
         renderBackground(commandList, outputSurface);
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::OcclusionTargetDepthPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Occlusion target depth");
 
         if (m_occlusionTargetDepthPass != nullptr)
         {
             m_occlusionTargetDepthPass->prepare(ctx);
             m_occlusionTargetDepthPass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::DynamicTransparencyMaskPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Dynamic transparency mask");
 
         if (m_dynamicTransparencyMaskPass != nullptr)
         {
             m_dynamicTransparencyMaskPass->prepare(ctx);
             m_dynamicTransparencyMaskPass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::ForwardPrepass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Forward prepass");
 
         if (m_forwardPrepass != nullptr)
         {
             m_forwardPrepass->prepare(ctx);
             m_forwardPrepass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::GeometryPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Geometry / GBuffer");
 
         if (m_geometryPass != nullptr)
         {
             m_geometryPass->prepare(ctx);
             m_geometryPass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::LightCullingPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Light culling");
 
         if (m_lightCullingPass != nullptr)
         {
@@ -578,10 +796,12 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
             ctx.lightCullingTileCountX = m_lightCullingPass->getTileCountX();
             ctx.lightCullingTileCountY = m_lightCullingPass->getTileCountY();
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::DepthFittedShadowMap");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadows (fit + maps)");
 
         if (m_shadowMapPass != nullptr)
         {
@@ -605,47 +825,56 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
             ctx.shadowData = &m_shadowMapPass->getFrameData();
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::VolumetricFogComputePass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Volumetric fog compute");
 
         if (m_volumetricFogComputePass != nullptr)
         {
             m_volumetricFogComputePass->prepare(ctx);
             m_volumetricFogComputePass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOGeometryPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "SSAO geometry");
 
         if (m_ssaoGeometryPass && needsNormalBuffer)
         {
             m_ssaoGeometryPass->prepare(ctx);
             m_ssaoGeometryPass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
 
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "SSAO");
 
         if (m_ssaoPass && ssaoEnabled)
         {
             m_ssaoPass->prepare(ctx);
             m_ssaoPass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
         PERF_RENDER("ModuleRender::renderScene::SSAOBlurPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "SSAO blur");
 
         if (m_ssaoBlurPass && ssaoEnabled && ssaoBlurEnabled)
         {
             m_ssaoBlurPass->prepare(ctx);
             m_ssaoBlurPass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     m_currentSSAOData = {};
@@ -671,6 +900,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
     {
         PERF_RENDER("ModuleRender::renderScene::PreparePasses");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Remaining passes prepare");
         for (auto& pass : m_renderPasses)
         {
             if (pass.get() == m_forwardPrepass ||
@@ -681,6 +911,7 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
             pass->prepare(ctx);
         }
+        endRenderPassProfile(commandList, profileIndex);
     }
 
     {
@@ -693,9 +924,20 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
                 continue;
             }
 
+            std::string passName = typeid(*pass).name();
+            constexpr const char* classPrefix = "class ";
+            if (passName.rfind(classPrefix, 0) == 0)
+            {
+                passName.erase(0, std::char_traits<char>::length(classPrefix));
+            }
+
+            const uint32_t profileIndex = beginRenderPassProfile(commandList, passName.c_str());
             pass->apply(commandList);
+            endRenderPassProfile(commandList, profileIndex);
         }
     }
+
+    endRenderProfiling(commandList);
 }
 
 void ModuleRender::renderBackground(ID3D12GraphicsCommandList4* commandList, const RenderSurface& surface)

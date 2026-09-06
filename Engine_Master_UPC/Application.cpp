@@ -191,37 +191,98 @@ void Application::update()
 
     if (!app->m_paused)
     {
+		FrameCpuTimings frameCpuTimings{};
+
         {
             PERF_LOGIC("Application::ModulesUpdate");
-            for (auto it = modules.begin(); it != modules.end(); ++it)
+			const auto phaseStart = std::chrono::high_resolution_clock::now();
+            const bool profileModuleUpdates = m_settings->debugGame.showUpdateTimings;
+            m_moduleScene->beginDetailedProfilingFrame(profileModuleUpdates);
+            m_moduleScene->beginScriptProfilingFrame(
+                m_settings->debugGame.showScriptProfiler,
+                m_settings->debugGame.scriptProfilerSpikeThresholdMs);
+            if (profileModuleUpdates)
             {
-                (*it)->update();
+                m_moduleUpdateTimings.clear();
+                m_moduleUpdateTimings.reserve(modules.size());
+                for (Module* module : modules)
+                {
+                    const auto moduleStart = std::chrono::high_resolution_clock::now();
+                    module->update();
+                    const float cpuMs = std::chrono::duration<float, std::milli>(
+                        std::chrono::high_resolution_clock::now() - moduleStart).count();
+
+                    const char* moduleName = "Unknown module";
+                    if (module == m_moduleTime) moduleName = "Time";
+                    else if (module == m_moduleInput) moduleName = "Input";
+                    else if (module == m_moduleD3d12M) moduleName = "D3D12";
+                    else if (module == m_moduleDescriptors) moduleName = "Descriptors";
+                    else if (module == m_moduleResources) moduleName = "Resources";
+                    else if (module == m_moduleHaptics) moduleName = "Haptics";
+                    else if (module == m_moduleScripting) moduleName = "Scripting module";
+                    else if (module == m_moduleAssets) moduleName = "Assets";
+                    else if (module == m_moduleEditor) moduleName = "Editor";
+                    else if (module == m_eventSystemModule) moduleName = "Event system";
+                    else if (module == m_moduleUI) moduleName = "UI";
+                    else if (module == m_moduleParticleSystem) moduleName = "Particle systems";
+                    else if (module == m_moduleNavigation) moduleName = "Navigation";
+                    else if (module == m_moduleRender) moduleName = "Render module";
+                    else if (module == m_moduleGameView) moduleName = "Game view";
+                    else if (module == m_moduleCamera) moduleName = "Camera";
+                    else if (module == m_moduleScene) moduleName = "Scene (objects + quadtrees)";
+                    else if (module == m_moduleMusic) moduleName = "Music";
+                    else if (module == m_moduleVideo) moduleName = "Video";
+                    else if (module == m_moduleFont) moduleName = "Font";
+
+                    m_moduleUpdateTimings.push_back({ moduleName, cpuMs });
+                }
             }
+			else
+			{
+				for (Module* module : modules)
+				{
+					module->update();
+				}
+			}
+			m_moduleScene->endScriptProfilingFrame();
+			frameCpuTimings.updateMs = std::chrono::duration<float, std::milli>(
+				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         {
             PERF_RENDER("Application::ModulesPreRender");
+			const auto phaseStart = std::chrono::high_resolution_clock::now();
             for (auto it = modules.begin(); it != modules.end(); ++it)
             {
                 (*it)->preRender();
             }
+			frameCpuTimings.preRenderMs = std::chrono::duration<float, std::milli>(
+				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         {
             PERF_RENDER("Application::ModulesRender");
+			const auto phaseStart = std::chrono::high_resolution_clock::now();
             for (auto it = modules.begin(); it != modules.end(); ++it)
             {
                 (*it)->render();
             }
+			frameCpuTimings.renderMs = std::chrono::duration<float, std::milli>(
+				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         {
             PERF_RENDER("Application::ModulesPostRender");
+			const auto phaseStart = std::chrono::high_resolution_clock::now();
             for (auto it = modules.begin(); it != modules.end(); ++it)
             {
                 (*it)->postRender();
             }
+			frameCpuTimings.postRenderMs = std::chrono::duration<float, std::milli>(
+				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
+
+		m_frameCpuTimings = frameCpuTimings;
     }
 
     auto frameEnd = std::chrono::high_resolution_clock::now();

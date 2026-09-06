@@ -2046,6 +2046,33 @@ namespace Debug
     }
 }
 
+namespace ScriptProfilerAPI
+{
+    bool isEnabled()
+    {
+        return app && app->getModuleScene() && app->getModuleScene()->isScriptProfilingEnabled();
+    }
+
+    void recordScope(
+        const char* scriptName,
+        const char* scopeName,
+        const GameObject* gameObject,
+        float cpuMs)
+    {
+        if (!isEnabled() || !scriptName || !scopeName)
+        {
+            return;
+        }
+
+        app->getModuleScene()->recordScriptScopeTiming(
+            scriptName,
+            scopeName,
+            gameObject ? gameObject->GetName() : std::string("<no owner>"),
+            gameObject ? gameObject->GetID() : 0,
+            cpuMs);
+    }
+}
+
 namespace CameraAPI
 {
     CameraComponent* getCameraComponent(GameObject* gameObject)
@@ -3202,6 +3229,20 @@ namespace AudioAPI
             return component->postEvent(bankName, eventName);
         }
         return NULL;
+    }
+
+    void queueGroupedEvent(
+        ComponentSoundSource* component,
+        const char* bankName,
+        const char* eventName,
+        const char* groupName,
+        float priority,
+        uint32_t cooldownMs)
+    {
+        if (component)
+        {
+            component->queueGroupedEvent(bankName, eventName, groupName, priority, cooldownMs);
+        }
     }
 
     void stopEvent(ComponentSoundSource* component, uint32_t playingID)

@@ -28,6 +28,7 @@
 
 #include "ScriptComponent.h"
 
+#include <chrono>
 #include <limits>
 #include <algorithm>
 
@@ -77,36 +78,105 @@ bool Scene::init()
 
 void Scene::update()
 {
+    ModuleScene* sceneModule = app->getModuleScene();
+    const bool profile = sceneModule && sceneModule->m_detailedProfilingEnabled;
+
+    auto phaseStart = std::chrono::high_resolution_clock::time_point{};
+    if (profile)
+    {
+        sceneModule->m_detailedUpdateTimings.releasedDestroyedObjects =
+            static_cast<uint32_t>(m_pendingDestroyedObjects.size());
+        phaseStart = std::chrono::high_resolution_clock::now();
+    }
     releasePendingDestroyedGameObjects();
+    if (profile)
+    {
+        sceneModule->m_detailedUpdateTimings.releaseDestroyedMs = std::chrono::duration<float, std::milli>(
+            std::chrono::high_resolution_clock::now() - phaseStart).count();
+    }
 
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.pendingRemovalRequests =
+                static_cast<uint32_t>(m_objectsToRemove.size());
+            phaseStart = std::chrono::high_resolution_clock::now();
+        }
         removePendingGameObjects();
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.removePendingMs = std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - phaseStart).count();
+        }
 
         m_isUpdating = true;
 
+        if (profile)
+        {
+            phaseStart = std::chrono::high_resolution_clock::now();
+        }
         for (const auto& go : m_allObjects)
         {
             if (go && go->GetActive())
             {
+                if (profile)
+                {
+                    ++sceneModule->m_detailedUpdateTimings.gameObjectUpdateCalls;
+                }
                 go->update();
             }
+        }
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.gameObjectsUpdateMs = std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - phaseStart).count();
+            phaseStart = std::chrono::high_resolution_clock::now();
         }
 
         for (const auto& go : m_allObjects)
         {
             if (go && go->GetActive())
             {
+                if (profile)
+                {
+                    ++sceneModule->m_detailedUpdateTimings.gameObjectLateUpdateCalls;
+                }
                 go->lateUpdate();
             }
+        }
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.gameObjectsLateUpdateMs = std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         if (m_triggerSystem)
         {
+            if (profile)
+            {
+                phaseStart = std::chrono::high_resolution_clock::now();
+            }
             m_triggerSystem->update();
+            if (profile)
+            {
+                sceneModule->m_detailedUpdateTimings.triggerSystemMs = std::chrono::duration<float, std::milli>(
+                    std::chrono::high_resolution_clock::now() - phaseStart).count();
+            }
         }
 
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.pendingAdditions = static_cast<uint32_t>(
+                m_pendingObjectsToAdd.size() + m_pendingGameObjectsToAdopt.size());
+            phaseStart = std::chrono::high_resolution_clock::now();
+        }
         flushPendingGameObjects();
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.flushPendingMs = std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - phaseStart).count();
+        }
 
         m_isUpdating = false;
     }

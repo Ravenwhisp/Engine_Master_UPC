@@ -32,6 +32,15 @@ void WindowGameDebug::render()
     ImGui::Checkbox("Show Frame time", &m_settings->debugGame.showFrametime);
     ImGui::Checkbox("Show triangles number", &m_settings->debugGame.showTrianglesNumber);
     ImGui::Checkbox("Show mesh number", &m_settings->debugGame.showMeshNumber);
+    ImGui::Checkbox("Show render timings", &m_settings->debugGame.showRenderTimings);
+    ImGui::Checkbox("Show update timings", &m_settings->debugGame.showUpdateTimings);
+    ImGui::Checkbox("Show script profiler", &m_settings->debugGame.showScriptProfiler);
+    if (m_settings->debugGame.showScriptProfiler)
+    {
+        ImGui::SetNextItemWidth(120.0f);
+        ImGui::DragFloat("Script spike threshold (ms)",
+            &m_settings->debugGame.scriptProfilerSpikeThresholdMs, 0.1f, 0.1f, 100.0f, "%.1f");
+    }
     ImGui::Checkbox("Show Script Debug", &m_settings->debugGame.showScriptDebug);
 
     if (ImGui::Button("Reset stats"))

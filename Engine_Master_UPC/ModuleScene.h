@@ -4,7 +4,10 @@
 #include "ScenePicking.h"
 #include "Layer.h"
 #include "MeshRenderer.h"
+#include "ComponentType.h"
 
+#include <array>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -37,7 +40,73 @@ struct ID3D12GraphicsCommandList;
 
 class ModuleScene : public Module
 {
+public:
+    static constexpr size_t COMPONENT_TYPE_COUNT = static_cast<size_t>(ComponentType::COUNT);
+
+    struct DetailedUpdateTimings
+    {
+        float releaseDestroyedMs = 0.0f;
+        float removePendingMs = 0.0f;
+        float gameObjectsUpdateMs = 0.0f;
+        float gameObjectsLateUpdateMs = 0.0f;
+        float triggerSystemMs = 0.0f;
+        float flushPendingMs = 0.0f;
+        float staticQuadtreeUpdateMs = 0.0f;
+        float dynamicQuadtreeUpdateMs = 0.0f;
+        float staticQuadtreeMoveMs = 0.0f;
+        float dynamicQuadtreeMoveMs = 0.0f;
+        float staticQuadtreeQueryMs = 0.0f;
+        float dynamicQuadtreeQueryMs = 0.0f;
+        float quadtreeAreaQueryMs = 0.0f;
+
+        uint32_t gameObjectUpdateCalls = 0;
+        uint32_t gameObjectLateUpdateCalls = 0;
+        uint32_t releasedDestroyedObjects = 0;
+        uint32_t pendingRemovalRequests = 0;
+        uint32_t pendingAdditions = 0;
+        uint32_t staticQuadtreeDirtyNodes = 0;
+        uint32_t dynamicQuadtreeDirtyNodes = 0;
+        uint32_t staticQuadtreeMoveCalls = 0;
+        uint32_t dynamicQuadtreeMoveCalls = 0;
+        uint32_t staticQuadtreeQueryCalls = 0;
+        uint32_t dynamicQuadtreeQueryCalls = 0;
+        uint32_t staticQuadtreeQueryResults = 0;
+        uint32_t dynamicQuadtreeQueryResults = 0;
+        uint32_t quadtreeAreaQueryCalls = 0;
+        uint32_t quadtreeAreaQueryResults = 0;
+
+        std::array<float, COMPONENT_TYPE_COUNT> componentUpdateMs{};
+        std::array<float, COMPONENT_TYPE_COUNT> componentLateUpdateMs{};
+        std::array<uint32_t, COMPONENT_TYPE_COUNT> componentUpdateCalls{};
+        std::array<uint32_t, COMPONENT_TYPE_COUNT> componentLateUpdateCalls{};
+    };
+
+    struct ScriptTiming
+    {
+        std::string scriptName;
+        std::string maxGameObjectName;
+        uint64_t maxGameObjectId = 0;
+        float totalMs = 0.0f;
+        float maxMs = 0.0f;
+        uint32_t calls = 0;
+    };
+
+    struct ScriptScopeTiming
+    {
+        std::string scriptName;
+        std::string scopeName;
+        std::string maxGameObjectName;
+        uint64_t maxGameObjectId = 0;
+        float totalMs = 0.0f;
+        float maxMs = 0.0f;
+        uint32_t calls = 0;
+    };
+
 private:
+    friend class Scene;
+    friend class GameObject;
+    friend class Quadtree;
+
     std::shared_ptr<Scene> m_scene;
 
     std::unique_ptr<Quadtree> m_staticQuadtree;
@@ -64,6 +133,22 @@ private:
     const std::vector<Layer> m_staticLayers = { Layer::ENVIRONMENT, Layer::NAVMESH };
     const std::vector<Layer> m_dynamicLayers = { Layer::DEFAULT, Layer::PLAYER, Layer::ENEMY, Layer::PROJECTILE, Layer::BREAKABLE, Layer::PICKUP };
 
+    bool m_detailedProfilingEnabled = false;
+    DetailedUpdateTimings m_detailedUpdateTimings{};
+
+    bool m_scriptProfilingEnabled = false;
+    float m_scriptSpikeThresholdMs = 5.0f;
+    float m_currentScriptTotalMs = 0.0f;
+    float m_lastSpikeScriptTotalMs = 0.0f;
+    uint64_t m_scriptProfilerFrame = 0;
+    uint64_t m_lastSpikeFrame = 0;
+    std::unordered_map<std::string, ScriptTiming> m_currentScriptTimingMap;
+    std::unordered_map<std::string, ScriptScopeTiming> m_currentScriptScopeTimingMap;
+    std::vector<ScriptTiming> m_currentScriptTimings;
+    std::vector<ScriptTiming> m_lastSpikeScriptTimings;
+    std::vector<ScriptScopeTiming> m_currentScriptScopeTimings;
+    std::vector<ScriptScopeTiming> m_lastSpikeScriptScopeTimings;
+
     void clearComponentCaches();
     void rebuildComponentCaches();
 
@@ -75,6 +160,25 @@ public:
     bool init() override;
     void update() override;
     bool cleanUp() override;
+    void beginDetailedProfilingFrame(bool enabled);
+    bool isDetailedProfilingEnabled() const { return m_detailedProfilingEnabled; }
+    const DetailedUpdateTimings& getDetailedUpdateTimings() const { return m_detailedUpdateTimings; }
+    void beginScriptProfilingFrame(bool enabled, float spikeThresholdMs);
+    void endScriptProfilingFrame();
+    void recordScriptTiming(const std::string& scriptName, const std::string& gameObjectName,
+        uint64_t gameObjectId, float cpuMs);
+    void recordScriptScopeTiming(const std::string& scriptName, const std::string& scopeName,
+        const std::string& gameObjectName, uint64_t gameObjectId, float cpuMs);
+    bool isScriptProfilingEnabled() const { return m_scriptProfilingEnabled; }
+    float getCurrentScriptTotalMs() const { return m_currentScriptTotalMs; }
+    float getLastSpikeScriptTotalMs() const { return m_lastSpikeScriptTotalMs; }
+    float getScriptSpikeThresholdMs() const { return m_scriptSpikeThresholdMs; }
+    uint64_t getScriptProfilerFrame() const { return m_scriptProfilerFrame; }
+    uint64_t getLastSpikeFrame() const { return m_lastSpikeFrame; }
+    const std::vector<ScriptTiming>& getCurrentScriptTimings() const { return m_currentScriptTimings; }
+    const std::vector<ScriptTiming>& getLastSpikeScriptTimings() const { return m_lastSpikeScriptTimings; }
+    const std::vector<ScriptScopeTiming>& getCurrentScriptScopeTimings() const { return m_currentScriptScopeTimings; }
+    const std::vector<ScriptScopeTiming>& getLastSpikeScriptScopeTimings() const { return m_lastSpikeScriptScopeTimings; }
 #pragma endregion
 
 #pragma region Persistence
