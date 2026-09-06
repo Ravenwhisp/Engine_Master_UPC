@@ -34,5 +34,11 @@ void WindowGameDebug::render()
     ImGui::Checkbox("Show mesh number", &m_settings->debugGame.showMeshNumber);
     ImGui::Checkbox("Show Script Debug", &m_settings->debugGame.showScriptDebug);
 
+    if (ImGui::Button("Reset stats"))
+    {
+        m_settings->debugGame.maxFPS = 0.f;
+        m_settings->debugGame.minFPS = 1000.f;
+    }
+
     ImGui::End();
 }

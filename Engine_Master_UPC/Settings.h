@@ -57,6 +57,8 @@ struct FrustumCullingSettings
 struct DebugGame
 {
     bool showFPS = false;
+    float maxFPS = 0;
+    float minFPS = 0;
     bool showFrametime = false;
     bool showTrianglesNumber = false;
     bool showMeshNumber = false;

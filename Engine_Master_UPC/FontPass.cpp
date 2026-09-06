@@ -288,8 +288,11 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		float deltaTime = app->getModuleTime()->deltaTime();
 		float fps = (deltaTime > 0.0f) ? 1.0f / deltaTime : 0.0f;
 
+		m_settings->debugGame.maxFPS = std::max(m_settings->debugGame.maxFPS, fps);
+		m_settings->debugGame.minFPS = std::min(m_settings->debugGame.minFPS, fps);
+
 		wchar_t buffer[64];
-		swprintf_s(buffer, L"FPS: %.2f", fps);
+		swprintf_s(buffer, L"FPS: %07.2f, %07.2f - %07.2f", fps, m_settings->debugGame.minFPS, m_settings->debugGame.maxFPS);
 
 		UITextCommand command;
 		command.text = buffer;
