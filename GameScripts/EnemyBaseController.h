@@ -130,7 +130,9 @@ private:
     static constexpr size_t MAX_PATH_POINTS = 128;
 
     // Neighbor separation state
-    std::vector<Transform*> m_neighborCache;
+    // GameObjects are validated against Scene before dereferencing. Cached
+    // Transform pointers can outlive deferred Scene destruction and dangle.
+    std::vector<GameObject*> m_neighborCache;
     float m_separationQueryTimer = 0.0f;
 
     // Footstep audio is driven from locomotion: ping the EnemySound each frame we step.

@@ -212,6 +212,7 @@ GameObject* Scene::createGameObject()
         m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
         m_objectUidMap[rawPtr->GetID()] = rawPtr;
         m_rootObjects.push_back(rawPtr);
+        ++m_objectRegistryVersion;
         markDirty();
     }
 
@@ -236,6 +237,7 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
         m_objectIndexMap[raw] = m_allObjects.size() - 1;
         m_objectUidMap[raw->GetID()] = raw;
         m_rootObjects.push_back(raw);
+        ++m_objectRegistryVersion;
         markDirty();
     }
 
@@ -312,6 +314,11 @@ void Scene::flushPendingGameObjects()
         m_objectIndexMap[raw] = m_allObjects.size();
         m_objectUidMap[raw->GetID()] = raw;
         m_allObjects.push_back(std::move(pendingObject));
+    }
+
+    if (!m_pendingObjectsToAdd.empty())
+    {
+        ++m_objectRegistryVersion;
     }
 
     m_pendingObjectsToAdd.clear();
@@ -432,6 +439,8 @@ void Scene::adoptGameObject(std::unique_ptr<GameObject> gameObject, const SceneR
             m_rootObjects.push_back(raw);
     }
 
+    ++m_objectRegistryVersion;
+
     markDirty();
 
     SceneReferenceResolver resolver;
@@ -533,6 +542,7 @@ void Scene::destroyGameObject(GameObject* gameObject)
     m_allObjects.pop_back();
     m_objectIndexMap.erase(mapIt);
     m_objectUidMap.erase(gameObject->GetID());
+    ++m_objectRegistryVersion;
     markDirty();
 }
 
@@ -641,6 +651,7 @@ GameObject* Scene::createDirectionalLightOnInit()
     m_objectIndexMap[raw] = m_allObjects.size() - 1;
     m_objectUidMap[raw->GetID()] = raw;
     m_rootObjects.push_back(raw);
+    ++m_objectRegistryVersion;
     markDirty();
 
     return raw;
@@ -800,6 +811,7 @@ void Scene::clearScene()
 
     m_objectIndexMap.clear();
     m_objectUidMap.clear();
+    ++m_objectRegistryVersion;
     m_defaultCamera = nullptr;
     m_navMesh = AssetId{};
     m_loadedBankRefs.clear();

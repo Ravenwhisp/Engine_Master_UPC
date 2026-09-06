@@ -830,6 +830,12 @@ namespace ApplicationAPI
 
 namespace SceneAPI
 {
+    bool containsGameObject(const GameObject* gameObject)
+    {
+        return app && app->getModuleScene() &&
+            app->getModuleScene()->getScene()->containsGameObject(gameObject);
+    }
+
     std::vector<GameObject*> findAllGameObjectsByComponent(ComponentType componentType, bool onlyActive)
     {
         std::vector<GameObject*> result;
