@@ -62,6 +62,7 @@ bool Scene::init()
 
     m_allObjects.push_back(std::move(gameCamera));
     m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
+    m_objectUidMap[rawPtr->GetID()] = rawPtr;
     m_rootObjects.push_back(rawPtr);
 
     for (const auto& go : m_allObjects)
@@ -105,9 +106,9 @@ void Scene::update()
             m_triggerSystem->update();
         }
 
-        m_isUpdating = false;
-
         flushPendingGameObjects();
+
+        m_isUpdating = false;
     }
 }
 
@@ -139,6 +140,7 @@ GameObject* Scene::createGameObject()
     {
         m_allObjects.push_back(std::move(newGameObject));
         m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
+        m_objectUidMap[rawPtr->GetID()] = rawPtr;
         m_rootObjects.push_back(rawPtr);
         markDirty();
     }
@@ -162,6 +164,7 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     {
         m_allObjects.push_back(std::move(newGameObject));
         m_objectIndexMap[raw] = m_allObjects.size() - 1;
+        m_objectUidMap[raw->GetID()] = raw;
         m_rootObjects.push_back(raw);
         markDirty();
     }
@@ -182,44 +185,13 @@ void Scene::initLoadedObjects()
 
 GameObject* Scene::findGameObjectByUID(UID uuid)
 {
-    for (const auto& root : m_allObjects)
-    {
-        if (!root)
-        {
-            continue;
-        }
-
-        if (root->GetID() == uuid)
-        {
-            return root.get();
-        }
-
-        if (GameObject* found = findInWindowHierarchy(root.get(), uuid))
-        {
-            return found;
-        }
-    }
-    return nullptr;
+    const auto it = m_objectUidMap.find(uuid);
+    return it != m_objectUidMap.end() ? it->second : nullptr;
 }
 
 void Scene::removeGameObject(UID uuid)
 {
-    GameObject* target = nullptr;
-
-    for (const auto& root : m_allObjects)
-    {
-        if (root->GetID() == uuid)
-        {
-            target = root.get();
-            break;
-        }
-
-        target = findInWindowHierarchy(root.get(), uuid);
-        if (target)
-        {
-            break;
-        }
-    }
+    GameObject* target = findGameObjectByUID(uuid);
 
     if (!target)
     {
@@ -251,7 +223,7 @@ void Scene::removePendingGameObjects()
 
 void Scene::flushPendingGameObjects()
 {
-    if (m_pendingObjectsToAdd.empty())
+    if (m_pendingObjectsToAdd.empty() && m_pendingGameObjectsToAdopt.empty())
     {
         return;
     }
@@ -266,12 +238,22 @@ void Scene::flushPendingGameObjects()
 
     for (auto& pendingObject : m_pendingObjectsToAdd)
     {
-        m_objectIndexMap[pendingObject.get()] = m_allObjects.size();
+        GameObject* raw = pendingObject.get();
+        m_objectIndexMap[raw] = m_allObjects.size();
+        m_objectUidMap[raw->GetID()] = raw;
         m_allObjects.push_back(std::move(pendingObject));
     }
 
     m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
+
+    std::vector<PendingGameObjectAddition> additions;
+    additions.swap(m_pendingGameObjectsToAdopt);
+
+    for (auto& pending : additions)
+    {
+        adoptGameObject(std::move(pending.gameObject), &pending.resolver);
+    }
 
     markDirty();
 }
@@ -323,6 +305,28 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneRef
         return;
     }
 
+    if (m_isUpdating)
+    {
+        PendingGameObjectAddition pending;
+        pending.gameObject = std::move(gameObject);
+        if (externalResolver)
+        {
+            pending.resolver.mergeFrom(*externalResolver);
+        }
+        m_pendingGameObjectsToAdopt.push_back(std::move(pending));
+        return;
+    }
+
+    adoptGameObject(std::move(gameObject), externalResolver);
+}
+
+void Scene::adoptGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver)
+{
+    if (!gameObject)
+    {
+        return;
+    }
+
     const std::string rootName = gameObject->GetName();
 
     std::vector<std::unique_ptr<GameObject>> all;
@@ -353,6 +357,7 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneRef
         raw->ClearSnapshotClone();
         m_allObjects.push_back(std::move(go));
         m_objectIndexMap[raw] = m_allObjects.size() - 1;
+        m_objectUidMap[raw->GetID()] = raw;
         if (raw->GetTransform()->getRoot() == nullptr)
             m_rootObjects.push_back(raw);
     }
@@ -457,6 +462,7 @@ void Scene::destroyGameObject(GameObject* gameObject)
 
     m_allObjects.pop_back();
     m_objectIndexMap.erase(mapIt);
+    m_objectUidMap.erase(gameObject->GetID());
     markDirty();
 }
 
@@ -485,17 +491,24 @@ bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
 
 GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
 {
-    for (GameObject* child : current->GetTransform()->getAllChildren())
+    if (!current)
     {
-        if (child->GetID() == uuid)
-        {
-            return child;
-        }
+        return nullptr;
+    }
 
-        GameObject* found = findInWindowHierarchy(child, uuid);
-        if (found)
+    GameObject* candidate = findGameObjectByUID(uuid);
+    if (!candidate || candidate == current)
+    {
+        return nullptr;
+    }
+
+    for (Transform* parent = candidate->GetTransform()->getRoot();
+         parent != nullptr;
+         parent = parent->getRoot())
+    {
+        if (parent->getOwner() == current)
         {
-            return found;
+            return candidate;
         }
     }
 
@@ -556,6 +569,7 @@ GameObject* Scene::createDirectionalLightOnInit()
 
     m_allObjects.push_back(std::move(go));
     m_objectIndexMap[raw] = m_allObjects.size() - 1;
+    m_objectUidMap[raw->GetID()] = raw;
     m_rootObjects.push_back(raw);
     markDirty();
 
@@ -640,15 +654,7 @@ bool Scene::containsGameObject(const GameObject* go) const
         return false;
     }
 
-    for (const auto& obj : m_allObjects)
-    {
-        if (obj.get() == go)
-        {
-            return true;
-        }
-    }
-
-    return false;
+    return m_objectIndexMap.find(const_cast<GameObject*>(go)) != m_objectIndexMap.end();
 }
 
 void Scene::fixSceneReferences()
@@ -711,10 +717,19 @@ void Scene::clearScene()
         }
     }
 
+    for (auto& pending : m_pendingGameObjectsToAdopt)
+    {
+        if (pending.gameObject)
+        {
+            pending.gameObject->cleanUp();
+        }
+    }
+
     m_rootObjects.clear();
     m_allObjects.clear();
 
     m_objectIndexMap.clear();
+    m_objectUidMap.clear();
     m_defaultCamera = nullptr;
     m_navMesh = AssetId{};
     m_loadedBankRefs.clear();
@@ -723,6 +738,7 @@ void Scene::clearScene()
     m_objectsToRemove.clear();
     m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
+    m_pendingGameObjectsToAdopt.clear();
     markDirty();
 }
 

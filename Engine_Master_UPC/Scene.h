@@ -47,6 +47,7 @@ private:
     std::vector<UID> m_objectsToRemove;
 
     std::unordered_map<GameObject*, size_t> m_objectIndexMap;
+    std::unordered_map<UID, GameObject*> m_objectUidMap;
 
     bool m_componentCacheDirty = true;
 
@@ -63,7 +64,16 @@ private:
     std::vector<std::unique_ptr<GameObject>> m_pendingObjectsToAdd;
     std::vector<GameObject*> m_pendingRootObjectsToAdd;
 
+    struct PendingGameObjectAddition
+    {
+        std::unique_ptr<GameObject> gameObject;
+        SceneReferenceResolver resolver;
+    };
+
+    std::vector<PendingGameObjectAddition> m_pendingGameObjectsToAdopt;
+
     void flushPendingGameObjects();
+    void adoptGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver);
 
 
     struct PendingDestroyedGameObject

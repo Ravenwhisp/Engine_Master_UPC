@@ -422,7 +422,7 @@ void MeshRenderer::serialize(IArchive& archive)
 
         JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
 
-        if (jsonArchive && jsonArchive->hasKey("BoundingBox"))
+        if (!jsonArchive || jsonArchive->hasKey("BoundingBox"))
         {
             archive.beginObject("BoundingBox");
 

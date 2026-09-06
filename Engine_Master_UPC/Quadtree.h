@@ -47,6 +47,7 @@ public:
     void build(const std::vector<Layer> layers = {});
 
     std::vector<GameObject*> query() const;
+    std::vector<GameObject*> query(const Engine::Frustum& frustum) const;
 	std::vector<GameObject*> queryInArea(const Vector2& center, const float radius) const;
     std::vector<BoundingRect> getQuadrants() const;
 

@@ -62,7 +62,7 @@ private:
     void transitionCascadeShadowMap( ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
 
 private:
-    static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 4096;
+    static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 2048;
 
     static constexpr float SHADOW_BIAS = 0.0005f;
     static constexpr float SHADOW_STRENGTH = 1.0f;

@@ -28,6 +28,11 @@ class LineRendererComponent;
 class OcclusionTargetComponent;
 class OcclusionOccluderComponent;
 
+namespace Engine
+{
+    struct Frustum;
+}
+
 struct ID3D12GraphicsCommandList;
 
 class ModuleScene : public Module
@@ -123,6 +128,7 @@ public:
     const std::vector<MeshRenderer*> getForwardMeshRenderers();
     const std::vector<MeshRenderer*> getForwardMeshRenderers(RenderMode mode);
     const std::vector<MeshRenderer*> getVisibleMeshRenderers();
+    const std::vector<MeshRenderer*> getMeshRenderersInFrustum(const Engine::Frustum& frustum);
     const std::vector<MeshRenderer*> getVisibleDeferredMeshRenderers();
     const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers();
     const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers(RenderMode mode);

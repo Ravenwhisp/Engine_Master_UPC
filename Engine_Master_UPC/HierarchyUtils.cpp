@@ -16,15 +16,7 @@ namespace HierarchyUtils
     GameObject* findByUID(Scene* scene, UID id)
     {
         if (!scene || id == 0) return nullptr;
-        for (GameObject* go : scene->getAllGameObjects())
-        {
-            if (go && go->GetID() == id)
-            {
-                return go;
-            }
-        }
-
-        return nullptr;
+        return scene->findGameObjectByUID(id);
     }
 
     void reparent(Scene* scene, GameObject* child, GameObject* newParent)
