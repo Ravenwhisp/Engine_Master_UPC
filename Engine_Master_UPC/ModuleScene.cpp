@@ -302,6 +302,42 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
     return app->getModuleScene()->getMeshRenderers();
 }
 
+const std::vector<MeshRenderer*> ModuleScene::getMeshRenderersInFrustum(const Engine::Frustum& frustum)
+{
+    if (!app->getSettings()->frustumCulling.enabled)
+    {
+        return getMeshRenderers();
+    }
+
+    std::vector<MeshRenderer*> meshRenderers;
+
+    auto appendFromQuadtree = [&](Quadtree* quadtree)
+    {
+        if (!quadtree)
+        {
+            return;
+        }
+
+        for (GameObject* gameObject : quadtree->query(frustum))
+        {
+            if (!gameObject || !m_scene->containsGameObject(gameObject) || !gameObject->GetTransform())
+            {
+                continue;
+            }
+
+            if (MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            {
+                meshRenderers.push_back(renderer);
+            }
+        }
+    };
+
+    appendFromQuadtree(m_staticQuadtree.get());
+    appendFromQuadtree(m_dynamicQuadtree.get());
+
+    return meshRenderers;
+}
+
 const std::vector<MeshRenderer*> ModuleScene::getVisibleDeferredMeshRenderers()
 {
     if (app->getSettings()->frustumCulling.enabled)

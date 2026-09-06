@@ -19,6 +19,7 @@
 #include "IndexBuffer.h"
 #include "Skin.h"
 #include "ShadowFrustumComputePass.h"
+#include "Frustum.h"
 
 #include <d3dx12.h>
 #include <d3dcompiler.h>
@@ -31,6 +32,108 @@
 namespace
 {
     constexpr D3D12_RESOURCE_STATES CASCADE_SHADER_RESOURCE_STATE = static_cast<D3D12_RESOURCE_STATES>(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    constexpr float SHADOW_CASTER_VOLUME_SCALE = 1.10f;
+    constexpr float SHADOW_CASTER_LIGHT_PADDING = 20.0f;
+
+    void buildFrustumFromViewProjection(const Matrix& viewProjection, Engine::Frustum& frustum)
+    {
+        frustum.m_leftFace = Plane(viewProjection._14 + viewProjection._11, viewProjection._24 + viewProjection._21, viewProjection._34 + viewProjection._31, viewProjection._44 + viewProjection._41);
+        frustum.m_leftFace.Normalize();
+        frustum.m_rightFace = Plane(viewProjection._14 - viewProjection._11, viewProjection._24 - viewProjection._21, viewProjection._34 - viewProjection._31, viewProjection._44 - viewProjection._41);
+        frustum.m_rightFace.Normalize();
+        frustum.m_bottomFace = Plane(viewProjection._14 + viewProjection._12, viewProjection._24 + viewProjection._22, viewProjection._34 + viewProjection._32, viewProjection._44 + viewProjection._42);
+        frustum.m_bottomFace.Normalize();
+        frustum.m_topFace = Plane(viewProjection._14 - viewProjection._12, viewProjection._24 - viewProjection._22, viewProjection._34 - viewProjection._32, viewProjection._44 - viewProjection._42);
+        frustum.m_topFace.Normalize();
+        frustum.m_frontFace = Plane(viewProjection._13, viewProjection._23, viewProjection._33, viewProjection._43);
+        frustum.m_frontFace.Normalize();
+        frustum.m_backFace = Plane(viewProjection._14 - viewProjection._13, viewProjection._24 - viewProjection._23, viewProjection._34 - viewProjection._33, viewProjection._44 - viewProjection._43);
+        frustum.m_backFace.Normalize();
+
+        const Matrix inverseViewProjection = viewProjection.Invert();
+        static constexpr float NDC_XY[2] = { -1.0f, 1.0f };
+        static constexpr float NDC_Z[2] = { 0.0f, 1.0f };
+        size_t pointIndex = 0;
+
+        for (float z : NDC_Z)
+        {
+            for (float y : NDC_XY)
+            {
+                for (float x : NDC_XY)
+                {
+                    Vector4 point = Vector4::Transform(Vector4(x, y, z, 1.0f), inverseViewProjection);
+                    if (std::abs(point.w) > 0.000001f)
+                    {
+                        point /= point.w;
+                    }
+                    frustum.m_points[pointIndex++] = Vector3(point.x, point.y, point.z);
+                }
+            }
+        }
+    }
+
+    bool buildShadowCasterFrustum(const RenderContext& ctx, const Vector3& lightDirection, Engine::Frustum& frustum)
+    {
+        Vector3 direction = lightDirection;
+        if (direction.LengthSquared() <= 0.000001f)
+        {
+            return false;
+        }
+        direction.Normalize();
+
+        const Matrix inverseCameraViewProjection = (ctx.view * ctx.projection).Invert();
+        static constexpr float NDC_XY[2] = { -1.0f, 1.0f };
+        static constexpr float NDC_Z[2] = { 0.0f, 1.0f };
+        Vector3 cameraCorners[8];
+        Vector3 center = Vector3::Zero;
+        size_t cornerIndex = 0;
+
+        for (float z : NDC_Z)
+        {
+            for (float y : NDC_XY)
+            {
+                for (float x : NDC_XY)
+                {
+                    Vector4 point = Vector4::Transform(Vector4(x, y, z, 1.0f), inverseCameraViewProjection);
+                    if (std::abs(point.w) <= 0.000001f)
+                    {
+                        return false;
+                    }
+
+                    point /= point.w;
+                    cameraCorners[cornerIndex] = Vector3(point.x, point.y, point.z);
+                    center += cameraCorners[cornerIndex];
+                    ++cornerIndex;
+                }
+            }
+        }
+
+        center /= 8.0f;
+
+        float radius = 0.0f;
+        for (const Vector3& corner : cameraCorners)
+        {
+            radius = std::max(radius, Vector3::Distance(center, corner));
+        }
+        radius = std::max(radius * SHADOW_CASTER_VOLUME_SCALE, 5.0f);
+
+        Vector3 up = Vector3::Up;
+        if (std::abs(direction.y) > 0.95f)
+        {
+            up = Vector3::Forward;
+        }
+
+        const Vector3 eye = center - direction * (radius + SHADOW_CASTER_LIGHT_PADDING);
+        const Matrix lightView = Matrix::CreateLookAt(eye, center, up);
+        const Matrix lightProjection = Matrix::CreateOrthographic(
+            radius * 2.0f,
+            radius * 2.0f,
+            0.0f,
+            radius * 2.0f + SHADOW_CASTER_LIGHT_PADDING);
+
+        buildFrustumFromViewProjection(lightView * lightProjection, frustum);
+        return true;
+    }
 }
 
 ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass)
@@ -496,15 +599,26 @@ void ShadowMapPass::transitionCascadeShadowMap( ID3D12GraphicsCommandList4* comm
 
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
-    //Flag1
-    m_meshRenderers = app->getModuleScene()->getMeshRenderers();
-
     const LightComponent* mainDirectionalLight = findMainShadowCastingDirectionalLight();
 
     if (mainDirectionalLight == nullptr)
     {
+        m_meshRenderers.clear();
         prepareDisabledShadowData(ctx);
         return;
+    }
+
+    const GameObject* lightOwner = mainDirectionalLight->getOwner();
+    const Transform* lightTransform = lightOwner ? lightOwner->GetTransform() : nullptr;
+    Engine::Frustum shadowCasterFrustum;
+
+    if (lightTransform && buildShadowCasterFrustum(ctx, lightTransform->getForward(), shadowCasterFrustum))
+    {
+        m_meshRenderers = app->getModuleScene()->getMeshRenderersInFrustum(shadowCasterFrustum);
+    }
+    else
+    {
+        m_meshRenderers = app->getModuleScene()->getVisibleMeshRenderers();
     }
 
     prepareDirectionalShadowData(ctx, *mainDirectionalLight);
