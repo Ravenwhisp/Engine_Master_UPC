@@ -41,6 +41,14 @@ enum class ENGINE_STATE
 class Application
 {
 public:
+	struct FrameCpuTimings
+	{
+		float updateMs = 0.0f;
+		float preRenderMs = 0.0f;
+		float renderMs = 0.0f;
+		float postRenderMs = 0.0f;
+	};
+
 	Application(int argc, wchar_t** argv, void* hWnd);
 	~Application();
 
@@ -89,6 +97,7 @@ public:
     HWND getWindowHandle() const { return m_hWnd; }
 
     uint64_t getElapsedMilis() const { return m_elapsedMilis; }
+    const FrameCpuTimings& getFrameCpuTimings() const { return m_frameCpuTimings; }
 
 private:
 
@@ -124,6 +133,7 @@ private:
 
     uint64_t m_lastMilis = 0;
     uint64_t m_elapsedMilis = 0;
+    FrameCpuTimings m_frameCpuTimings{};
 
     HWND m_hWnd = nullptr;
 

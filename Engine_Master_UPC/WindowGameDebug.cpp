@@ -32,6 +32,7 @@ void WindowGameDebug::render()
     ImGui::Checkbox("Show Frame time", &m_settings->debugGame.showFrametime);
     ImGui::Checkbox("Show triangles number", &m_settings->debugGame.showTrianglesNumber);
     ImGui::Checkbox("Show mesh number", &m_settings->debugGame.showMeshNumber);
+    ImGui::Checkbox("Show render timings", &m_settings->debugGame.showRenderTimings);
     ImGui::Checkbox("Show Script Debug", &m_settings->debugGame.showScriptDebug);
 
     if (ImGui::Button("Reset stats"))

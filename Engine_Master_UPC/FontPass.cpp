@@ -355,4 +355,66 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		command.fontId = DEBUG_FONT_ID;
 		drawText(commandList, command);
 	}
+
+	if (m_settings->debugGame.showRenderTimings)
+	{
+		std::vector<ModuleRender::RenderPassTiming> timings =
+			app->getModuleRender()->getRenderPassTimings();
+
+		std::sort(timings.begin(), timings.end(),
+			[](const ModuleRender::RenderPassTiming& lhs, const ModuleRender::RenderPassTiming& rhs)
+			{
+				return lhs.gpuMs > rhs.gpuMs;
+			});
+
+		float totalGpuMs = 0.0f;
+		float totalCpuMs = 0.0f;
+		for (const ModuleRender::RenderPassTiming& timing : timings)
+		{
+			totalGpuMs += timing.gpuMs;
+			totalCpuMs += timing.cpuMs;
+		}
+
+		wchar_t totalBuffer[128];
+		swprintf_s(totalBuffer, L"Measured total: GPU %.2f ms | CPU submit %.2f ms", totalGpuMs, totalCpuMs);
+
+		std::wstring timingText = L"Render timings (GPU delayed, sorted by GPU)\n";
+		timingText += totalBuffer;
+		timingText += L'\n';
+
+		const Application::FrameCpuTimings& frameCpu = app->getFrameCpuTimings();
+		wchar_t frameCpuBuffer[192];
+		swprintf_s(
+			frameCpuBuffer,
+			L"Frame CPU: Update %.2f | PreRender %.2f | Render %.2f | PostRender %.2f ms",
+			frameCpu.updateMs,
+			frameCpu.preRenderMs,
+			frameCpu.renderMs,
+			frameCpu.postRenderMs);
+		timingText += frameCpuBuffer;
+		timingText += L'\n';
+
+		for (const ModuleRender::RenderPassTiming& timing : timings)
+		{
+			const std::wstring name(timing.name.begin(), timing.name.end());
+			wchar_t timingBuffer[192];
+			swprintf_s(
+				timingBuffer,
+				L"%-30ls GPU %7.3f ms | CPU %7.3f ms",
+				name.c_str(),
+				timing.gpuMs,
+				timing.cpuMs);
+			timingText += timingBuffer;
+			timingText += L'\n';
+		}
+
+		UITextCommand command;
+		command.text = std::move(timingText);
+		command.x = 10.0f;
+		command.y = 75.0f;
+		command.color = DirectX::XMFLOAT4(1.0f, 0.85f, 0.2f, 1.0f);
+		command.scale = 0.85f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
+	}
 }

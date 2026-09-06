@@ -191,37 +191,53 @@ void Application::update()
 
     if (!app->m_paused)
     {
+		FrameCpuTimings frameCpuTimings{};
+
         {
             PERF_LOGIC("Application::ModulesUpdate");
+			const auto phaseStart = std::chrono::high_resolution_clock::now();
             for (auto it = modules.begin(); it != modules.end(); ++it)
             {
                 (*it)->update();
             }
+			frameCpuTimings.updateMs = std::chrono::duration<float, std::milli>(
+				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         {
             PERF_RENDER("Application::ModulesPreRender");
+			const auto phaseStart = std::chrono::high_resolution_clock::now();
             for (auto it = modules.begin(); it != modules.end(); ++it)
             {
                 (*it)->preRender();
             }
+			frameCpuTimings.preRenderMs = std::chrono::duration<float, std::milli>(
+				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         {
             PERF_RENDER("Application::ModulesRender");
+			const auto phaseStart = std::chrono::high_resolution_clock::now();
             for (auto it = modules.begin(); it != modules.end(); ++it)
             {
                 (*it)->render();
             }
+			frameCpuTimings.renderMs = std::chrono::duration<float, std::milli>(
+				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         {
             PERF_RENDER("Application::ModulesPostRender");
+			const auto phaseStart = std::chrono::high_resolution_clock::now();
             for (auto it = modules.begin(); it != modules.end(); ++it)
             {
                 (*it)->postRender();
             }
+			frameCpuTimings.postRenderMs = std::chrono::duration<float, std::milli>(
+				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
+
+		m_frameCpuTimings = frameCpuTimings;
     }
 
     auto frameEnd = std::chrono::high_resolution_clock::now();
