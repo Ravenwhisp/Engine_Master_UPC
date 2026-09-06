@@ -4,7 +4,10 @@
 #include "ScenePicking.h"
 #include "Layer.h"
 #include "MeshRenderer.h"
+#include "ComponentType.h"
 
+#include <array>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -37,7 +40,52 @@ struct ID3D12GraphicsCommandList;
 
 class ModuleScene : public Module
 {
+public:
+    static constexpr size_t COMPONENT_TYPE_COUNT = static_cast<size_t>(ComponentType::COUNT);
+
+    struct DetailedUpdateTimings
+    {
+        float releaseDestroyedMs = 0.0f;
+        float removePendingMs = 0.0f;
+        float gameObjectsUpdateMs = 0.0f;
+        float gameObjectsLateUpdateMs = 0.0f;
+        float triggerSystemMs = 0.0f;
+        float flushPendingMs = 0.0f;
+        float staticQuadtreeUpdateMs = 0.0f;
+        float dynamicQuadtreeUpdateMs = 0.0f;
+        float staticQuadtreeMoveMs = 0.0f;
+        float dynamicQuadtreeMoveMs = 0.0f;
+        float staticQuadtreeQueryMs = 0.0f;
+        float dynamicQuadtreeQueryMs = 0.0f;
+        float quadtreeAreaQueryMs = 0.0f;
+
+        uint32_t gameObjectUpdateCalls = 0;
+        uint32_t gameObjectLateUpdateCalls = 0;
+        uint32_t releasedDestroyedObjects = 0;
+        uint32_t pendingRemovalRequests = 0;
+        uint32_t pendingAdditions = 0;
+        uint32_t staticQuadtreeDirtyNodes = 0;
+        uint32_t dynamicQuadtreeDirtyNodes = 0;
+        uint32_t staticQuadtreeMoveCalls = 0;
+        uint32_t dynamicQuadtreeMoveCalls = 0;
+        uint32_t staticQuadtreeQueryCalls = 0;
+        uint32_t dynamicQuadtreeQueryCalls = 0;
+        uint32_t staticQuadtreeQueryResults = 0;
+        uint32_t dynamicQuadtreeQueryResults = 0;
+        uint32_t quadtreeAreaQueryCalls = 0;
+        uint32_t quadtreeAreaQueryResults = 0;
+
+        std::array<float, COMPONENT_TYPE_COUNT> componentUpdateMs{};
+        std::array<float, COMPONENT_TYPE_COUNT> componentLateUpdateMs{};
+        std::array<uint32_t, COMPONENT_TYPE_COUNT> componentUpdateCalls{};
+        std::array<uint32_t, COMPONENT_TYPE_COUNT> componentLateUpdateCalls{};
+    };
+
 private:
+    friend class Scene;
+    friend class GameObject;
+    friend class Quadtree;
+
     std::shared_ptr<Scene> m_scene;
 
     std::unique_ptr<Quadtree> m_staticQuadtree;
@@ -64,6 +112,9 @@ private:
     const std::vector<Layer> m_staticLayers = { Layer::ENVIRONMENT, Layer::NAVMESH };
     const std::vector<Layer> m_dynamicLayers = { Layer::DEFAULT, Layer::PLAYER, Layer::ENEMY, Layer::PROJECTILE, Layer::BREAKABLE, Layer::PICKUP };
 
+    bool m_detailedProfilingEnabled = false;
+    DetailedUpdateTimings m_detailedUpdateTimings{};
+
     void clearComponentCaches();
     void rebuildComponentCaches();
 
@@ -75,6 +126,9 @@ public:
     bool init() override;
     void update() override;
     bool cleanUp() override;
+    void beginDetailedProfilingFrame(bool enabled);
+    bool isDetailedProfilingEnabled() const { return m_detailedProfilingEnabled; }
+    const DetailedUpdateTimings& getDetailedUpdateTimings() const { return m_detailedUpdateTimings; }
 #pragma endregion
 
 #pragma region Persistence

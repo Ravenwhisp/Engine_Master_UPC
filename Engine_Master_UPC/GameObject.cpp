@@ -24,6 +24,7 @@
 
 #include "Quadtree.h"
 
+#include <chrono>
 
 GameObject::GameObject(UID newUuid) : m_uuid(newUuid), m_name("New GameObject")
 {
@@ -281,11 +282,27 @@ void GameObject::update()
         return;
     }
 
+    ModuleScene* sceneModule = app->getModuleScene();
+    const bool profile = sceneModule && sceneModule->m_detailedProfilingEnabled;
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component && component->isActive())
         {
-            component->update();
+            if (profile)
+            {
+                const auto start = std::chrono::high_resolution_clock::now();
+                component->update();
+                const size_t typeIndex = static_cast<size_t>(component->getType());
+                sceneModule->m_detailedUpdateTimings.componentUpdateMs[typeIndex] +=
+                    std::chrono::duration<float, std::milli>(
+                        std::chrono::high_resolution_clock::now() - start).count();
+                ++sceneModule->m_detailedUpdateTimings.componentUpdateCalls[typeIndex];
+            }
+            else
+            {
+                component->update();
+            }
         }
     }
 }
@@ -297,11 +314,27 @@ void GameObject::lateUpdate()
         return;
     }
 
+    ModuleScene* sceneModule = app->getModuleScene();
+    const bool profile = sceneModule && sceneModule->m_detailedProfilingEnabled;
+
     for (const std::unique_ptr<Component>& component : m_components)
     {
         if (component && component->isActive())
         {
-            component->lateUpdate();
+            if (profile)
+            {
+                const auto start = std::chrono::high_resolution_clock::now();
+                component->lateUpdate();
+                const size_t typeIndex = static_cast<size_t>(component->getType());
+                sceneModule->m_detailedUpdateTimings.componentLateUpdateMs[typeIndex] +=
+                    std::chrono::duration<float, std::milli>(
+                        std::chrono::high_resolution_clock::now() - start).count();
+                ++sceneModule->m_detailedUpdateTimings.componentLateUpdateCalls[typeIndex];
+            }
+            else
+            {
+                component->lateUpdate();
+            }
         }
     }
 }

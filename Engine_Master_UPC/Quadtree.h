@@ -59,6 +59,7 @@ public:
     void resolveDirtyNodes();
 
     bool getIsBuilded() { return isBuilded; }
+    size_t getDirtyNodeCount() const { return m_dirtyNodes.size(); }
 
     void move(GameObject& object);
     void remove(GameObject& object);

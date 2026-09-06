@@ -27,6 +27,7 @@
 #include "ScenePicking.h"
 #include "MD5.h"
 
+#include <chrono>
 #include <unordered_set>
 
 ModuleScene::ModuleScene()
@@ -35,6 +36,15 @@ ModuleScene::ModuleScene()
     m_scene = std::make_unique<Scene>(defaultSceneRef);
     m_staticQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree = std::make_unique<Quadtree>();
+}
+
+void ModuleScene::beginDetailedProfilingFrame(bool enabled)
+{
+    m_detailedProfilingEnabled = enabled;
+    if (enabled)
+    {
+        m_detailedUpdateTimings = {};
+    }
 }
 
 ModuleScene::~ModuleScene() = default;
@@ -98,8 +108,28 @@ void ModuleScene::update()
     m_scene->update();
 
     syncQuadtreeWithSettings();
-    m_staticQuadtree->update();
-    m_dynamicQuadtree->update();
+
+    if (m_detailedProfilingEnabled)
+    {
+        m_detailedUpdateTimings.staticQuadtreeDirtyNodes =
+            static_cast<uint32_t>(m_staticQuadtree->getDirtyNodeCount());
+        const auto staticStart = std::chrono::high_resolution_clock::now();
+        m_staticQuadtree->update();
+        m_detailedUpdateTimings.staticQuadtreeUpdateMs = std::chrono::duration<float, std::milli>(
+            std::chrono::high_resolution_clock::now() - staticStart).count();
+
+        m_detailedUpdateTimings.dynamicQuadtreeDirtyNodes =
+            static_cast<uint32_t>(m_dynamicQuadtree->getDirtyNodeCount());
+        const auto dynamicStart = std::chrono::high_resolution_clock::now();
+        m_dynamicQuadtree->update();
+        m_detailedUpdateTimings.dynamicQuadtreeUpdateMs = std::chrono::duration<float, std::milli>(
+            std::chrono::high_resolution_clock::now() - dynamicStart).count();
+    }
+    else
+    {
+        m_staticQuadtree->update();
+        m_dynamicQuadtree->update();
+    }
 }
 
 bool ModuleScene::cleanUp()
@@ -753,11 +783,29 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 
     if (dynamic)
     {
+        const auto start = m_detailedProfilingEnabled
+            ? std::chrono::high_resolution_clock::now()
+            : std::chrono::high_resolution_clock::time_point{};
         m_dynamicQuadtree->move(gameObject);
+        if (m_detailedProfilingEnabled)
+        {
+            m_detailedUpdateTimings.dynamicQuadtreeMoveMs += std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - start).count();
+            ++m_detailedUpdateTimings.dynamicQuadtreeMoveCalls;
+        }
     }
     else
     {
+        const auto start = m_detailedProfilingEnabled
+            ? std::chrono::high_resolution_clock::now()
+            : std::chrono::high_resolution_clock::time_point{};
         m_staticQuadtree->move(gameObject);
+        if (m_detailedProfilingEnabled)
+        {
+            m_detailedUpdateTimings.staticQuadtreeMoveMs += std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - start).count();
+            ++m_detailedUpdateTimings.staticQuadtreeMoveCalls;
+        }
     }
 }
 

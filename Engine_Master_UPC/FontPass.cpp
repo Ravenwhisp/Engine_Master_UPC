@@ -8,6 +8,7 @@
 #include "ModuleD3D12.h"
 #include "ModuleTime.h"
 #include "ModuleFont.h"
+#include "ModuleScene.h"
 
 #include "Settings.h"
 #include "CommandQueue.h"
@@ -443,6 +444,11 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 
 		for (const Application::ModuleUpdateTiming& timing : timings)
 		{
+			if (timing.cpuMs < 0.005f)
+			{
+				continue;
+			}
+
 			std::wstring name;
 			for (const char* character = timing.name; *character != '\0'; ++character)
 			{
@@ -451,6 +457,118 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 			wchar_t timingBuffer[160];
 			swprintf_s(timingBuffer, L"%-30ls CPU %7.3f ms", name.c_str(), timing.cpuMs);
 			timingText += timingBuffer;
+			timingText += L'\n';
+		}
+
+		const ModuleScene::DetailedUpdateTimings& sceneTimings =
+			app->getModuleScene()->getDetailedUpdateTimings();
+		timingText += L"\nScene detail\n";
+
+		wchar_t detailBuffer[224];
+		swprintf_s(detailBuffer, L"GameObjects update       %7.3f ms | %u calls",
+			sceneTimings.gameObjectsUpdateMs, sceneTimings.gameObjectUpdateCalls);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"GameObjects lateUpdate   %7.3f ms | %u calls",
+			sceneTimings.gameObjectsLateUpdateMs, sceneTimings.gameObjectLateUpdateCalls);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Trigger system           %7.3f ms",
+			sceneTimings.triggerSystemMs);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Pending remove/release   %7.3f ms | %u / %u items",
+			sceneTimings.removePendingMs + sceneTimings.releaseDestroyedMs,
+			sceneTimings.pendingRemovalRequests, sceneTimings.releasedDestroyedObjects);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Pending additions        %7.3f ms | %u items",
+			sceneTimings.flushPendingMs, sceneTimings.pendingAdditions);
+		timingText += detailBuffer;
+		timingText += L'\n';
+
+		swprintf_s(detailBuffer, L"Quadtree resolve static  %7.3f ms | %u dirty nodes",
+			sceneTimings.staticQuadtreeUpdateMs, sceneTimings.staticQuadtreeDirtyNodes);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Quadtree resolve dynamic %7.3f ms | %u dirty nodes",
+			sceneTimings.dynamicQuadtreeUpdateMs, sceneTimings.dynamicQuadtreeDirtyNodes);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Quadtree moves static    %7.3f ms | %u calls",
+			sceneTimings.staticQuadtreeMoveMs, sceneTimings.staticQuadtreeMoveCalls);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Quadtree moves dynamic   %7.3f ms | %u calls",
+			sceneTimings.dynamicQuadtreeMoveMs, sceneTimings.dynamicQuadtreeMoveCalls);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Frustum queries static   %7.3f ms | %u calls | %u results",
+			sceneTimings.staticQuadtreeQueryMs, sceneTimings.staticQuadtreeQueryCalls,
+			sceneTimings.staticQuadtreeQueryResults);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Frustum queries dynamic  %7.3f ms | %u calls | %u results",
+			sceneTimings.dynamicQuadtreeQueryMs, sceneTimings.dynamicQuadtreeQueryCalls,
+			sceneTimings.dynamicQuadtreeQueryResults);
+		timingText += detailBuffer;
+		timingText += L'\n';
+		swprintf_s(detailBuffer, L"Area queries             %7.3f ms | %u calls | %u results",
+			sceneTimings.quadtreeAreaQueryMs, sceneTimings.quadtreeAreaQueryCalls,
+			sceneTimings.quadtreeAreaQueryResults);
+		timingText += detailBuffer;
+		timingText += L'\n';
+
+		struct ComponentTimingLine
+		{
+			ComponentType type;
+			float updateMs;
+			float lateUpdateMs;
+			uint32_t updateCalls;
+			uint32_t lateUpdateCalls;
+		};
+
+		std::vector<ComponentTimingLine> componentTimings;
+		componentTimings.reserve(ModuleScene::COMPONENT_TYPE_COUNT);
+		for (size_t i = 0; i < ModuleScene::COMPONENT_TYPE_COUNT; ++i)
+		{
+			const uint32_t updateCalls = sceneTimings.componentUpdateCalls[i];
+			const uint32_t lateUpdateCalls = sceneTimings.componentLateUpdateCalls[i];
+			if (updateCalls == 0 && lateUpdateCalls == 0)
+			{
+				continue;
+			}
+
+			componentTimings.push_back({
+				static_cast<ComponentType>(i),
+				sceneTimings.componentUpdateMs[i],
+				sceneTimings.componentLateUpdateMs[i],
+				updateCalls,
+				lateUpdateCalls });
+		}
+
+		std::sort(componentTimings.begin(), componentTimings.end(),
+			[](const ComponentTimingLine& lhs, const ComponentTimingLine& rhs)
+			{
+				return lhs.updateMs + lhs.lateUpdateMs > rhs.updateMs + rhs.lateUpdateMs;
+			});
+
+		timingText += L"\nComponents (top CPU costs)\n";
+		const size_t componentLines = std::min<size_t>(componentTimings.size(), 8);
+		for (size_t i = 0; i < componentLines; ++i)
+		{
+			const ComponentTimingLine& timing = componentTimings[i];
+			const char* typeName = ComponentTypeToString(timing.type);
+			std::wstring wideTypeName;
+			for (const char* character = typeName; *character != '\0'; ++character)
+			{
+				wideTypeName.push_back(static_cast<wchar_t>(*character));
+			}
+
+			swprintf_s(detailBuffer, L"%-22ls U %7.3f (%u) | L %7.3f (%u)",
+				wideTypeName.c_str(), timing.updateMs, timing.updateCalls,
+				timing.lateUpdateMs, timing.lateUpdateCalls);
+			timingText += detailBuffer;
 			timingText += L'\n';
 		}
 

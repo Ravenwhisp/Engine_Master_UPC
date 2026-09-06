@@ -197,6 +197,7 @@ void Application::update()
             PERF_LOGIC("Application::ModulesUpdate");
 			const auto phaseStart = std::chrono::high_resolution_clock::now();
             const bool profileModuleUpdates = m_settings->debugGame.showUpdateTimings;
+            m_moduleScene->beginDetailedProfilingFrame(profileModuleUpdates);
             if (profileModuleUpdates)
             {
                 m_moduleUpdateTimings.clear();
