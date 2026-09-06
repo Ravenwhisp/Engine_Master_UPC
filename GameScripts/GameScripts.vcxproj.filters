@@ -207,6 +207,7 @@
     <ClCompile Include="SharedEnemyParticles.cpp" />
     <ClCompile Include="SkeletonParticles.cpp" />
     <ClCompile Include="SummonerParticles.cpp" />
+    <ClCompile Include="SkeletonUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbilityBase.h" />
@@ -422,6 +423,7 @@
     <ClInclude Include="SharedEnemyParticles.h" />
     <ClInclude Include="SkeletonParticles.h" />
     <ClInclude Include="SummonerParticles.h" />
+    <ClInclude Include="SkeletonUI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

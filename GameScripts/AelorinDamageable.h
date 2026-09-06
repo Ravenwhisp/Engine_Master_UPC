@@ -45,13 +45,12 @@ private:
 
 	const AelorinThreshold* getCurrentThreshold() const;
 	bool hasCurrentThreshold() const;
-	bool isShadowExecution(const EnemyHitContext& ctx) const;
 
 	float getCurrentThresholdPercent() const;
 	float getCurrentThresholdHp() const;
 
 	void processNormalDamage(const EnemyHitContext& ctx);
-	void processShadowExecution(const EnemyHitContext& ctx);
+	void processThresholdBreak(const EnemyHitContext& ctx);
 
 	void lockCurrentThreshold();
 	void advanceThreshold();

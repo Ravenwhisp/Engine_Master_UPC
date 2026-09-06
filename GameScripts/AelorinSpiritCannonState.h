@@ -25,6 +25,9 @@ private:
 	bool isValidTarget(Transform* targetTransform) const;
 	void ensureValidLockedTarget();
 
+	void initializeAimDirection();
+	void updateAimDirection(float trackingSpeed);
+
 	void fireBeamShot(float width, float damage, const char* sourceName);
 	
 	void finishAbility();
@@ -37,6 +40,7 @@ private:
 
 	Transform* m_aelorinTransform = nullptr;
 	Transform* m_lockedTarget = nullptr;
+	Vector3 m_currentAimDirection = Vector3::Zero;
 
 	AelorinAbility m_activeAbility = AelorinAbility::None;
 

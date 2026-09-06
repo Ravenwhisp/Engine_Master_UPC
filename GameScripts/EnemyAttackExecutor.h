@@ -46,6 +46,16 @@ public:
         const char* sourceName
     );
 
+    void applyDamageAndStunInCone(
+        const Vector3& center,
+        const Vector3& direction,
+        float range,
+        float halfAngleDegrees,
+        float damage,
+        float stunDuration,
+        const char* sourceName
+    );
+
     int applyDamageInRectangle(
         const Vector3& origin,
         const Vector3& direction,
