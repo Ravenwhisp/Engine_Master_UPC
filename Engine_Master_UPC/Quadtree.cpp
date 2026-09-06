@@ -236,8 +236,20 @@ void Quadtree::move(GameObject& object)
 
 std::vector<GameObject*> Quadtree::query() const
 {
-    auto frustum = m_scene->getDefaultCamera()->getFrustum();
     std::vector<GameObject*> result;
+
+    const CameraComponent* camera = m_scene ? m_scene->getDefaultCamera() : nullptr;
+    if (!camera)
+    {
+        if (!m_warnedNoRoot)
+        {
+            DEBUG_WARN("[Quadtree] query() called without a default camera; returning nothing.");
+            m_warnedNoRoot = true;
+        }
+        return result;
+    }
+
+    auto frustum = camera->getFrustum();
 
     if (!m_root)
     {

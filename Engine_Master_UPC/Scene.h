@@ -41,8 +41,10 @@ private:
     AssetId m_navMesh;
     SSAOSettings m_ssao;
 
-    CameraComponent* m_defaultCamera;
+    CameraComponent* m_defaultCamera = nullptr;
     std::vector<GameObject*> m_rootObjects;
+
+    std::vector<UID> m_objectsToRemove;
 
     std::unordered_map<GameObject*, size_t> m_objectIndexMap;
 
@@ -50,40 +52,31 @@ private:
 
     std::unique_ptr<TriggerSystem> m_triggerSystem;
 
+    void removePendingGameObjects();
+
     std::vector<AssetId> m_loadedBankRefs;
     mutable std::vector<std::string> m_loadedBankNameCache;
 
-
+    //THIS IS A UGLY PATCH, WILL NEED A REAL REFACTOR TO SOLVE THIS PROBLEM
     bool m_isUpdating = false;
-
-    std::vector<UID> m_objectsToRemove;
-    void removePendingGameObjects();
 
     std::vector<std::unique_ptr<GameObject>> m_pendingObjectsToAdd;
     std::vector<GameObject*> m_pendingRootObjectsToAdd;
+
     void flushPendingGameObjects();
 
-    struct PendingPrefabAdd
-    {
-        std::vector<std::unique_ptr<GameObject>> objects;
-        std::unique_ptr<SceneReferenceResolver> resolver;
-    };
-    std::vector<PendingPrefabAdd> m_pendingPrefabAdds;
-
-    void registerAddedObjects(std::vector<std::unique_ptr<GameObject>> objects, const SceneReferenceResolver* externalResolver);
-
-
-    bool extractPendingGameObject(GameObject* gameObject);
 
     struct PendingDestroyedGameObject
     {
         std::unique_ptr<GameObject> gameObject;
         uint64_t fenceValue = 0;
     };
+
     std::vector<PendingDestroyedGameObject> m_pendingDestroyedObjects;
     void releasePendingDestroyedGameObjects();
 
     void fixReferencesFor(const std::vector<GameObject*>& gos);
+    //
 
 public:
     friend class ModuleScene;

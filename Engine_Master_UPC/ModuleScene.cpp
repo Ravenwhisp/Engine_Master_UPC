@@ -119,8 +119,16 @@ void ModuleScene::clearComponentCaches()
     m_meshRenderers.clear();
     m_lightComponents.clear();
     m_scriptComponents.clear();
+    m_particleSystemComponents.clear();
+    m_trailComponents.clear();
+    m_lineRendererComponents.clear();
     m_occlusionTargetComponents.clear();
     m_occlusionOccluderComponents.clear();
+}
+
+void ModuleScene::invalidateComponentCaches()
+{
+    clearComponentCaches();
 }
 
 void ModuleScene::rebuildComponentCaches()
@@ -136,13 +144,18 @@ void ModuleScene::rebuildComponentCaches()
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
-        if (!go->IsActiveInWindowHierarchy())
+        if (!go || !go->GetTransform() || !m_scene->containsGameObject(go) || !go->IsActiveInWindowHierarchy())
         {
             continue;
         }
 
         for (Component* component : go->GetAllComponents())
         {
+            if (!component)
+            {
+                continue;
+            }
+
             if (component->getType() == ComponentType::MODEL)
             {
                 m_meshRenderers.push_back(static_cast<MeshRenderer*>(component));
@@ -204,7 +217,9 @@ const std::vector<MeshRenderer*> ModuleScene::getDeferredMeshRenderers()
     std::vector<MeshRenderer*> meshRenderers = {};
     for (MeshRenderer* renderer : m_meshRenderers)
     {
-        if (renderer->getRenderMode() == RenderMode::DEFAULT)
+        if (renderer && renderer->getOwner() && renderer->getOwner()->GetTransform() &&
+            m_scene->containsGameObject(renderer->getOwner()) &&
+            renderer->getRenderMode() == RenderMode::DEFAULT)
         {
             meshRenderers.push_back(renderer);
         }
@@ -223,7 +238,9 @@ const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers()
     std::vector<MeshRenderer*> meshRenderers = {};
     for (MeshRenderer* renderer : m_meshRenderers)
     {
-        if (renderer->getRenderMode() != RenderMode::DEFAULT)
+        if (renderer && renderer->getOwner() && renderer->getOwner()->GetTransform() &&
+            m_scene->containsGameObject(renderer->getOwner()) &&
+            renderer->getRenderMode() != RenderMode::DEFAULT)
         {
             meshRenderers.push_back(renderer);
         }
@@ -242,7 +259,8 @@ const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers(RenderMode
     std::vector<MeshRenderer*> meshRenderers = {};
     for (MeshRenderer* renderer : m_meshRenderers)
     {
-        if (renderer->getRenderMode() == mode)
+        if (renderer && renderer->getOwner() && renderer->getOwner()->GetTransform() &&
+            m_scene->containsGameObject(renderer->getOwner()) && renderer->getRenderMode() == mode)
         {
             meshRenderers.push_back(renderer);
         }
@@ -258,6 +276,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer)
             {
@@ -267,6 +288,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
 
         for (GameObject* gO : m_dynamicQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer)
             {
@@ -285,6 +309,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleDeferredMeshRenderers()
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() == RenderMode::DEFAULT)
             {
@@ -294,6 +321,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleDeferredMeshRenderers()
 
         for (GameObject* gO : m_dynamicQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() == RenderMode::DEFAULT)
             {
@@ -312,6 +342,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers()
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT)
             {
@@ -321,6 +354,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers()
 
         for (GameObject* gO : m_dynamicQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT)
             {
@@ -339,6 +375,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers(Ren
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() == mode)
             {
@@ -348,6 +387,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers(Ren
 
         for (GameObject* gO : m_dynamicQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() == mode)
             {

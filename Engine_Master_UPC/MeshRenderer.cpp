@@ -58,6 +58,16 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset, bool recalculateBounds)
 
         recompute();
 
+void MeshRenderer::addMesh(MeshAsset& meshAsset, bool recalculateBounds)
+{
+    auto mesh = app->getModuleResources()->createMesh(meshAsset);
+
+    if (mesh)
+    {
+        m_mesh = mesh;
+
+        recompute();
+
         if (recalculateBounds)
         {
             Vector3 boundsMin =
@@ -364,6 +374,11 @@ void MeshRenderer::onTransformChange()
 
 void MeshRenderer::update()
 {
+    if (!m_owner || !m_owner->GetTransform())
+    {
+        return;
+    }
+
     if (m_skin)
     {
         m_skin->lateUpdate(
