@@ -581,4 +581,94 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		command.fontId = DEBUG_FONT_ID;
 		drawText(commandList, command);
 	}
+
+	if (m_settings->debugGame.showScriptProfiler)
+	{
+		const ModuleScene* sceneModule = app->getModuleScene();
+		std::vector<ModuleScene::ScriptTiming> currentTimings = sceneModule->getCurrentScriptTimings();
+		std::vector<ModuleScene::ScriptTiming> spikeTimings = sceneModule->getLastSpikeScriptTimings();
+
+		auto sortByTotal = [](std::vector<ModuleScene::ScriptTiming>& values)
+		{
+			std::sort(values.begin(), values.end(),
+				[](const ModuleScene::ScriptTiming& lhs, const ModuleScene::ScriptTiming& rhs)
+				{
+					return lhs.totalMs > rhs.totalMs;
+				});
+		};
+		sortByTotal(currentTimings);
+		sortByTotal(spikeTimings);
+
+		auto toWide = [](const std::string& value, size_t maxLength)
+		{
+			const size_t length = std::min(value.size(), maxLength);
+			std::wstring result;
+			result.reserve(length);
+			for (size_t i = 0; i < length; ++i)
+			{
+				result.push_back(static_cast<wchar_t>(value[i]));
+			}
+			return result;
+		};
+
+		auto appendScriptLines = [&](std::wstring& text, const std::vector<ModuleScene::ScriptTiming>& values)
+		{
+			const size_t lineCount = std::min<size_t>(values.size(), 8);
+			for (size_t i = 0; i < lineCount; ++i)
+			{
+				const ModuleScene::ScriptTiming& timing = values[i];
+				const float averageMs = timing.calls > 0
+					? timing.totalMs / static_cast<float>(timing.calls)
+					: 0.0f;
+				const std::wstring scriptName = toWide(timing.scriptName, 24);
+				const std::wstring objectName = toWide(timing.maxGameObjectName, 22);
+				wchar_t line[256];
+				swprintf_s(line, L"%-24ls T %6.3f | N %3u | Avg %6.3f | Max %6.3f | %ls",
+					scriptName.c_str(), timing.totalMs, timing.calls, averageMs,
+					timing.maxMs, objectName.c_str());
+				text += line;
+				text += L'\n';
+			}
+		};
+
+		wchar_t header[192];
+		swprintf_s(header, L"Current frame %llu: %.3f ms | %zu script classes",
+			static_cast<unsigned long long>(sceneModule->getScriptProfilerFrame()),
+			sceneModule->getCurrentScriptTotalMs(), currentTimings.size());
+
+		std::wstring profilerText = L"Script profiler (T total, N calls)\n";
+		profilerText += header;
+		profilerText += L'\n';
+		appendScriptLines(profilerText, currentTimings);
+
+		profilerText += L"\n";
+		if (sceneModule->getLastSpikeFrame() > 0)
+		{
+			swprintf_s(header, L"Last spike frame %llu: %.3f ms (threshold %.1f ms)",
+				static_cast<unsigned long long>(sceneModule->getLastSpikeFrame()),
+				sceneModule->getLastSpikeScriptTotalMs(),
+				sceneModule->getScriptSpikeThresholdMs());
+			profilerText += header;
+			profilerText += L'\n';
+			appendScriptLines(profilerText, spikeTimings);
+		}
+		else
+		{
+			swprintf_s(header, L"Waiting for a frame above %.1f ms...",
+				sceneModule->getScriptSpikeThresholdMs());
+			profilerText += header;
+			profilerText += L'\n';
+		}
+
+		UITextCommand command;
+		command.text = std::move(profilerText);
+		command.x = 10.0f;
+		if (m_settings->debugGame.showRenderTimings) command.x += 650.0f;
+		if (m_settings->debugGame.showUpdateTimings) command.x += 650.0f;
+		command.y = 75.0f;
+		command.color = DirectX::XMFLOAT4(1.0f, 0.45f, 0.75f, 1.0f);
+		command.scale = 0.80f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
+	}
 }

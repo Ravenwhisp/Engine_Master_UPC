@@ -198,6 +198,9 @@ void Application::update()
 			const auto phaseStart = std::chrono::high_resolution_clock::now();
             const bool profileModuleUpdates = m_settings->debugGame.showUpdateTimings;
             m_moduleScene->beginDetailedProfilingFrame(profileModuleUpdates);
+            m_moduleScene->beginScriptProfilingFrame(
+                m_settings->debugGame.showScriptProfiler,
+                m_settings->debugGame.scriptProfilerSpikeThresholdMs);
             if (profileModuleUpdates)
             {
                 m_moduleUpdateTimings.clear();
@@ -241,6 +244,7 @@ void Application::update()
 					module->update();
 				}
 			}
+			m_moduleScene->endScriptProfilingFrame();
 			frameCpuTimings.updateMs = std::chrono::duration<float, std::milli>(
 				std::chrono::high_resolution_clock::now() - phaseStart).count();
         }

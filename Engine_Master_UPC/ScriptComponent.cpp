@@ -1,10 +1,14 @@
 #include "Globals.h"
 #include "ScriptComponent.h"
+#include "Application.h"
+#include "ModuleScene.h"
 #include "Script.h"
+#include "GameObject.h"
 #include "GenericTypeFactory.h"
 #include "SceneReferenceResolver.h"
 #include "JsonArchive.h"
 #include <FieldUtils.h>
+#include <chrono>
 
 ScriptComponent::ScriptComponent(UID id, GameObject* owner)
     : Component(id, ComponentType::SCRIPT, owner)
@@ -76,14 +80,32 @@ void ScriptComponent::update()
         return;
     }
 
+    ModuleScene* sceneModule = app ? app->getModuleScene() : nullptr;
+    const bool profile = sceneModule && sceneModule->isScriptProfilingEnabled();
+    const auto start = profile 
+        ? std::chrono::high_resolution_clock::now()
+        : std::chrono::high_resolution_clock::time_point{};
+
     if (!m_hasStarted)
     {
         m_script->Start();
         m_hasStarted = true;
-        return;
+    }
+    else
+    {
+        m_script->Update();
     }
 
-    m_script->Update();
+    if (profile)
+    {
+        const float cpuMs = std::chrono::duration<float, std::milli>(
+            std::chrono::high_resolution_clock::now() - start).count();
+        const GameObject* owner = getOwner();
+        sceneModule->recordScriptTiming(
+            m_scriptName,
+            owner ? owner->GetName() : std::string("<no owner>"),
+            cpuMs);
+    }
 }
 
 void ScriptComponent::drawUi()

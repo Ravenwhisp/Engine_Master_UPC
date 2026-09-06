@@ -64,6 +64,8 @@ struct DebugGame
     bool showMeshNumber = false;
     bool showRenderTimings = false;
     bool showUpdateTimings = false;
+    bool showScriptProfiler = false;
+    float scriptProfilerSpikeThresholdMs = 5.0f;
     bool showScriptDebug = false;
 };
 
@@ -90,6 +92,6 @@ public:
     bool hasDebugInformationEnabled() {
         return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber ||
             debugGame.showMeshNumber || debugGame.showRenderTimings || debugGame.showUpdateTimings ||
-            debugGame.showScriptDebug;
+            debugGame.showScriptProfiler || debugGame.showScriptDebug;
     }
 };

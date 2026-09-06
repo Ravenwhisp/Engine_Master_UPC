@@ -81,6 +81,15 @@ public:
         std::array<uint32_t, COMPONENT_TYPE_COUNT> componentLateUpdateCalls{};
     };
 
+    struct ScriptTiming
+    {
+        std::string scriptName;
+        std::string maxGameObjectName;
+        float totalMs = 0.0f;
+        float maxMs = 0.0f;
+        uint32_t calls = 0;
+    };
+
 private:
     friend class Scene;
     friend class GameObject;
@@ -115,6 +124,16 @@ private:
     bool m_detailedProfilingEnabled = false;
     DetailedUpdateTimings m_detailedUpdateTimings{};
 
+    bool m_scriptProfilingEnabled = false;
+    float m_scriptSpikeThresholdMs = 5.0f;
+    float m_currentScriptTotalMs = 0.0f;
+    float m_lastSpikeScriptTotalMs = 0.0f;
+    uint64_t m_scriptProfilerFrame = 0;
+    uint64_t m_lastSpikeFrame = 0;
+    std::unordered_map<std::string, ScriptTiming> m_currentScriptTimingMap;
+    std::vector<ScriptTiming> m_currentScriptTimings;
+    std::vector<ScriptTiming> m_lastSpikeScriptTimings;
+
     void clearComponentCaches();
     void rebuildComponentCaches();
 
@@ -129,6 +148,17 @@ public:
     void beginDetailedProfilingFrame(bool enabled);
     bool isDetailedProfilingEnabled() const { return m_detailedProfilingEnabled; }
     const DetailedUpdateTimings& getDetailedUpdateTimings() const { return m_detailedUpdateTimings; }
+    void beginScriptProfilingFrame(bool enabled, float spikeThresholdMs);
+    void endScriptProfilingFrame();
+    void recordScriptTiming(const std::string& scriptName, const std::string& gameObjectName, float cpuMs);
+    bool isScriptProfilingEnabled() const { return m_scriptProfilingEnabled; }
+    float getCurrentScriptTotalMs() const { return m_currentScriptTotalMs; }
+    float getLastSpikeScriptTotalMs() const { return m_lastSpikeScriptTotalMs; }
+    float getScriptSpikeThresholdMs() const { return m_scriptSpikeThresholdMs; }
+    uint64_t getScriptProfilerFrame() const { return m_scriptProfilerFrame; }
+    uint64_t getLastSpikeFrame() const { return m_lastSpikeFrame; }
+    const std::vector<ScriptTiming>& getCurrentScriptTimings() const { return m_currentScriptTimings; }
+    const std::vector<ScriptTiming>& getLastSpikeScriptTimings() const { return m_lastSpikeScriptTimings; }
 #pragma endregion
 
 #pragma region Persistence

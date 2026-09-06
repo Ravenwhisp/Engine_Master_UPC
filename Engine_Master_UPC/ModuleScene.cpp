@@ -47,6 +47,72 @@ void ModuleScene::beginDetailedProfilingFrame(bool enabled)
     }
 }
 
+void ModuleScene::beginScriptProfilingFrame(bool enabled, float spikeThresholdMs)
+{
+    m_scriptProfilingEnabled = enabled;
+    m_scriptSpikeThresholdMs = std::max(0.1f, spikeThresholdMs);
+
+    if (!enabled)
+    {
+        return;
+    }
+
+    ++m_scriptProfilerFrame;
+    m_currentScriptTotalMs = 0.0f;
+    m_currentScriptTimingMap.clear();
+    m_currentScriptTimings.clear();
+    m_currentScriptTimingMap.reserve(m_scriptComponents.size());
+}
+
+void ModuleScene::endScriptProfilingFrame()
+{
+    if (!m_scriptProfilingEnabled)
+    {
+        return;
+    }
+
+    m_currentScriptTimings.reserve(m_currentScriptTimingMap.size());
+    for (const auto& [name, timing] : m_currentScriptTimingMap)
+    {
+        m_currentScriptTimings.push_back(timing);
+    }
+
+    if (m_currentScriptTotalMs >= m_scriptSpikeThresholdMs)
+    {
+        m_lastSpikeScriptTotalMs = m_currentScriptTotalMs;
+        m_lastSpikeFrame = m_scriptProfilerFrame;
+        m_lastSpikeScriptTimings = m_currentScriptTimings;
+    }
+}
+
+void ModuleScene::recordScriptTiming(
+    const std::string& scriptName,
+    const std::string& gameObjectName,
+    float cpuMs)
+{
+    if (!m_scriptProfilingEnabled)
+    {
+        return;
+    }
+
+    const std::string& profileName = scriptName.empty() ? std::string("<unnamed>") : scriptName;
+    auto [it, inserted] = m_currentScriptTimingMap.try_emplace(profileName);
+    ScriptTiming& timing = it->second;
+    if (inserted)
+    {
+        timing.scriptName = profileName;
+    }
+
+    timing.totalMs += cpuMs;
+    ++timing.calls;
+    if (cpuMs > timing.maxMs)
+    {
+        timing.maxMs = cpuMs;
+        timing.maxGameObjectName = gameObjectName;
+    }
+    m_currentScriptTotalMs += cpuMs;
+}
+
 ModuleScene::~ModuleScene() = default;
 
 
