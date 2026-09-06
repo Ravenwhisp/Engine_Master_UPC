@@ -104,6 +104,7 @@ void ScriptComponent::update()
         sceneModule->recordScriptTiming(
             m_scriptName,
             owner ? owner->GetName() : std::string("<no owner>"),
+            owner ? owner->GetID() : 0,
             cpuMs);
     }
 }

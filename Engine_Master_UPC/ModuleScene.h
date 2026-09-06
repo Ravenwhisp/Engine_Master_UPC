@@ -85,6 +85,18 @@ public:
     {
         std::string scriptName;
         std::string maxGameObjectName;
+        uint64_t maxGameObjectId = 0;
+        float totalMs = 0.0f;
+        float maxMs = 0.0f;
+        uint32_t calls = 0;
+    };
+
+    struct ScriptScopeTiming
+    {
+        std::string scriptName;
+        std::string scopeName;
+        std::string maxGameObjectName;
+        uint64_t maxGameObjectId = 0;
         float totalMs = 0.0f;
         float maxMs = 0.0f;
         uint32_t calls = 0;
@@ -131,8 +143,11 @@ private:
     uint64_t m_scriptProfilerFrame = 0;
     uint64_t m_lastSpikeFrame = 0;
     std::unordered_map<std::string, ScriptTiming> m_currentScriptTimingMap;
+    std::unordered_map<std::string, ScriptScopeTiming> m_currentScriptScopeTimingMap;
     std::vector<ScriptTiming> m_currentScriptTimings;
     std::vector<ScriptTiming> m_lastSpikeScriptTimings;
+    std::vector<ScriptScopeTiming> m_currentScriptScopeTimings;
+    std::vector<ScriptScopeTiming> m_lastSpikeScriptScopeTimings;
 
     void clearComponentCaches();
     void rebuildComponentCaches();
@@ -150,7 +165,10 @@ public:
     const DetailedUpdateTimings& getDetailedUpdateTimings() const { return m_detailedUpdateTimings; }
     void beginScriptProfilingFrame(bool enabled, float spikeThresholdMs);
     void endScriptProfilingFrame();
-    void recordScriptTiming(const std::string& scriptName, const std::string& gameObjectName, float cpuMs);
+    void recordScriptTiming(const std::string& scriptName, const std::string& gameObjectName,
+        uint64_t gameObjectId, float cpuMs);
+    void recordScriptScopeTiming(const std::string& scriptName, const std::string& scopeName,
+        const std::string& gameObjectName, uint64_t gameObjectId, float cpuMs);
     bool isScriptProfilingEnabled() const { return m_scriptProfilingEnabled; }
     float getCurrentScriptTotalMs() const { return m_currentScriptTotalMs; }
     float getLastSpikeScriptTotalMs() const { return m_lastSpikeScriptTotalMs; }
@@ -159,6 +177,8 @@ public:
     uint64_t getLastSpikeFrame() const { return m_lastSpikeFrame; }
     const std::vector<ScriptTiming>& getCurrentScriptTimings() const { return m_currentScriptTimings; }
     const std::vector<ScriptTiming>& getLastSpikeScriptTimings() const { return m_lastSpikeScriptTimings; }
+    const std::vector<ScriptScopeTiming>& getCurrentScriptScopeTimings() const { return m_currentScriptScopeTimings; }
+    const std::vector<ScriptScopeTiming>& getLastSpikeScriptScopeTimings() const { return m_lastSpikeScriptScopeTimings; }
 #pragma endregion
 
 #pragma region Persistence

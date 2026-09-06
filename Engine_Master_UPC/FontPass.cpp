@@ -587,6 +587,9 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		const ModuleScene* sceneModule = app->getModuleScene();
 		std::vector<ModuleScene::ScriptTiming> currentTimings = sceneModule->getCurrentScriptTimings();
 		std::vector<ModuleScene::ScriptTiming> spikeTimings = sceneModule->getLastSpikeScriptTimings();
+		std::vector<ModuleScene::ScriptScopeTiming> scopeTimings = sceneModule->getLastSpikeFrame() > 0
+			? sceneModule->getLastSpikeScriptScopeTimings()
+			: sceneModule->getCurrentScriptScopeTimings();
 
 		auto sortByTotal = [](std::vector<ModuleScene::ScriptTiming>& values)
 		{
@@ -598,6 +601,18 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		};
 		sortByTotal(currentTimings);
 		sortByTotal(spikeTimings);
+		scopeTimings.erase(
+			std::remove_if(scopeTimings.begin(), scopeTimings.end(),
+				[](const ModuleScene::ScriptScopeTiming& timing)
+				{
+					return timing.scriptName != "SpikeTrap";
+				}),
+			scopeTimings.end());
+		std::sort(scopeTimings.begin(), scopeTimings.end(),
+			[](const ModuleScene::ScriptScopeTiming& lhs, const ModuleScene::ScriptScopeTiming& rhs)
+			{
+				return lhs.totalMs > rhs.totalMs;
+			});
 
 		auto toWide = [](const std::string& value, size_t maxLength)
 		{
@@ -622,10 +637,31 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 					: 0.0f;
 				const std::wstring scriptName = toWide(timing.scriptName, 24);
 				const std::wstring objectName = toWide(timing.maxGameObjectName, 22);
-				wchar_t line[256];
-				swprintf_s(line, L"%-24ls T %6.3f | N %3u | Avg %6.3f | Max %6.3f | %ls",
+				wchar_t line[320];
+				swprintf_s(line, L"%-24ls T %6.3f | N %3u | Avg %6.3f | Max %6.3f | %ls #%llu",
 					scriptName.c_str(), timing.totalMs, timing.calls, averageMs,
-					timing.maxMs, objectName.c_str());
+					timing.maxMs, objectName.c_str(),
+					static_cast<unsigned long long>(timing.maxGameObjectId));
+				text += line;
+				text += L'\n';
+			}
+		};
+
+		auto appendScopeLines = [&](std::wstring& text, const std::vector<ModuleScene::ScriptScopeTiming>& values)
+		{
+			const size_t lineCount = std::min<size_t>(values.size(), 12);
+			for (size_t i = 0; i < lineCount; ++i)
+			{
+				const ModuleScene::ScriptScopeTiming& timing = values[i];
+				const float averageMs = timing.calls > 0
+					? timing.totalMs / static_cast<float>(timing.calls)
+					: 0.0f;
+				const std::wstring scopeName = toWide(timing.scopeName, 31);
+				const std::wstring objectName = toWide(timing.maxGameObjectName, 17);
+				wchar_t line[320];
+				swprintf_s(line, L"  %-31ls T %6.3f | N %3u | Avg %6.3f | Max %6.3f | %ls #%llu",
+					scopeName.c_str(), timing.totalMs, timing.calls, averageMs, timing.maxMs,
+					objectName.c_str(), static_cast<unsigned long long>(timing.maxGameObjectId));
 				text += line;
 				text += L'\n';
 			}
@@ -658,6 +694,14 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 				sceneModule->getScriptSpikeThresholdMs());
 			profilerText += header;
 			profilerText += L'\n';
+		}
+
+		if (!scopeTimings.empty())
+		{
+			profilerText += sceneModule->getLastSpikeFrame() > 0
+				? L"\nSpikeTrap detail (captured spike)\n"
+				: L"\nSpikeTrap detail (current frame)\n";
+			appendScopeLines(profilerText, scopeTimings);
 		}
 
 		UITextCommand command;

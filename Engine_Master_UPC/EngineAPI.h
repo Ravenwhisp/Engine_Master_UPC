@@ -262,6 +262,13 @@ namespace Debug
     ENGINE_API void error(const char* message, ...);
 }
 
+namespace ScriptProfilerAPI
+{
+    ENGINE_API bool isEnabled();
+    ENGINE_API void recordScope(const char* scriptName, const char* scopeName,
+        const GameObject* gameObject, float cpuMs);
+}
+
 namespace CameraAPI
 {
     ENGINE_API CameraComponent* getCameraComponent(GameObject* gameObject);

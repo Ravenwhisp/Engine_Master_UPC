@@ -2046,6 +2046,33 @@ namespace Debug
     }
 }
 
+namespace ScriptProfilerAPI
+{
+    bool isEnabled()
+    {
+        return app && app->getModuleScene() && app->getModuleScene()->isScriptProfilingEnabled();
+    }
+
+    void recordScope(
+        const char* scriptName,
+        const char* scopeName,
+        const GameObject* gameObject,
+        float cpuMs)
+    {
+        if (!isEnabled() || !scriptName || !scopeName)
+        {
+            return;
+        }
+
+        app->getModuleScene()->recordScriptScopeTiming(
+            scriptName,
+            scopeName,
+            gameObject ? gameObject->GetName() : std::string("<no owner>"),
+            gameObject ? gameObject->GetID() : 0,
+            cpuMs);
+    }
+}
+
 namespace CameraAPI
 {
     CameraComponent* getCameraComponent(GameObject* gameObject)
