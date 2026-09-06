@@ -417,4 +417,50 @@ void FontPass::showDebugInformation(ID3D12GraphicsCommandList4* commandList)
 		command.fontId = DEBUG_FONT_ID;
 		drawText(commandList, command);
 	}
+
+	if (m_settings->debugGame.showUpdateTimings)
+	{
+		std::vector<Application::ModuleUpdateTiming> timings = app->getModuleUpdateTimings();
+		std::sort(timings.begin(), timings.end(),
+			[](const Application::ModuleUpdateTiming& lhs, const Application::ModuleUpdateTiming& rhs)
+			{
+				return lhs.cpuMs > rhs.cpuMs;
+			});
+
+		float measuredTotalMs = 0.0f;
+		for (const Application::ModuleUpdateTiming& timing : timings)
+		{
+			measuredTotalMs += timing.cpuMs;
+		}
+
+		wchar_t totalBuffer[128];
+		swprintf_s(totalBuffer, L"Measured modules: %.3f ms | Full Update: %.3f ms",
+			measuredTotalMs, app->getFrameCpuTimings().updateMs);
+
+		std::wstring timingText = L"Update timings (CPU, sorted by cost)\n";
+		timingText += totalBuffer;
+		timingText += L'\n';
+
+		for (const Application::ModuleUpdateTiming& timing : timings)
+		{
+			std::wstring name;
+			for (const char* character = timing.name; *character != '\0'; ++character)
+			{
+				name.push_back(static_cast<wchar_t>(*character));
+			}
+			wchar_t timingBuffer[160];
+			swprintf_s(timingBuffer, L"%-30ls CPU %7.3f ms", name.c_str(), timing.cpuMs);
+			timingText += timingBuffer;
+			timingText += L'\n';
+		}
+
+		UITextCommand command;
+		command.text = std::move(timingText);
+		command.x = m_settings->debugGame.showRenderTimings ? 650.0f : 10.0f;
+		command.y = 75.0f;
+		command.color = DirectX::XMFLOAT4(0.3f, 0.85f, 1.0f, 1.0f);
+		command.scale = 0.85f;
+		command.fontId = DEBUG_FONT_ID;
+		drawText(commandList, command);
+	}
 }
