@@ -48,15 +48,6 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     return newMeshRenderer;
 }
 
-void MeshRenderer::addMesh(MeshAsset& meshAsset, bool recalculateBounds)
-{
-    auto mesh = app->getModuleResources()->createMesh(meshAsset);
-
-    if (mesh)
-    {
-        m_mesh = mesh;
-
-        recompute();
 
 void MeshRenderer::addMesh(MeshAsset& meshAsset, bool recalculateBounds)
 {
