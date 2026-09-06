@@ -25,7 +25,7 @@ struct LightDefaults
     static constexpr uint32_t MAX_SPOT_LIGHTS = 64;
 
     static constexpr bool DEFAULT_CAST_SHADOWS = false;
-    static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 4096;
+    static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 2048;
     static constexpr uint32_t MIN_SHADOW_MAP_SIZE = 1024;
     static constexpr uint32_t MAX_SHADOW_MAP_SIZE = 8192;
 
