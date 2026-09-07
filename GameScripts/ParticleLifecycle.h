@@ -129,6 +129,13 @@ namespace ParticleLifecycle
             for (size_t i = 0; i < entries.size();)
             {
                 TimedParticleEntry& entry = entries[i];
+
+                if (entry.instance == nullptr || !SceneAPI::containsGameObject(entry.instance))
+                {
+                    entries.erase(entries.begin() + static_cast<std::ptrdiff_t>(i));
+                    continue;
+                }
+
                 entry.remainingSeconds -= deltaTime;
 
                 if (entry.remainingSeconds > 0.0f)
@@ -137,16 +144,13 @@ namespace ParticleLifecycle
                     continue;
                 }
 
-                if (entry.instance != nullptr)
+                if (entry.deactivateOnExpire)
                 {
-                    if (entry.deactivateOnExpire)
-                    {
-                        deactivate(entry.instance);
-                    }
-                    else
-                    {
-                        GameObjectAPI::removeGameObject(entry.instance);
-                    }
+                    deactivate(entry.instance);
+                }
+                else
+                {
+                    GameObjectAPI::removeGameObject(entry.instance);
                 }
 
                 entries.erase(entries.begin() + static_cast<std::ptrdiff_t>(i));
@@ -185,7 +189,7 @@ namespace ParticleLifecycle
         {
             for (TimedParticleEntry& entry : entries)
             {
-                if (entry.instance != nullptr)
+                if (entry.instance != nullptr && SceneAPI::containsGameObject(entry.instance))
                 {
                     GameObjectAPI::removeGameObject(entry.instance);
                 }
