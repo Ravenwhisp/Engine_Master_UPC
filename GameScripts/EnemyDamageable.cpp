@@ -16,6 +16,37 @@
 
 #include <algorithm>
 
+namespace
+{
+	template<typename T>
+	T* findSharedSceneScript()
+	{
+		static GameObject* cachedOwner = nullptr;
+		static T* cachedScript = nullptr;
+
+		if (cachedOwner != nullptr && SceneAPI::containsGameObject(cachedOwner))
+		{
+			T* currentScript = GameObjectAPI::findScript<T>(cachedOwner);
+			if (currentScript == cachedScript)
+			{
+				return cachedScript;
+			}
+		}
+
+		cachedOwner = nullptr;
+		cachedScript = nullptr;
+
+		const std::vector<GameObject*> holders = SceneAPI::findAllGameObjectsWithScript<T>();
+		if (!holders.empty())
+		{
+			cachedOwner = holders.front();
+			cachedScript = GameObjectAPI::findScript<T>(cachedOwner);
+		}
+
+		return cachedScript;
+	}
+}
+
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(EnemyDamageable, Damageable,
 	FIELD_GROUP_LABEL("Health Bar"),
 	SERIALIZED_COMPONENT_REF(m_healthBarContainer, "Health Bar Container", ComponentType::TRANSFORM2D),
@@ -38,6 +69,8 @@ EnemyDamageable::EnemyDamageable(GameObject* owner)
 
 void EnemyDamageable::Start()
 {
+	SCRIPT_PROFILE_SCOPE("Start: EnemyDamageable setup");
+
 	if (!PersistingCheckpointState::Get().IsStartOfLevel())
 	{
 		std::vector<UID>* deadEnemies = &PersistingCheckpointState::Get().m_deadEnemiesPersistent;
@@ -109,13 +142,21 @@ void EnemyDamageable::Start()
 
 void EnemyDamageable::Update()
 {
-	Damageable::Update();
-	updateHealthBarFade();
-	updateShadowExecutionPreviewAvailability();
-	updateShadowExecutionPreviewAnimation(Time::getDeltaTime());
+	{
+		SCRIPT_PROFILE_SCOPE("Update: health UI");
+		Damageable::Update();
+		updateHealthBarFade();
+	}
+
+	{
+		SCRIPT_PROFILE_SCOPE("Update: execution preview");
+		updateShadowExecutionPreviewAvailability();
+		updateShadowExecutionPreviewAnimation(Time::getDeltaTime());
+	}
 
 	if (m_dissolve != nullptr && m_dissolveActive)
 	{
+		SCRIPT_PROFILE_SCOPE("Update: dissolve");
 		updateDissolveEffect();
 	}
 }
@@ -479,12 +520,7 @@ void EnemyDamageable::setHealthBarAlpha(float alpha)
 
 void EnemyDamageable::resolveReaperGauge()
 {
-	const std::vector<GameObject*> holders = SceneAPI::findAllGameObjectsWithScript<ReaperGauge>();
-
-	if (!holders.empty())
-	{
-		m_reaperGauge = GameObjectAPI::findScript<ReaperGauge>(holders[0]);
-	}
+	m_reaperGauge = findSharedSceneScript<ReaperGauge>();
 
 	if (!m_reaperGauge)
 	{
@@ -538,12 +574,7 @@ void EnemyDamageable::setShadowExecutionPreviewActive(bool active)
 
 void EnemyDamageable::resolveShadowExecution()
 {
-	const std::vector<GameObject*> holders = SceneAPI::findAllGameObjectsWithScript<ShadowExecution>();
-
-	if (!holders.empty())
-	{
-		m_shadowExecution = GameObjectAPI::findScript<ShadowExecution>(holders[0]);
-	}
+	m_shadowExecution = findSharedSceneScript<ShadowExecution>();
 
 	if (!m_shadowExecution)
 	{
