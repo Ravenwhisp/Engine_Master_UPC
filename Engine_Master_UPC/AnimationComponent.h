@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <vector>
 #include "AnimationStateMachineAsset.h"
 
 
@@ -84,6 +85,9 @@ private:
     void startStateMachineIfNeeded();
     void resetRuntime();
     bool saveStateMachineAsset();
+    bool sendTriggerImmediate(const std::string& triggerName);
+    bool queueTrigger(const std::string& triggerName);
+    void processQueuedTriggers();
 
     StateMachineScript* getStateBehaviour(const std::string& stateName);
     const StateMachineScript* getStateBehaviour(const std::string& stateName) const;
@@ -148,6 +152,7 @@ private:
     AnimationController m_controller;
 
     std::unordered_map<std::string, std::unique_ptr<StateMachineScript>> m_stateBehaviours;
+    std::vector<std::string> m_queuedTriggers;
 
     std::string m_activeStateName;
     float m_currentFadeTime = 0.0f;
@@ -162,6 +167,8 @@ private:
     bool m_forceWorldAfterApply = true;
     bool m_hasStartedPlayback = false;
     bool m_stateMachineDirty = false;
+    int m_stateCallbackDepth = 0;
+    bool m_isProcessingQueuedTriggers = false;
 
     std::string m_newStateMachineNameInput = "NewStateMachine";
     std::string m_triggerInput;

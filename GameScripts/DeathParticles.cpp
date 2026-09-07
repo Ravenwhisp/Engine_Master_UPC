@@ -117,8 +117,18 @@ void DeathParticles::SetDashActive()
 
     if (m_dashTrailController != nullptr)
     {
-        TrailComponent* trailComponent = TrailAPI::getTrailComponent(ComponentAPI::getOwner(m_dashTrailController));
-        TrailAPI::generateTrail(trailComponent, true);
+        const int childCount = TransformAPI::getChildCount(m_dashTrailController);
+        for (int i = 0; i < childCount; ++i)
+        {
+            Transform* child = TransformAPI::getChild(m_dashTrailController, i);
+            if (child == nullptr)
+            {
+                continue;
+            }
+
+            TrailComponent* trailComponent = TrailAPI::getTrailComponent(ComponentAPI::getOwner(child));
+            TrailAPI::generateTrail(trailComponent, true);
+        }
     }
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
@@ -140,8 +150,18 @@ void DeathParticles::SetDashInactive()
 
     if (m_dashTrailController != nullptr)
     {
-        TrailComponent* trailComponent = TrailAPI::getTrailComponent(ComponentAPI::getOwner(m_dashTrailController));
-        TrailAPI::generateTrail(trailComponent, false);
+        const int childCount = TransformAPI::getChildCount(m_dashTrailController);
+        for (int i = 0; i < childCount; ++i)
+        {
+            Transform* child = TransformAPI::getChild(m_dashTrailController, i);
+            if (child == nullptr)
+            {
+                continue;
+            }
+
+            TrailComponent* trailComponent = TrailAPI::getTrailComponent(ComponentAPI::getOwner(child));
+            TrailAPI::generateTrail(trailComponent, false);
+        }
     }
 
     ParticleLifecycle::deactivate(m_dashParticleInstance);

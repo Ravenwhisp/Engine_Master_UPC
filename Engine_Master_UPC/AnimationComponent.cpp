@@ -120,6 +120,7 @@ void AnimationComponent::update()
         return;
 
     dispatchStateUpdate();
+    processQueuedTriggers();
 
     const float deltaTimeSeconds = moduleTime->deltaTime();
     m_controller.Update(deltaTimeSeconds);
@@ -244,6 +245,7 @@ bool AnimationComponent::activateState(const std::string& stateName, bool autoPl
     {
         dispatchStateExit(previousStateName);
         dispatchStateEnter(m_activeStateName);
+        processQueuedTriggers();
     }
 
     return true;
@@ -1176,6 +1178,21 @@ bool AnimationComponent::SendTrigger(const std::string& triggerName)
     if (triggerName.empty())
         return false;
 
+    if (m_stateCallbackDepth > 0)
+    {
+        return queueTrigger(triggerName);
+    }
+
+    const bool ok = sendTriggerImmediate(triggerName);
+    processQueuedTriggers();
+    return ok;
+}
+
+bool AnimationComponent::sendTriggerImmediate(const std::string& triggerName)
+{
+    if (triggerName.empty())
+        return false;
+
     if (!ensureStateMachineLoaded())
         return false;
 
@@ -1191,13 +1208,59 @@ bool AnimationComponent::SendTrigger(const std::string& triggerName)
     if (!transition)
         return false;
 
-    const bool ok = activateState(transition->targetStateName, true, transition->blendTimeSeconds);
+    const std::string targetStateName = transition->targetStateName;
+    const float blendTimeSeconds = transition->blendTimeSeconds;
+
+    const bool ok = activateState(targetStateName, true, blendTimeSeconds);
     if (ok)
     {
         m_hasStartedPlayback = true;
     }
 
     return ok;
+}
+
+bool AnimationComponent::queueTrigger(const std::string& triggerName)
+{
+    if (!ensureStateMachineLoaded())
+        return false;
+
+    if (m_activeStateName.empty())
+        return false;
+
+    if (!findTransitionByTrigger(triggerName))
+        return false;
+
+    m_queuedTriggers.push_back(triggerName);
+    return true;
+}
+
+void AnimationComponent::processQueuedTriggers()
+{
+    if (m_stateCallbackDepth > 0 || m_isProcessingQueuedTriggers)
+        return;
+
+    m_isProcessingQueuedTriggers = true;
+
+    constexpr int MaxTriggersToProcess = 32;
+    int processedTriggerCount = 0;
+
+    while (!m_queuedTriggers.empty() && processedTriggerCount < MaxTriggersToProcess)
+    {
+        std::string triggerName = std::move(m_queuedTriggers.front());
+        m_queuedTriggers.erase(m_queuedTriggers.begin());
+
+        sendTriggerImmediate(triggerName);
+        ++processedTriggerCount;
+    }
+
+    if (!m_queuedTriggers.empty())
+    {
+        DEBUG_WARN("[AnimationComponent] Dropping queued animation triggers after processing limit was reached.");
+        m_queuedTriggers.clear();
+    }
+
+    m_isProcessingQueuedTriggers = false;
 }
 
 bool AnimationComponent::hasStateMachine() const
@@ -1411,6 +1474,7 @@ bool AnimationComponent::hasOverrideClip() const
 void AnimationComponent::clearStateBehaviours()
 {
     m_stateBehaviours.clear();
+    m_queuedTriggers.clear();
 }
 
 bool AnimationComponent::ensureStateMachineLoaded()
@@ -1469,6 +1533,9 @@ void AnimationComponent::resetRuntime()
     m_runtimeSpeedMultiplier = 1.0f;
     m_previousPlayback.reset();
     m_stateBehaviours.clear();
+    m_queuedTriggers.clear();
+    m_stateCallbackDepth = 0;
+    m_isProcessingQueuedTriggers = false;
     m_hasStartedPlayback = false;
 
     m_overrideController.Stop();
@@ -1585,7 +1652,9 @@ void AnimationComponent::dispatchStateEnter(const std::string& stateName)
         return;
     }
 
+    ++m_stateCallbackDepth;
     behaviour->OnStateEnter();
+    --m_stateCallbackDepth;
 }
 
 void AnimationComponent::dispatchStateUpdate()
@@ -1612,7 +1681,9 @@ void AnimationComponent::dispatchStateUpdate()
         return;
     }
 
+    ++m_stateCallbackDepth;
     behaviour->OnStateUpdate();
+    --m_stateCallbackDepth;
 }
 
 void AnimationComponent::dispatchStateExit(const std::string& stateName)
@@ -1633,7 +1704,9 @@ void AnimationComponent::dispatchStateExit(const std::string& stateName)
         return;
     }
 
+    ++m_stateCallbackDepth;
     behaviour->OnStateExit();
+    --m_stateCallbackDepth;
 }
 
 void AnimationComponent::invalidateStateBehaviour(const std::string& stateName)
@@ -1649,6 +1722,7 @@ void AnimationComponent::invalidateStateBehaviour(const std::string& stateName)
 void AnimationComponent::invalidateAllStateBehaviours()
 {
     m_stateBehaviours.clear();
+    m_queuedTriggers.clear();
 }
 
 std::string AnimationComponent::serializeScriptFields(const Script& script) const
