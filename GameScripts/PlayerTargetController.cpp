@@ -27,6 +27,8 @@ PlayerTargetController::PlayerTargetController(GameObject* owner)
 
 void PlayerTargetController::Start()
 {
+    SCRIPT_PROFILE_SCOPE("Start: cache scripts");
+
     m_character = GameObjectAPI::findScript<CharacterBase>(getOwner());
     m_playerController = GameObjectAPI::findScript<PlayerController>(getOwner());
 
@@ -58,11 +60,25 @@ void PlayerTargetController::Update()
         m_switchCooldownTimer -= dt;
     }
 
-    updateTargetsInRange();
-    clearInvalidCurrentTarget();
-    setDefaultEnemyTargetIfNeeded();
+    {
+        SCRIPT_PROFILE_SCOPE("Update: collect targets");
+        updateTargetsInRange();
+    }
 
-    updateCurrentTarget();
+    {
+        SCRIPT_PROFILE_SCOPE("Update: validate target");
+        clearInvalidCurrentTarget();
+    }
+
+    {
+        SCRIPT_PROFILE_SCOPE("Update: default target");
+        setDefaultEnemyTargetIfNeeded();
+    }
+
+    {
+        SCRIPT_PROFILE_SCOPE("Update: select target");
+        updateCurrentTarget();
+    }
 }
 
 void PlayerTargetController::drawGizmo()
@@ -121,43 +137,54 @@ void PlayerTargetController::updateTargetsInRange()
 {
     m_targetsInRange.clear();
 
-    const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
-    const std::vector<GameObject*> breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE, true);
+    std::vector<GameObject*> enemies;
+    std::vector<GameObject*> breakables;
+    {
+        SCRIPT_PROFILE_SCOPE("Targets: query scene");
+        enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
+        breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE, true);
+    }
 
     bool hasEnemyInRange = false;
 
-    for (GameObject* enemy : enemies)
     {
-        if (enemy == nullptr)
+        SCRIPT_PROFILE_SCOPE("Targets: filter enemies");
+        for (GameObject* enemy : enemies)
         {
-            continue;
-        }
+            if (enemy == nullptr)
+            {
+                continue;
+            }
 
-        if (isTargetInRange(enemy) && isTargetAlive(enemy) && isTargetable(enemy))
-        {
-            m_targetsInRange.push_back(enemy);
-            hasEnemyInRange = true;
+            if (isTargetInRange(enemy) && isTargetAlive(enemy) && isTargetable(enemy))
+            {
+                m_targetsInRange.push_back(enemy);
+                hasEnemyInRange = true;
+            }
         }
     }
 
-    for (GameObject* breakable : breakables)
     {
-        if (breakable == nullptr)
+        SCRIPT_PROFILE_SCOPE("Targets: filter breakables");
+        for (GameObject* breakable : breakables)
         {
-            continue;
-        }
+            if (breakable == nullptr)
+            {
+                continue;
+            }
 
-        if (!isTargetInRange(breakable) || !isTargetAlive(breakable) || !isTargetable(breakable))
-        {
-            continue;
-        }
+            if (!isTargetInRange(breakable) || !isTargetAlive(breakable) || !isTargetable(breakable))
+            {
+                continue;
+            }
 
-        if (hasEnemyInRange && !canTargetBreakableDuringCombat(breakable))
-        {
-            continue;
-        }
+            if (hasEnemyInRange && !canTargetBreakableDuringCombat(breakable))
+            {
+                continue;
+            }
 
-        m_targetsInRange.push_back(breakable);
+            m_targetsInRange.push_back(breakable);
+        }
     }
 }
 
@@ -168,7 +195,11 @@ void PlayerTargetController::updateCurrentTarget()
         return;
     }
 
-    const Vector3 aimDirection = computeAimDirection();
+    Vector3 aimDirection;
+    {
+        SCRIPT_PROFILE_SCOPE("Select: read aim");
+        aimDirection = computeAimDirection();
+    }
 
     if (!isAimStickValid(aimDirection))
     {
@@ -176,16 +207,23 @@ void PlayerTargetController::updateCurrentTarget()
     }
 
     float bestScore = FLT_MAX;
-    GameObject* bestTarget = findBestTarget(aimDirection, bestScore);
+    GameObject* bestTarget = nullptr;
+    {
+        SCRIPT_PROFILE_SCOPE("Select: score candidates");
+        bestTarget = findBestTarget(aimDirection, bestScore);
+    }
 
     if (bestTarget == nullptr)
     {
         return;
     }
 
-    if (shouldSwitchTarget(bestTarget, aimDirection, bestScore))
     {
-        setCurrentTarget(bestTarget);
+        SCRIPT_PROFILE_SCOPE("Select: switch target");
+        if (shouldSwitchTarget(bestTarget, aimDirection, bestScore))
+        {
+            setCurrentTarget(bestTarget);
+        }
     }
 }
 
@@ -269,8 +307,13 @@ void PlayerTargetController::setDefaultEnemyTargetIfNeeded()
 
 GameObject* PlayerTargetController::findDefaultEnemyTarget() const
 {
-    const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
+    std::vector<GameObject*> enemies;
+    {
+        SCRIPT_PROFILE_SCOPE("Default: query enemies");
+        enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
+    }
 
+    SCRIPT_PROFILE_SCOPE("Default: filter enemies");
     for (GameObject* enemy : enemies)
     {
         if (enemy == nullptr)
