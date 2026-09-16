@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "UIController.h"
+#include "AssetId.h"
 #include "PersistingPowerupState.h"
 
 UIController::UIController(GameObject* owner): Script(owner) {}
@@ -15,6 +16,7 @@ void UIController::Update()
 static const ScriptMethodInfo UIControllerMethods[] =
 {
 	{ "ChangeScene", nullptr, ScriptMethodParamType::String, "sceneName", [](Script* s, const void* param) { static_cast<UIController*>(s)->ChangeScene(*static_cast<const std::string*>(param)); } },
+	{ "ChangeScene2", nullptr, ScriptMethodParamType::AssetId, "sceneName", [](Script* s, const void* param) { static_cast<UIController*>(s)->ChangeScene2(*static_cast<const AssetId*>(param)); } },
 	{ "ExitApplication", [](Script* s) { static_cast<UIController*>(s)->ExitApplication(); } },
 	{ "PauseGame", nullptr, ScriptMethodParamType::Bool, "pause", [](Script* s, const void* param) { static_cast<UIController*>(s)->PauseGame(*static_cast<const bool*>(param)); } }
 };
@@ -27,6 +29,11 @@ ScriptMethodList UIController::getExposedMethods() const
 void UIController::ChangeScene(const std::string& sceneName)
 {
 	SceneAPI::requestSceneChange(sceneName.c_str());
+}
+
+void UIController::ChangeScene2(const AssetId& sceneID)
+{
+	SceneAPI::requestSceneChange(sceneID);
 }
 
 void UIController::ExitApplication()

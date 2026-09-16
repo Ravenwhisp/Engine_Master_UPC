@@ -21,11 +21,11 @@ struct LightDefaults
     static constexpr Vector3 DEFAULT_AMBIENT_COLOR = Vector3(0.2f, 0.2f, 0.2f);
 
     static constexpr uint32_t MAX_DIRECTIONAL_LIGHTS = 4;
-    static constexpr uint32_t MAX_POINT_LIGHTS = 112;
-    static constexpr uint32_t MAX_SPOT_LIGHTS = 16;
+    static constexpr uint32_t MAX_POINT_LIGHTS = 256;
+    static constexpr uint32_t MAX_SPOT_LIGHTS = 64;
 
     static constexpr bool DEFAULT_CAST_SHADOWS = false;
-    static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 4096;
+    static constexpr uint32_t DEFAULT_SHADOW_MAP_SIZE = 2048;
     static constexpr uint32_t MIN_SHADOW_MAP_SIZE = 1024;
     static constexpr uint32_t MAX_SHADOW_MAP_SIZE = 8192;
 

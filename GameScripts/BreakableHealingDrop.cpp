@@ -3,6 +3,8 @@
 
 #include "HealthDropSpawner.h"
 #include "EnvironmentSound.h"
+#include "ObjectVfxIds.h"
+#include "ParticleLifecycle.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(BreakableHealingDrop, BreakableObject,
     SERIALIZED_ASSET_REF(m_healthPickupPrefab, "Health Pickup Prefab", AssetType::PREFAB),
@@ -19,31 +21,48 @@ BreakableHealingDrop::BreakableHealingDrop(GameObject* owner)
 
 void BreakableHealingDrop::Start()
 {
-    BreakableObject::Start(); //si no hay nada aqui, quitamos el start
+    BreakableObject::Start();
 }
 
 void BreakableHealingDrop::Update()
 {
+    BreakableObject::Update();
 }
 
 void BreakableHealingDrop::onBreak()
 {
+    Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+    const Vector3 breakablePosition = ownerTransform != nullptr
+        ? TransformAPI::getGlobalPosition(ownerTransform)
+        : Vector3::Zero;
+
     if (m_healthPickupPrefab.m_id.isValid())
     {
-        Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-        const Vector3 breakablePosition = TransformAPI::getGlobalPosition(ownerTransform);
-
         for (int i = 0; i < m_healthDropQuantity; ++i)
         {
-            HealthDropSpawner::drop(m_healthPickupPrefab.m_id, breakablePosition, m_healthDropAmount, m_dropRadius, m_dropHeight);
+            HealthDropSpawner::drop(
+                m_healthPickupPrefab.m_id,
+                breakablePosition,
+                m_healthDropAmount,
+                m_dropRadius,
+                m_dropHeight
+            );
         }
     }
     else
     {
-        Debug::warn("[BreakableHealingDrop] '%s' has no health pickup prefab set. Breaking without spawning health.", GameObjectAPI::getName(getOwner()));
+        Debug::warn(
+            "[BreakableHealingDrop] '%s' has no health pickup prefab set. Breaking without spawning health.",
+            GameObjectAPI::getName(getOwner())
+        );
     }
 
-    // It's still a barrel/crate breaking → same break SFX.
+    ParticleLifecycle::spawnOneShotTimed(
+        m_timedBreakEffects,
+        ObjectVfxIds::barrelHeal(),
+        getBreakEffectPosition()
+    );
+
     EnvironmentSound::play(getOwner(), "Play_Environment_Barrel_Break");
 
     BreakableObject::breakObject();

@@ -2,6 +2,8 @@
 
 #include "EnemyBaseController.h"
 
+#include <vector>
+
 class EnemyDetectionAggro;
 class SummonerAttackConfig;
 class Transform;
@@ -26,6 +28,8 @@ public:
 	bool isSummonReady() const;
 	void consumeSummonCooldown();
 	void summonSpidersAroundSelf();
+	void summonSpidersAtPositions(const std::vector<Vector3>& spawnPositions);
+	int computeSummonSpawnPositions(std::vector<Vector3>& outPositions) const;
 
 	float getRecoveryDuration() const;
 

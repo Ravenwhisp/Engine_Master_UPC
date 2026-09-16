@@ -83,7 +83,7 @@ void Bound::Update()
     {
         float alpha = 0.0f;
         const float alphaRange = m_minDistance - m_showBoundDistance;
-        const float alphaMid = m_showBoundDistance + alphaRange * 0.5f;
+        const float alphaMid = (m_showBoundDistance + alphaRange * 0.5f) ;
         if (distance > m_showBoundDistance && alphaRange > 0.0f)
         {
             if (distance >= alphaMid)
@@ -91,7 +91,7 @@ void Bound::Update()
             else
                 alpha = (distance - m_showBoundDistance) / (alphaRange * 0.5f);
         }
-        Transform2DAPI::setAlpha(m_boundaryWarningUI.getReferencedComponent(), alpha);
+        Transform2DAPI::setAlpha(m_boundaryWarningUI.getReferencedComponent(), alpha - 0.4);
     }
 
     // --- Exponential damage beyond safe zone ---

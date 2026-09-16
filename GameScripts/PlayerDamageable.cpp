@@ -107,24 +107,22 @@ void PlayerDamageable::onDamaged(float amount)
 {
     Damageable::onDamaged(amount);
 
+    if (isLastDamageContinuous())
+    {
+        // Continuous source (Bound separation): no per-hit grunt and no hurt animation
+        // (it would replay every frame). Only VFX + the escalating heartbeat convey it.
+        playHurtVfx();
+        return;
+    }
+
+    // Discrete hit: play the hurt animation, one grunt per hit (sound layer debounces).
     if (m_playerAnimationController != nullptr)
     {
         m_playerAnimationController->requestDamaged();
     }
 
-    if (isLastDamageContinuous())
-    {
-        // Continuous source (Bound separation): no per-hit grunt. The Cooperative
-        // Bound-Damage loop (started by Bound) conveys the ongoing separation, and the
-        // escalating heartbeat carries the tension.
-        playHurtVfx();
-        return;
-    }
-
-    // Discrete hit: one grunt per hit (the sound layer debounces overlaps).
     playHurtSfx();
     playHurtVfx();
-    
 }
 
 void PlayerDamageable::onHealthUIChanged(float previousHpPercent, float currentHpPercent)

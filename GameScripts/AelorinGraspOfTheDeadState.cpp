@@ -138,6 +138,11 @@ void AelorinGraspOfTheDeadState::OnStateUpdate()
 		return;
 	}
 
+	if (m_controller->trySendPriorityInterrupt(m_animation))
+	{
+		return;
+	}
+
 	const AelorinAttackConfig* config = m_controller->getAelorinAttackConfig();
 	if (!config)
 	{
@@ -161,6 +166,11 @@ void AelorinGraspOfTheDeadState::OnStateUpdate()
 
 void AelorinGraspOfTheDeadState::OnStateExit()
 {
+	if (m_aelorinUI)
+	{
+		m_aelorinUI->cancelGraspOfTheDead();
+	}
+
 	m_aelorinUI = nullptr;
 	m_lyrielMovement = nullptr;
 	m_deathMovement = nullptr;

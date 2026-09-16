@@ -248,15 +248,41 @@ void SummonerEnemyController::consumeSummonCooldown()
 
 void SummonerEnemyController::summonSpidersAroundSelf()
 {
+	std::vector<Vector3> spawnPositions;
+	computeSummonSpawnPositions(spawnPositions);
+	summonSpidersAtPositions(spawnPositions);
+}
+
+void SummonerEnemyController::summonSpidersAtPositions(const std::vector<Vector3>& spawnPositions)
+{
 	if (!m_attackConfig)
 	{
 		return;
 	}
 
+	for (const Vector3& spawnPosition : spawnPositions)
+	{
+		GameObjectAPI::instantiatePrefab(
+			m_attackConfig.get()->m_spiderPrefab.m_id,
+			spawnPosition,
+			Vector3(0.0f, 0.0f, 0.0f)
+		);
+	}
+}
+
+int SummonerEnemyController::computeSummonSpawnPositions(std::vector<Vector3>& outPositions) const
+{
+	outPositions.clear();
+
+	if (!m_attackConfig)
+	{
+		return 0;
+	}
+
 	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 	if (!ownerTransform)
 	{
-		return;
+		return 0;
 	}
 
 	const Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
@@ -279,12 +305,10 @@ void SummonerEnemyController::summonSpidersAroundSelf()
 			continue;
 		}
 
-		GameObjectAPI::instantiatePrefab(
-			m_attackConfig.get()->m_spiderPrefab.m_id,
-			spawnPosition,
-			Vector3(0.0f, 0.0f, 0.0f)
-		);
+		outPositions.push_back(spawnPosition);
 	}
+
+	return static_cast<int>(outPositions.size());
 }
 
 void SummonerEnemyController::updateSummonCooldown(float dt)

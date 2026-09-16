@@ -50,6 +50,11 @@ void AelorinExhaustionState::OnStateUpdate()
 		return;
 	}
 
+	if (m_controller->trySendPriorityInterrupt(m_animation))
+	{
+		return;
+	}
+
 	const AelorinAttackConfig* config = m_controller->getAelorinAttackConfig();
 	if (!config)
 	{

@@ -1,6 +1,7 @@
 #include "LightingCBuffers.hlsli"
 #include "General.hlsli"
 #include "PBRGeneral.hlsli"
+#include "LightTileCullingCommon.hlsli"
 
 cbuffer Mvp : register(b0)
 {
@@ -47,6 +48,9 @@ TextureCube environmentTexture : register(t9);
 Texture2D brdfTexture : register(t10);
 Texture2D shadowMap : register(t11);
 Texture2D ssaoTexture : register(t12);
+
+StructuredBuffer<int> pointLightIndices : register(t13);
+StructuredBuffer<int> spotLightIndices : register(t14);
 
 SamplerState linearWrapSample : register(s0);
 SamplerState pointWrapSample : register(s1);
@@ -387,20 +391,32 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
 
     
     
-    //Calculate point and spot direct lighting
     float3 otherMetallic = 0.0f;
     float3 otherNonMetallic = 0.0f;
 
-    for (uint i = 0; i < pointCount; ++i)
+    const uint tileIndex = GetTileIndex(uint2(position.xy), tileCount);
+    const uint tileBase = tileIndex * MAX_LIGHTS_PER_TILE;
+
+    for (uint p = 0; p < MAX_LIGHTS_PER_TILE; ++p)
     {
-        otherMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        otherNonMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        int lightIndex = pointLightIndices[tileBase + p];
+
+        if (lightIndex < 0)
+            break;
+
+        otherMetallic += ComputePointLight((uint) lightIndex, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputePointLight((uint) lightIndex, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
-    for (uint i = 0; i < spotCount; ++i)
+    for (uint s = 0; s < MAX_LIGHTS_PER_TILE; ++s)
     {
-        otherMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        otherNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        int lightIndex = spotLightIndices[tileBase + s];
+
+        if (lightIndex < 0)
+            break;
+
+        otherMetallic += ComputeSpotLight((uint) lightIndex, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputeSpotLight((uint) lightIndex, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
     

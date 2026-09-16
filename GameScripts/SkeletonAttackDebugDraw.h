@@ -2,6 +2,7 @@
 
 #include "ScriptAPI.h"
 
+class SkeletonEnemyController;
 class SkeletonAttackConfig;
 
 class SkeletonAttackDebugDraw : public Script
@@ -27,12 +28,14 @@ public:
 	float m_heightOffset = 0.15f;
 
 private:
-	AssetReference<SkeletonAttackConfig> m_attackConfig;
+	const SkeletonAttackConfig* getAttackConfig() const;
 
-private:
 	void drawScimitarAttackCone() const;
 	void drawScimitarStunCone() const;
 	void drawScimitarCone(float range, float halfAngleDegrees, const Vector3& color) const;
 
 	Vector3 rotateAroundY(const Vector3& vector, float radians) const;
+
+private:
+	SkeletonEnemyController* m_controller = nullptr;
 };

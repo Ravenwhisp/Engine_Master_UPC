@@ -2,6 +2,7 @@
 #include "SummonerTeleportState.h"
 
 #include "SummonerEnemyController.h"
+#include "SummonerParticles.h"
 
 SummonerTeleportState::SummonerTeleportState(GameObject* owner)
 	: StateMachineScript(owner)
@@ -12,6 +13,7 @@ void SummonerTeleportState::OnStateEnter()
 {
 	m_controller = GameObjectAPI::findScript<SummonerEnemyController>(getOwner());
 	m_animation = AnimationAPI::getAnimationComponent(getOwner());
+	m_particles = GameObjectAPI::findScript<SummonerParticles>(getOwner());
 
 	if (!m_controller)
 	{
@@ -33,16 +35,32 @@ void SummonerTeleportState::OnStateEnter()
 		return;
 	}
 
+	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+	Vector3 departPosition = Vector3::Zero;
+
+	if (ownerTransform)
+	{
+		departPosition = TransformAPI::getGlobalPosition(ownerTransform);
+	}
+
+	if (m_particles)
+	{
+		m_particles->playTeleportParticle(departPosition);
+	}
+
 	Vector3 teleportPosition;
 	if (m_controller->tryGetTeleportPosition(teleportPosition))
 	{
-		Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-
 		if (ownerTransform)
 		{
-			teleportPosition.y = TransformAPI::getGlobalPosition(ownerTransform).y;
+			teleportPosition.y = departPosition.y;
 			TransformAPI::setGlobalPosition(ownerTransform, teleportPosition);
 			m_controller->consumeTeleportCooldown();
+
+			if (m_particles)
+			{
+				m_particles->playTeleportParticle(teleportPosition);
+			}
 
 			Debug::log("[SummonerTeleportState] Teleported.");
 		}

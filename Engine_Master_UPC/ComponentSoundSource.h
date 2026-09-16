@@ -23,6 +23,8 @@ public:
 #pragma endregion
 
 	uint32_t postEvent(const char* bankName, const char* eventName);
+	void queueGroupedEvent(const char* bankName, const char* eventName, const char* groupName,
+		float priority, uint32_t cooldownMs);
 	void stopEvent(uint32_t playingID);
 	void pauseEvent(uint32_t playingID);
 	void resumeEvent(uint32_t playingID);

@@ -41,12 +41,14 @@ private:
     AssetId m_navMesh;
     SSAOSettings m_ssao;
 
-    CameraComponent* m_defaultCamera;
+    CameraComponent* m_defaultCamera = nullptr;
     std::vector<GameObject*> m_rootObjects;
 
     std::vector<UID> m_objectsToRemove;
 
     std::unordered_map<GameObject*, size_t> m_objectIndexMap;
+    std::unordered_map<UID, GameObject*> m_objectUidMap;
+    uint64_t m_objectRegistryVersion = 1;
 
     bool m_componentCacheDirty = true;
 
@@ -63,7 +65,16 @@ private:
     std::vector<std::unique_ptr<GameObject>> m_pendingObjectsToAdd;
     std::vector<GameObject*> m_pendingRootObjectsToAdd;
 
+    struct PendingGameObjectAddition
+    {
+        std::unique_ptr<GameObject> gameObject;
+        SceneReferenceResolver resolver;
+    };
+
+    std::vector<PendingGameObjectAddition> m_pendingGameObjectsToAdopt;
+
     void flushPendingGameObjects();
+    void adoptGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver);
 
 
     struct PendingDestroyedGameObject
@@ -126,6 +137,7 @@ public:
     void initLoadedObjects();
 
     GameObject* findGameObjectByUID(UID uuid);
+    uint64_t getObjectRegistryVersion() const { return m_objectRegistryVersion; }
     void removeGameObject(UID uuid);
     void markGameObjectForRemoval(UID uuid);
 

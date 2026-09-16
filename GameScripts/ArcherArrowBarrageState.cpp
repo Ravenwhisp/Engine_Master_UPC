@@ -125,7 +125,9 @@ void ArcherArrowBarrageState::OnStateExit()
         m_archerUI->hideArrowBarrageUI();
 
     if (m_particles)
-        m_particles->stopBarrageArrows();
+    {
+        m_particles->stopBarrageFloorParticle();
+    }
 
     Debug::log("[ArcherArrowBarrageState] EXIT");
 }
@@ -134,22 +136,26 @@ void ArcherArrowBarrageState::lockImpactPosition()
 {
     Transform* targetTransform = m_archerController->getCurrentTarget();
 
-    if (!targetTransform)
+    if (targetTransform)
+    {
+        m_impactPosition = TransformAPI::getGlobalPosition(targetTransform);
+    }
+    else
     {
         Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
+
         if (!ownerTransform)
         {
             return;
         }
 
         m_impactPosition = TransformAPI::getGlobalPosition(ownerTransform);
-        return;
     }
 
-    m_impactPosition = TransformAPI::getGlobalPosition(targetTransform);
-
     if (m_particles)
-        m_particles->spawnBarrageArrows(m_impactPosition, m_archerController->m_attackConfig.get()->m_arrowBarrageLandDelay);
+    {
+        m_particles->startBarrageFloorParticle(m_impactPosition);
+    }
 
     Debug::log("[ArcherArrowBarrageState] Impact position locked: %.2f %.2f %.2f", m_impactPosition.x, m_impactPosition.y, m_impactPosition.z);
 }
@@ -159,7 +165,10 @@ void ArcherArrowBarrageState::applyImpact()
     m_attackExecutor->applyDamageInRadius(m_impactPosition, m_archerController->m_attackConfig.get()->m_arrowBarrageRadius, m_archerController->m_attackConfig.get()->m_arrowBarrageDamage, "ArrowBarrage");
 
     if (m_particles)
-        m_particles->spawnImpactParticle(m_impactPosition);
+    {
+        m_particles->stopBarrageFloorParticle();
+        m_particles->playBarrageImpactParticle(m_impactPosition);
+    }
 
     Debug::log("[ArcherArrowBarrageState] Impact applied.");
 }

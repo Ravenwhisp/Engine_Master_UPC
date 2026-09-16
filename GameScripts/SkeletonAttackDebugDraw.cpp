@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "SkeletonAttackDebugDraw.h"
 
+#include "SkeletonEnemyController.h"
 #include "SkeletonAttackConfig.h"
 
 IMPLEMENT_SCRIPT_FIELDS(SkeletonAttackDebugDraw,
@@ -19,6 +20,7 @@ SkeletonAttackDebugDraw::SkeletonAttackDebugDraw(GameObject* owner)
 
 void SkeletonAttackDebugDraw::Start()
 {
+	m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
 }
 
 void SkeletonAttackDebugDraw::drawGizmo()
@@ -28,7 +30,14 @@ void SkeletonAttackDebugDraw::drawGizmo()
 		return;
 	}
 
-	if (!m_attackConfig.get())
+	// Gizmos may run before Start, so resolve here too.
+	if (!m_controller)
+	{
+		m_controller = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
+	}
+
+	const SkeletonAttackConfig* attackConfig = getAttackConfig();
+	if (!attackConfig)
 	{
 		return;
 	}
@@ -42,10 +51,10 @@ void SkeletonAttackDebugDraw::drawGizmo()
 	Vector3 position = TransformAPI::getGlobalPosition(ownerTransform);
 	position.y += m_heightOffset;
 
-	const Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
+	const Vector3 up(0.0f, 1.0f, 0.0f);
 
-	const Vector3 startRangeColor = Vector3(0.0f, 1.0f, 1.0f);
-	const Vector3 dashStopColor = Vector3(1.0f, 1.0f, 0.0f);
+	const Vector3 startRangeColor(0.0f, 1.0f, 1.0f);
+	const Vector3 dashStopColor(1.0f, 1.0f, 0.0f);
 
 	if (m_drawScimitarStartRange)
 	{
@@ -53,7 +62,7 @@ void SkeletonAttackDebugDraw::drawGizmo()
 			position,
 			up,
 			startRangeColor,
-			m_attackConfig.get()->m_scimitarStartRange,
+			attackConfig->m_scimitarStartRange,
 			32.0f,
 			0,
 			true
@@ -66,7 +75,7 @@ void SkeletonAttackDebugDraw::drawGizmo()
 			position,
 			up,
 			dashStopColor,
-			m_attackConfig.get()->m_scimitarDashStopRange,
+			attackConfig->m_scimitarDashStopRange,
 			32.0f,
 			0,
 			true
@@ -84,20 +93,42 @@ void SkeletonAttackDebugDraw::drawGizmo()
 	}
 }
 
+const SkeletonAttackConfig* SkeletonAttackDebugDraw::getAttackConfig() const
+{
+	if (!m_controller)
+	{
+		return nullptr;
+	}
+
+	return m_controller->m_attackConfig.get();
+}
+
 void SkeletonAttackDebugDraw::drawScimitarAttackCone() const
 {
+	const SkeletonAttackConfig* attackConfig = getAttackConfig();
+	if (!attackConfig)
+	{
+		return;
+	}
+
 	drawScimitarCone(
-		m_attackConfig.get()->m_basicAttackRange,
-		m_attackConfig.get()->m_scimitarHalfAngleDegrees,
+		attackConfig->m_basicAttackRange,
+		attackConfig->m_scimitarHalfAngleDegrees,
 		Vector3(1.0f, 0.0f, 0.0f)
 	);
 }
 
 void SkeletonAttackDebugDraw::drawScimitarStunCone() const
 {
+	const SkeletonAttackConfig* attackConfig = getAttackConfig();
+	if (!attackConfig)
+	{
+		return;
+	}
+
 	drawScimitarCone(
-		m_attackConfig.get()->m_scimitarStunHitRange,
-		m_attackConfig.get()->m_scimitarHalfAngleDegrees,
+		attackConfig->m_scimitarStunHitRange,
+		attackConfig->m_scimitarHalfAngleDegrees,
 		Vector3(0.0f, 0.0f, 1.0f)
 	);
 }
@@ -118,8 +149,6 @@ void SkeletonAttackDebugDraw::drawScimitarCone(float range, float halfAngleDegre
 
 	if (forward.LengthSquared() < 0.0001f)
 	{
-		DebugDrawAPI::drawCross(ownerPosition, 0.5f, 0, true);
-		DebugDrawAPI::drawPoint(ownerPosition, color, 8.0f, 0, true);
 		return;
 	}
 
@@ -128,27 +157,28 @@ void SkeletonAttackDebugDraw::drawScimitarCone(float range, float halfAngleDegre
 	constexpr float degreesToRadians = 3.14159265f / 180.0f;
 	const float halfAngleRadians = halfAngleDegrees * degreesToRadians;
 
-	Vector3 leftDirection = rotateAroundY(forward, -halfAngleRadians);
-	Vector3 rightDirection = rotateAroundY(forward, halfAngleRadians);
+	const Vector3 leftDirection = rotateAroundY(forward, -halfAngleRadians);
+	const Vector3 rightDirection = rotateAroundY(forward, halfAngleRadians);
 
-	Vector3 leftPoint = ownerPosition + leftDirection * range;
-	Vector3 rightPoint = ownerPosition + rightDirection * range;
-	Vector3 forwardPoint = ownerPosition + forward * range;
+	const Vector3 leftPoint = ownerPosition + leftDirection * range;
+	const Vector3 rightPoint = ownerPosition + rightDirection * range;
+	const Vector3 forwardPoint = ownerPosition + forward * range;
 
 	DebugDrawAPI::drawLine(ownerPosition, leftPoint, color, 0, true);
 	DebugDrawAPI::drawLine(ownerPosition, rightPoint, color, 0, true);
 	DebugDrawAPI::drawLine(ownerPosition, forwardPoint, color, 0, true);
 
-	const int arcSegments = 24;
+	constexpr int arcSegments = 24;
+
 	Vector3 previousPoint = leftPoint;
 
 	for (int i = 1; i <= arcSegments; ++i)
 	{
-		float t = static_cast<float>(i) / static_cast<float>(arcSegments);
-		float angle = -halfAngleRadians + (halfAngleRadians * 2.0 * t);
+		const float t = static_cast<float>(i) / static_cast<float>(arcSegments);
+		const float angle = -halfAngleRadians + halfAngleRadians * 2.0f * t;
 
-		Vector3 direction = rotateAroundY(forward, angle);
-		Vector3 currentPoint = ownerPosition + direction * range;
+		const Vector3 direction = rotateAroundY(forward, angle);
+		const Vector3 currentPoint = ownerPosition + direction * range;
 
 		DebugDrawAPI::drawLine(previousPoint, currentPoint, color, 0, true);
 

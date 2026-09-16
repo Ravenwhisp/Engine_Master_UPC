@@ -336,7 +336,6 @@ GameObject* PrefabManager::spawnPrefab(const Prefab& prefab, Scene* scene)
     if (scene)
     {
         scene->addGameObject(std::move(clone), &resolver);
-        go->init();
     }
 
     return go;

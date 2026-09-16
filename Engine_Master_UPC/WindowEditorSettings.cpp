@@ -225,9 +225,23 @@ void WindowEditorSettings::drawBuildSettings()
             {
                 configStr += initBnkRef.m_libId + "\n";
             }
+
+            size_t sceneMappings = 0;
+            for (const auto& [uid, entry] : app->getModuleAssets()->getIndex().allEntries())
+            {
+                if (entry.type != AssetType::SCENE || !isValidAsset(entry.contentHash))
+                {
+                    continue;
+                }
+
+                configStr += "scene " + entry.sourcePath.stem().string() + " " + entry.contentHash + "\n";
+                ++sceneMappings;
+            }
+
             const std::filesystem::path outPath = std::filesystem::current_path() / "build.cfg";
             FileIO::write(outPath, configStr.c_str(), configStr.size());
-            DEBUG_LOG("[WindowEditorSettings] Build config exported to %s", outPath.string().c_str());
+            DEBUG_LOG("[WindowEditorSettings] Build config exported to %s (%zu scene name translations).",
+                      outPath.string().c_str(), sceneMappings);
         }
         else
         {

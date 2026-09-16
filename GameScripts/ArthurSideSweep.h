@@ -8,6 +8,7 @@ class EnemyAttackExecutor;
 class AnimationComponent;
 class ArthurUI;
 class ArthurSound;
+class CameraShake;
 
 class ArthurSideSweep : public StateMachineScript
 {
@@ -36,6 +37,7 @@ private:
     AnimationComponent* m_animation = nullptr;
     ArthurUI* m_arthurUI = nullptr;
     ArthurSound* m_arthurSound = nullptr;
+    CameraShake* m_cameraShake = nullptr;
 
     float m_stateTimer = 0.0f;
 

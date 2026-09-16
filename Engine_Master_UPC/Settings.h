@@ -57,9 +57,15 @@ struct FrustumCullingSettings
 struct DebugGame
 {
     bool showFPS = false;
+    float maxFPS = 0;
+    float minFPS = 0;
     bool showFrametime = false;
     bool showTrianglesNumber = false;
     bool showMeshNumber = false;
+    bool showRenderTimings = false;
+    bool showUpdateTimings = false;
+    bool showScriptProfiler = false;
+    float scriptProfilerSpikeThresholdMs = 5.0f;
     bool showScriptDebug = false;
 };
 
@@ -84,6 +90,8 @@ public:
     }
 
     bool hasDebugInformationEnabled() {
-        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber || debugGame.showMeshNumber  || debugGame.showScriptDebug;
+        return debugGame.showFPS || debugGame.showFrametime || debugGame.showTrianglesNumber ||
+            debugGame.showMeshNumber || debugGame.showRenderTimings || debugGame.showUpdateTimings ||
+            debugGame.showScriptProfiler || debugGame.showScriptDebug;
     }
 };

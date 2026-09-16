@@ -122,7 +122,10 @@ void SceneSnapshot::applyTo(Scene& scene)
     scene.m_volumetricFog = m_volumetricFog;
 
     for (size_t i = 0; i < scene.m_allObjects.size(); ++i)
+    {
         scene.m_objectIndexMap[scene.m_allObjects[i].get()] = i;
+        scene.m_objectUidMap[scene.m_allObjects[i]->GetID()] = scene.m_allObjects[i].get();
+    }
 
     for (const auto& go : scene.m_allObjects)
     {

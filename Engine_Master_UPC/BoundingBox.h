@@ -18,6 +18,12 @@ namespace Engine
 
         void setMin(const Vector3& min) { m_min = min; }
         void setMax(const Vector3& max) { m_max = max; }
+        void setBounds(const Vector3& min, const Vector3& max)
+        {
+            m_min = min;
+            m_max = max;
+        }
+
 
         const Vector3& getMin() const { return m_min; }
         const Vector3& getMax() const { return m_max; }

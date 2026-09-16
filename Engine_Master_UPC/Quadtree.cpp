@@ -12,6 +12,7 @@
 #include "MeshRenderer.h"
 
 #include <algorithm>
+#include <chrono>
 #include <limits>
 #include <unordered_set>
 
@@ -236,8 +237,29 @@ void Quadtree::move(GameObject& object)
 
 std::vector<GameObject*> Quadtree::query() const
 {
-    auto frustum = m_scene->getDefaultCamera()->getFrustum();
+    const CameraComponent* camera = m_scene ? m_scene->getDefaultCamera() : nullptr;
+    if (!camera)
+    {
+        if (!m_warnedNoRoot)
+        {
+            DEBUG_WARN("[Quadtree] query() called without a default camera; returning nothing.");
+            m_warnedNoRoot = true;
+        }
+        return {};
+    }
+
+    return query(camera->getFrustum());
+}
+
+std::vector<GameObject*> Quadtree::query(const Engine::Frustum& frustum) const
+{
     std::vector<GameObject*> result;
+
+    ModuleScene* moduleScene = app ? app->getModuleScene() : nullptr;
+    const bool profile = moduleScene && moduleScene->m_detailedProfilingEnabled;
+    const auto start = profile
+        ? std::chrono::high_resolution_clock::now()
+        : std::chrono::high_resolution_clock::time_point{};
 
     if (!m_root)
     {
@@ -251,12 +273,38 @@ std::vector<GameObject*> Quadtree::query() const
 
     m_root->gatherObjects(frustum, result);
 
+    if (profile)
+    {
+        const float elapsedMs = std::chrono::duration<float, std::milli>(
+            std::chrono::high_resolution_clock::now() - start).count();
+        if (moduleScene->m_staticQuadtree.get() == this)
+        {
+            moduleScene->m_detailedUpdateTimings.staticQuadtreeQueryMs += elapsedMs;
+            ++moduleScene->m_detailedUpdateTimings.staticQuadtreeQueryCalls;
+            moduleScene->m_detailedUpdateTimings.staticQuadtreeQueryResults +=
+                static_cast<uint32_t>(result.size());
+        }
+        else if (moduleScene->m_dynamicQuadtree.get() == this)
+        {
+            moduleScene->m_detailedUpdateTimings.dynamicQuadtreeQueryMs += elapsedMs;
+            ++moduleScene->m_detailedUpdateTimings.dynamicQuadtreeQueryCalls;
+            moduleScene->m_detailedUpdateTimings.dynamicQuadtreeQueryResults +=
+                static_cast<uint32_t>(result.size());
+        }
+    }
+
     return result;
 }
 
 std::vector<GameObject*> Quadtree::queryInArea(const Vector2& center, const float radius) const
 {
     std::vector<GameObject*> result;
+
+    ModuleScene* moduleScene = app ? app->getModuleScene() : nullptr;
+    const bool profile = moduleScene && moduleScene->m_detailedProfilingEnabled;
+    const auto start = profile
+        ? std::chrono::high_resolution_clock::now()
+        : std::chrono::high_resolution_clock::time_point{};
 
     if (!m_root)
     {
@@ -272,6 +320,16 @@ std::vector<GameObject*> Quadtree::queryInArea(const Vector2& center, const floa
     const BoundingRect area(center.x - radius, center.y - radius, radius * 2, radius * 2);
 
     m_root->gatherObjectsInArea(area, result);
+
+    if (profile)
+    {
+        moduleScene->m_detailedUpdateTimings.quadtreeAreaQueryMs +=
+            std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - start).count();
+        ++moduleScene->m_detailedUpdateTimings.quadtreeAreaQueryCalls;
+        moduleScene->m_detailedUpdateTimings.quadtreeAreaQueryResults +=
+            static_cast<uint32_t>(result.size());
+    }
 
     return result;
 }

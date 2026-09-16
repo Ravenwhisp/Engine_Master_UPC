@@ -376,13 +376,15 @@ bool EnemyShadowMark::canApplyWith(PlayerAttackType attackType) const
     case PlayerAttackType::DeathDash:
     case PlayerAttackType::LyrielArrow:
     case PlayerAttackType::LyrielCharged:
+    case PlayerAttackType::DeathTaunt:
+    case PlayerAttackType::LyrielVolley:
         return true;
 
-    case PlayerAttackType::DeathTaunt:
+    /*case PlayerAttackType::DeathTaunt:
         return PersistingPowerupState::isUnlocked(PowerupId::DeathPowerup1);
 
     case PlayerAttackType::LyrielVolley:
-        return PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1);
+        return PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1);*/
 
     default:
         return false;
@@ -395,13 +397,15 @@ bool EnemyShadowMark::canExploitWith(PlayerAttackType attackType) const
     {
     case PlayerAttackType::DeathCharged:
     case PlayerAttackType::LyrielCharged:
+    case PlayerAttackType::DeathTaunt:
+    case PlayerAttackType::LyrielVolley:
         return true;
 
-    case PlayerAttackType::DeathTaunt:
+    /*case PlayerAttackType::DeathTaunt:
         return PersistingPowerupState::isUnlocked(PowerupId::DeathPowerup1);
 
     case PlayerAttackType::LyrielVolley:
-        return PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1);
+        return PersistingPowerupState::isUnlocked(PowerupId::LyrielPowerup1);*/
 
     default:
         return false;

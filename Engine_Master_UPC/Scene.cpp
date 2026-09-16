@@ -28,6 +28,7 @@
 
 #include "ScriptComponent.h"
 
+#include <chrono>
 #include <limits>
 #include <algorithm>
 
@@ -62,6 +63,7 @@ bool Scene::init()
 
     m_allObjects.push_back(std::move(gameCamera));
     m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
+    m_objectUidMap[rawPtr->GetID()] = rawPtr;
     m_rootObjects.push_back(rawPtr);
 
     for (const auto& go : m_allObjects)
@@ -76,38 +78,107 @@ bool Scene::init()
 
 void Scene::update()
 {
+    ModuleScene* sceneModule = app->getModuleScene();
+    const bool profile = sceneModule && sceneModule->m_detailedProfilingEnabled;
+
+    auto phaseStart = std::chrono::high_resolution_clock::time_point{};
+    if (profile)
+    {
+        sceneModule->m_detailedUpdateTimings.releasedDestroyedObjects =
+            static_cast<uint32_t>(m_pendingDestroyedObjects.size());
+        phaseStart = std::chrono::high_resolution_clock::now();
+    }
     releasePendingDestroyedGameObjects();
+    if (profile)
+    {
+        sceneModule->m_detailedUpdateTimings.releaseDestroyedMs = std::chrono::duration<float, std::milli>(
+            std::chrono::high_resolution_clock::now() - phaseStart).count();
+    }
 
     if (app->getCurrentEngineState() == ENGINE_STATE::PLAYING)
     {
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.pendingRemovalRequests =
+                static_cast<uint32_t>(m_objectsToRemove.size());
+            phaseStart = std::chrono::high_resolution_clock::now();
+        }
         removePendingGameObjects();
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.removePendingMs = std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - phaseStart).count();
+        }
 
         m_isUpdating = true;
 
+        if (profile)
+        {
+            phaseStart = std::chrono::high_resolution_clock::now();
+        }
         for (const auto& go : m_allObjects)
         {
-            if (go->GetActive())
+            if (go && go->GetActive())
             {
+                if (profile)
+                {
+                    ++sceneModule->m_detailedUpdateTimings.gameObjectUpdateCalls;
+                }
                 go->update();
             }
+        }
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.gameObjectsUpdateMs = std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - phaseStart).count();
+            phaseStart = std::chrono::high_resolution_clock::now();
         }
 
         for (const auto& go : m_allObjects)
         {
-            if (go->GetActive())
+            if (go && go->GetActive())
             {
+                if (profile)
+                {
+                    ++sceneModule->m_detailedUpdateTimings.gameObjectLateUpdateCalls;
+                }
                 go->lateUpdate();
             }
+        }
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.gameObjectsLateUpdateMs = std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         if (m_triggerSystem)
         {
+            if (profile)
+            {
+                phaseStart = std::chrono::high_resolution_clock::now();
+            }
             m_triggerSystem->update();
+            if (profile)
+            {
+                sceneModule->m_detailedUpdateTimings.triggerSystemMs = std::chrono::duration<float, std::milli>(
+                    std::chrono::high_resolution_clock::now() - phaseStart).count();
+            }
+        }
+
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.pendingAdditions = static_cast<uint32_t>(
+                m_pendingObjectsToAdd.size() + m_pendingGameObjectsToAdopt.size());
+            phaseStart = std::chrono::high_resolution_clock::now();
+        }
+        flushPendingGameObjects();
+        if (profile)
+        {
+            sceneModule->m_detailedUpdateTimings.flushPendingMs = std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - phaseStart).count();
         }
 
         m_isUpdating = false;
-
-        flushPendingGameObjects();
     }
 }
 
@@ -139,7 +210,9 @@ GameObject* Scene::createGameObject()
     {
         m_allObjects.push_back(std::move(newGameObject));
         m_objectIndexMap[rawPtr] = m_allObjects.size() - 1;
+        m_objectUidMap[rawPtr->GetID()] = rawPtr;
         m_rootObjects.push_back(rawPtr);
+        ++m_objectRegistryVersion;
         markDirty();
     }
 
@@ -162,7 +235,9 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
     {
         m_allObjects.push_back(std::move(newGameObject));
         m_objectIndexMap[raw] = m_allObjects.size() - 1;
+        m_objectUidMap[raw->GetID()] = raw;
         m_rootObjects.push_back(raw);
+        ++m_objectRegistryVersion;
         markDirty();
     }
 
@@ -182,39 +257,13 @@ void Scene::initLoadedObjects()
 
 GameObject* Scene::findGameObjectByUID(UID uuid)
 {
-    for (const auto& root : m_allObjects)
-    {
-        if (root->GetID() == uuid)
-        {
-            return root.get();
-        }
-
-        if (GameObject* found = findInWindowHierarchy(root.get(), uuid))
-        {
-            return found;
-        }
-    }
-    return nullptr;
+    const auto it = m_objectUidMap.find(uuid);
+    return it != m_objectUidMap.end() ? it->second : nullptr;
 }
 
 void Scene::removeGameObject(UID uuid)
 {
-    GameObject* target = nullptr;
-
-    for (const auto& root : m_allObjects)
-    {
-        if (root->GetID() == uuid)
-        {
-            target = root.get();
-            break;
-        }
-
-        target = findInWindowHierarchy(root.get(), uuid);
-        if (target)
-        {
-            break;
-        }
-    }
+    GameObject* target = findGameObjectByUID(uuid);
 
     if (!target)
     {
@@ -246,7 +295,7 @@ void Scene::removePendingGameObjects()
 
 void Scene::flushPendingGameObjects()
 {
-    if (m_pendingObjectsToAdd.empty())
+    if (m_pendingObjectsToAdd.empty() && m_pendingGameObjectsToAdopt.empty())
     {
         return;
     }
@@ -261,12 +310,27 @@ void Scene::flushPendingGameObjects()
 
     for (auto& pendingObject : m_pendingObjectsToAdd)
     {
-        m_objectIndexMap[pendingObject.get()] = m_allObjects.size();
+        GameObject* raw = pendingObject.get();
+        m_objectIndexMap[raw] = m_allObjects.size();
+        m_objectUidMap[raw->GetID()] = raw;
         m_allObjects.push_back(std::move(pendingObject));
+    }
+
+    if (!m_pendingObjectsToAdd.empty())
+    {
+        ++m_objectRegistryVersion;
     }
 
     m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
+
+    std::vector<PendingGameObjectAddition> additions;
+    additions.swap(m_pendingGameObjectsToAdopt);
+
+    for (auto& pending : additions)
+    {
+        adoptGameObject(std::move(pending.gameObject), &pending.resolver);
+    }
 
     markDirty();
 }
@@ -297,7 +361,10 @@ void Scene::releasePendingDestroyedGameObjects()
     {
         if (commandQueue->isFenceComplete(it->fenceValue))
         {
-            it->gameObject->cleanUp();
+            if (it->gameObject)
+            {
+                it->gameObject->cleanUp();
+            }
             it = m_pendingDestroyedObjects.erase(it);
         }
         else
@@ -309,14 +376,49 @@ void Scene::releasePendingDestroyedGameObjects()
 
 void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver)
 {
-    const std::string rootName = gameObject ? gameObject->GetName() : "<null>";
+    if (!gameObject)
+    {
+        DEBUG_WARN("[Scene] Refusing to add a null GameObject.");
+        return;
+    }
+
+    if (m_isUpdating)
+    {
+        PendingGameObjectAddition pending;
+        pending.gameObject = std::move(gameObject);
+        if (externalResolver)
+        {
+            pending.resolver.mergeFrom(*externalResolver);
+        }
+        m_pendingGameObjectsToAdopt.push_back(std::move(pending));
+        return;
+    }
+
+    adoptGameObject(std::move(gameObject), externalResolver);
+}
+
+void Scene::adoptGameObject(std::unique_ptr<GameObject> gameObject, const SceneReferenceResolver* externalResolver)
+{
+    if (!gameObject)
+    {
+        return;
+    }
+
+    const std::string rootName = gameObject->GetName();
 
     std::vector<std::unique_ptr<GameObject>> all;
     all.push_back(std::move(gameObject));
+    GameObject* rootObject = all.front().get();
 
     for (size_t i = 0; i < all.size(); ++i)
         for (auto& child : all[i]->releaseChildren())
+        {
+            if (!child)
+            {
+                continue;
+            }
             all.push_back(std::move(child));
+        }
 
     std::vector<GameObject*> newGOs;
     newGOs.reserve(all.size());
@@ -325,11 +427,19 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneRef
     {
         GameObject* raw = go.get();
         newGOs.push_back(raw);
+        // Clones (prefab instances, snapshot restores) carry this flag from
+        // GameObject::clone(); it must not survive adoption into a live scene,
+        // otherwise moveGameObjectInQuadtrees() skips them forever and they
+        // never appear in frustum-culled render lists.
+        raw->ClearSnapshotClone();
         m_allObjects.push_back(std::move(go));
         m_objectIndexMap[raw] = m_allObjects.size() - 1;
+        m_objectUidMap[raw->GetID()] = raw;
         if (raw->GetTransform()->getRoot() == nullptr)
             m_rootObjects.push_back(raw);
     }
+
+    ++m_objectRegistryVersion;
 
     markDirty();
 
@@ -354,6 +464,11 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneRef
             c->fixReferences(resolver);
     }
 
+    // Objects added through this API must have one consistent initialization
+    // path. Previously prefab spawning initialized only the root after the
+    // object was already exposed to the scene systems.
+    rootObject->init();
+
     // Track the new objects in the quadtrees right away (this also rebuilds
     // the tree if they lie outside the built bounds). Done after the fix
     // pass so MeshRenderers already have valid bounding boxes.
@@ -373,7 +488,7 @@ void Scene::addGameObject(std::unique_ptr<GameObject> gameObject, const SceneRef
     }
 
     DEBUG_LOG("[Scene] '%s' added (+%zu subtree objects): references fixed, quadtrees updated.",
-              rootName.c_str(), newGOs.size());
+        rootName.c_str(), newGOs.size());
 }
 
 void Scene::destroyGameObject(GameObject* gameObject)
@@ -395,6 +510,18 @@ void Scene::destroyGameObject(GameObject* gameObject)
     auto mapIt = m_objectIndexMap.find(gameObject);
     if (mapIt == m_objectIndexMap.end()) return;
 
+    // Renderer caches contain raw component pointers. Detach them before the
+    // object can be cleaned up by the deferred destruction queue.
+    if (app->getModuleScene())
+    {
+        app->getModuleScene()->invalidateComponentCaches();
+    }
+
+    if (m_defaultCamera && m_defaultCamera->getOwner() == gameObject)
+    {
+        m_defaultCamera = nullptr;
+    }
+
     const size_t idx = mapIt->second;
     const size_t lastIdx = m_allObjects.size() - 1;
 
@@ -414,6 +541,8 @@ void Scene::destroyGameObject(GameObject* gameObject)
 
     m_allObjects.pop_back();
     m_objectIndexMap.erase(mapIt);
+    m_objectUidMap.erase(gameObject->GetID());
+    ++m_objectRegistryVersion;
     markDirty();
 }
 
@@ -442,17 +571,24 @@ bool Scene::isInHierarchy(GameObject* root, GameObject* candidate) const
 
 GameObject* Scene::findInWindowHierarchy(GameObject* current, UID uuid)
 {
-    for (GameObject* child : current->GetTransform()->getAllChildren())
+    if (!current)
     {
-        if (child->GetID() == uuid)
-        {
-            return child;
-        }
+        return nullptr;
+    }
 
-        GameObject* found = findInWindowHierarchy(child, uuid);
-        if (found)
+    GameObject* candidate = findGameObjectByUID(uuid);
+    if (!candidate || candidate == current)
+    {
+        return nullptr;
+    }
+
+    for (Transform* parent = candidate->GetTransform()->getRoot();
+         parent != nullptr;
+         parent = parent->getRoot())
+    {
+        if (parent->getOwner() == current)
         {
-            return found;
+            return candidate;
         }
     }
 
@@ -513,7 +649,9 @@ GameObject* Scene::createDirectionalLightOnInit()
 
     m_allObjects.push_back(std::move(go));
     m_objectIndexMap[raw] = m_allObjects.size() - 1;
+    m_objectUidMap[raw->GetID()] = raw;
     m_rootObjects.push_back(raw);
+    ++m_objectRegistryVersion;
     markDirty();
 
     return raw;
@@ -528,6 +666,11 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
 
     for (const auto& obj : m_allObjects)
     {
+        if (!obj || !obj->GetTransform())
+        {
+            continue;
+        }
+
         if (obj->GetTransform()->getRoot() != nullptr)
             continue;
 
@@ -535,8 +678,18 @@ const std::vector<GameObject*> Scene::getAllGameObjects() const
 
         for (size_t j = result.size() - 1; j < result.size(); ++j)
         {
+            if (!result[j] || !result[j]->GetTransform())
+            {
+                continue;
+            }
+
             for (GameObject* child : result[j]->GetTransform()->getAllChildren())
-                result.push_back(child);
+            {
+                if (child && child->GetTransform())
+                {
+                    result.push_back(child);
+                }
+            }
         }
     }
 
@@ -582,15 +735,7 @@ bool Scene::containsGameObject(const GameObject* go) const
         return false;
     }
 
-    for (const auto& obj : m_allObjects)
-    {
-        if (obj.get() == go)
-        {
-            return true;
-        }
-    }
-
-    return false;
+    return m_objectIndexMap.find(const_cast<GameObject*>(go)) != m_objectIndexMap.end();
 }
 
 void Scene::fixSceneReferences()
@@ -620,6 +765,11 @@ void Scene::clearScene()
 {
     app->getModuleEditor()->setSelectedGameObject(nullptr);
 
+    if (app->getModuleScene())
+    {
+        app->getModuleScene()->invalidateComponentCaches();
+    }
+
     clearTriggers();
 
     for (auto& pending : m_pendingDestroyedObjects)
@@ -634,13 +784,34 @@ void Scene::clearScene()
 
     for (auto& go : m_allObjects)
     {
-        go->cleanUp();
+        if (go)
+        {
+            go->cleanUp();
+        }
+    }
+
+    for (auto& go : m_pendingObjectsToAdd)
+    {
+        if (go)
+        {
+            go->cleanUp();
+        }
+    }
+
+    for (auto& pending : m_pendingGameObjectsToAdopt)
+    {
+        if (pending.gameObject)
+        {
+            pending.gameObject->cleanUp();
+        }
     }
 
     m_rootObjects.clear();
     m_allObjects.clear();
 
     m_objectIndexMap.clear();
+    m_objectUidMap.clear();
+    ++m_objectRegistryVersion;
     m_defaultCamera = nullptr;
     m_navMesh = AssetId{};
     m_loadedBankRefs.clear();
@@ -649,6 +820,7 @@ void Scene::clearScene()
     m_objectsToRemove.clear();
     m_pendingObjectsToAdd.clear();
     m_pendingRootObjectsToAdd.clear();
+    m_pendingGameObjectsToAdopt.clear();
     markDirty();
 }
 

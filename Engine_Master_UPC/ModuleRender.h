@@ -4,6 +4,10 @@
 #include <d3d12.h>
 #include <wrl/client.h>
 #include <memory>
+#include <array>
+#include <chrono>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "ModuleDescriptors.h"
@@ -17,6 +21,7 @@
 #include "SSAOBlurPass.h"
 #include "DepthReductionPass.h"
 #include "ShadowFrustumComputePass.h"
+#include "LightCullingPass.h"
 #include "VolumetricFogComputePass.h"
 #include "OcclusionTargetDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
@@ -45,6 +50,14 @@ using Vector3 = DirectX::SimpleMath::Vector3;
 
 class ModuleRender : public Module
 {
+public:
+    struct RenderPassTiming
+    {
+        std::string name;
+        float cpuMs = 0.0f;
+        float gpuMs = 0.0f;
+    };
+
 private:
     struct RenderCamera
     {
@@ -97,6 +110,7 @@ private:
     std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
     std::unique_ptr<DepthReductionPass> m_depthReductionPass;
     std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
+    std::unique_ptr<LightCullingPass> m_lightCullingPass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<VolumetricFogComputePass> m_volumetricFogComputePass;
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;
@@ -105,6 +119,26 @@ private:
     std::unique_ptr<VideoPass> m_videoPass;
 
     SSAOFrameData m_currentSSAOData{};
+
+    static constexpr uint32_t MAX_PROFILED_RENDER_PASSES = 32;
+    static constexpr uint32_t INVALID_PROFILE_INDEX = UINT32_MAX;
+
+    ComPtr<ID3D12QueryHeap> m_timestampQueryHeap;
+    ComPtr<ID3D12Resource> m_timestampReadbackBuffer;
+    uint64_t* m_timestampReadbackData = nullptr;
+    uint64_t m_timestampFrequency = 0;
+
+    std::array<std::array<std::string, MAX_PROFILED_RENDER_PASSES>, FRAMES_IN_FLIGHT> m_gpuPassNames{};
+    std::array<uint32_t, FRAMES_IN_FLIGHT> m_gpuPassCounts{};
+    std::array<bool, FRAMES_IN_FLIGHT> m_gpuFramesPending{};
+    std::unordered_map<std::string, float> m_latestGpuTimings;
+
+    std::vector<RenderPassTiming> m_currentRenderTimings;
+    std::vector<RenderPassTiming> m_displayRenderTimings;
+    std::chrono::steady_clock::time_point m_currentCpuPassStart{};
+    uint32_t m_profileFrameSlot = 0;
+    uint32_t m_profilePassCount = 0;
+    bool m_renderProfilingActive = false;
 
 public:
     bool init()      override;
@@ -130,6 +164,7 @@ public:
 
     int getTrianglesCount() const;
     int getMeshCount() const;
+    const std::vector<RenderPassTiming>& getRenderPassTimings() const { return m_displayRenderTimings; }
     void requestStopSimulation() { m_pendingStopSimulation = true; }
 
     // DebugDraw helper
@@ -161,4 +196,11 @@ private:
     void transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState,  D3D12_RESOURCE_STATES afterState);
 
     bool renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface);
+
+    void initRenderProfiler(ID3D12Device4* device);
+    void releaseRenderProfiler();
+    void beginRenderProfiling(ID3D12GraphicsCommandList4* commandList, RenderViewType viewType);
+    uint32_t beginRenderPassProfile(ID3D12GraphicsCommandList4* commandList, const char* name);
+    void endRenderPassProfile(ID3D12GraphicsCommandList4* commandList, uint32_t profileIndex);
+    void endRenderProfiling(ID3D12GraphicsCommandList4* commandList);
 };

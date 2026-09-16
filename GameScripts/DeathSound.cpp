@@ -159,6 +159,8 @@ void DeathSound::startHoverLoop()
     {
         return;
     }
+
+    SCRIPT_PROFILE_SCOPE("Hover: start loop");
     m_hoverLoopID = postEvent(k_hoverLoopStart);
 }
 
@@ -168,6 +170,8 @@ void DeathSound::stopHoverLoop()
     {
         return;
     }
+
+    SCRIPT_PROFILE_SCOPE("Hover: stop loop");
     postEvent(k_hoverLoopStop);
     m_hoverLoopID = 0;
 }

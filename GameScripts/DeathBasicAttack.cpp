@@ -59,17 +59,30 @@ bool DeathBasicAttack::canStartSpecificAbility() const
 
 void DeathBasicAttack::startAbility()
 {
-    GameObject* target = m_character->getTargetController()
-        ? m_character->getTargetController()->getCurrentTarget()
+    PlayerTargetController* targetController = m_character
+        ? m_character->getTargetController()
+        : nullptr;
+
+    GameObject* target = targetController
+        ? targetController->getCurrentTarget()
         : nullptr;
 
     setAbilityLocked(true);
     m_movementLockedForCombo = true;
 
+    //Check first if the target is in range, if not, ask the target controller for the nearest target it tracks that is in attack range
+    if (target == nullptr || !isTargetInRange(target))
+    {
+        target = targetController && m_deathCharacter
+            ? targetController->findNearbyTargetInRange(m_deathCharacter->getConfig()->m_basicAttackRange)
+            : nullptr;
+    }
+
     snapFaceTarget(target);
     m_attackFacingTarget = target;
 
     const int comboStep = m_deathCharacter->getComboStep();
+    m_comboVariant = comboStep;
 
     DeathSound* sound = m_deathCharacter->getSound();
     if (sound != nullptr)
@@ -77,7 +90,6 @@ void DeathBasicAttack::startAbility()
         sound->playLightSwing();
     }
 
-    dealDamageToTarget(target);
     notifyAbilitySuccessfullyStarted();
 
     m_deathCharacter->advanceCombo(false);
@@ -99,6 +111,28 @@ void DeathBasicAttack::startAbility()
     }
 }
 
+bool DeathBasicAttack::isTargetInRange(GameObject* target) const
+{
+    if (target == nullptr || m_deathCharacter == nullptr)
+    {
+        return false;
+    }
+
+    Transform* myTransform     = GameObjectAPI::getTransform(getOwner());
+    Transform* targetTransform = GameObjectAPI::getTransform(target);
+    if (myTransform == nullptr || targetTransform == nullptr)
+    {
+        return false;
+    }
+
+    const float rangeSq = m_deathCharacter->getConfig()->m_basicAttackRange * m_deathCharacter->getConfig()->m_basicAttackRange;
+
+    Vector3 dir = TransformAPI::getGlobalPosition(targetTransform) - TransformAPI::getGlobalPosition(myTransform);
+    dir.y = 0.0f;
+
+    return dir.LengthSquared() <= rangeSq;
+}
+
 void DeathBasicAttack::onAttackWindowUpdate()
 {
     faceTarget(m_attackFacingTarget);
@@ -115,6 +149,11 @@ void DeathBasicAttack::onAttackWindowUpdate()
     }
 }
 
+void DeathBasicAttack::onHitFrame()
+{
+    dealDamageToTarget(m_attackFacingTarget);
+}
+
 void DeathBasicAttack::onAttackWindowFinished()
 {
     m_attackFacingTarget = nullptr;
@@ -128,6 +167,11 @@ void DeathBasicAttack::onAttackWindowFinished()
     {
         m_particles->SetScytheInactive();
     }
+}
+
+int DeathBasicAttack::getAttackVariant() const
+{
+    return m_comboVariant;
 }
 
 float DeathBasicAttack::getCooldown() const

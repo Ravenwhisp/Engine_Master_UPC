@@ -67,6 +67,8 @@ private:
 	void removeEffect(int type);
 
 	int spikeType = 0; // 0 for normal, 1 for spectral
+	GameObject* m_lyriel = nullptr;
+	GameObject* m_death = nullptr;
 
     std::unordered_set<GameObject*> damagedPlayers;
 

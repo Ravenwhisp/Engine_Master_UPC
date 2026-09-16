@@ -4,6 +4,7 @@
 #include "LightingCBuffers.hlsli"
 #include "General.hlsli"
 #include "PBRGeneral.hlsli"
+#include "LightTileCullingCommon.hlsli"
 
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
@@ -268,7 +269,45 @@ float3 GetCascadeDebugColor(uint cascadeIndex)
     return float3(1.0f, 0.8f, 0.2f);
 }
 
-float3 ComputePBRSurfaceLighting(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO)
+float3 ComputePBRSurfaceLightingCommon(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO,
+    float3 F0Metallic, float3 F0NonMetallic, float3 viewDirection, float NdotV, float horizon, float3 otherMetallic, float3 otherNonMetallic)
+{
+    float3 directionalMetallic = 0.0f;
+    float3 directionalNonMetallic = 0.0f;
+
+    float3 diffuseColorMetallic = 0.0f;
+    float3 diffuseColorNonMetallic = albedo / PI;
+
+    for (uint i = 0; i < directionalCount; ++i)
+    {
+        directionalMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        directionalNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+    }
+
+    uint selectedCascadeIndex;
+    float shadow = ComputeShadow(worldPos, selectedCascadeIndex);
+
+    float3 directionalLighting = lerp(directionalNonMetallic, directionalMetallic, metallic);
+    float3 otherLighting = lerp(otherNonMetallic, otherMetallic, metallic);
+    float3 directLighting = directionalLighting * shadow + otherLighting;
+
+    float diffuseAO = saturate(ao * screenSpaceAO);
+    float specularAO = computeSpecularAO(NdotV, diffuseAO, alphaRoughness);
+    specularAO *= horizon;
+
+    float3 reflection = normalize(reflect(-viewDirection, finalWorldNormal));
+
+    float3 indirectLighting = computeIndirectLighting(reflection, NdotV, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, diffuseAO, specularAO);
+    float3 finalColor = directLighting + indirectLighting + emissive;
+
+    if (cascadePadding.x > 0.5f && selectedCascadeIndex < MAX_SHADOW_CASCADES)
+        finalColor = lerp(finalColor, GetCascadeDebugColor(selectedCascadeIndex), 0.35f);
+
+    return finalColor;
+}
+
+float3 ComputePBRSurfaceLightingTiled(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO,
+    uint tileIndex, StructuredBuffer<int> pointLightIndices, StructuredBuffer<int> spotLightIndices)
 {
     float3 F0Metallic = albedo;
     float3 F0NonMetallic = 0.04f;
@@ -283,48 +322,39 @@ float3 ComputePBRSurfaceLighting(float3 worldPos, float3 albedo, float metallic,
 
     alphaRoughness *= alphaRoughness;
 
-    float3 directionalMetallic = 0.0f;
-    float3 directionalNonMetallic = 0.0f;
-
-    for (uint i = 0; i < directionalCount; ++i)
-    {
-        directionalMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        directionalNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
-    }
-
     float3 otherMetallic = 0.0f;
     float3 otherNonMetallic = 0.0f;
 
-    for (uint i = 0; i < pointCount; ++i)
+    const uint tileBase = tileIndex * MAX_LIGHTS_PER_TILE;
+
+    for (uint p = 0; p < MAX_LIGHTS_PER_TILE; ++p)
     {
-        otherMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        otherNonMetallic += ComputePointLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        int lightIndex = pointLightIndices[tileBase + p];
+
+        if (lightIndex < 0)
+        {
+            break;
+        }
+
+        otherMetallic += ComputePointLight((uint) lightIndex, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputePointLight((uint) lightIndex, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
-    for (uint i = 0; i < spotCount; ++i)
+    for (uint s = 0; s < MAX_LIGHTS_PER_TILE; ++s)
     {
-        otherMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        otherNonMetallic += ComputeSpotLight(i, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        int lightIndex = spotLightIndices[tileBase + s];
+
+        if (lightIndex < 0)
+        {
+            break;
+        }
+
+        otherMetallic += ComputeSpotLight((uint) lightIndex, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputeSpotLight((uint) lightIndex, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
-    uint selectedCascadeIndex;
-    float shadow = ComputeShadow(worldPos, selectedCascadeIndex);
-
-    float3 directionalLighting = lerp(directionalNonMetallic, directionalMetallic, metallic);
-    float3 otherLighting = lerp(otherNonMetallic, otherMetallic, metallic);
-    float3 directLighting = directionalLighting * shadow + otherLighting;
-
-    float diffuseAO = saturate(ao * screenSpaceAO);
-    float specularAO = computeSpecularAO(NdotV, diffuseAO, alphaRoughness);
-    specularAO *= horizon;
-
-    float3 indirectLighting = computeIndirectLighting(reflection, NdotV, finalWorldNormal, F0Metallic, alphaRoughness, 11, metallic, diffuseAO, specularAO);
-    float3 finalColor = directLighting + indirectLighting + emissive;
-
-    if (cascadePadding.x > 0.5f && selectedCascadeIndex < MAX_SHADOW_CASCADES)
-        finalColor = lerp(finalColor, GetCascadeDebugColor(selectedCascadeIndex), 0.35f);
-
-    return finalColor;
+    return ComputePBRSurfaceLightingCommon(worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, screenSpaceAO,
+        F0Metallic, F0NonMetallic, viewDirection, NdotV, horizon, otherMetallic, otherNonMetallic);
 }
 
 #endif

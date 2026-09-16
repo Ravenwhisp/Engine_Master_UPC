@@ -171,6 +171,8 @@ namespace ApplicationAPI
 
 namespace SceneAPI
 {
+    // Safe pointer-membership check. It does not dereference gameObject.
+    ENGINE_API bool containsGameObject(const GameObject* gameObject);
     ENGINE_API std::vector<GameObject*> findAllGameObjectsByComponent(ComponentType componentType, bool onlyActive = true);
     ENGINE_API std::vector<GameObject*> findAllGameObjectsByTag(Tag tag, bool onlyActive = true);
 
@@ -260,6 +262,13 @@ namespace Debug
     ENGINE_API void log(const char* message, ...);
     ENGINE_API void warn(const char* message, ...);
     ENGINE_API void error(const char* message, ...);
+}
+
+namespace ScriptProfilerAPI
+{
+    ENGINE_API bool isEnabled();
+    ENGINE_API void recordScope(const char* scriptName, const char* scopeName,
+        const GameObject* gameObject, float cpuMs);
 }
 
 namespace CameraAPI
@@ -447,6 +456,8 @@ namespace AudioAPI
     ENGINE_API ComponentSoundSource* getSoundSourceComponent(GameObject* gameObject);
     ENGINE_API const ComponentSoundSource* getSoundSourceComponent(const GameObject* gameObject);
     ENGINE_API uint32_t postEvent(ComponentSoundSource* component, const char* bankName, const char* eventName);
+    ENGINE_API void queueGroupedEvent(ComponentSoundSource* component, const char* bankName,
+        const char* eventName, const char* groupName, float priority, uint32_t cooldownMs);
     ENGINE_API void stopEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void pauseEvent(ComponentSoundSource* component, uint32_t playingID);
     ENGINE_API void resumeEvent(ComponentSoundSource* component, uint32_t playingID);

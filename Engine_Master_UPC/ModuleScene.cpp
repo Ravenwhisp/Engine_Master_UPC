@@ -25,7 +25,9 @@
 #include "OcclusionOccluderComponent.h"
 
 #include "ScenePicking.h"
+#include "MD5.h"
 
+#include <chrono>
 #include <unordered_set>
 
 ModuleScene::ModuleScene()
@@ -34,6 +36,128 @@ ModuleScene::ModuleScene()
     m_scene = std::make_unique<Scene>(defaultSceneRef);
     m_staticQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree = std::make_unique<Quadtree>();
+}
+
+void ModuleScene::beginDetailedProfilingFrame(bool enabled)
+{
+    m_detailedProfilingEnabled = enabled;
+    if (enabled)
+    {
+        m_detailedUpdateTimings = {};
+    }
+}
+
+void ModuleScene::beginScriptProfilingFrame(bool enabled, float spikeThresholdMs)
+{
+    m_scriptProfilingEnabled = enabled;
+    m_scriptSpikeThresholdMs = std::max(0.1f, spikeThresholdMs);
+
+    if (!enabled)
+    {
+        return;
+    }
+
+    ++m_scriptProfilerFrame;
+    m_currentScriptTotalMs = 0.0f;
+    m_currentScriptTimingMap.clear();
+    m_currentScriptScopeTimingMap.clear();
+    m_currentScriptTimings.clear();
+    m_currentScriptScopeTimings.clear();
+    m_currentScriptTimingMap.reserve(m_scriptComponents.size());
+    m_currentScriptScopeTimingMap.reserve(32);
+}
+
+void ModuleScene::endScriptProfilingFrame()
+{
+    if (!m_scriptProfilingEnabled)
+    {
+        return;
+    }
+
+    m_currentScriptTimings.reserve(m_currentScriptTimingMap.size());
+    for (const auto& [name, timing] : m_currentScriptTimingMap)
+    {
+        m_currentScriptTimings.push_back(timing);
+    }
+    m_currentScriptScopeTimings.reserve(m_currentScriptScopeTimingMap.size());
+    for (const auto& [name, timing] : m_currentScriptScopeTimingMap)
+    {
+        m_currentScriptScopeTimings.push_back(timing);
+    }
+
+    if (m_currentScriptTotalMs >= m_scriptSpikeThresholdMs)
+    {
+        m_lastSpikeScriptTotalMs = m_currentScriptTotalMs;
+        m_lastSpikeFrame = m_scriptProfilerFrame;
+        m_lastSpikeScriptTimings = m_currentScriptTimings;
+        m_lastSpikeScriptScopeTimings = m_currentScriptScopeTimings;
+    }
+}
+
+void ModuleScene::recordScriptTiming(
+    const std::string& scriptName,
+    const std::string& gameObjectName,
+    uint64_t gameObjectId,
+    float cpuMs)
+{
+    if (!m_scriptProfilingEnabled)
+    {
+        return;
+    }
+
+    const std::string profileName = scriptName.empty() ? std::string("<unnamed>") : scriptName;
+    auto [it, inserted] = m_currentScriptTimingMap.try_emplace(profileName);
+    ScriptTiming& timing = it->second;
+    if (inserted)
+    {
+        timing.scriptName = profileName;
+    }
+
+    timing.totalMs += cpuMs;
+    ++timing.calls;
+    if (cpuMs > timing.maxMs)
+    {
+        timing.maxMs = cpuMs;
+        timing.maxGameObjectName = gameObjectName;
+        timing.maxGameObjectId = gameObjectId;
+    }
+    m_currentScriptTotalMs += cpuMs;
+}
+
+void ModuleScene::recordScriptScopeTiming(
+    const std::string& scriptName,
+    const std::string& scopeName,
+    const std::string& gameObjectName,
+    uint64_t gameObjectId,
+    float cpuMs)
+{
+    if (!m_scriptProfilingEnabled)
+    {
+        return;
+    }
+
+    std::string key;
+    key.reserve(scriptName.size() + scopeName.size() + 1);
+    key += scriptName;
+    key += '\x1f';
+    key += scopeName;
+
+    auto [it, inserted] = m_currentScriptScopeTimingMap.try_emplace(key);
+    ScriptScopeTiming& timing = it->second;
+    if (inserted)
+    {
+        timing.scriptName = scriptName;
+        timing.scopeName = scopeName;
+    }
+
+    timing.totalMs += cpuMs;
+    ++timing.calls;
+    if (cpuMs > timing.maxMs)
+    {
+        timing.maxMs = cpuMs;
+        timing.maxGameObjectName = gameObjectName;
+        timing.maxGameObjectId = gameObjectId;
+    }
 }
 
 ModuleScene::~ModuleScene() = default;
@@ -52,6 +176,11 @@ void ModuleScene::requestSceneChange(std::shared_ptr<Scene> scene)
 void ModuleScene::requestSceneChange(const AssetId& ref)
 {
     m_pendingSceneAssetId = ref;
+}
+
+void ModuleScene::setBuildSceneLibIds(std::unordered_map<std::string, std::string> map)
+{
+    m_buildSceneLibIds = std::move(map);
 }
 
 void ModuleScene::onGameStop()
@@ -92,8 +221,28 @@ void ModuleScene::update()
     m_scene->update();
 
     syncQuadtreeWithSettings();
-    m_staticQuadtree->update();
-    m_dynamicQuadtree->update();
+
+    if (m_detailedProfilingEnabled)
+    {
+        m_detailedUpdateTimings.staticQuadtreeDirtyNodes =
+            static_cast<uint32_t>(m_staticQuadtree->getDirtyNodeCount());
+        const auto staticStart = std::chrono::high_resolution_clock::now();
+        m_staticQuadtree->update();
+        m_detailedUpdateTimings.staticQuadtreeUpdateMs = std::chrono::duration<float, std::milli>(
+            std::chrono::high_resolution_clock::now() - staticStart).count();
+
+        m_detailedUpdateTimings.dynamicQuadtreeDirtyNodes =
+            static_cast<uint32_t>(m_dynamicQuadtree->getDirtyNodeCount());
+        const auto dynamicStart = std::chrono::high_resolution_clock::now();
+        m_dynamicQuadtree->update();
+        m_detailedUpdateTimings.dynamicQuadtreeUpdateMs = std::chrono::duration<float, std::milli>(
+            std::chrono::high_resolution_clock::now() - dynamicStart).count();
+    }
+    else
+    {
+        m_staticQuadtree->update();
+        m_dynamicQuadtree->update();
+    }
 }
 
 bool ModuleScene::cleanUp()
@@ -113,8 +262,16 @@ void ModuleScene::clearComponentCaches()
     m_meshRenderers.clear();
     m_lightComponents.clear();
     m_scriptComponents.clear();
+    m_particleSystemComponents.clear();
+    m_trailComponents.clear();
+    m_lineRendererComponents.clear();
     m_occlusionTargetComponents.clear();
     m_occlusionOccluderComponents.clear();
+}
+
+void ModuleScene::invalidateComponentCaches()
+{
+    clearComponentCaches();
 }
 
 void ModuleScene::rebuildComponentCaches()
@@ -130,13 +287,18 @@ void ModuleScene::rebuildComponentCaches()
 
     for (GameObject* go : m_scene->getAllGameObjects())
     {
-        if (!go->IsActiveInWindowHierarchy())
+        if (!go || !go->GetTransform() || !m_scene->containsGameObject(go) || !go->IsActiveInWindowHierarchy())
         {
             continue;
         }
 
         for (Component* component : go->GetAllComponents())
         {
+            if (!component)
+            {
+                continue;
+            }
+
             if (component->getType() == ComponentType::MODEL)
             {
                 m_meshRenderers.push_back(static_cast<MeshRenderer*>(component));
@@ -198,7 +360,9 @@ const std::vector<MeshRenderer*> ModuleScene::getDeferredMeshRenderers()
     std::vector<MeshRenderer*> meshRenderers = {};
     for (MeshRenderer* renderer : m_meshRenderers)
     {
-        if (renderer->getRenderMode() == RenderMode::DEFAULT)
+        if (renderer && renderer->getOwner() && renderer->getOwner()->GetTransform() &&
+            m_scene->containsGameObject(renderer->getOwner()) &&
+            renderer->getRenderMode() == RenderMode::DEFAULT)
         {
             meshRenderers.push_back(renderer);
         }
@@ -217,7 +381,9 @@ const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers()
     std::vector<MeshRenderer*> meshRenderers = {};
     for (MeshRenderer* renderer : m_meshRenderers)
     {
-        if (renderer->getRenderMode() != RenderMode::DEFAULT)
+        if (renderer && renderer->getOwner() && renderer->getOwner()->GetTransform() &&
+            m_scene->containsGameObject(renderer->getOwner()) &&
+            renderer->getRenderMode() != RenderMode::DEFAULT)
         {
             meshRenderers.push_back(renderer);
         }
@@ -236,7 +402,8 @@ const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers(RenderMode
     std::vector<MeshRenderer*> meshRenderers = {};
     for (MeshRenderer* renderer : m_meshRenderers)
     {
-        if (renderer->getRenderMode() == mode)
+        if (renderer && renderer->getOwner() && renderer->getOwner()->GetTransform() &&
+            m_scene->containsGameObject(renderer->getOwner()) && renderer->getRenderMode() == mode)
         {
             meshRenderers.push_back(renderer);
         }
@@ -252,6 +419,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer)
             {
@@ -261,6 +431,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
 
         for (GameObject* gO : m_dynamicQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer)
             {
@@ -272,6 +445,42 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
     return app->getModuleScene()->getMeshRenderers();
 }
 
+const std::vector<MeshRenderer*> ModuleScene::getMeshRenderersInFrustum(const Engine::Frustum& frustum)
+{
+    if (!app->getSettings()->frustumCulling.enabled)
+    {
+        return getMeshRenderers();
+    }
+
+    std::vector<MeshRenderer*> meshRenderers;
+
+    auto appendFromQuadtree = [&](Quadtree* quadtree)
+    {
+        if (!quadtree)
+        {
+            return;
+        }
+
+        for (GameObject* gameObject : quadtree->query(frustum))
+        {
+            if (!gameObject || !m_scene->containsGameObject(gameObject) || !gameObject->GetTransform())
+            {
+                continue;
+            }
+
+            if (MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL))
+            {
+                meshRenderers.push_back(renderer);
+            }
+        }
+    };
+
+    appendFromQuadtree(m_staticQuadtree.get());
+    appendFromQuadtree(m_dynamicQuadtree.get());
+
+    return meshRenderers;
+}
+
 const std::vector<MeshRenderer*> ModuleScene::getVisibleDeferredMeshRenderers()
 {
     if (app->getSettings()->frustumCulling.enabled)
@@ -279,6 +488,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleDeferredMeshRenderers()
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() == RenderMode::DEFAULT)
             {
@@ -288,6 +500,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleDeferredMeshRenderers()
 
         for (GameObject* gO : m_dynamicQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() == RenderMode::DEFAULT)
             {
@@ -306,6 +521,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers()
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT)
             {
@@ -315,6 +533,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers()
 
         for (GameObject* gO : m_dynamicQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT)
             {
@@ -333,6 +554,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers(Ren
         std::vector<MeshRenderer*> visibleMeshRenderers = {};
         for (GameObject* gO : m_staticQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() == mode)
             {
@@ -342,6 +566,9 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers(Ren
 
         for (GameObject* gO : m_dynamicQuadtree->query())
         {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
             if (renderer && renderer->getRenderMode() == mode)
             {
@@ -430,6 +657,16 @@ void ModuleScene::saveScene()
 
 bool ModuleScene::loadScene(const std::string& sceneName)
 {
+#ifdef GAME_RELEASE
+    const auto it = m_buildSceneLibIds.find(sceneName);
+    if (it != m_buildSceneLibIds.end())
+    {
+        return loadScene(AssetId(hashToUID(it->second), it->second, AssetType::SCENE));
+    }
+
+    DEBUG_ERROR("[ModuleScene] Scene '%s' has no name translation in build.cfg; falling back to Assets path.", sceneName.c_str());
+#endif
+
     std::string path = "Assets/Scenes/" + sceneName + ".scene";
 
     clearRuntimeSceneSystems();
@@ -541,6 +778,8 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     }
 
     m_scene->resolveLoadedBankNames();
+
+    initializeRuntimeSceneSystems();
 
     return true;
 }
@@ -657,11 +896,29 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 
     if (dynamic)
     {
+        const auto start = m_detailedProfilingEnabled
+            ? std::chrono::high_resolution_clock::now()
+            : std::chrono::high_resolution_clock::time_point{};
         m_dynamicQuadtree->move(gameObject);
+        if (m_detailedProfilingEnabled)
+        {
+            m_detailedUpdateTimings.dynamicQuadtreeMoveMs += std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - start).count();
+            ++m_detailedUpdateTimings.dynamicQuadtreeMoveCalls;
+        }
     }
     else
     {
+        const auto start = m_detailedProfilingEnabled
+            ? std::chrono::high_resolution_clock::now()
+            : std::chrono::high_resolution_clock::time_point{};
         m_staticQuadtree->move(gameObject);
+        if (m_detailedProfilingEnabled)
+        {
+            m_detailedUpdateTimings.staticQuadtreeMoveMs += std::chrono::duration<float, std::milli>(
+                std::chrono::high_resolution_clock::now() - start).count();
+            ++m_detailedUpdateTimings.staticQuadtreeMoveCalls;
+        }
     }
 }
 

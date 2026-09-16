@@ -26,13 +26,19 @@ DeathCharacter::DeathCharacter(GameObject* owner)
 
 void DeathCharacter::Start()
 {
-    CharacterBase::Start();
+    {
+        SCRIPT_PROFILE_SCOPE("Start: CharacterBase");
+        CharacterBase::Start();
+    }
 
-    m_basicAttack = GameObjectAPI::findScript<DeathBasicAttack>(getOwner());
-    m_chargedAttack = GameObjectAPI::findScript<DeathChargedAttack>(getOwner());
-    m_specialAbility = GameObjectAPI::findScript<DeathTaunt>(getOwner());
-    m_sound    = GameObjectAPI::findScript<DeathSound>(getOwner());
-    m_movement = GameObjectAPI::findScript<PlayerMovement>(getOwner());
+    {
+        SCRIPT_PROFILE_SCOPE("Start: find sibling scripts");
+        m_basicAttack = GameObjectAPI::findScript<DeathBasicAttack>(getOwner());
+        m_chargedAttack = GameObjectAPI::findScript<DeathChargedAttack>(getOwner());
+        m_specialAbility = GameObjectAPI::findScript<DeathTaunt>(getOwner());
+        m_sound    = GameObjectAPI::findScript<DeathSound>(getOwner());
+        m_movement = GameObjectAPI::findScript<PlayerMovement>(getOwner());
+    }
     if (m_basicAttack == nullptr)
     {
         Debug::warn("[DeathCharacter] DeathBasicAttack not found on owner '%s'.", GameObjectAPI::getName(getOwner()));
@@ -60,27 +66,42 @@ void DeathCharacter::Start()
 
     if (!PersistingCheckpointState::Get().IsStartOfLevel())
     {
-        TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(m_owner),
-            PersistingCheckpointState::Get().m_savedDeathRespawn);
+        SCRIPT_PROFILE_SCOPE("Start: restore checkpoint");
+        TransformAPI::setGlobalPosition(
+            GameObjectAPI::getTransform(m_owner), PersistingCheckpointState::Get().m_savedDeathRespawn);
     }
 }
 
 void DeathCharacter::Update()
 {
-    if (isDowned())
+    bool downed = false;
+    {
+        SCRIPT_PROFILE_SCOPE("Update: check downed");
+        downed = isDowned();
+    }
+
+    if (downed)
     {
         if (m_sound != nullptr)
         {
+            SCRIPT_PROFILE_SCOPE("Downed: stop sound loops");
             m_sound->stopAllLoops();
         }
-        resetCombo();
+        {
+            SCRIPT_PROFILE_SCOPE("Downed: reset combo");
+            resetCombo();
+        }
         return;
     }
 
-    tickCombo(Time::getDeltaTime());
+    {
+        SCRIPT_PROFILE_SCOPE("Update: tick combo");
+        tickCombo(Time::getDeltaTime());
+    }
 
     if (m_sound != nullptr && m_movement != nullptr)
     {
+        SCRIPT_PROFILE_SCOPE("Update: hover sound");
         m_sound->setHoverActive(m_movement->isMoving());
     }
 }
@@ -111,7 +132,13 @@ void DeathCharacter::tickCombo(float dt)
     // While the character is locked in an attack (or about to fire a buffered
     // one), the combo must not expire — otherwise long lock durations relative
     // to the window would reset the combo before the next input fires.
-    if (isUsingAbility())
+    bool usingAbility = false;
+    {
+        SCRIPT_PROFILE_SCOPE("Combo: check ability state");
+        usingAbility = isUsingAbility();
+    }
+
+    if (usingAbility)
     {
         return;
     }

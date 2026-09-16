@@ -22,8 +22,50 @@ void Level2Cheats::Update()
     if (KeyComboPressed(KeyCode::W)) AutoLose();
     if (KeyComboPressed(KeyCode::E)) Teleport();
     if (KeyComboPressed(KeyCode::T)) ToggleInvincibility();
-    if (KeyComboPressed(KeyCode::Num3)) SpawnEnemy(0);
-    if (KeyComboPressed(KeyCode::Num4)) SpawnEnemy(1);
+    /*if (KeyComboPressed(KeyCode::Num3)) SpawnEnemy(0);
+    if (KeyComboPressed(KeyCode::Num4)) SpawnEnemy(1);*/
+    if (KeyComboPressed(KeyCode::F)) killEnemies();
+    if (Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::A))
+    {
+        if (KeyComboPressed(KeyCode::Num1))
+        {
+            m_playerIndex = 0;
+            RestoreHealth();
+        }
+        else if (KeyComboPressed(KeyCode::Num2))
+        {
+            m_playerIndex = 1;
+            RestoreHealth();
+        }
+    }
+    if (Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::S))
+    {
+        if (KeyComboPressed(KeyCode::Num1))
+        {
+            m_playerIndex = 0;
+            DownState();
+        }
+        else if (KeyComboPressed(KeyCode::Num2))
+        {
+            m_playerIndex = 1;
+            DownState();
+        }
+    }
+    if (Input::isKeyDown(KeyCode::RightShift) && Input::isKeyDown(KeyCode::D))
+    {
+        if (KeyComboPressed(KeyCode::Num1))
+        {
+            toLevel1();
+        }
+        else if (KeyComboPressed(KeyCode::Num2))
+        {
+            toLevel2();
+        }
+        else if (KeyComboPressed(KeyCode::Num3))
+        {
+            toBossLevel();
+        }
+    }
 }
 
 bool Level2Cheats::KeyComboPressed(KeyCode mainKey)
@@ -118,5 +160,60 @@ void Level2Cheats::SpawnEnemy(int enemyPrefabIndex)
 
     GameObjectAPI::instantiatePrefab(prefabPath.m_ref, enemySpawnPosition, Vector3(0.0f, 0.0f, 0.0f));*/
 }
+
+void Level2Cheats::RestoreHealth()
+{
+    Debug::log("Restore Health activated! Player %i healed", m_playerIndex + 1);
+    GameObject* player = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER)[m_playerIndex];
+    Damageable* damageable = GameObjectAPI::findScript<Damageable>(player);
+    if (damageable)
+    {
+        damageable->heal(100);
+    }
+}
+
+void Level2Cheats::DownState()
+{
+    Debug::log("Down State activated! Player %i downed", m_playerIndex + 1);
+    GameObject* player = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER)[m_playerIndex];
+    PlayerState* playerState = GameObjectAPI::findScript<PlayerState>(player);
+    if (playerState)
+    {
+        playerState->setState(PlayerStateType::Downed);
+    }
+}
+
+void Level2Cheats::toLevel1()
+{
+    Debug::log("Restart Level activated!");
+    SceneAPI::requestSceneChange("Level1");
+}
+
+void Level2Cheats::toLevel2()
+{
+    Debug::log("Load Level 2 activated!");
+    SceneAPI::requestSceneChange("Level2");
+}
+
+void Level2Cheats::toBossLevel()
+{
+    Debug::log("Load Boss Level activated!");
+    SceneAPI::requestSceneChange("BossLevel");
+}
+
+void Level2Cheats::killEnemies()
+{
+    Debug::log("Kill Enemies activated!");
+    std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY);
+    for (GameObject* enemy : enemies)
+    {
+        Damageable* damageable = GameObjectAPI::findScript<Damageable>(enemy);
+        if (damageable)
+        {
+            damageable->takeDamage(damageable->getCurrentHp());
+        }
+    }
+}
+
 
 IMPLEMENT_SCRIPT(Level2Cheats)

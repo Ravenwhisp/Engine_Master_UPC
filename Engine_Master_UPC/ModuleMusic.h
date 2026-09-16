@@ -7,6 +7,9 @@
 #include "MusicPlaybackTracker.h"
 #include "AssetReference.h"
 
+#include <chrono>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 class ModuleMusic : public Module
@@ -21,6 +24,18 @@ private:
 	// "Música ya arrancada" en esta sesión de play. Se resetea en stopAllSounds (Stop).
 	bool m_musicStarted = false;
 
+	struct GroupedSoundRequest
+	{
+		std::string bankName;
+		std::string eventName;
+		uint64_t emitterID = 0;
+		float priority = 0.0f;
+		uint32_t cooldownMs = 0;
+	};
+
+	std::unordered_map<std::string, GroupedSoundRequest> m_groupedSoundRequests;
+	std::unordered_map<std::string, std::chrono::steady_clock::time_point> m_groupedSoundLastPlay;
+
 public:
 	ModuleMusic();
 	~ModuleMusic();
@@ -34,6 +49,7 @@ public:
 #pragma region API
 	uint32_t postGlobalEvent(const char* bankName, const char* eventName);
 	uint32_t postEvent(const char* bankName, const char* eventName, uint64_t emitterID);
+	void queueGroupedEvent(const char* bankName, const char* eventName, const char* groupName, uint64_t emitterID, float priority, uint32_t cooldownMs);
 	void stopEvent(uint32_t playingID);
 	void pauseEvent(uint32_t playingID);
 	void resumeEvent(uint32_t playingID);
@@ -73,4 +89,5 @@ public:
 
 private:
 	bool loadBanksFromLibrary();
+	void flushGroupedSoundRequests();
 };
