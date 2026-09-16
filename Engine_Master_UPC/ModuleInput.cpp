@@ -10,6 +10,62 @@
 
 #include <SDL3/SDL.h>
 
+#include <cmath>
+
+namespace
+{
+    constexpr float GAMEPAD_STICK_DEADZONE = 0.30f;
+    constexpr float GAMEPAD_STICK_SMOOTHING = 0.20f;
+    constexpr float GAMEPAD_STICK_CHANGE_THRESHOLD = 0.03f;
+
+    Vector2 filterStick(
+        const Vector2& rawStick,
+        Vector2& previousStick,
+        bool& initialized)
+    {
+        const float deadzoneSquared = GAMEPAD_STICK_DEADZONE * GAMEPAD_STICK_DEADZONE;
+        const float magnitudeSquared = rawStick.LengthSquared();
+
+        if (magnitudeSquared <= deadzoneSquared)
+        {
+            previousStick = Vector2::Zero;
+            initialized = true;
+            return Vector2::Zero;
+        }
+
+        // Remove the deadzone and remap the remaining range to [0, 1], so
+        // using a larger deadzone does not make the stick feel weaker.
+        const float magnitude = std::sqrt(magnitudeSquared);
+        const float remappedMagnitude =
+            (magnitude - GAMEPAD_STICK_DEADZONE) /
+            (1.0f - GAMEPAD_STICK_DEADZONE);
+        const Vector2 targetStick =
+            rawStick * (remappedMagnitude / magnitude);
+
+        if (!initialized)
+        {
+            previousStick = targetStick;
+            initialized = true;
+            return previousStick;
+        }
+
+        // Low-pass smoothing reduces angular jitter caused by independent X/Y
+        // noise. The change threshold prevents tiny residual updates entirely.
+        const Vector2 targetChange = targetStick - previousStick;
+
+        if (targetChange.LengthSquared() <
+            GAMEPAD_STICK_CHANGE_THRESHOLD * GAMEPAD_STICK_CHANGE_THRESHOLD)
+        {
+            return previousStick;
+        }
+
+        const Vector2 smoothedStick =
+            previousStick + targetChange * GAMEPAD_STICK_SMOOTHING;
+        previousStick = smoothedStick;
+        return previousStick;
+    }
+}
+
 ModuleInput::ModuleInput(HWND hWnd)
 {
     m_keyboard = std::make_unique<Keyboard>();
@@ -370,42 +426,36 @@ Vector2 ModuleInput::getLeftStick(int player) const
 {
     if (!isGamePadConnected(player))
     {
+        m_filteredLeftStick[player] = Vector2::Zero;
+        m_leftStickFilterInitialized[player] = false;
         return Vector2(0.0f, 0.0f);
     }
 
     const float x = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_LEFTX)) / 32767.0f;
     const float y = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_LEFTY)) / 32767.0f;
 
-    Vector2 stick(x, y);
-
-    const float deadzone = 0.15f;
-    if (stick.LengthSquared() < deadzone * deadzone)
-    {
-        return Vector2(0.0f, 0.0f);
-    }
-
-    return stick;
+    return filterStick(
+        Vector2(x, y),
+        m_filteredLeftStick[player],
+        m_leftStickFilterInitialized[player]);
 }
 
 Vector2 ModuleInput::getRightStick(int player) const
 {
     if (!isGamePadConnected(player))
     {
+        m_filteredRightStick[player] = Vector2::Zero;
+        m_rightStickFilterInitialized[player] = false;
         return Vector2(0.0f, 0.0f);
     }
 
     const float x = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_RIGHTX)) / 32767.0f;
     const float y = static_cast<float>(SDL_GetGamepadAxis(m_sdlGamepads[player], SDL_GAMEPAD_AXIS_RIGHTY)) / 32767.0f;
 
-    Vector2 stick(x, y);
-
-    const float deadzone = 0.15f;
-    if (stick.LengthSquared() < deadzone * deadzone)
-    {
-        return Vector2(0.0f, 0.0f);
-    }
-
-    return stick;
+    return filterStick(
+        Vector2(x, y),
+        m_filteredRightStick[player],
+        m_rightStickFilterInitialized[player]);
 }
 
 bool ModuleInput::isGamePadLeftStickPressed(int player) const

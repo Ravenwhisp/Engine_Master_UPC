@@ -182,6 +182,13 @@ private:
     std::array<std::array<bool, GAMEPAD_BUTTON_COUNT>, MAX_GAMEPADS> m_currentGamepadButtons{};
     std::array<std::array<bool, GAMEPAD_BUTTON_COUNT>, MAX_GAMEPADS> m_prevGamepadButtons{};
 
+    // Filtered stick values used to prevent small ADC/hand movements from
+    // changing the returned axis, especially when aiming diagonally.
+    mutable std::array<Vector2, MAX_GAMEPADS> m_filteredLeftStick{};
+    mutable std::array<Vector2, MAX_GAMEPADS> m_filteredRightStick{};
+    mutable std::array<bool, MAX_GAMEPADS> m_leftStickFilterInitialized{};
+    mutable std::array<bool, MAX_GAMEPADS> m_rightStickFilterInitialized{};
+
     // Gamepad trigger snapshots
     static constexpr float TRIGGER_PRESS_THRESHOLD = 0.5f;
     std::array<float, MAX_GAMEPADS> m_currentLeftTrigger{};
