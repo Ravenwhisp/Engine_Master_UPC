@@ -258,8 +258,14 @@ std::unique_ptr<Component> LineRendererComponent::clone(GameObject* newOwner) co
         RenderPoint* clonedPoint = cloned->m_points.back().get();
 
         clonedPoint->position        = point->get()->position;
-        clonedPoint->transformParent = point->get()->transformParent;
+        clonedPoint->transformId     = point->get()->transformId;
         clonedPoint->width           = point->get()->width;
+
+        if (clonedPoint->transformId != 0)
+        {
+            Scene* scene = app->getModuleScene()->getScene();
+            clonedPoint->transformParent = HierarchyUtils::findByUID(scene, clonedPoint->transformId)->GetComponent(ComponentType::TRANSFORM)->getTransform();
+        }
 
         ++point;
     }
