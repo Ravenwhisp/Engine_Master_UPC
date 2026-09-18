@@ -16,6 +16,7 @@
 
 #include "ModuleAssets.h"
 #include "ModuleResources.h"
+#include "SceneReferenceResolver.h"
 
 class Scene;
 
@@ -121,6 +122,7 @@ void LineRendererComponent::drawUi()
                 if (comp && comp->getType() == ComponentType::TRANSFORM)
                 {
                     point.transformParent = comp->getTransform();
+                    point.transformId = point.transformParent->getOwner()->GetID();
                 }
             }
             ImGui::EndDragDropTarget();
@@ -133,6 +135,7 @@ void LineRendererComponent::drawUi()
             if (ImGui::SmallButton("X"))
             {
                 point.transformParent = nullptr;
+                point.transformId = 0;
             }
         }
 
@@ -228,6 +231,7 @@ void LineRendererComponent::CreatePoint()
     newPoint->position = Vector3::Zero;
     newPoint->width = 0.0f;
     newPoint->transformParent = nullptr;
+    newPoint->transformId = 0;
 }
 
 float LineRendererComponent::WrapAngle(float angle)
@@ -258,8 +262,14 @@ std::unique_ptr<Component> LineRendererComponent::clone(GameObject* newOwner) co
         RenderPoint* clonedPoint = cloned->m_points.back().get();
 
         clonedPoint->position        = point->get()->position;
-        clonedPoint->transformParent = point->get()->transformParent;
         clonedPoint->width           = point->get()->width;
+
+        clonedPoint->transformId = point->get()->transformId;
+        if (clonedPoint->transformId == 0 && point->get()->transformParent != nullptr)
+        {
+            clonedPoint->transformId = point->get()->transformParent->getOwner()->GetID();
+        }
+        clonedPoint->transformParent = nullptr;
 
         ++point;
     }
@@ -301,8 +311,8 @@ void LineRendererComponent::serialize(IArchive& archive)
             float width = point.get()->width;
             archive.serialize(width, "Width");
 
-            uint64_t transformParent = 0; 
-            if (point.get()->transformParent != nullptr)
+            uint64_t transformParent = point.get()->transformId;
+            if (transformParent == 0 && point.get()->transformParent != nullptr)
             {
                 transformParent = point.get()->transformParent->getOwner()->GetID();
             }
@@ -455,15 +465,19 @@ void LineRendererComponent::serialize(IArchive& archive)
 
 void LineRendererComponent::fixReferences(const SceneReferenceResolver& resolver)
 {
-    for (int i = 0; i < m_points.size(); i++)
+    for (const std::shared_ptr<RenderPoint>& point : m_points)
     {
-        if (m_points[i]->transformId != 0)
+        point->transformParent = nullptr;
+
+        if (point->transformId != 0)
         {
-            Scene* scene = app->getModuleScene()->getScene();
-            m_points[i]->transformParent = HierarchyUtils::findByUID(scene, m_points[i]->transformId)->GetComponent(ComponentType::TRANSFORM)->getTransform();
+            GameObject* target = resolver.getClonedGameObject(point->transformId);
+            if (target != nullptr)
+            {
+                point->transformParent = target->GetTransform();
+            }
         }
     }
-
 }
 
 void LineRendererComponent::debugDraw()
