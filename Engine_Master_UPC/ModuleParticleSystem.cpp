@@ -91,10 +91,15 @@ void ModuleParticleSystem::preRender()
 		buildParticleCommands(currentParticleSystemComponent);
 	}
 
-    // sort m_particleCommands per layer value (so that overlapped emitters with higher layer are rendered on top)
+    // Preserve explicit render layers, then draw emitters in the same layer back-to-front for alpha blending.
     std::sort(m_particleCommands.begin(), m_particleCommands.end(), [](const ParticleEmitterCommand& a, const ParticleEmitterCommand& b)
     {
-        return a.layer < b.layer;
+        if (a.layer != b.layer)
+        {
+            return a.layer < b.layer;
+        }
+
+        return a.sortDistanceSquared > b.sortDistanceSquared;
     });
 
 #ifdef _DEBUG
@@ -227,6 +232,7 @@ void ModuleParticleSystem::buildParticleCommands(ParticleSystemComponent* partic
         ParticleEmitterCommand command;
 		command.texture = texture;
         command.layer = renderConfig->getLayer();
+        command.sortDistanceSquared = aliveParticles.front().first;
         command.uvScale = animationConfig->getUVScale();
 
         command.renderMode = renderConfig->getRenderMode();

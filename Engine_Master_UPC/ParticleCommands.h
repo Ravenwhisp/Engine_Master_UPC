@@ -29,6 +29,7 @@ struct ParticleEmitterCommand
     std::vector <ParticleCommand> particles;
 
     EmitterRender::BlendMode blendMode = EmitterRender::BlendMode::ALPHA;
+    float sortDistanceSquared = 0.0f;
 };
 
 struct ShaderParticleData { // for Structured buffet, so 16 bytes alignment not necessary <- XMFLOAT is probably unnecessary
