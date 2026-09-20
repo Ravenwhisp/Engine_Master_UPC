@@ -3,14 +3,35 @@
 
 #include "Application.h"
 #include "ModuleCamera.h"
+#include "ModuleScene.h"
 
 #include "ModuleParticleSystem.h"
 #include "ParticleEmitter.h"
 #include "ParticleSystemComponent.h"
+#include "CameraComponent.h"
+#include "Scene.h"
+#include "GameObject.h"
+#include "Transform.h"
 
 #include "EmitterSpawn.h"
 
 #include <algorithm>
+
+namespace
+{
+	Vector3 getParticleSortCameraPosition()
+	{
+		Scene* scene = app->getModuleScene()->getScene();
+		CameraComponent* gameCamera = scene != nullptr ? scene->getDefaultCamera() : nullptr;
+
+		if (gameCamera != nullptr && gameCamera->getOwner() != nullptr && gameCamera->getOwner()->GetTransform() != nullptr)
+		{
+			return gameCamera->getOwner()->GetTransform()->getGlobalMatrix().Translation();
+		}
+
+		return app->getModuleCamera()->getPosition();
+	}
+}
 
 EmitterInstance::EmitterInstance(ParticleEmitter* emitter, ParticleSystemComponent* owner) : m_emitter(emitter), m_owner(owner)
 {
@@ -38,6 +59,13 @@ void EmitterInstance::updateRemainingModules()
 	}
 
 	manageNewParticles();
+
+	auto& particlePool = app->getModuleParticleSystem()->getPool();
+	const Vector3 cameraPosition = getParticleSortCameraPosition();
+	for (auto& aliveParticle : m_aliveParticles)
+	{
+		aliveParticle.first = Vector3::DistanceSquared(particlePool[aliveParticle.second].position, cameraPosition);
+	}
 
 	// sort m_aliveParticles per distance (sqr) to the camera (first ones should be the farthest)
 	std::sort(m_aliveParticles.begin(), m_aliveParticles.end(), [](std::pair<float, unsigned int> a, std::pair<float, unsigned int> b) 
@@ -105,13 +133,9 @@ void EmitterInstance::freeParticleSlots()
 
 void EmitterInstance::manageNewParticles()
 {
-	auto& pool = app->getModuleParticleSystem()->getPool();
-	Vector3 cameraPosition = app->getModuleCamera()->getPosition();
-
 	for (auto particleIndex : m_newParticles) 
 	{
-		float distanceSqrToCamera = Vector3::DistanceSquared(pool[particleIndex].position, cameraPosition);
-		m_aliveParticles.push_back(std::make_pair(distanceSqrToCamera, particleIndex));
+		m_aliveParticles.push_back(std::make_pair(0.0f, particleIndex));
 	}
 
 	m_newParticles.clear();
