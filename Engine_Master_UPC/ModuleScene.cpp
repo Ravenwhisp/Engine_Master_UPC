@@ -383,7 +383,7 @@ const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers()
     {
         if (renderer && renderer->getOwner() && renderer->getOwner()->GetTransform() &&
             m_scene->containsGameObject(renderer->getOwner()) &&
-            renderer->getRenderMode() != RenderMode::DEFAULT)
+            renderer->getRenderMode() != RenderMode::DEFAULT && renderer->getRenderMode() != RenderMode::TRANSP)
         {
             meshRenderers.push_back(renderer);
         }
@@ -525,7 +525,7 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers()
                 continue;
 
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-            if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT)
+            if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT && renderer->getRenderMode() != RenderMode::TRANSP)
             {
                 visibleMeshRenderers.push_back(renderer);
             }
@@ -537,7 +537,7 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers()
                 continue;
 
             MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-            if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT)
+            if (renderer && renderer->getRenderMode() != RenderMode::DEFAULT && renderer->getRenderMode() != RenderMode::TRANSP)
             {
                 visibleMeshRenderers.push_back(renderer);
             }
