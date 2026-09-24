@@ -53,9 +53,9 @@ private:
 	ComPtr<ID3D12GraphicsCommandList4> m_commandList;
 
 	//Synchronization values
-	uint64_t m_frameIndex;
-	uint64_t m_fenceValues[FRAMES_IN_FLIGHT];
-	uint64_t m_lastCompletedFenceValue;
+	uint64_t m_frameIndex = 0;
+	uint64_t m_fenceValues[FRAMES_IN_FLIGHT] = {};
+	uint64_t m_lastCompletedFenceValue = 0;
 
 	std::unique_ptr<CommandQueue>	m_commandQueue;
 	SwapChain*						m_swapChain;

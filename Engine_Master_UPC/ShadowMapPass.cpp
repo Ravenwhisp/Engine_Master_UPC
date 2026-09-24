@@ -395,8 +395,7 @@ void ShadowMapPass::prepareDisabledShadowData(const RenderContext& ctx)
     {
         m_frameData.shadowCBAddress = ctx.ringBuffer->allocate(
             &shadowCB,
-            sizeof(ShadowDataCB),
-            app->getModuleD3D12()->getCurrentFrame());
+            sizeof(ShadowDataCB));
     }
 }
 

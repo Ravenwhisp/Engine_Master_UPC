@@ -141,8 +141,7 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
         PERF_RENDER("DeferredShadingPass::prepare::UploadLightsCB");
         m_lightsAddress = ctx.ringBuffer->allocate(
             &lightsCB,
-            sizeof(GPULightsConstantBuffer),
-            app->getModuleD3D12()->getCurrentFrame());
+            sizeof(GPULightsConstantBuffer));
     }
 
     m_pointLightIndexBufferAddress = ctx.lightCullingPointListAddress;
@@ -203,8 +202,7 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
         PERF_RENDER("DeferredShadingPass::prepare::UploadSceneDataCB");
         m_sceneDataCBAddress = ctx.ringBuffer->allocate(
             m_sceneDataCB.get(),
-            sizeof(SceneDataCB),
-            app->getModuleD3D12()->getCurrentFrame());
+            sizeof(SceneDataCB));
     }
 }
 

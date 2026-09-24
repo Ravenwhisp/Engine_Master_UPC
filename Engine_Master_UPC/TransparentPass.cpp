@@ -58,7 +58,7 @@ void TransparentPass::prepare(const RenderContext& ctx)
     GPULightsConstantBuffer lightsCB{};
     lightsCB = packLightsForGPU(app->getModuleScene()->getLightComponents(), m_lighting->ambientColor, m_lighting->ambientIntensity);
 
-    m_lightsAddress = ctx.ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
+    m_lightsAddress = ctx.ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer));
 
     m_hasShadowData = ctx.shadowData != nullptr;
 
@@ -84,7 +84,7 @@ void TransparentPass::prepare(const RenderContext& ctx)
     m_pointLightIndexBufferAddress = ctx.lightCullingPointListAddress;
     m_spotLightIndexBufferAddress = ctx.lightCullingSpotListAddress;
 
-    m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
+    m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB));
 
     m_hasSSAOData = false;
     m_ssaoSRV = {};

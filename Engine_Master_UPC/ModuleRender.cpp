@@ -417,7 +417,12 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
 
 D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInRingBuffer(const void* data, size_t size)
 {
-    return m_ringBuffer->allocate(data, size, app->getModuleD3D12()->getCurrentFrame());
+    return m_ringBuffer->allocate(data, size);
+}
+
+void ModuleRender::commitRingBufferAllocations(uint64_t fenceValue)
+{
+    m_ringBuffer->commitPendingAllocations(fenceValue);
 }
 
 //D3D12_GPU_VIRTUAL_ADDRESS ModuleRender::allocateInStructuredRingBuffer(const void* data, size_t size)

@@ -160,6 +160,7 @@ public:
     void createSceneRenderTargets(RenderSurface& surface, float width, float height);
 
     D3D12_GPU_VIRTUAL_ADDRESS allocateInRingBuffer(const void* data, size_t size);
+    void commitRingBufferAllocations(uint64_t fenceValue);
     //D3D12_GPU_VIRTUAL_ADDRESS allocateInStructuredRingBuffer(const void* data, size_t size);
 
     int getTrianglesCount() const;
