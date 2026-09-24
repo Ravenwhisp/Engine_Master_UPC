@@ -586,7 +586,7 @@ void DebugDrawPass::prepare(const RenderContext& ctx)
         m_tempDrawables.push_back(app->getModuleNavigation()->getAsDebugDrawable());
     }
 
-    const bool includeScriptDebug = (ctx.viewType == RenderViewType::Editor) || settings->debugGame.showScriptDebug;
+    const bool includeScriptDebug = settings->debugDraw.showScriptGizmos && ((ctx.viewType == RenderViewType::Editor) || settings->debugGame.showScriptDebug);
 
     if (includeScriptDebug)
     {

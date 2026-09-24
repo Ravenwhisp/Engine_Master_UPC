@@ -47,6 +47,11 @@ struct WindowSceneEditorSettings
     bool showCameraFrustum = false;
 };
 
+struct DebugDrawSettings
+{
+    bool showScriptGizmos = DEFAULT_DEBUG;
+};
+
 struct FrustumCullingSettings
 {
     bool enabled = false;
@@ -75,6 +80,7 @@ public:
     EngineInformation engine;
     CameraSettings camera;
     WindowSceneEditorSettings sceneEditor;
+    DebugDrawSettings debugDraw;
     FrustumCullingSettings frustumCulling;
     DebugGame debugGame;
 
