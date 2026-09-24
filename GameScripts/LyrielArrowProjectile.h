@@ -3,6 +3,8 @@
 #include "ScriptAPI.h"
 #include "ProjectileBase.h"
 
+class LyrielParticles;
+
 class LyrielArrowProjectile : public ProjectileBase
 {
     DECLARE_SCRIPT(LyrielArrowProjectile)
@@ -13,7 +15,8 @@ public:
     void Update() override;
     FieldList getExposedFields() const override;
 
-    void launch(const Vector3& start_position, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage);
+    void launch(const Vector3& startPosition, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage);
+
     void resetProjectile() override;
 
 private:
@@ -22,12 +25,15 @@ private:
     void activateEmbeddedParticles();
     void stopEmbeddedParticles();
 
+    LyrielParticles* getLyrielParticles() const;
+
 public:
     std::string m_legacyParticlePath;
     PrefabRef m_particlePrefab;
 
 private:
     Vector3 m_direction = Vector3::Zero;
+
     float m_speed = 0.0f;
     float m_currentLifetime = 0.0f;
     float m_lifeTimer = 0.0f;

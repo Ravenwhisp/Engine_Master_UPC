@@ -21,14 +21,13 @@ public:
     void OnStateUpdate() override;
     void OnStateExit() override;
 
-    FieldList getExposedFields() const override;
-
 private:
     void applyHit();
     void goToRecover();
 
 public:
-    // -1 = right side, +1 = left side.
+    // -1 = left side
+    // +1 = right side
     int m_sweepSide = 1;
 
 private:

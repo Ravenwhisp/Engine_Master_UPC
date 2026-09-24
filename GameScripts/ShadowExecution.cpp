@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "ShadowExecution.h"
 
+#include "ParticleLifecycle.h"
 #include "ReaperGauge.h"
 #include "DeathCharacter.h"
 #include "LyrielCharacter.h"
@@ -66,11 +67,24 @@ void ShadowExecution::Start()
     cachePlayers();
 }
 
+void ShadowExecution::OnGameStop()
+{
+    for (SpawnedPrefab& prefab : m_temporaryPrefabs)
+    {
+        if (prefab.gameObject != nullptr && SceneAPI::containsGameObject(prefab.gameObject))
+        {
+            GameObjectAPI::removeGameObject(prefab.gameObject);
+        }
+    }
+
+    m_temporaryPrefabs.clear();
+}
+
 void ShadowExecution::Update()
 {
     const float dt = Time::getDeltaTime();
 
-    // Actualizar y eliminar los prefabs de partículas cuando pase 1 segundo
+    // Update and remove spawned VFX after their configured cleanup time.
     for (auto it = m_temporaryPrefabs.begin(); it != m_temporaryPrefabs.end(); )
     {
         it->lifetimeRemaining -= dt;
@@ -216,10 +230,12 @@ void ShadowExecution::beginExecution()
         m_sound->playShadowExecution();
     }
 
-    GameObject* fxCenter = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_id, m_center, Vector3::Zero);
+    GameObject* fxCenter = GameObjectAPI::instantiatePrefab(m_particlePrefab.m_id, m_center, Vector3::Zero, ParticleLifecycle::getRuntimeVfxContainer());
     if (fxCenter)
     {
-        m_temporaryPrefabs.push_back({ fxCenter, 1.0f });
+        // m_temporaryPrefabs is the sole lifetime owner of this instance.
+        ParticleLifecycle::disableSelfDestruct(fxCenter);
+        m_temporaryPrefabs.push_back({ fxCenter, m_shadowExecutionConfig->m_vfxLifetime });
     }
 
     lockPlayers(true);

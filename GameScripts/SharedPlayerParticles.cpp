@@ -32,7 +32,7 @@ void SharedPlayerParticles::ensureDamageParticle()
     }
 
     const Vector3 spawnPosition = m_ownerTransform != nullptr ? TransformAPI::getGlobalPosition(m_ownerTransform) : Vector3::Zero;
-    ParticleLifecycle::ensurePersistent(m_activeDamageParticle, m_damageParticlePrefab.m_id, spawnPosition, Vector3::Zero, nullptr);
+    ParticleLifecycle::ensurePersistent(m_activeDamageParticle, m_damageParticlePrefab.m_id, spawnPosition, Vector3::Zero, getOwner());
 
     if (m_activeDamageParticle != nullptr)
     {

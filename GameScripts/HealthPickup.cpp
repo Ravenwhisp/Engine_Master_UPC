@@ -2,6 +2,7 @@
 #include "HealthPickup.h"
 #include "PlayerDamageable.h"
 #include "CooperativeSound.h"
+#include "ParticleLifecycle.h"
 
 #include <cmath>
 
@@ -15,6 +16,7 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(HealthPickup, Pickup,
     SERIALIZED_FLOAT(m_idleSpeed, "Idle Speed",          0.0f,  10.0f, 0.05f),
     SERIALIZED_FLOAT(m_horizontalAmplitude, "Horizontal Amplitude",0.0f,   3.0f, 0.05f),
     SERIALIZED_FLOAT(m_verticalAmplitude, "Vertical Amplitude",  0.0f,   3.0f, 0.05f),
+    SERIALIZED_FLOAT(m_dissolveDuration, "Dissolve Duration", 0.1f, 5.0f, 0.05f)
 )
 
 HealthPickup::HealthPickup(GameObject* owner)
@@ -24,6 +26,14 @@ HealthPickup::HealthPickup(GameObject* owner)
 
 void HealthPickup::Start()
 {
+    m_dissolveComponents.clear();
+    cacheDissolveComponents(GameObjectAPI::getTransform(getOwner()));
+
+    if (m_dissolveComponents.empty())
+    {
+        Debug::warn("[HealthPickup] No Dissolve components found on '%s'.", GameObjectAPI::getName(getOwner()));
+    }
+
     Transform* t        = GameObjectAPI::getTransform(getOwner());
     m_fallStartPosition = TransformAPI::getGlobalPosition(t);  // already at arc origin
 
@@ -55,8 +65,15 @@ void HealthPickup::Start()
 
 void HealthPickup::Update()
 {
+    if (m_destroyQueued)
+    {
+        GameObjectAPI::removeGameObject(getOwner());
+        return;
+    }
+
     if (m_collected)
     {
+        updatePickupDissolve();
         return;
     }
 
@@ -69,6 +86,7 @@ void HealthPickup::Update()
         idleAnimation();
     }
 }
+
 void HealthPickup::OnTriggerEnter(GameObject* player)
 {
     Debug::log("HealthPickup triggered by %s", GameObjectAPI::getName(player));
@@ -97,6 +115,9 @@ void HealthPickup::OnTriggerEnter(GameObject* player)
 
     Debug::log("Player %s can collect health pickup, healing for %f", GameObjectAPI::getName(player), m_healAmount);
 
+    m_collected = true;
+    m_dissolveTimer = 0.0f;
+
     damageable->heal(m_healAmount);
 
     if (m_cooperativeSound != nullptr)
@@ -108,10 +129,8 @@ void HealthPickup::OnTriggerEnter(GameObject* player)
     {
         Transform* t = GameObjectAPI::getTransform(getOwner());
         Vector3 spawnPosition = t != nullptr ? TransformAPI::getGlobalPosition(t) : Vector3::Zero;
-        GameObjectAPI::instantiatePrefab(m_collectParticlePrefab.m_id, spawnPosition, Vector3::Zero, nullptr);
+        GameObjectAPI::instantiatePrefab(m_collectParticlePrefab.m_id, spawnPosition, Vector3::Zero, ParticleLifecycle::getRuntimeVfxContainer());
     }
-
-    Pickup::OnTriggerEnter(player);
 }
 
 void HealthPickup::setupDrop(float healAmount, const Vector3& landingPosition)
@@ -155,6 +174,54 @@ void HealthPickup::idleAnimation()
     position.y = m_startPosition.y + std::abs(std::sin(t * 2.0f)) * m_verticalAmplitude;
 
     TransformAPI::setGlobalPosition(GameObjectAPI::getTransform(getOwner()), position);
+}
+
+void HealthPickup::cacheDissolveComponents(Transform* transform)
+{
+    if (!transform)
+    {
+        return;
+    }
+
+    GameObject* object = ComponentAPI::getOwner(transform);
+
+    if (DissolveComponent* dissolve = ShadersAPI::getDissolveComponent(object))
+    {
+        m_dissolveComponents.push_back(dissolve);
+        ShadersAPI::setDissolveAmount(dissolve, 0.0f);
+    }
+
+    const int childCount = TransformAPI::getChildCount(transform);
+
+    for (int i = 0; i < childCount; ++i)
+    {
+        cacheDissolveComponents(TransformAPI::getChild(transform, i));
+    }
+}
+
+void HealthPickup::updatePickupDissolve()
+{
+    if (m_dissolveComponents.empty())
+    {
+        m_destroyQueued = true;
+        return;
+    }
+
+    m_dissolveTimer += Time::getDeltaTime();
+
+    const bool finished = m_dissolveDuration <= 0.0f || m_dissolveTimer >= m_dissolveDuration;
+
+    const float amount = finished ? 1.0f : m_dissolveTimer / m_dissolveDuration;
+
+    for (DissolveComponent* dissolve : m_dissolveComponents)
+    {
+        ShadersAPI::setDissolveAmount(dissolve, amount);
+    }
+
+    if (finished)
+    {
+        m_destroyQueued = true;
+    }
 }
 
 

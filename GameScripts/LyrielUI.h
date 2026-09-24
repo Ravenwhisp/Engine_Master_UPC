@@ -16,6 +16,11 @@ public:
 	FieldList getExposedFields() const override;
 
 public:
+	// Basic Attack Aim
+	void showBasicAttackUI();
+	void updateBasicAttackUI(const Vector3& origin, const Vector3& aimDirection);
+	void hideBasicAttackUI();
+
 	// Charged Attack
 	void showChargedAttackUI();
 	void updateChargedAttackUI(const Vector3& origin, const Vector3& aimDirection, float range);
@@ -39,6 +44,11 @@ public:
 	float m_uiScaleSpeed = 8.0f;
 
 private:
+	// Basic Attack Aim
+	ComponentRef<Transform> m_basicAttackUI;
+	Transform* m_basicAttackUITransform = nullptr;
+	float m_basicAttackYawOffset = 0.0f;
+
 	// Charged Attack
 	ComponentRef<Transform> m_chargedAttackUI;
 	Transform* m_chargedAttackUITransform = nullptr;

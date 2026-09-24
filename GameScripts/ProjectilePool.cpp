@@ -76,7 +76,7 @@ bool ProjectilePool::createProjectile()
 
 	if (!projectile)
 	{
-		GameObjectAPI::setActive(projectileObject, false);
+		GameObjectAPI::removeGameObject(projectileObject);
 		return false;
 	}
 

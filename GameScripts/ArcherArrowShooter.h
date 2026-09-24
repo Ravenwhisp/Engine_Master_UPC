@@ -13,7 +13,11 @@ public:
     explicit ArcherArrowShooter(GameObject* owner);
     void Start()  override;
     void Update() override;
+    void OnGameStop() override;
     FieldList getExposedFields() const override;
+
+    // Destroys the in-flight arrow and its sparks. Called on enemy death and OnGameStop.
+    void releaseRuntimeParticles();
 
     PrefabRef m_arrowPrefab;
 

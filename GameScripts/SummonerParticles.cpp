@@ -18,6 +18,11 @@ SummonerParticles::SummonerParticles(GameObject* owner)
 
 void SummonerParticles::OnGameStop()
 {
+    releaseRuntimeParticles();
+}
+
+void SummonerParticles::releaseRuntimeParticles()
+{
     m_timedParticles.clear();
 }
 
@@ -64,21 +69,18 @@ void SummonerParticles::spawnTeleportBurst(const Vector3& position)
         return;
     }
 
-    GameObject* teleportInstance = ParticleLifecycle::spawnOneShot(
+    GameObject* teleportInstance = ParticleLifecycle::spawnOneShotTimed(
+        m_timedParticles,
         m_teleportParticlePrefab.m_id,
         position,
-        getOwnerRotation()
+        getOwnerRotation(),
+        m_teleportDeactivateDelay
     );
 
     if (teleportInstance == nullptr)
     {
         Debug::warn("[SummonerParticles] Could not instantiate teleport particle on '%s'.", GameObjectAPI::getName(getOwner()));
-        return;
     }
-
-    ParticleLifecycle::disableSelfDestruct(teleportInstance);
-    ParticleLifecycle::activateTimed(m_timedParticles, teleportInstance, m_teleportDeactivateDelay);
-    m_timedParticles.scheduleDestroy(teleportInstance, m_teleportDeactivateDelay + 0.05f);
 }
 
 Vector3 SummonerParticles::getOwnerRotation() const

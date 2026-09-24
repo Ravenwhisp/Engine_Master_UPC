@@ -4,6 +4,15 @@
 #include "HealthDropSpawner.h"
 #include "EnemySound.h"
 #include "EnemyDamageable.h"
+#include "SharedEnemyParticles.h"
+#include "SkeletonParticles.h"
+#include "ArcherGuardParticles.h"
+#include "PaladinVFX.h"
+#include "ArthurParticles.h"
+#include "SummonerParticles.h"
+#include "EnemyStunParticles.h"
+#include "EnemyAttackExecutor.h"
+#include "ArcherArrowShooter.h"
 
 IMPLEMENT_SCRIPT_FIELDS(EnemyDeathState,
 	SERIALIZED_FLOAT(m_dissolveDelay, "Dissolve Delay", 0.0f, 30.0f, 0.1f),
@@ -59,8 +68,6 @@ void EnemyDeathState::OnStateUpdate()
 		return;
 	}
 
-	m_deathTimer -= Time::getDeltaTime();
-
 	if (!m_dissolveStarted)
 	{
 		m_deathTimer -= Time::getDeltaTime();
@@ -109,8 +116,60 @@ void EnemyDeathState::onDeathFinished()
 
 void EnemyDeathState::startDestroyCountdown(float delay)
 {
+	cleanupRuntimeParticles();
+
 	m_waitingToDestroy = true;
 	m_deathTimer = delay;
+}
+
+void EnemyDeathState::cleanupRuntimeParticles()
+{
+	GameObject* owner = getOwner();
+
+	if (SharedEnemyParticles* particles = GameObjectAPI::findScript<SharedEnemyParticles>(owner))
+	{
+		particles->releaseRuntimeParticles();
+	}
+
+	if (SkeletonParticles* particles = GameObjectAPI::findScript<SkeletonParticles>(owner))
+	{
+		particles->releaseRuntimeParticles();
+	}
+
+	if (ArcherGuardParticles* particles = GameObjectAPI::findScript<ArcherGuardParticles>(owner))
+	{
+		particles->releaseRuntimeParticles();
+	}
+
+	if (PaladinVFX* particles = GameObjectAPI::findScript<PaladinVFX>(owner))
+	{
+		particles->releaseRuntimeParticles();
+	}
+
+	if (ArthurParticles* particles = GameObjectAPI::findScript<ArthurParticles>(owner))
+	{
+		particles->releaseRuntimeParticles();
+	}
+
+	if (SummonerParticles* particles = GameObjectAPI::findScript<SummonerParticles>(owner))
+	{
+		particles->releaseRuntimeParticles();
+	}
+
+	if (EnemyStunParticles* particles = GameObjectAPI::findScript<EnemyStunParticles>(owner))
+	{
+		particles->releaseRuntimeParticles();
+	}
+
+	if (EnemyAttackExecutor* executor = GameObjectAPI::findScript<EnemyAttackExecutor>(owner))
+	{
+		executor->releaseRuntimeParticles();
+	}
+
+	if (ArcherArrowShooter* shooter = GameObjectAPI::findScript<ArcherArrowShooter>(owner))
+	{
+		shooter->releaseRuntimeParticles();
+	}
 }
 
 void EnemyDeathState::destroyEnemyNow()

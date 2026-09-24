@@ -77,8 +77,6 @@ protected:
 
 	UISlider* m_healthBarSlider = nullptr;
 	UISlider* m_healthBar2Slider = nullptr;
-	GameObject* m_healthBarSliderOwner = nullptr;
-	GameObject* m_healthBar2SliderOwner = nullptr;
 
 private:
     float m_uiTimer = 0.0f;

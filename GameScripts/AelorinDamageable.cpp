@@ -2,8 +2,18 @@
 #include "AelorinDamageable.h"
 
 #include "AelorinBossController.h"
+#include "AelorinAttackConfig.h"
+#include "Transform2D.h"
 
 #include <algorithm>
+#include <cmath>
+
+IMPLEMENT_SCRIPT_FIELDS_INHERITED(AelorinDamageable, EnemyDamageable,
+    FIELD_GROUP_LABEL("Phase 2 Health Bar"),
+    SERIALIZED_COMPONENT_REF(m_phase2HealthBarContainer, "Health Bar Container Phase 2", ComponentType::TRANSFORM2D),
+    SERIALIZED_COMPONENT_REF(m_phase2HealthSlider, "Health Slider Phase 2", ComponentType::UISLIDER),
+    SERIALIZED_COMPONENT_REF(m_phase2HealthSlider2, "Health Slider 2 Phase 2", ComponentType::UISLIDER)
+)
 
 AelorinDamageable::AelorinDamageable(GameObject* owner)
     : EnemyDamageable(owner)
@@ -20,13 +30,27 @@ void AelorinDamageable::Start()
     {
         Debug::warn("[AelorinDamageable] AelorinBossController not found.");
     }
+    else
+    {
+        const AelorinAttackConfig* config = m_controller->getAelorinAttackConfig();
+        if (config)
+        {
+            m_maxHp = config->m_phase1MaxHp;
+            m_currentHp = m_maxHp;
+
+            // Refresh current HP bar after changing max HP
+            setHealthBarContainerActive(getHealthBarContainerTransform(), true);
+            setHealthBarContainerActive(m_phase2HealthBarContainer.getReferencedComponent(), false);
+            setupUI();
+        }
+    }
 
     m_currentThresholdIndex = 0;
     m_thresholdLocked = false;
     m_phaseTransitionPending = false;
     m_allowFinalDeath = false;
 
-    Debug::log("[AelorinDamageable] Started. First threshold: %.0f%%", getCurrentThresholdPercent() * 100.0f);
+    Debug::log("[AelorinDamageable] Phase 1 started. HP: %.0f / %.0f", m_currentHp, m_maxHp);
 }
 
 void AelorinDamageable::takeDamage(float amount)
@@ -290,7 +314,12 @@ void AelorinDamageable::requestPhaseTransition()
 void AelorinDamageable::beginPhase2()
 {
     // Controller must set its phase to Phase2 before calling this function
-    m_currentHp = getMaxHp();
+    const AelorinAttackConfig* config = m_controller ? m_controller->getAelorinAttackConfig() : nullptr;
+    if (config)
+    {
+        m_maxHp = config->m_phase2MaxHp;
+        m_currentHp = m_maxHp;
+    }
 
     m_currentThresholdIndex = 0;
     m_thresholdLocked = false;
@@ -298,7 +327,47 @@ void AelorinDamageable::beginPhase2()
     m_allowFinalDeath = false;
     m_isDead = false;
 
-    Debug::log("[AelorinDamageable] Phase 2 initialized. First threshold: %.0f%%", getCurrentThresholdPercent() * 100.0f);
+    setupPhase2HealthBar();
+
+    Debug::log("[AelorinDamageable] Phase 2 initialized. HP: %.0f / %.0f | First threshold: %.0f%%", m_currentHp, m_maxHp, getCurrentThresholdPercent() * 100.0f);
+}
+
+bool AelorinDamageable::hasActiveThresholdAt(float percent) const
+{
+    constexpr float tolerance = 0.001f;
+
+    // 0% threshold has special behaviour
+    if (std::abs(percent) <= tolerance)
+    {
+        if (m_controller && m_controller->isPhase2())
+        {
+            // Final Death has been broken
+            if (m_allowFinalDeath)
+            {
+                return false;
+            }
+        }
+        else
+        {
+            // Phase transition broken
+            if (m_phaseTransitionPending)
+            {
+                return false;
+            }
+        }
+    }
+
+    const std::vector<AelorinThreshold>& thresholds = getActiveThresholds();
+
+    for (std::size_t i = m_currentThresholdIndex; i < thresholds.size(); ++i)
+    {
+        if (std::abs(thresholds[i].percent - percent) <= tolerance)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void AelorinDamageable::handleFinalDeath(const EnemyHitContext& ctx)
@@ -319,6 +388,33 @@ void AelorinDamageable::handleFinalDeath(const EnemyHitContext& ctx)
     Debug::log("[AelorinDamageable] Final Shadow Execution received. Death is allowed.");
 
     applyDamageWithoutShadowMark(finalHit);
+}
+
+void AelorinDamageable::setupPhase2HealthBar()
+{
+    Transform2D* phase1Container = getHealthBarContainerTransform();
+    Transform2D* phase2Container = m_phase2HealthBarContainer.getReferencedComponent();
+
+    setHealthBarContainerActive(phase1Container, false);
+    setHealthBarContainerActive(phase2Container, true);
+
+    bindHealthBarUI(phase2Container, m_phase2HealthSlider.getReferencedComponent(), m_phase2HealthSlider2.getReferencedComponent());
+}
+
+void AelorinDamageable::setHealthBarContainerActive(Transform2D* container, bool active)
+{
+    if (!container)
+    {
+        return;
+    }
+
+    GameObject* object = container->getOwner();
+    if (!object)
+    {
+        return;
+    }
+
+    GameObjectAPI::setActive(object, active);
 }
 
 void AelorinDamageable::onHpDepleted()

@@ -23,6 +23,13 @@ public:
 
     void setupDrop(float healAmount, const Vector3& landingPosition);
 
+private:
+    void idleAnimation();
+    void fallAnimation();
+
+    void cacheDissolveComponents(Transform* transform);
+    void updatePickupDissolve();
+
 public:
     float   m_healAmount            = 10.0f;
     PrefabRef m_collectParticlePrefab;
@@ -31,10 +38,6 @@ public:
     float   m_fallGravity           = 8.0f;
     Vector3 m_landingPosition       = Vector3::Zero;  // target floor position, set by spawner
     bool    m_hasCustomSpawnFrom    = false;
-
-private:
-    void idleAnimation();
-    void fallAnimation();
 
 private:
     bool    m_isFalling             = true;
@@ -50,4 +53,9 @@ private:
     float m_idleSpeed               = 0.2f;
     float m_horizontalAmplitude     = 0.1f;
     float m_verticalAmplitude       = 0.2f;
+
+    std::vector<DissolveComponent*> m_dissolveComponents;
+    float m_dissolveDuration = 0.5f;
+    float m_dissolveTimer = 0.0f;
+    bool m_destroyQueued = false;
 };

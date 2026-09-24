@@ -32,6 +32,11 @@ protected:
 	void destroyEnemyNow();
 	void startDestroyCountdown(float delay);
 
+	// Releases every runtime particle owned by scripts on this enemy. The
+	// engine has no per-object destroy callback, so death must clean up
+	// explicitly before the owner is removed.
+	void cleanupRuntimeParticles();
+
 protected:
 	float m_dissolveDelay = 2.0f;
 	float m_deathTimer = 0.0f;

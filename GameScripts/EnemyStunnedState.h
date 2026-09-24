@@ -24,5 +24,4 @@ private:
 	AnimationComponent* m_animation = nullptr;
 	EnemySound* m_enemySound = nullptr;
     EnemyStunParticles*   m_stunParticles = nullptr;
-	float m_stateTimer = 0.0f;
 };

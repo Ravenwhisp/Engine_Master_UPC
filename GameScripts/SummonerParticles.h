@@ -20,6 +20,9 @@ public:
     void playSummonParticle(const Vector3& position);
     void playTeleportParticle(const Vector3& position);
 
+    // Destroys every runtime particle owned by this script. Safe to call more than once.
+    void releaseRuntimeParticles();
+
 private:
     void spawnSummonParticle(const Vector3& position);
     void spawnTeleportBurst(const Vector3& position);

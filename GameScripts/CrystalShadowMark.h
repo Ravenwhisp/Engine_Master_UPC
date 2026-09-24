@@ -41,6 +41,8 @@ private:
     PuzzleManagerLVL2* managerScript2 = nullptr;
     CrystalVisuals* m_visualsController = nullptr;
 
+	GameObject* m_owner = nullptr;
+
     bool m_activated = false;
     bool m_puzzleCompleted = false;
     bool m_activatedLoopStarted = false;

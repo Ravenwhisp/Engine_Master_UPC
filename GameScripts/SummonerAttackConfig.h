@@ -17,6 +17,7 @@ public:
 
     // Teleport
     float m_teleportCooldown = 12.0f;
+    float m_teleportRetryDelay = 0.5f;
     float m_teleportRadius = 6.0f;
     float m_teleportMinPlayerDistance = 5.0f;
 
@@ -36,6 +37,7 @@ public:
     IMPLEMENT_DATACONTAINER_FIELDS_INHERITED(SummonerAttackConfig, EnemyBaseAttackConfig,
         FIELD_GROUP_COLLAPSE("Teleport",
             SERIALIZED_FLOAT(m_teleportCooldown, "Teleport Cooldown", 0.0f, 30.0f, 0.1f),
+            SERIALIZED_FLOAT(m_teleportRetryDelay, "Teleport Retry Delay", 0.1f, 5.0f, 0.1f),
             SERIALIZED_FLOAT(m_teleportRadius, "Teleport Radius", 0.0f, 30.0f, 0.1f),
             SERIALIZED_FLOAT(m_teleportMinPlayerDistance, "Min Player Distance", 0.0f, 20.0f, 0.1f)
         ),

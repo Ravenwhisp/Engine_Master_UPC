@@ -30,8 +30,8 @@ public:
 	void SetTauntActive(const Vector3& direction);
 	void SetTauntInactive();
 
-	void playHitFlash(const Vector3& position);
-	void playChargedHitFlash(const Vector3& position);
+	void playHitFlash(const Vector3& position, GameObject* target);
+	void playChargedHitFlash(const Vector3& position, GameObject* target);
 
 	ComponentRef<Transform> m_dashTrail;
 	ComponentRef<Transform> m_scytheTrail;

@@ -16,7 +16,6 @@ public:
     float m_maxHp = 100.0f;
     float m_shadowExecutionThresholdMultiplier = 1.0f;
     float m_recoveryDuration = 0.75f;
-    float m_stunnedDuration = 2.0f;
     float m_moveSpeed = 3.5f;
 
     IMPLEMENT_DATACONTAINER_FIELDS(EnemyBaseDataConfig,
@@ -25,8 +24,7 @@ public:
             SERIALIZED_FLOAT(m_shadowExecutionThresholdMultiplier, "Shadow Execution Threshold Multiplier (40 % base)", 0.0f, 1.0f, 0.05f)
         ),
         FIELD_GROUP_COLLAPSE("Combat",
-            SERIALIZED_FLOAT(m_recoveryDuration, "Recovery Duration", 0.0f, 10.0f, 0.05f),
-            SERIALIZED_FLOAT(m_stunnedDuration, "Stunned Duration", 0.0f, 10.0f, 0.05f)
+            SERIALIZED_FLOAT(m_recoveryDuration, "Recovery Duration", 0.0f, 10.0f, 0.05f)
         ),
         FIELD_GROUP_COLLAPSE("Movement",
             SERIALIZED_FLOAT(m_moveSpeed, "Move Speed", 0.0f, 50.0f, 0.1f)

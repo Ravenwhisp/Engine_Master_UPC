@@ -2,11 +2,23 @@
 #include "AelorinUI.h"
 
 #include "Transform2D.h"
+#include "AelorinDamageable.h"
+#include "AelorinBossController.h"
 
 #include <algorithm>
 #include <cmath>
 
 IMPLEMENT_SCRIPT_FIELDS(AelorinUI,
+	FIELD_GROUP_COLLAPSE("Health Threshold Markers",
+		SERIALIZED_COMPONENT_REF(m_healthPhase1Marker50, "Phase 1 - 50% Marker", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthPhase1Marker0, "Phase 1 - 0% Marker", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthPhase2Marker70, "Phase 2 - 70% Marker", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthPhase2Marker45, "Phase 2 - 45% Marker FURY", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthPhase2Marker25, "Phase 2 - 25% Marker", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthPhase2Marker10, "Phase 2 - 10% Marker FURY", ComponentType::TRANSFORM2D),
+		SERIALIZED_COMPONENT_REF(m_healthPhase2Marker0, "Phase 2 - 0% Marker", ComponentType::TRANSFORM2D)
+	),
+
 	FIELD_GROUP_COLLAPSE("Seeker Sigils",
 		SERIALIZED_COMPONENT_REF(m_seekerSigilsUICanvas, "Seeker Sigils UI Canvas", ComponentType::TRANSFORM),
 		SERIALIZED_COMPONENT_REF(m_seekerSigilsUIContainer, "Seeker Sigils UI Container", ComponentType::TRANSFORM2D),
@@ -132,6 +144,9 @@ void AelorinUI::Start()
 
 	setupSoulCataclysmSafeZonesUI();
 	hideSoulCataclysmUI();
+
+	// Health
+	setupHealthUI();
 }
 
 void AelorinUI::Update()
@@ -144,6 +159,43 @@ void AelorinUI::Update()
 	updateSpiritCannonUI(deltaTime);
 	updateGraspOfTheDeadUI(deltaTime);
 	updateSoulCataclysmUI(deltaTime);
+	updateHealthMarkers();
+}
+
+void AelorinUI::setupHealthUI()
+{
+	m_aelorinDamageable = GameObjectAPI::findScript<AelorinDamageable>(getOwner());
+	m_aelorinController = GameObjectAPI::findScript<AelorinBossController>(getOwner());
+	
+	m_healthPhase1Marker50Transform2D = m_healthPhase1Marker50.getReferencedComponent();
+	m_healthPhase1Marker0Transform2D = m_healthPhase1Marker0.getReferencedComponent();
+
+	m_healthPhase2Marker70Transform2D = m_healthPhase2Marker70.getReferencedComponent();
+	m_healthPhase2Marker45Transform2D = m_healthPhase2Marker45.getReferencedComponent();
+	m_healthPhase2Marker25Transform2D = m_healthPhase2Marker25.getReferencedComponent();
+	m_healthPhase2Marker10Transform2D = m_healthPhase2Marker10.getReferencedComponent();
+	m_healthPhase2Marker0Transform2D = m_healthPhase2Marker0.getReferencedComponent();
+
+	updateHealthMarkers();
+}
+
+void AelorinUI::updateHealthMarkers()
+{
+	if (!m_aelorinDamageable || !m_aelorinController)
+	{
+		return;
+	}
+
+	const bool phase2 = m_aelorinController->isPhase2();
+
+	setHealthMarkerVisible(m_healthPhase1Marker50Transform2D, !phase2 && m_aelorinDamageable->hasActiveThresholdAt(0.50f));
+	setHealthMarkerVisible(m_healthPhase1Marker0Transform2D, !phase2 && m_aelorinDamageable->hasActiveThresholdAt(0.0f));
+
+	setHealthMarkerVisible(m_healthPhase2Marker70Transform2D, phase2 && m_aelorinDamageable->hasActiveThresholdAt(0.70f));
+	setHealthMarkerVisible(m_healthPhase2Marker45Transform2D, phase2 && m_aelorinDamageable->hasActiveThresholdAt(0.45f));
+	setHealthMarkerVisible(m_healthPhase2Marker25Transform2D, phase2 && m_aelorinDamageable->hasActiveThresholdAt(0.25f));
+	setHealthMarkerVisible(m_healthPhase2Marker10Transform2D, phase2 && m_aelorinDamageable->hasActiveThresholdAt(0.10f));
+	setHealthMarkerVisible(m_healthPhase2Marker0Transform2D, phase2 && m_aelorinDamageable->hasActiveThresholdAt(0.0f));
 }
 
 void AelorinUI::showSeekerSigilsUI(const Vector3& impactPosition, float radius, float telegraphDuration)
@@ -517,6 +569,16 @@ void AelorinUI::showSoulCataclysmUI(const Vector3& center, float radius, Transfo
 
 		slot->active = true;
 	}
+}
+
+void AelorinUI::setHealthMarkerVisible(Transform2D* marker, bool visible)
+{
+	if (!marker)
+	{
+		return;
+	}
+
+	Transform2DAPI::setAlpha(marker, visible ? 1.0f : 0.0f);
 }
 
 void AelorinUI::setupSeekerSigilsUI()

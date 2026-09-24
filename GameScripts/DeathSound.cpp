@@ -5,28 +5,28 @@ namespace
 {
     constexpr const char* k_bank = "BoundByDeath.bnk";
 
-    constexpr const char* k_lightSwing      = "Play_Death_Light_Swing";
-    constexpr const char* k_lightImpact     = "Play_Death_Light_Impact";
-    constexpr const char* k_heavySwing      = "Play_Death_Heavy_Swing";
-    constexpr const char* k_heavyImpact     = "Play_Death_Heavy_Impact";
-    constexpr const char* k_chargeRelease   = "Play_Death_Charge_Release";
-    constexpr const char* k_dashWhoosh      = "Play_Death_Dash_Whoosh";
-    constexpr const char* k_dashImpact      = "Play_Death_Dash_Impact";
-    constexpr const char* k_tauntShout      = "Play_Death_Taunt_Shout";
-    constexpr const char* k_markApply       = "Play_Death_Mark_Apply";
-    constexpr const char* k_hurt            = "Play_Death_Hurt";
-    constexpr const char* k_down            = "Play_Death_Down";
-    constexpr const char* k_revived         = "Play_Death_Revived";
-    constexpr const char* k_lockTarget      = "Play_Death_Lock_Target";
-    constexpr const char* k_switchTarget    = "Play_Death_Switch_Target";
+    constexpr const char* k_lightSwing = "Play_Death_Light_Swing";
+    constexpr const char* k_lightImpact = "Play_Death_Light_Impact";
+    constexpr const char* k_heavySwing = "Play_Death_Heavy_Swing";
+    constexpr const char* k_heavyImpact = "Play_Death_Heavy_Impact";
+    constexpr const char* k_chargeRelease = "Play_Death_Charge_Release";
+    constexpr const char* k_dashWhoosh = "Play_Death_Dash_Whoosh";
+    constexpr const char* k_dashImpact = "Play_Death_Dash_Impact";
+    constexpr const char* k_tauntShout = "Play_Death_Taunt_Shout";
+    constexpr const char* k_markApply = "Play_Death_Mark_Apply";
+    constexpr const char* k_hurt = "Play_Death_Hurt";
+    constexpr const char* k_down = "Play_Death_Down";
+    constexpr const char* k_revived = "Play_Death_Revived";
+    constexpr const char* k_lockTarget = "Play_Death_Lock_Target";
+    constexpr const char* k_switchTarget = "Play_Death_Switch_Target";
 
     constexpr const char* k_chargeLoopStart = "Play_Death_Charge_Loop";
-    constexpr const char* k_chargeLoopStop  = "Stop_Death_Charge_Loop";
-    constexpr const char* k_hoverLoopStart  = "Play_Death_Hover_Loop";
-    constexpr const char* k_hoverLoopStop   = "Stop_Death_Hover_Loop";
+    constexpr const char* k_chargeLoopStop = "Stop_Death_Charge_Loop";
+    constexpr const char* k_hoverLoopStart = "Play_Death_Hover_Loop";
+    constexpr const char* k_hoverLoopStop = "Stop_Death_Hover_Loop";
 
     // Tuned to match animation contact frame (swing windup → contact).
-    constexpr float k_impactDelay       = 0.20f;
+    constexpr float k_impactDelay = 0.20f;
     // R2 must be held this long before the charge loop actually starts to sound.
     // A quicker release (heavy swing without charge) plays no charge sound at all.
     constexpr float k_chargeLoopMinHold = 0.20f;
@@ -47,7 +47,7 @@ void DeathSound::Start()
     if (m_source == nullptr)
     {
         Debug::error("[DeathSound] No SOUND_SOURCE component on '%s'.",
-                     GameObjectAPI::getName(getOwner()));
+            GameObjectAPI::getName(getOwner()));
     }
 }
 
@@ -105,15 +105,15 @@ void DeathSound::postEventDelayed(const char* eventName, float delay)
     m_pendingEvents.push_back({ eventName, delay });
 }
 
-void DeathSound::playLightSwing()    { postEvent(k_lightSwing); }
-void DeathSound::playLightImpact()   { postEventDelayed(k_lightImpact, k_impactDelay); }
-void DeathSound::playHeavySwing()    { postEvent(k_heavySwing); }
-void DeathSound::playHeavyImpact()   { postEventDelayed(k_heavyImpact, k_impactDelay); }
+void DeathSound::playLightSwing() { postEvent(k_lightSwing); }
+void DeathSound::playLightImpact() { postEventDelayed(k_lightImpact, k_impactDelay); }
+void DeathSound::playHeavySwing() { postEvent(k_heavySwing); }
+void DeathSound::playHeavyImpact() { postEventDelayed(k_heavyImpact, k_impactDelay); }
 void DeathSound::playChargeRelease() { postEventDelayed(k_chargeRelease, k_impactDelay); }
-void DeathSound::playDashWhoosh()    { postEvent(k_dashWhoosh); }
-void DeathSound::playDashImpact()    { postEvent(k_dashImpact); }
-void DeathSound::playTauntShout()    { postEvent(k_tauntShout); }
-void DeathSound::playMarkApply()     { postEventDelayed(k_markApply, k_impactDelay); }
+void DeathSound::playDashWhoosh() { postEvent(k_dashWhoosh); }
+void DeathSound::playDashImpact() { postEvent(k_dashImpact); }
+void DeathSound::playTauntShout() { postEvent(k_tauntShout); }
+void DeathSound::playMarkApply() { postEventDelayed(k_markApply, k_impactDelay); }
 void DeathSound::playHurt()
 {
     if (m_hurtCooldownTimer > 0.0f)
@@ -123,10 +123,10 @@ void DeathSound::playHurt()
     postEvent(k_hurt);
     m_hurtCooldownTimer = k_hurtRetriggerCooldown;
 }
-void DeathSound::playDown()          { postEvent(k_down); }
-void DeathSound::playRevived()       { postEvent(k_revived); }
-void DeathSound::playLockTarget()    { postEvent(k_lockTarget); }
-void DeathSound::playSwitchTarget()  { postEvent(k_switchTarget); }
+void DeathSound::playDown() { postEvent(k_down); }
+void DeathSound::playRevived() { postEvent(k_revived); }
+void DeathSound::playLockTarget() { postEvent(k_lockTarget); }
+void DeathSound::playSwitchTarget() { postEvent(k_switchTarget); }
 
 void DeathSound::startChargeLoop()
 {

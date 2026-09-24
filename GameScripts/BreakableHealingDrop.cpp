@@ -36,6 +36,9 @@ void BreakableHealingDrop::onBreak()
         ? TransformAPI::getGlobalPosition(ownerTransform)
         : Vector3::Zero;
 
+    BreakableObject::breakObject();
+
+
     if (m_healthPickupPrefab.m_id.isValid())
     {
         for (int i = 0; i < m_healthDropQuantity; ++i)
@@ -60,12 +63,13 @@ void BreakableHealingDrop::onBreak()
     ParticleLifecycle::spawnOneShotTimed(
         m_timedBreakEffects,
         ObjectVfxIds::barrelHeal(),
-        getBreakEffectPosition()
+        getBreakEffectPosition(),
+        Vector3::Zero,
+        ParticleLifecycle::kDefaultOneShotLifetime,
+        getOwner()
     );
 
     EnvironmentSound::play(getOwner(), "Play_Environment_Barrel_Break");
-
-    BreakableObject::breakObject();
 }
 
 IMPLEMENT_SCRIPT(BreakableHealingDrop)

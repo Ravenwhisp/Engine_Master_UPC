@@ -2,6 +2,10 @@
 #include "LyrielUI.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(LyrielUI, CharacterUI,
+	FIELD_GROUP_LABEL("Basic Attack Aim"),
+	SERIALIZED_COMPONENT_REF(m_basicAttackUI, "Basic Attack Aim UI", ComponentType::TRANSFORM),
+	SERIALIZED_FLOAT(m_basicAttackYawOffset, "Basic Attack Yaw Offset (deg)", -360.0f, 360.0f, 5.0f),
+
 	FIELD_GROUP_LABEL("Charged Attack"),
 	SERIALIZED_COMPONENT_REF(m_chargedAttackUI, "Charged Attack UI", ComponentType::TRANSFORM),
 
@@ -26,6 +30,7 @@ void LyrielUI::Start()
 {
 	CharacterUI::Start();
 
+	m_basicAttackUITransform = m_basicAttackUI.getReferencedComponent();
 	m_chargedAttackUITransform = m_chargedAttackUI.getReferencedComponent();
 	m_arrowVolleyUITransform = m_arrowVolleyUI.getReferencedComponent();
 
@@ -37,8 +42,67 @@ void LyrielUI::Start()
 	m_charge2Scale = m_chargedScale;
 	m_charge3Scale = m_chargedScale;
 
+	hideBasicAttackUI();
 	hideChargedAttackUI();
 	hideArrowVolleyUI();
+}
+
+void LyrielUI::showBasicAttackUI()
+{
+	if (!m_basicAttackUITransform)
+	{
+		return;
+	}
+
+	GameObject* owner = m_basicAttackUITransform->getOwner();
+
+	if (!owner)
+	{
+		return;
+	}
+
+	GameObjectAPI::setActive(owner, true);
+}
+
+void LyrielUI::hideBasicAttackUI()
+{
+	if (!m_basicAttackUITransform)
+	{
+		return;
+	}
+
+	GameObject* owner = m_basicAttackUITransform->getOwner();
+
+	if (!owner)
+	{
+		return;
+	}
+
+	GameObjectAPI::setActive(owner, false);
+}
+
+void LyrielUI::updateBasicAttackUI(const Vector3& origin, const Vector3& aimDirection)
+{
+	if (!m_basicAttackUITransform)
+	{
+		return;
+	}
+
+	Vector3 flatDirection = aimDirection;
+	flatDirection.y = 0.0f;
+
+	if (flatDirection.LengthSquared() <= 0.0001f)
+	{
+		return;
+	}
+
+	flatDirection.Normalize();
+
+	const float yawRad = std::atan2(flatDirection.x, flatDirection.z);
+	const float targetYawDeg = yawRad * (180.0f / 3.14159265f) + m_basicAttackYawOffset;
+
+	TransformAPI::setGlobalPosition(m_basicAttackUITransform, origin);
+	TransformAPI::setGlobalRotationEuler(m_basicAttackUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
 }
 
 void LyrielUI::showChargedAttackUI()

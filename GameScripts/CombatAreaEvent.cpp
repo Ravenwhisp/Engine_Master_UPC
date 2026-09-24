@@ -4,6 +4,7 @@
 #include "GameplayEventTrigger.h"
 #include "Damageable.h"
 #include "ObjectVfxIds.h"
+#include "ParticleManager.h"
 
 IMPLEMENT_SCRIPT_FIELDS(CombatAreaEvent,
     SERIALIZED_COMPONENT_REF_VECTOR(m_enemies, "Enemies", ComponentType::TRANSFORM),
@@ -43,10 +44,8 @@ void CombatAreaEvent::Update()
 
 void CombatAreaEvent::OnGameStop()
 {
-    ParticleLifecycle::destroy(m_entranceBarricadeVfx.mistInstance);
-    ParticleLifecycle::destroy(m_entranceBarricadeVfx.burstInstance);
-    ParticleLifecycle::destroy(m_exitBarricadeVfx.mistInstance);
-    ParticleLifecycle::destroy(m_exitBarricadeVfx.burstInstance);
+    destroyBarricadeVisuals(m_entranceBarricadeVfx);
+    destroyBarricadeVisuals(m_exitBarricadeVfx);
     m_timedParticles.clear();
 }
 
@@ -76,8 +75,8 @@ void CombatAreaEvent::openArea()
 {
     setBlockerState(m_entranceBlocker, false);
     setBlockerState(m_exitBlocker, false);
-    deactivateBarricadeVisuals(m_entranceBarricadeVfx);
-    deactivateBarricadeVisuals(m_exitBarricadeVfx);
+    destroyBarricadeVisuals(m_entranceBarricadeVfx);
+    destroyBarricadeVisuals(m_exitBarricadeVfx);
 }
 
 void CombatAreaEvent::setBlockerState(const ComponentRef<Transform>& blockerTransformRef, bool blocked)
@@ -131,7 +130,7 @@ void CombatAreaEvent::activateBarricadeVisuals(const ComponentRef<Transform>& vi
         ObjectVfxIds::barricadeMist(),
         position,
         rotation,
-        nullptr
+        getOwner()
     );
 
     if (slot.mistInstance != nullptr)
@@ -144,6 +143,7 @@ void CombatAreaEvent::activateBarricadeVisuals(const ComponentRef<Transform>& vi
         }
 
         ParticleLifecycle::activate(slot.mistInstance);
+        ParticleManager::registerVfxRoot(slot.mistInstance);
     }
 
     if (slot.burstInstance == nullptr)
@@ -153,7 +153,7 @@ void CombatAreaEvent::activateBarricadeVisuals(const ComponentRef<Transform>& vi
             ObjectVfxIds::barricadeBurst(),
             position,
             rotation,
-            nullptr
+            getOwner()
         );
     }
     else
@@ -172,14 +172,12 @@ void CombatAreaEvent::activateBarricadeVisuals(const ComponentRef<Transform>& vi
     }
 }
 
-void CombatAreaEvent::deactivateBarricadeVisuals(BarricadeVisualSlot& slot)
+void CombatAreaEvent::destroyBarricadeVisuals(BarricadeVisualSlot& slot)
 {
-    ParticleLifecycle::deactivate(slot.mistInstance);
-
-    if (slot.burstInstance != nullptr)
-    {
-        ParticleLifecycle::deactivate(slot.burstInstance);
-    }
+    ParticleManager::unregisterVfxRoot(slot.mistInstance);
+    m_timedParticles.cancel(slot.burstInstance);
+    ParticleLifecycle::destroy(slot.mistInstance);
+    ParticleLifecycle::destroy(slot.burstInstance);
 }
 
 void CombatAreaEvent::removeDeadEnemies()

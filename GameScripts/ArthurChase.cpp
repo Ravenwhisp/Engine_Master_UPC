@@ -44,6 +44,11 @@ void ArthurChase::OnStateUpdate()
 		return;
 	}
 
+	if (m_arthurController->trySendStunTrigger(m_animation))
+	{
+		return;
+	}
+
 	// Check target
 
 	m_arthurController->updateCurrentTarget();

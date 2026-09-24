@@ -19,6 +19,29 @@ void ArcherArrowShooter::Start()
 
 }
 
+void ArcherArrowShooter::OnGameStop()
+{
+    releaseRuntimeParticles();
+}
+
+void ArcherArrowShooter::releaseRuntimeParticles()
+{
+    // Sparks are parented to the arrow: destroy them first.
+    if (m_particles)
+    {
+        m_particles->stopArrowSparks();
+    }
+
+    if (m_arrowGO)
+    {
+        GameObjectAPI::removeGameObject(m_arrowGO);
+        m_arrowGO = nullptr;
+    }
+
+    m_inAttack = false;
+    m_fired    = false;
+}
+
 void ArcherArrowShooter::Update()
 {
     if (!m_animation || !m_config || !m_arrowPrefab.m_id.isValid()) return;
@@ -37,8 +60,8 @@ void ArcherArrowShooter::Update()
 
     if (!nowInAttack && m_inAttack)
     {
-        if (m_arrowGO) { GameObjectAPI::removeGameObject(m_arrowGO); m_arrowGO = nullptr; }
         if (m_particles) m_particles->stopArrowSparks();
+        if (m_arrowGO) { GameObjectAPI::removeGameObject(m_arrowGO); m_arrowGO = nullptr; }
         m_inAttack = false;
     }
 
@@ -76,7 +99,7 @@ void ArcherArrowShooter::Update()
                 if (arrow) arrow->launch(spawnPos, dest, 10.0f);
             }
 
-            if (m_particles) m_particles->spawnArrowSparks(spawnPos);
+            if (m_particles) m_particles->spawnArrowSparks(spawnPos, m_arrowGO);
         }
         m_fired = true;
     }
@@ -99,9 +122,9 @@ void ArcherArrowShooter::Update()
         ArcherArrowProjectile* arrow = GameObjectAPI::findScript<ArcherArrowProjectile>(m_arrowGO);
         if (arrow && arrow->hasArrived())
         {
+            if (m_particles) m_particles->stopArrowSparks();
             GameObjectAPI::removeGameObject(m_arrowGO);
             m_arrowGO = nullptr;
-            if (m_particles) m_particles->stopArrowSparks();
         }
     }
 }

@@ -27,6 +27,11 @@ void SharedEnemyParticles::Start()
 
 void SharedEnemyParticles::OnGameStop()
 {
+    releaseRuntimeParticles();
+}
+
+void SharedEnemyParticles::releaseRuntimeParticles()
+{
     ParticleLifecycle::destroy(m_movementParticle);
     m_movementParticleTransform = nullptr;
     m_movementParticleActive = false;
@@ -75,7 +80,7 @@ void SharedEnemyParticles::ensureMovementParticle()
         m_movementParticlePrefab.m_id,
         getMovementParticlePosition(),
         getOwnerRotation(),
-        nullptr
+        getOwner()
     );
 
     if (m_movementParticle != nullptr)

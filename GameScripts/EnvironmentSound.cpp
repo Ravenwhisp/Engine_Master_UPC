@@ -17,7 +17,7 @@ uint32_t EnvironmentSound::play(GameObject* emitter, const char* eventName)
     if (source == nullptr)
     {
         Debug::warn("[EnvironmentSound] '%s' has no SOUND_SOURCE for event '%s'.",
-                    GameObjectAPI::getName(emitter), eventName);
+            GameObjectAPI::getName(emitter), eventName);
         return 0;
     }
 

@@ -31,7 +31,7 @@ public:
 	void hideHeavySwipeUI();
 
 	// Side Sweep
-	void setupSideSweepUI(int sweepSide);
+	void setupSideSweepUI(const Vector3& sweepDirection);
 	void updateSideSweepUI(float stateTimer, float hitTime, float totalDuration);
 	void hideSideSweepUI();
 

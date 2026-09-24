@@ -18,6 +18,7 @@ public:
 	float m_basicArrowSpeed = 18.0f;
 	float m_basicAttackLockDuration = 0.2f;
 	float m_basicCooldown = 0.0f;
+	float m_basicAimArrowRange = 10.0f;
 
 	// Charged Attack
 	float m_chargedMinDamage = 5.0f;
@@ -57,7 +58,8 @@ public:
 			SERIALIZED_FLOAT(m_basicAttackDamage, "Basic Attack Damage", 0.0f, 100.0f, 0.5f),
 			SERIALIZED_FLOAT(m_basicArrowSpeed, "Basic Arrow Speed", 0.0f, 100.0f, 0.5f),
 			SERIALIZED_FLOAT(m_basicAttackLockDuration, "Basic Attack Lock Duration", 0.0f, 2.0f, 0.01f),
-			SERIALIZED_FLOAT(m_basicCooldown, "Basic Cooldown", 0.0f, 10.0f, 0.01f)
+			SERIALIZED_FLOAT(m_basicCooldown, "Basic Cooldown", 0.0f, 10.0f, 0.01f),
+			SERIALIZED_FLOAT(m_basicAimArrowRange, "Basic Aim Arrow Range", 0.0f, 50.0f, 0.1f)
 		),
 
 		FIELD_GROUP_COLLAPSE("Charged Attack",

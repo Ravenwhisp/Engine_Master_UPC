@@ -27,6 +27,9 @@ public:
     void playEarthHammerImpact(const Vector3& position);
     void playHeavySwipeHitsInCone(const Vector3& center, const Vector3& forward, float range, float halfAngleDegrees, int hitCount);
 
+    // Destroys every runtime particle owned by this script. Safe to call more than once.
+    void releaseRuntimeParticles();
+
 private:
     struct TimedEffect
     {

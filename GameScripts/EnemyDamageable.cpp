@@ -3,6 +3,7 @@
 
 #include "EnemyDetectionAggro.h"
 #include "EnemySound.h"
+#include "EnemyStunParticles.h"
 #include "EnemyBaseController.h"
 #include "EnemyBaseDataConfig.h"
 #include "EnemyShadowMark.h"
@@ -99,10 +100,11 @@ void EnemyDamageable::Start()
 	if (!m_healthBarContainerTransform)
 	{
 		Debug::warn("Health Bar Container Transform2D is missing from %s", GameObjectAPI::getName(m_owner));
-		return;
 	}
-
-	setHealthBarAlpha(0.0f);
+	else
+	{
+		setHealthBarAlpha(0.0f);
+	}
 
 	loadDissolveComponent();
 }
@@ -243,6 +245,11 @@ void EnemyDamageable::onDeath()
 {
 	Damageable::onDeath();
 
+	if (auto* stunVisuals = GameObjectAPI::findScript<EnemyStunParticles>(getOwner()))
+	{
+		stunVisuals->stopStunParticle(true);
+	}
+
 	setShadowExecutionThresholdMarkerVisible(false);
 
 	if (m_shadowMark)
@@ -288,14 +295,14 @@ void EnemyDamageable::applyDamageWithoutShadowMark(const EnemyHitContext& hit)
 			case PlayerAttackType::LyrielCharged:
 				if (LyrielParticles* lyrielParticles = GameObjectAPI::findScript<LyrielParticles>(attacker))
 				{
-					lyrielParticles->playHitFlash(hitPosition);
+					lyrielParticles->playHitFlash(hitPosition, getOwner());
 				}
 				break;
 
 			case PlayerAttackType::DeathCharged:
 				if (DeathParticles* deathParticles = GameObjectAPI::findScript<DeathParticles>(attacker))
 				{
-					deathParticles->playChargedHitFlash(hitPosition);
+					deathParticles->playChargedHitFlash(hitPosition, getOwner());
 				}
 				break;
 
@@ -304,7 +311,7 @@ void EnemyDamageable::applyDamageWithoutShadowMark(const EnemyHitContext& hit)
 			case PlayerAttackType::DeathTaunt:
 				if (DeathParticles* deathParticles = GameObjectAPI::findScript<DeathParticles>(attacker))
 				{
-					deathParticles->playHitFlash(hitPosition);
+					deathParticles->playHitFlash(hitPosition, getOwner());
 				}
 				break;
 
@@ -717,6 +724,17 @@ DissolveComponent* EnemyDamageable::findDissolveInHierarchy(Transform* transform
 	}
 
 	return nullptr;
+}
+
+void EnemyDamageable::bindHealthBarUI(Transform2D* container, UISlider* slider1, UISlider* slider2)
+{
+	m_healthBarContainerTransform = container;
+	m_healthBarSlider = slider1;
+	m_healthBar2Slider = slider2;
+	m_healthBarFadeTimer = 0.0f;
+	m_healthBarFadeActive = false;
+
+	setupUI();
 }
 
 IMPLEMENT_SCRIPT(EnemyDamageable)

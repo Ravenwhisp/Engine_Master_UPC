@@ -25,6 +25,7 @@ public:
     void killEnemies();
     void toLevel2();
     void toBossLevel();
+    void FillReaperGauge();
 
 private:
 
@@ -37,9 +38,7 @@ private:
     Vector3(38.555f, -4.882f, 10.795f),
     Vector3(47.647f, 1.274, 46.589f),
     Vector3(43.675f, -25.063f, 41.305f),
-    Vector3(15.384f, -24.431f, 40.147f),
-    Vector3(15.384f, -45.432f, 40.147f),
-    Vector3(15.384f, -70.399f, 40.147f)
+    Vector3(2.349, -24.935f, 40.736f),
     };
 
     bool KeyComboPressed(KeyCode mainKey);

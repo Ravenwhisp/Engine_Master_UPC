@@ -162,6 +162,9 @@ public:
 	// Interrupt attacks when threshold is broken or when hp <= 0
 	bool trySendPriorityInterrupt(AnimationComponent* animation);
 
+	//After defeat
+	void onDefeat();
+
 protected:
 	Transform* acquireCurrentTarget() override;
 	bool isTargetDowned(Transform* target) const override;
@@ -246,6 +249,10 @@ private:
 	float m_shadowMarkPhase2Scale = 1.0f;
 
 	void applyShadowMarkPlacement();
+
+	//Win object
+	ComponentRef<Transform> m_winTransform;
+	GameObject* m_winGameObject = nullptr;
 
 private:
 	// Abilities

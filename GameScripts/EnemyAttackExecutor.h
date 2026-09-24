@@ -20,6 +20,9 @@ public:
     void setNextPlayerHitVfx(const AssetId& prefabId);
     void playPlayerHitVfx(Transform* targetTransform, const AssetId& prefabId = AssetId());
 
+    // Destroys every runtime particle owned by this script. Safe to call more than once.
+    void releaseRuntimeParticles();
+
     bool damageTarget(Transform* targetTransform, float damage, const char* sourceName);
 
     void applyDamageInRadius(

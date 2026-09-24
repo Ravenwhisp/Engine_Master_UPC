@@ -18,54 +18,57 @@ public:
     float m_heavySwipeRange = 3.0f;
     float m_heavySwipeHalfAngleDegrees = 60.0f;
 
-    float m_heavySwipeTotalDuration = 1.5f;
-    float m_heavySwipeHit1Time = 0.45f;
-    float m_heavySwipeHit2Time = 0.95f;
-    float m_heavySwipeHit3Time = 1.35f;
+    float m_heavySwipeTotalDuration = 2.6f;
+    float m_heavySwipeHit1Time = 0.64f;
+    float m_heavySwipeHit2Time = 1.48f;
+    float m_heavySwipeHit3Time = 2.31f;
+    float m_heavySwipeAnimationSpeed = 1.4f;
 
-    float m_heavySwipeRecoveryDuration = 0.75f;
+    float m_heavySwipeRecoveryDuration = 1.1f;
 
-    float m_heavySwipePhase2Hit1Time = 0.30f;
-    float m_heavySwipePhase2Hit2Time = 0.60f;
-    float m_heavySwipePhase2Hit3Time = 0.90f;
-    float m_heavySwipePhase2Hit4Time = 1.20f;
-    float m_heavySwipePhase2RecoveryDuration = 0.45f;
+    float m_heavySwipePhase2Hit1Time = 0.45f;
+    float m_heavySwipePhase2Hit2Time = 1.10f;
+    float m_heavySwipePhase2Hit3Time = 1.75f;
+    float m_heavySwipePhase2Hit4Time = 2.40f;
+    float m_heavySwipePhase2AnimationSpeed = 1.8f;
+    float m_heavySwipePhase2RecoveryDuration = 0.8f;
 
     // Side Sweep
     float m_sideSweepDamage = 12.0f;
     float m_sideSweepRange = 4.0f;
     float m_sideSweepHalfAngleDegrees = 55.0f;
 
-    float m_sideSweepHitTime = 0.35f;
-    float m_sideSweepTotalDuration = 0.7f;
+    float m_sideSweepHitTime = 0.75f;
+    float m_sideSweepTotalDuration = 1.4f;
 
-    float m_sideSweepRecoveryDuration = 0.5f;
+    float m_sideSweepRecoveryDuration = 1.0f;
     
-    float m_sideSweepCooldown = 2.0f;
+    float m_sideSweepCooldown = 4.0f;
 
-    float m_sideSweepPhase2HitTime = 0.20f;
-    float m_sideSweepPhase2TotalDuration = 0.55f;
-    float m_sideSweepPhase2RecoveryDuration = 0.35f;
+    float m_sideSweepPhase2HitTime = 0.55f;
+    float m_sideSweepPhase2TotalDuration = 1.2f;
+    float m_sideSweepPhase2RecoveryDuration = 0.75f;
 
     // Charging Slam
     float m_chargingSlamDashDamage = 12.0f;
     float m_chargingSlamFinalAreaImpactDamage = 25.0f;
 
-    float m_chargingSlamHitTime = 1.0f;
-    float m_chargingSlamDashSpeed = 8.0f;
+    float m_chargingSlamHitTime = 1.2f;
+    float m_chargingSlamDashSpeed = 5.3f;
 
     float m_chargingSlamDashHitRadius = 1.2f;
     float m_chargingSlamImpactRadius = 3.0f;
 
-    float m_chargingSlamTotalDuration = 2.2f;
-    float m_chargingSlamRecoveryDuration = 0.75f;
+    float m_chargingSlamTotalDuration = 3.5f;
+    float m_chargingSlamRecoveryDuration = 1.5f;
 
     float m_chargingSlamImpactStunDuration = 1.0f;
     
     float m_chargingSlamCooldown = 2.0f;
 
-    float m_chargingSlamPhase2HitTime = 0.5f;
-    float m_chargingSlamPhase2DashSpeed = 10.0f;
+    float m_chargingSlamPhase2HitTime = 0.75f;
+    float m_chargingSlamPhase2DashSpeed = 7.0f;
+    float m_chargingSlamPhase2TotalDuration = 2.8f;
 
     float m_chargingSlamMinRange = 5.0f;
     float m_chargingSlamMaxRange = 8.0f;
@@ -77,7 +80,7 @@ public:
     float m_earthHammerTotalDuration = 2.2f;
     float m_earthHammerHitTime = 2.0f;
 
-    float m_earthHammerRecoveryDuration = 1.0f;
+    float m_earthHammerRecoveryDuration = 1.35f;
 
     float m_earthHammerStunDuration = 1.25f;
     
@@ -95,11 +98,13 @@ public:
             SERIALIZED_FLOAT(m_heavySwipeHit1Time, "Heavy Swipe Hit 1 Time", 0.0f, 10.0f, 0.05f),
             SERIALIZED_FLOAT(m_heavySwipeHit2Time, "Heavy Swipe Hit 2 Time", 0.0f, 10.0f, 0.05f),
             SERIALIZED_FLOAT(m_heavySwipeHit3Time, "Heavy Swipe Hit 3 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipeAnimationSpeed, "Heavy Swipe Animation Speed", 0.1f, 5.0f, 0.05f),
             SERIALIZED_FLOAT(m_heavySwipeRecoveryDuration, "Heavy Swipe Recovery Duration", 0.0f, 10.0f, 0.05f),
             SERIALIZED_FLOAT(m_heavySwipePhase2Hit1Time, "Heavy Swipe Phase 2 Hit 1 Time", 0.0f, 10.0f, 0.05f),
             SERIALIZED_FLOAT(m_heavySwipePhase2Hit2Time, "Heavy Swipe Phase 2 Hit 2 Time", 0.0f, 10.0f, 0.05f),
             SERIALIZED_FLOAT(m_heavySwipePhase2Hit3Time, "Heavy Swipe Phase 2 Hit 3 Time", 0.0f, 10.0f, 0.05f),
             SERIALIZED_FLOAT(m_heavySwipePhase2Hit4Time, "Heavy Swipe Phase 2 Hit 4 Time", 0.0f, 10.0f, 0.05f),
+            SERIALIZED_FLOAT(m_heavySwipePhase2AnimationSpeed, "Heavy Swipe Phase 2 Animation Speed", 0.1f, 5.0f, 0.05f),
             SERIALIZED_FLOAT(m_heavySwipePhase2RecoveryDuration, "Heavy Swipe Phase 2 Recovery Duration", 0.0f, 10.0f, 0.05f)
         ),
         FIELD_GROUP_COLLAPSE("Side Sweep",
@@ -127,6 +132,7 @@ public:
             SERIALIZED_FLOAT(m_chargingSlamCooldown, "Charging Slam Cooldown", 0.0f, 10.0f, 0.1f),
             SERIALIZED_FLOAT(m_chargingSlamPhase2HitTime, "Charging Slam Phase 2 Hit Time", 0.0f, 10.0f, 0.05f),
             SERIALIZED_FLOAT(m_chargingSlamPhase2DashSpeed, "Charging Slam Phase 2 Dash Speed", 0.0f, 50.0f, 0.1f),
+            SERIALIZED_FLOAT(m_chargingSlamPhase2TotalDuration, "Charging Slam Phase 2 Total Duration", 0.1f, 10.0f, 0.05f),
             SERIALIZED_FLOAT(m_chargingSlamMinRange, "Charging Slam Min Range", 0.0f, 20.0f, 0.1f),
             SERIALIZED_FLOAT(m_chargingSlamMaxRange, "Charging Slam Max Range", 0.0f, 20.0f, 0.1f)
         ),

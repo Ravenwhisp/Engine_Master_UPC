@@ -33,6 +33,11 @@ void PaladinVFX::Start()
 
 void PaladinVFX::OnGameStop()
 {
+    releaseRuntimeParticles();
+}
+
+void PaladinVFX::releaseRuntimeParticles()
+{
     m_timedHitVfx.clear();
     ParticleLifecycle::destroy(walkingDustEffect);
     ParticleLifecycle::destroy(chargeAttackEffect);
@@ -141,21 +146,25 @@ void PaladinVFX::playShieldAttackStart(const Vector3& position, const Vector3& d
     Vector3 spawnPosition = position;
     spawnPosition.y += m_shieldAttackParticlesYOffset;
 
-    GameObject* instance = GameObjectAPI::instantiatePrefab(m_shieldAttackParticlesPrefab.m_id, spawnPosition, rotation, nullptr);
-    if (instance != nullptr)
-    {
-        m_timedHitVfx.scheduleDestroy(instance, ParticleLifecycle::kDefaultOneShotLifetime);
-    }
+    ParticleLifecycle::spawnOneShotTimed(
+        m_timedHitVfx,
+        m_shieldAttackParticlesPrefab.m_id,
+        spawnPosition,
+        rotation,
+        ParticleLifecycle::kDefaultOneShotLifetime,
+        getOwner()
+    );
 }
 
-void PaladinVFX::spawnShieldAttackHit(const Vector3& position)
+void PaladinVFX::spawnShieldAttackHit(const Vector3& position, GameObject* target)
 {
     ParticleLifecycle::spawnOneShotTimed(
         m_timedHitVfx,
         m_shieldAttackHitPrefab.m_id,
         position,
         Vector3::Zero,
-        ParticleLifecycle::kDefaultOneShotLifetime
+        ParticleLifecycle::kDefaultOneShotLifetime,
+        target
     );
 }
 
@@ -217,12 +226,12 @@ void PaladinVFX::playShieldAttackHits(
 
     if (isTargetInRectangle(lyrielTransform, origin, direction, length, width))
     {
-        spawnShieldAttackHit(TransformAPI::getGlobalPosition(lyrielTransform));
+        spawnShieldAttackHit(TransformAPI::getGlobalPosition(lyrielTransform), ComponentAPI::getOwner(lyrielTransform));
     }
 
     if (isTargetInRectangle(deathTransform, origin, direction, length, width))
     {
-        spawnShieldAttackHit(TransformAPI::getGlobalPosition(deathTransform));
+        spawnShieldAttackHit(TransformAPI::getGlobalPosition(deathTransform), ComponentAPI::getOwner(deathTransform));
     }
 }
 
@@ -326,7 +335,8 @@ void PaladinVFX::ensureWalkingDust()
         walkingDustEffect,
         m_walkingDustPrefab.m_id,
         getWalkingDustPosition(),
-        getOwnerRotation()
+        getOwnerRotation(),
+        getOwner()
     );
 }
 
@@ -336,17 +346,21 @@ void PaladinVFX::ensureChargeAttackEffect()
         chargeAttackEffect,
         m_chargeAttackEffectPrefab.m_id,
         getChargeAttackEffectPosition(),
-        getOwnerRotation()
+        getOwnerRotation(),
+        getOwner()
     );
 }
 
 void PaladinVFX::ensureBasicAttackTelegraph(const Vector3& position, const Vector3& rotation)
 {
+    // World-fixed ground marker: parented to the runtime container so the
+    // scene root stays clean without making it follow the paladin.
     ParticleLifecycle::ensurePersistent(
         basicAttackTelegraph,
         m_basicAttackEffectPrefab.m_id,
         position,
-        rotation
+        rotation,
+        ParticleLifecycle::getRuntimeVfxContainer()
     );
 }
 
@@ -356,7 +370,8 @@ void PaladinVFX::ensureBasicAttackEffect()
         basicAttackEffect,
         m_basicAttackEffectPrefab.m_id,
         getBasicAttackEffectPosition(),
-        getOwnerRotation()
+        getOwnerRotation(),
+        ParticleLifecycle::getRuntimeVfxContainer()
     );
 }
 

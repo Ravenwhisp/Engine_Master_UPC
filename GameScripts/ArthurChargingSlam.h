@@ -43,6 +43,7 @@ private:
 
     float getChargingDuration() const;
     float getDashSpeed() const;
+    float getTotalDuration() const;
     float getSafeSectionSpeed(float animationSectionDuration, float gameplayDuration) const;
 
 private:

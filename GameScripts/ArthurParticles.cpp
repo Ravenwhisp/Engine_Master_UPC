@@ -34,6 +34,11 @@ void ArthurParticles::Start()
 
 void ArthurParticles::OnGameStop()
 {
+    releaseRuntimeParticles();
+}
+
+void ArthurParticles::releaseRuntimeParticles()
+{
     m_timedEffects.clear();
     m_timedOneShots.clear();
     ParticleLifecycle::destroy(m_earthHammerShockwaveInstance);
@@ -139,7 +144,7 @@ void ArthurParticles::activateEarthHammerShockwave()
     const Vector3 position = m_ownerTransform != nullptr ? TransformAPI::getGlobalPosition(m_ownerTransform) : Vector3::Zero;
     const Vector3 rotation = m_ownerTransform != nullptr ? TransformAPI::getGlobalEulerDegrees(m_ownerTransform) : Vector3::Zero;
 
-    ParticleLifecycle::ensurePersistent(m_earthHammerShockwaveInstance, m_earthHammerShockwavePrefab.m_id, position, rotation, nullptr);
+    ParticleLifecycle::ensurePersistent(m_earthHammerShockwaveInstance, m_earthHammerShockwavePrefab.m_id, position, rotation, getOwner());
     ParticleLifecycle::syncToTransform(m_earthHammerShockwaveInstance, m_ownerTransform);
     ParticleLifecycle::activate(m_earthHammerShockwaveInstance);
     m_earthHammerShockwaveActive = m_earthHammerShockwaveInstance != nullptr;

@@ -5,6 +5,7 @@
 #include "PlayerDamageable.h"
 #include "PlayerController.h"
 #include "EnemyDamageable.h"
+#include "ReaperGauge.h"
 
 LevelCheats::LevelCheats(GameObject* owner)
     : Script(owner)
@@ -21,6 +22,7 @@ void LevelCheats::Update()
     if (KeyComboPressed(KeyCode::W)) AutoLose();
     if (KeyComboPressed(KeyCode::E)) Teleport();
     if (KeyComboPressed(KeyCode::T)) ToggleInvincibility();
+    if (KeyComboPressed(KeyCode::Num4)) FillReaperGauge();
     //if (KeyComboPressed(KeyCode::Num3)) SpawnEnemy(0);
     //if (KeyComboPressed(KeyCode::Num4)) SpawnEnemy(1);
 	if (KeyComboPressed(KeyCode::Up)) SpawnEnemy(2);
@@ -220,6 +222,28 @@ void LevelCheats::toBossLevel()
 {
     Debug::log("Teleport to Boss Level activated!");
     SceneAPI::requestSceneChange("BossLevel");
+}
+
+void LevelCheats::FillReaperGauge()
+{
+    const std::vector<GameObject*> gaugeHolders = SceneAPI::findAllGameObjectsWithScript<ReaperGauge>();
+    if (gaugeHolders.empty())
+    {
+        return;
+    }
+
+    ReaperGauge* reaperGauge = GameObjectAPI::findScript<ReaperGauge>(gaugeHolders[0]);
+    if (reaperGauge == nullptr)
+    {
+        return;
+    }
+
+    while (!reaperGauge->isFull())
+    {
+        reaperGauge->onMarkExploited();
+    }
+
+    reaperGauge->updateUI();
 }
 
 IMPLEMENT_SCRIPT(LevelCheats)

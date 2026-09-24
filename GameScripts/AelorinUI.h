@@ -5,6 +5,8 @@
 #include <vector>
 
 class Transform2D;
+class AelorinDamageable;
+class AelorinBossController;
 
 class AelorinUI : public Script
 {
@@ -17,6 +19,10 @@ public:
 	void Update() override;
 
 	FieldList getExposedFields() const override;
+
+	// Health
+	void setupHealthUI();
+	void updateHealthMarkers();
 
 	// Seeker Sigils
 	void showSeekerSigilsUI(const Vector3& impactPosition, float radius, float telegraphDuration);
@@ -43,6 +49,9 @@ public:
 	void showSoulCataclysmUI(const Vector3& center, float radius, Transform* safeZonesRoot, float safeZoneRadius, float channelDuration);
 
 private:
+
+	// Health
+	void setHealthMarkerVisible(Transform2D* marker, bool visible);
 
 	// Seeker Sigils
 	struct SeekerSigilsUISlot
@@ -122,6 +131,29 @@ private:
 	SoulCataclysmSafeZoneUISlot* acquireSoulCataclysmSafeZoneUISlot();
 
 private:
+
+	// Health
+	ComponentRef<Transform2D> m_healthPhase1Marker50;
+	ComponentRef<Transform2D> m_healthPhase1Marker0;
+
+	ComponentRef<Transform2D> m_healthPhase2Marker70;
+	ComponentRef<Transform2D> m_healthPhase2Marker45;
+	ComponentRef<Transform2D> m_healthPhase2Marker25;
+	ComponentRef<Transform2D> m_healthPhase2Marker10;
+	ComponentRef<Transform2D> m_healthPhase2Marker0;
+
+
+	Transform2D* m_healthPhase1Marker50Transform2D = nullptr;
+	Transform2D* m_healthPhase1Marker0Transform2D = nullptr;
+
+	Transform2D* m_healthPhase2Marker70Transform2D = nullptr;
+	Transform2D* m_healthPhase2Marker45Transform2D = nullptr;
+	Transform2D* m_healthPhase2Marker25Transform2D = nullptr;
+	Transform2D* m_healthPhase2Marker10Transform2D = nullptr;
+	Transform2D* m_healthPhase2Marker0Transform2D = nullptr;
+
+	AelorinDamageable* m_aelorinDamageable = nullptr;
+	AelorinBossController* m_aelorinController = nullptr;
 
 	// Seeker Sigils
 	ComponentRef<Transform> m_seekerSigilsUICanvas;

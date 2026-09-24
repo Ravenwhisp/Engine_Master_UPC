@@ -35,7 +35,11 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(AelorinBossController, EnemyBaseController,
 		SERIALIZED_FLOAT(m_shadowMarkPhase1Y, "Phase 1 Y", -1000.0f, 1000.0f, 1.0f),
 		SERIALIZED_FLOAT(m_shadowMarkPhase1Scale, "Phase 1 Scale", 0.1f, 5.0f, 0.1f),
 		SERIALIZED_FLOAT(m_shadowMarkPhase2Y, "Phase 2 Y", -1000.0f, 1000.0f, 1.0f),
-		SERIALIZED_FLOAT(m_shadowMarkPhase2Scale, "Phase 2 Scale", 0.1f, 5.0f, 0.1f)
+		SERIALIZED_FLOAT(m_shadowMarkPhase2Scale, "Phase 2 Scale", 0.1f, 5.0f, 0.1f),
+	
+	FIELD_GROUP_COLLAPSE("Win Object",
+		SERIALIZED_COMPONENT_REF(m_winTransform, "Win Transform", ComponentType::TRANSFORM))
+
 	)
 )
 
@@ -1043,6 +1047,12 @@ AelorinAbility AelorinBossController::chooseRandomAbility(const std::vector<Aelo
 bool AelorinBossController::isPlayerWithinDistance(float distance) const
 {
 	return getClosestPlayerDistance() <= distance;
+}
+
+void AelorinBossController::onDefeat()
+{
+	m_winGameObject = ComponentAPI::getOwner(m_winTransform.getReferencedComponent());
+	GameObjectAPI::setActive(m_winGameObject, true);
 }
 
 IMPLEMENT_SCRIPT(AelorinBossController)

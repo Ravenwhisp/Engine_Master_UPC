@@ -39,6 +39,11 @@ void ArthurHeavySwipe::OnStateEnter()
         return;
     }
 
+    if (!m_arthurController->m_attackConfig.get())
+    {
+        Debug::error("[ArthurHeavySwipe] ArthurAttackConfig not found.");
+        return;
+    }
 
     if (!m_attackExecutor)
     {
@@ -60,13 +65,14 @@ void ArthurHeavySwipe::OnStateEnter()
 
     m_previousAnimationSpeed = AnimationAPI::getSpeedMultiplier(m_animation);
 
-    float animationSpeed = m_phase1AnimationSpeed;
+    float animationSpeed = m_arthurController->m_attackConfig.get()->m_heavySwipeAnimationSpeed;
 
     if (m_arthurController->isPhase2())
     {
-        animationSpeed = m_phase2AnimationSpeed;
+        animationSpeed = m_arthurController->m_attackConfig.get()->m_heavySwipePhase2AnimationSpeed;
     }
 
+    AnimationAPI::setPlaybackTime(m_animation, 0.0f);
     AnimationAPI::setSpeedMultiplier(m_animation, animationSpeed);
 
     m_arthurController->clearPath();
@@ -87,6 +93,11 @@ void ArthurHeavySwipe::OnStateUpdate()
     }
 
     if (m_arthurController->trySendDeathTrigger(m_animation))
+    {
+        return;
+    }
+
+    if (m_arthurController->trySendStunTrigger(m_animation))
     {
         return;
     }

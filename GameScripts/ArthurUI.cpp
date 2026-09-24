@@ -375,7 +375,7 @@ void ArthurUI::hideHeavySwipeUI()
 	GameObjectAPI::setActive(owner, false);
 }
 
-void ArthurUI::setupSideSweepUI(int sweepSide)
+void ArthurUI::setupSideSweepUI(const Vector3& sweepDirection)
 {
 	if (!m_sideSweepUICanvasTransform || !m_sideSweepUIContainerTransform2D || !m_sideSweepUIBackgroundTransform2D || !m_sideSweepUIShadowTransform2D)
 	{
@@ -384,14 +384,10 @@ void ArthurUI::setupSideSweepUI(int sweepSide)
 
 	GameObjectAPI::setActive(m_sideSweepUICanvasTransform->getOwner(), true);
 
-	if (sweepSide == -1)
-	{
-		TransformAPI::setGlobalRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, -90.0f));
-	}
-	else
-	{
-		TransformAPI::setGlobalRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, 90.0f));
-	}
+	const float radiansToDegrees = 180.0f / 3.14159265f;
+	const float angle = atan2(sweepDirection.z, sweepDirection.x) * radiansToDegrees;
+
+	TransformAPI::setGlobalRotationEuler(m_sideSweepUICanvasTransform, Vector3(90.0f, 0.0f, angle + 90.0f));
 
 	Transform2DAPI::setAlpha(m_sideSweepUIBackgroundTransform2D, 0.0f);
 	Transform2DAPI::setAlpha(m_sideSweepUIShadowTransform2D, 0.0f);

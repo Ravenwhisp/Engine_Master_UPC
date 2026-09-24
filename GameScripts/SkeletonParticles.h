@@ -21,6 +21,9 @@ public:
     void startReviveParticle();
     void stopReviveParticle();
 
+    // Destroys every runtime particle owned by this script. Safe to call more than once.
+    void releaseRuntimeParticles();
+
     const AssetId& getShieldHitVfxId() const { return m_shieldHitPrefab.m_id; }
     const AssetId& getThirdAttackHitVfxId() const { return m_thirdAttackHitPrefab.m_id; }
 

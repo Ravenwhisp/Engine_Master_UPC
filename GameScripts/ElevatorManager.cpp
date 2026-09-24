@@ -98,6 +98,8 @@ void ElevatorManager::Update()
             }
             else
             {
+                // The return/platform transition has reached its target, so the walls can stop now.
+                m_wallsActive = false;
                 m_currentCycle++;
 
                 if (m_currentCycle * 2 >= targetCount || m_wavesCompleted >= areaCount)
@@ -131,8 +133,7 @@ void ElevatorManager::Update()
 
                 if (m_wavesDoneInCycle > m_wavesPerCycle)
                 {
-                    m_wallsActive = false;
-
+                    // Keep the walls scrolling while the platform moves to its destination.
                     if (m_currentCycle * 2 + 1 < targetCount)
                         startPlatformMove(m_currentCycle * 2 + 1);
 

@@ -84,6 +84,16 @@ void SummonerEnemyController::consumeTeleportCooldown()
 	m_teleportCooldownTimer = m_attackConfig.get()->m_teleportCooldown;
 }
 
+void SummonerEnemyController::delayTeleportRetry()
+{
+	if (!m_attackConfig)
+	{
+		return;
+	}
+
+	m_teleportCooldownTimer = m_attackConfig.get()->m_teleportRetryDelay;
+}
+
 bool SummonerEnemyController::tryGetTeleportPosition(Vector3& outPosition) const
 {
 	constexpr int MaxTeleportAttempts = 20;

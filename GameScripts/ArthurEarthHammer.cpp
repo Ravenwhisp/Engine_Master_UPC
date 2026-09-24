@@ -87,6 +87,11 @@ void ArthurEarthHammer::OnStateUpdate()
         return;
     }
 
+    if (m_arthurController->trySendStunTrigger(m_animation))
+    {
+        return;
+    }
+
     m_stateTimer += Time::getDeltaTime();
 
     if (m_arthurUI)

@@ -187,7 +187,7 @@ void EnergyBallProjectile::ensureEnergyBallParticle()
 		m_energyBallParticlePrefab.m_id,
 		position,
 		rotation,
-		nullptr
+		getOwner()
 	);
 
 	if (m_energyBallParticle)

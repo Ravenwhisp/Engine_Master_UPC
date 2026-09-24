@@ -20,6 +20,7 @@ LyrielParticles::LyrielParticles(GameObject* owner)
 
 void LyrielParticles::Start()
 {
+    SetDashInactive();
 }
 
 void LyrielParticles::OnGameStop()
@@ -98,7 +99,7 @@ void LyrielParticles::SetDashActive()
     const Vector3 position = ownerTransform != nullptr ? TransformAPI::getGlobalPosition(ownerTransform) : Vector3::Zero;
     const Vector3 rotation = ownerTransform != nullptr ? TransformAPI::getGlobalEulerDegrees(ownerTransform) : Vector3::Zero;
 
-    ParticleLifecycle::ensurePersistent(m_dashParticleInstance, m_dashParticlePrefab.m_id, position, rotation, nullptr);
+    ParticleLifecycle::ensurePersistent(m_dashParticleInstance, m_dashParticlePrefab.m_id, position, rotation, getOwner());
     ParticleLifecycle::syncToTransform(m_dashParticleInstance, ownerTransform);
     ParticleLifecycle::activate(m_dashParticleInstance);
     m_dashParticleActive = m_dashParticleInstance != nullptr;
@@ -132,7 +133,7 @@ void LyrielParticles::SetChargeActive()
     const Vector3 position = bowTransform != nullptr ? TransformAPI::getGlobalPosition(bowTransform) : Vector3::Zero;
     const Vector3 rotation = bowTransform != nullptr ? TransformAPI::getGlobalEulerDegrees(bowTransform) : Vector3::Zero;
 
-    ParticleLifecycle::ensurePersistent(m_chargeGlowInstance, m_chargeGlowPrefab.m_id, position, rotation, nullptr);
+    ParticleLifecycle::ensurePersistent(m_chargeGlowInstance, m_chargeGlowPrefab.m_id, position, rotation, getOwner());
     ParticleLifecycle::syncToTransform(m_chargeGlowInstance, bowTransform);
     ParticleLifecycle::activate(m_chargeGlowInstance);
     m_chargeGlowActive = m_chargeGlowInstance != nullptr;
@@ -144,13 +145,53 @@ void LyrielParticles::SetChargeInactive()
     m_chargeGlowActive = false;
 }
 
-void LyrielParticles::playHitFlash(const Vector3& position)
+void LyrielParticles::playHitFlash(const Vector3& position, GameObject* target)
 {
-    ParticleLifecycle::spawnOneShotTimed(
-        m_timedOneShots,
-        m_hitFlashPrefab.m_id,
-        position
-    );
+    ParticleLifecycle::spawnOneShotTimed(m_timedOneShots, m_hitFlashPrefab.m_id, position, Vector3::Zero, ParticleLifecycle::kDefaultOneShotLifetime, target);
+}
+
+void LyrielParticles::SetArrowTrailActive(Transform* arrowTransform)
+{
+    if (arrowTransform == nullptr)
+    {
+        return;
+    }
+
+    GameObject* arrowObject = ComponentAPI::getOwner(arrowTransform);
+
+    if (arrowObject == nullptr)
+    {
+        return;
+    }
+
+    TrailComponent* trailComponent = TrailAPI::getTrailComponent(arrowObject);
+
+    if (trailComponent != nullptr)
+    {
+        TrailAPI::generateTrail(trailComponent, true);
+    }
+}
+
+void LyrielParticles::SetArrowTrailInactive(Transform* arrowTransform)
+{
+    if (arrowTransform == nullptr)
+    {
+        return;
+    }
+
+    GameObject* arrowObject = ComponentAPI::getOwner(arrowTransform);
+
+    if (arrowObject == nullptr)
+    {
+        return;
+    }
+
+    TrailComponent* trailComponent = TrailAPI::getTrailComponent(arrowObject);
+
+    if (trailComponent != nullptr)
+    {
+        TrailAPI::generateTrail(trailComponent, false);
+    }
 }
 
 IMPLEMENT_SCRIPT(LyrielParticles)

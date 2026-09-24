@@ -36,37 +36,39 @@ void SummonerTeleportState::OnStateEnter()
 	}
 
 	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
-	Vector3 departPosition = Vector3::Zero;
-
-	if (ownerTransform)
+	if (!ownerTransform)
 	{
-		departPosition = TransformAPI::getGlobalPosition(ownerTransform);
+		Debug::warn("[SummonerTeleportState] Owner transform not found.");
+		m_controller->delayTeleportRetry();
+		AnimationAPI::sendTrigger(m_animation, "ToIdle");
+		return;
 	}
 
-	if (m_particles)
-	{
-		m_particles->playTeleportParticle(departPosition);
-	}
+	const Vector3 departPosition = TransformAPI::getGlobalPosition(ownerTransform);
 
 	Vector3 teleportPosition;
 	if (m_controller->tryGetTeleportPosition(teleportPosition))
 	{
-		if (ownerTransform)
+		teleportPosition.y = departPosition.y;
+
+		if (m_particles)
 		{
-			teleportPosition.y = departPosition.y;
-			TransformAPI::setGlobalPosition(ownerTransform, teleportPosition);
-			m_controller->consumeTeleportCooldown();
-
-			if (m_particles)
-			{
-				m_particles->playTeleportParticle(teleportPosition);
-			}
-
-			Debug::log("[SummonerTeleportState] Teleported.");
+			m_particles->playTeleportParticle(departPosition);
 		}
+
+		TransformAPI::setGlobalPosition(ownerTransform, teleportPosition);
+		m_controller->consumeTeleportCooldown();
+
+		if (m_particles)
+		{
+			m_particles->playTeleportParticle(teleportPosition);
+		}
+
+		Debug::log("[SummonerTeleportState] Teleported.");
 	}
 	else
 	{
+		m_controller->delayTeleportRetry();
 		Debug::warn("[SummonerTeleportState] No valid teleport position found.");
 	}
 

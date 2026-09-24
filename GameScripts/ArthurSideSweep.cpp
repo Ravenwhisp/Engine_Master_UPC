@@ -8,10 +8,6 @@
 #include "ArthurSound.h"
 #include "CameraShake.h"
 
-IMPLEMENT_SCRIPT_FIELDS(ArthurSideSweep,
-    SERIALIZED_INT(m_sweepSide, "Sweep Side")
-)
-
 ArthurSideSweep::ArthurSideSweep(GameObject* owner)
     : StateMachineScript(owner)
 {
@@ -37,7 +33,6 @@ void ArthurSideSweep::OnStateEnter()
         return;
     }
 
-
     if (!m_attackExecutor)
     {
         Debug::error("[ArthurSideSweep] EnemyAttackExecutor not found.");
@@ -56,17 +51,21 @@ void ArthurSideSweep::OnStateEnter()
         return;
     }
 
+    m_sweepSide = m_arthurController->getSelectedSideSweepSide();
+
+    Vector3 sweepDirection = m_arthurController->getSideSweepDirection(m_sweepSide);
+
     m_arthurController->clearPath();
     m_arthurController->resetRepathTimer();
 
-    m_arthurUI->setupSideSweepUI(m_sweepSide);
+    m_arthurUI->setupSideSweepUI(sweepDirection);
 
     if (m_arthurSound)
     {
         m_arthurSound->playSideSweep();
     }
 
-    Debug::log("[ArthurSideSweep] ENTER");
+    Debug::log("[ArthurSideSweep] ENTER - Selected side: %d", m_sweepSide);
 }
 
 void ArthurSideSweep::OnStateUpdate()
@@ -77,6 +76,11 @@ void ArthurSideSweep::OnStateUpdate()
     }
 
     if (m_arthurController->trySendDeathTrigger(m_animation))
+    {
+        return;
+    }
+
+    if (m_arthurController->trySendStunTrigger(m_animation))
     {
         return;
     }

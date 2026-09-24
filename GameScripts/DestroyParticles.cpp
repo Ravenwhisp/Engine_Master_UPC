@@ -25,8 +25,6 @@ void DestroyParticles::Update()
 
     m_timer += Time::getDeltaTime();
 
-    Debug::log("[DestroyParticles] '%s' — %.2f s remaining.", GameObjectAPI::getName(getOwner()), m_lifetime - m_timer);
-
     if (m_timer >= m_lifetime)
     {
         GameObjectAPI::removeGameObject(getOwner());

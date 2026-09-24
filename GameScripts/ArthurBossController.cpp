@@ -74,6 +74,8 @@ void ArthurBossController::drawGizmo()
 
 void ArthurBossController::Update()
 {
+	const float dt = Time::getDeltaTime();
+	updateStun(dt);
 
 	// Al acercarse los jugadores: primero la cinemática de intro, con Arthur quieto. El combate
 	// solo arranca cuando la transición de cámara vuelve (así no se abalanza a media cinemática).
@@ -148,7 +150,7 @@ void ArthurBossController::Update()
 		}
 	}
 
-	updateAttackCooldowns(Time::getDeltaTime());
+	updateAttackCooldowns(dt);
 
 	updateBossPhase();
 }

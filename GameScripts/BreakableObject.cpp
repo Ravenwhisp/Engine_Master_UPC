@@ -84,7 +84,10 @@ void BreakableObject::spawnBreakBaseEffect()
     ParticleLifecycle::spawnOneShotTimed(
         m_timedBreakEffects,
         ObjectVfxIds::barrelBreakBase(),
-        getBreakEffectPosition()
+        getBreakEffectPosition(),
+        Vector3::Zero,
+        ParticleLifecycle::kDefaultOneShotLifetime,
+        getOwner()
     );
 }
 

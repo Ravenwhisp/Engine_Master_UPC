@@ -23,6 +23,7 @@ public:
 
 	bool isTeleportReady() const;
 	void consumeTeleportCooldown();
+	void delayTeleportRetry();
 	bool tryGetTeleportPosition(Vector3& outPosition) const;
 
 	bool isSummonReady() const;

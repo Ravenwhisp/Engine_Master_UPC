@@ -112,6 +112,11 @@ void ArthurChargingSlam::OnStateUpdate()
         return;
     }
 
+    if (m_arthurController->trySendStunTrigger(m_animation))
+    {
+        return;
+    }
+
     m_stateTimer += Time::getDeltaTime();
 
     float chargingDuration = m_arthurController->m_attackConfig.get()->m_chargingSlamHitTime;
@@ -142,7 +147,7 @@ void ArthurChargingSlam::OnStateUpdate()
         m_hasAppliedImpact = true;
     }
 
-    if (m_hasAppliedImpact && m_stateTimer >= m_arthurController->m_attackConfig.get()->m_chargingSlamTotalDuration)
+    if (m_hasAppliedImpact && m_stateTimer >= getTotalDuration())
     {
         goToRecover();
         return;
@@ -393,6 +398,21 @@ float ArthurChargingSlam::getDashSpeed() const
     return dashSpeed;
 }
 
+float ArthurChargingSlam::getTotalDuration() const
+{
+    if (!m_arthurController || !m_arthurController->m_attackConfig.get())
+    {
+        return 0.0f;
+    }
+
+    if (m_arthurController->isPhase2())
+    {
+        return m_arthurController->m_attackConfig.get()->m_chargingSlamPhase2TotalDuration;
+    }
+
+    return m_arthurController->m_attackConfig.get()->m_chargingSlamTotalDuration;
+}
+
 float ArthurChargingSlam::getSafeSectionSpeed(float animationSectionDuration, float gameplayDuration) const
 {
     if (animationSectionDuration <= 0.001f)
@@ -457,7 +477,7 @@ void ArthurChargingSlam::setupAnimationImpactSection()
     }
 
     const float animationImpactDuration = m_animEndTime - m_animImpactStartTime;
-    const float gameplayImpactDuration = m_arthurController->m_attackConfig.get()->m_chargingSlamTotalDuration - m_stateTimer;
+    const float gameplayImpactDuration = getTotalDuration() - m_stateTimer;
 
     const float speed = getSafeSectionSpeed(animationImpactDuration, gameplayImpactDuration);
 

@@ -63,8 +63,7 @@ public:
     float getRecoveryDuration() const { return m_recoveryDuration; }
 
     // Stunned helpers
-    void setStunnedDuration(float stunnedDuration);
-    float getStunnedDuration() const { return m_stunnedDuration; }
+    // Duration is supplied by the attack that applies stun.
     void useStun(float duration);
     bool trySendStunTrigger(AnimationComponent* animation);
     bool isStunned() const { return m_isStunned; }
@@ -121,7 +120,6 @@ protected:
     bool m_isForcedMovementBlocked = false;
 
     float m_recoveryDuration = 0.75f;
-    float m_stunnedDuration = 2.0f;
     float m_stunnedTimer = 0.0f;
     bool m_stunnedTriggerSent = false;
     bool m_isStunned = false;
@@ -130,12 +128,9 @@ private:
     static constexpr size_t MAX_PATH_POINTS = 128;
 
     // Neighbor separation state
-    // GameObjects are validated against Scene before dereferencing. Cached
-    // Transform pointers can outlive deferred Scene destruction and dangle.
-    std::vector<GameObject*> m_neighborCache;
+    std::vector<Vector3> m_neighborPositionCache;
     float m_separationQueryTimer = 0.0f;
 
-    // Footstep audio is driven from locomotion: ping the EnemySound each frame we step.
     EnemySound* m_enemySound = nullptr;
     bool m_enemySoundResolved = false;
 

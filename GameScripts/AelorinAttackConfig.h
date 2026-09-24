@@ -14,6 +14,10 @@ public:
 	{
 	}
 
+	// Health
+	float m_phase1MaxHp = 100.0f;
+	float m_phase2MaxHp = 100.0f;
+
 	// Decision Timing
 	float m_phase1DecisionTime = 2.0f;
 	float m_phase2DecisionTime = 1.0f;
@@ -124,6 +128,11 @@ public:
 
 	IMPLEMENT_DATACONTAINER_FIELDS(
 		AelorinAttackConfig,
+
+		FIELD_GROUP_COLLAPSE("Health",
+			SERIALIZED_FLOAT(m_phase1MaxHp, "Phase 1 Max HP", 0.0f, 99999.9f, 1.0f),
+			SERIALIZED_FLOAT(m_phase2MaxHp, "Phase 2 Max HP", 0.0f, 99999.9f, 1.0f)
+		),
 
 		FIELD_GROUP_COLLAPSE("Decision Timing",
 			SERIALIZED_FLOAT(m_phase1DecisionTime, "Phase 1 Decision Time", 0.0f, 10.0f, 0.05f),

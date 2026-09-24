@@ -46,6 +46,11 @@ void EnemyAttackExecutor::Update()
 
 void EnemyAttackExecutor::OnGameStop()
 {
+    releaseRuntimeParticles();
+}
+
+void EnemyAttackExecutor::releaseRuntimeParticles()
+{
     m_timedHitVfx.clear();
     m_nextPlayerHitVfxOverride = AssetId();
 }
@@ -71,7 +76,8 @@ void EnemyAttackExecutor::playPlayerHitVfx(Transform* targetTransform, const Ass
         resolvedPrefab,
         position,
         Vector3::Zero,
-        ParticleLifecycle::kDefaultOneShotLifetime
+        ParticleLifecycle::kDefaultOneShotLifetime,
+        ComponentAPI::getOwner(targetTransform)
     );
 }
 

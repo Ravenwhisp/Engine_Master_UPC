@@ -57,6 +57,9 @@ protected:
 	float m_dissolveDuration = 1.0f;
 	void loadDissolveComponent();
 	DissolveComponent* findDissolveInHierarchy(Transform* transform);
+	
+	Transform2D* getHealthBarContainerTransform() const { return m_healthBarContainerTransform; }
+	void bindHealthBarUI(Transform2D* container, UISlider* slider1, UISlider* slider2);
 
 private: 
 	void resolveHealthBarReferences();

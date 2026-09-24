@@ -18,8 +18,9 @@ public:
     void syncBasicAttackTrail(const Vector3& pos, const Vector3& eulerDeg);
     void stopBasicAttackTrail();
 
-    // Basic attack projectile sparks — called by ArcherArrowShooter
-    void spawnArrowSparks(const Vector3& pos);
+    // Basic attack projectile sparks — called by ArcherArrowShooter.
+    // The sparks are parented to the arrow so they die with it.
+    void spawnArrowSparks(const Vector3& pos, GameObject* arrow);
     void syncArrowSparks(const Vector3& pos, const Vector3& eulerDeg);
     void stopArrowSparks();
 
@@ -33,6 +34,9 @@ public:
     void startChargeParticle();
     void updateChargeParticle();
     void stopChargeParticle();
+
+    // Destroys every runtime particle owned by this script. Safe to call more than once.
+    void releaseRuntimeParticles();
 
 public:    
     PrefabRef m_trailPrefab;
@@ -52,7 +56,7 @@ private:
     void ensureTrailParticle(const Vector3& pos);
     void ensureBarrageFloorParticle(const Vector3& position);
     void ensureSomersaultParticle();
-    void ensureArrowSparksParticle(const Vector3& pos);
+    void ensureArrowSparksParticle(const Vector3& pos, GameObject* arrow);
 
     GameObject* m_trailGO = nullptr;
     GameObject* m_arrowSparksGO = nullptr;

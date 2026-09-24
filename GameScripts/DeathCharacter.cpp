@@ -36,7 +36,7 @@ void DeathCharacter::Start()
         m_basicAttack = GameObjectAPI::findScript<DeathBasicAttack>(getOwner());
         m_chargedAttack = GameObjectAPI::findScript<DeathChargedAttack>(getOwner());
         m_specialAbility = GameObjectAPI::findScript<DeathTaunt>(getOwner());
-        m_sound    = GameObjectAPI::findScript<DeathSound>(getOwner());
+        m_sound = GameObjectAPI::findScript<DeathSound>(getOwner());
         m_movement = GameObjectAPI::findScript<PlayerMovement>(getOwner());
     }
     if (m_basicAttack == nullptr)
@@ -152,7 +152,7 @@ void DeathCharacter::tickCombo(float dt)
 
 void DeathCharacter::advanceCombo(bool isR2, float comboWindowOverride)
 {
-    m_comboTimer        = 0.0f;
+    m_comboTimer = 0.0f;
     m_activeComboWindow = (comboWindowOverride > 0.0f) ? comboWindowOverride : m_config.get()->m_comboWindow;
 
     if (isR2)
@@ -175,9 +175,9 @@ void DeathCharacter::advanceCombo(bool isR2, float comboWindowOverride)
 
 void DeathCharacter::resetCombo()
 {
-    m_comboStep          = 0;
+    m_comboStep = 0;
     m_consecutiveR2Count = 0;
-    m_comboTimer         = 0.0f;
+    m_comboTimer = 0.0f;
 }
 
 IMPLEMENT_SCRIPT(DeathCharacter)

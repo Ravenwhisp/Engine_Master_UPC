@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "ScriptAPI.h"
+
 #include <unordered_set>
 
 class SpikeTrap : public Script
@@ -12,65 +13,62 @@ public:
 
     void Start() override;
     void Update() override;
+    void OnTriggerEnter(GameObject* gameObject) override;
+    void OnTriggerExit(GameObject* gameObject) override;
+
+    FieldList getExposedFields() const override;
 
     enum TrapState
     {
         WAIT,
-        ACTIVE
+        EXTENDING,
+        ACTIVE,
+        RETRACTING
     };
-    
-    FieldList getExposedFields() const override;
 
-    float a_duration = 2.0;
-	float p_duration = 1.0;
+    float a_duration = 2.0f;
+    float p_duration = 1.0f;
+    float extensionDuration = 0.35f;
+    float retractionDuration = 0.55f;
 
-	float currentTime = 0.0f;
+    float trapDamage = 20.0f;
+    bool alternativeMode = false;
 
-	float trapDamage = 20.0f;
-
-	bool alternativeMode = false;
-
-    /*ComponentRef<Transform> m_normalSpike;
-    ComponentRef<Transform> m_spectralSpike;*/
-
-	Vector3 normalSpikePosition = Vector3(0.0f, -1.0f, 0.0f);
-	Vector3 spectralSpikePosition = Vector3(0.0f, -1.0f, 0.0f);
-
-    float m_xWidth = 2.0f;
-    float m_zWidth = 2.0f;
-
-	GameObject* owner = nullptr;
-	Transform* ownerTransform = nullptr;
-
-    Transform* m_normalSpike;
-	Transform* m_spectralSpike;
-
-
-    //This will make posible use different height for the spikes, which let us use different models. If finally we use animations this will disspaear.
-	float startPositionY = -1.0f;
-	float waitPositionY = -0.7f;
-	float activePositionY = 0.0f;
+    // Hidden, telegraph, and fully dangerous local heights.
+    float startPositionY = -1.0f;
+    float waitPositionY = -0.7f;
+    float activePositionY = 0.0f;
 
     ComponentRef<Transform> m_spikeShineT;
     ComponentRef<Transform> m_spectralAuraT;
 
 private:
-    
-    bool containsPoint(const Vector3& triggerCenter, const Vector3& point) const;
-    void TrapLoop();
+    void beginExtension();
+    void updateExtension();
+    void beginRetraction();
+    void updateRetraction();
 
-	void damagePlayer(GameObject* player);
+    void setSpikeHeight(int type, float height);
+    float getAnimationProgress(float duration) const;
+    static float smoothStep(float t);
 
-    void triggerBoxDamage();
+    bool isCurrentTarget(GameObject* player) const;
+    void damagePlayersInside();
+    void damagePlayer(GameObject* player);
 
     void addEffect(int type);
-	void removeEffect(int type);
+    void removeEffect(int type);
 
-	int spikeType = 0; // 0 for normal, 1 for spectral
-	GameObject* m_lyriel = nullptr;
-	GameObject* m_death = nullptr;
+    int spikeType = 0; // 0: normal/Lyriel, 1: spectral/Death
+    float currentTime = 0.0f;
+    TrapState state = WAIT;
 
+    Transform* m_normalSpike = nullptr;
+    Transform* m_spectralSpike = nullptr;
+
+    GameObject* m_lyriel = nullptr;
+    GameObject* m_death = nullptr;
+
+    std::unordered_set<GameObject*> playersInside;
     std::unordered_set<GameObject*> damagedPlayers;
-
-	TrapState state = WAIT;
 };

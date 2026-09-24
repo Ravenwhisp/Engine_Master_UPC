@@ -18,6 +18,8 @@ void CrystalShadowMark::Start()
 {
     EnemyShadowMark::Start();
 
+	m_owner = getOwner();
+
     managerObject = ComponentAPI::getOwner(m_puzzleManager.getReferencedComponent());
     if(managerObject == nullptr)
     {
@@ -120,7 +122,7 @@ bool CrystalShadowMark::processAttack(PlayerAttackType attackType)
 void CrystalShadowMark::ensureEffect()
 {
     const Vector3 effectPosition = TransformAPI::getGlobalPosition(GameObjectAPI::getTransform(getOwner())) + Vector3(0.0f, 1.0f, 0.0f);
-    ParticleLifecycle::ensurePersistent(m_effectObject, ObjectVfxIds::crystalActiveEffect(), effectPosition, Vector3::Zero, nullptr);
+    ParticleLifecycle::ensurePersistent(m_effectObject, ObjectVfxIds::crystalActiveEffect(), effectPosition, Vector3::Zero, m_owner );
 }
 
 void CrystalShadowMark::activeEffect()

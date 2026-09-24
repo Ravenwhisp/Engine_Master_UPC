@@ -18,6 +18,9 @@ public:
     void notifyMoving();
     void stopMovementParticle();
 
+    // Destroys every runtime particle owned by this script. Safe to call more than once.
+    void releaseRuntimeParticles();
+
 private:
     void startMovementParticle();
     void updateMovementParticle();

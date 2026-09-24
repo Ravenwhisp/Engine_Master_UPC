@@ -15,7 +15,7 @@ IMPLEMENT_SCRIPT_FIELDS(DeathParticles,
     SERIALIZED_ASSET_REF(m_chargeGlowPrefab, "Charge Glow Prefab", AssetType::PREFAB),
     SERIALIZED_STRING(m_hitFlashPath, "Hit Flash Prefab Path"),
     SERIALIZED_ASSET_REF(m_hitFlashPrefab, "Hit Flash Prefab", AssetType::PREFAB),
-    SERIALIZED_STRING(m_chargedHitFlashPath, "Charged Hit Flash Prefab Path"),
+    SERIALIZED_STRING(m_chargedHitFlashPath, "Charged Hit Flash Pzrefab Path"),
     SERIALIZED_ASSET_REF(m_chargedHitFlashPrefab, "Charged Hit Flash Prefab", AssetType::PREFAB),
     SERIALIZED_STRING(m_scytheAnchorName, "Scythe Anchor Name")
 )
@@ -27,6 +27,8 @@ DeathParticles::DeathParticles(GameObject* owner)
 
 void DeathParticles::Start()
 {
+    SetDashInactive();
+    SetScytheInactive();
 }
 
 void DeathParticles::OnGameStop()
@@ -105,7 +107,7 @@ void DeathParticles::syncActiveParticles()
 
 void DeathParticles::ensureTauntParticle(const Vector3& position, const Vector3& rotation)
 {
-    ParticleLifecycle::ensurePersistent(m_activeTauntParticle, m_tauntParticle.m_id, position, rotation, nullptr);
+    ParticleLifecycle::ensurePersistent(m_activeTauntParticle, m_tauntParticle.m_id, position, rotation, getOwner());
 }
 
 void DeathParticles::SetDashActive()
@@ -117,15 +119,20 @@ void DeathParticles::SetDashActive()
 
     if (m_dashTrailController != nullptr)
     {
-        TrailComponent* trailComponent = TrailAPI::getTrailComponent(ComponentAPI::getOwner(m_dashTrailController));
-        TrailAPI::generateTrail(trailComponent, true);
+        const int childCount = TransformAPI::getChildCount(m_dashTrailController);
+        for (int i = 0; i < childCount; ++i)
+        {
+            Transform* child = TransformAPI::getChild(m_dashTrailController, i);
+            TrailComponent* trailComponent = TrailAPI::getTrailComponent(ComponentAPI::getOwner(child));
+            TrailAPI::generateTrail(trailComponent, true);
+        }
     }
 
     Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
     const Vector3 position = ownerTransform != nullptr ? TransformAPI::getGlobalPosition(ownerTransform) : Vector3::Zero;
     const Vector3 rotation = ownerTransform != nullptr ? TransformAPI::getGlobalEulerDegrees(ownerTransform) : Vector3::Zero;
 
-    ParticleLifecycle::ensurePersistent(m_dashParticleInstance, m_dashParticlePrefab.m_id, position, rotation, nullptr);
+    ParticleLifecycle::ensurePersistent(m_dashParticleInstance, m_dashParticlePrefab.m_id, position, rotation, getOwner());
     ParticleLifecycle::syncToTransform(m_dashParticleInstance, ownerTransform);
     ParticleLifecycle::activate(m_dashParticleInstance);
     m_dashParticleActive = m_dashParticleInstance != nullptr;
@@ -140,8 +147,13 @@ void DeathParticles::SetDashInactive()
 
     if (m_dashTrailController != nullptr)
     {
-        TrailComponent* trailComponent = TrailAPI::getTrailComponent(ComponentAPI::getOwner(m_dashTrailController));
-        TrailAPI::generateTrail(trailComponent, false);
+        const int childCount = TransformAPI::getChildCount(m_dashTrailController);
+        for (int i = 0; i < childCount; ++i)
+        {
+            Transform* child = TransformAPI::getChild(m_dashTrailController, i);
+            TrailComponent* trailComponent = TrailAPI::getTrailComponent(ComponentAPI::getOwner(child));
+            TrailAPI::generateTrail(trailComponent, false);
+        }
     }
 
     ParticleLifecycle::deactivate(m_dashParticleInstance);
@@ -186,7 +198,7 @@ void DeathParticles::SetChargeActive()
     const Vector3 position = scytheTransform != nullptr ? TransformAPI::getGlobalPosition(scytheTransform) : Vector3::Zero;
     const Vector3 rotation = scytheTransform != nullptr ? TransformAPI::getGlobalEulerDegrees(scytheTransform) : Vector3::Zero;
 
-    ParticleLifecycle::ensurePersistent(m_chargeGlowInstance, m_chargeGlowPrefab.m_id, position, rotation, nullptr);
+    ParticleLifecycle::ensurePersistent(m_chargeGlowInstance, m_chargeGlowPrefab.m_id, position, rotation, getOwner());
     ParticleLifecycle::syncToTransform(m_chargeGlowInstance, scytheTransform);
     ParticleLifecycle::activate(m_chargeGlowInstance);
     m_chargeGlowActive = m_chargeGlowInstance != nullptr;
@@ -252,21 +264,27 @@ void DeathParticles::SetTauntInactive()
     m_tauntParticleLifetime = 0.0f;
 }
 
-void DeathParticles::playHitFlash(const Vector3& position)
+void DeathParticles::playHitFlash(const Vector3& position, GameObject* target)
 {
     ParticleLifecycle::spawnOneShotTimed(
         m_timedOneShots,
         m_hitFlashPrefab.m_id,
-        position
+        position,
+        Vector3::Zero,
+        ParticleLifecycle::kDefaultOneShotLifetime,
+        target
     );
 }
 
-void DeathParticles::playChargedHitFlash(const Vector3& position)
+void DeathParticles::playChargedHitFlash(const Vector3& position, GameObject* target)
 {
     ParticleLifecycle::spawnOneShotTimed(
         m_timedOneShots,
         m_chargedHitFlashPrefab.m_id,
-        position
+        position,
+        Vector3::Zero,
+        ParticleLifecycle::kDefaultOneShotLifetime,
+        target
     );
 }
 

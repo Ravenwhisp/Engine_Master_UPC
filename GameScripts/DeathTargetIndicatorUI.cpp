@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "DeathTargetIndicatorUI.h"
-
+#include "DeathCharacter.h"
 #include "DeathConfig.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathTargetIndicatorUI, TargetIndicatorUI,
@@ -25,6 +25,18 @@ void DeathTargetIndicatorUI::onStart()
     }
 
     GameObject* player = ComponentAPI::getOwner(playerTransform);
+    if (player == nullptr)
+    {
+        return;
+    }
+
+    DeathCharacter* deathCharacter = GameObjectAPI::findScript<DeathCharacter>(player);
+    if (deathCharacter == nullptr)
+    {
+        return;
+    }
+
+    m_deathConfig = deathCharacter->getConfig();
 }
 
 void DeathTargetIndicatorUI::updateDirectionIndicator(GameObject* currentTarget)
@@ -36,7 +48,7 @@ void DeathTargetIndicatorUI::updateDirectionIndicator(GameObject* currentTarget)
         return;
     }
 
-    if (m_deathConfig.get() == nullptr)
+    if (m_deathConfig == nullptr)
     {
         hideDirectionIndicator();
         return;
@@ -63,7 +75,7 @@ void DeathTargetIndicatorUI::hideDirectionIndicator()
 
 void DeathTargetIndicatorUI::updateRangeIndicatorTransform(Transform* rangeTransform, const Vector3& playerPosition, const Vector3& direction) const
 {
-    if (rangeTransform == nullptr || m_deathConfig.get() == nullptr)
+    if (rangeTransform == nullptr || m_deathConfig == nullptr)
     {
         return;
     }
@@ -78,7 +90,7 @@ void DeathTargetIndicatorUI::updateRangeIndicatorTransform(Transform* rangeTrans
 
     flatDirection.Normalize();
 
-    const float attackRange = m_deathConfig.get()->m_basicAttackRange;
+    const float attackRange = m_deathConfig->m_basicAttackRange;
 
     Vector3 rangePosition = playerPosition + flatDirection * (attackRange * 0.5f);
     rangePosition.y = playerPosition.y + m_heightOffset;

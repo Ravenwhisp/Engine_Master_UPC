@@ -35,7 +35,7 @@ private:
 
     void setBlockerState(const ComponentRef<Transform>& blockerTransformRef, bool blocked);
     void activateBarricadeVisuals(const ComponentRef<Transform>& visualsTransformRef, BarricadeVisualSlot& slot);
-    void deactivateBarricadeVisuals(BarricadeVisualSlot& slot);
+    void destroyBarricadeVisuals(BarricadeVisualSlot& slot);
 
     void removeDeadEnemies();
     bool shouldRemoveEnemy(const ComponentRef<Transform>& enemyTransformRef) const;
