@@ -232,34 +232,97 @@ void SceneConfig::drawVolumetricFogSettings()
 {
     VolumetricFogSettings& fog = m_moduleScene->getScene()->getVolumetricFogSettings();
 
+    auto drawTooltip = [](const char* text)
+        {
+            if (!ImGui::IsItemHovered()) return;
+
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextWrapped("%s", text);
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        };
+
     if (ImGui::CollapsingHeader("Volumetric Fog"))
     {
         ImGui::Checkbox("Enabled###VolFogEnabled", &fog.enabled);
+        drawTooltip("Enables or disables the complete volumetric fog system for this scene.");
 
         ImGui::Separator();
 
         ImGui::DragFloat("Density###VolFogDensity", &fog.density, 0.01f, 0.0f, 10.0f, "%.3f");
+        drawTooltip("Global fog density multiplier. Higher values make the fog thicker and cause objects to lose visibility more quickly.");
+
         ImGui::DragFloat("Scattering Coefficient###VolFogScattering", &fog.scatteringCoefficient, 0.001f, 0.0f, 1.0f, "%.4f");
+        drawTooltip("Controls how strongly light is scattered by the fog. Higher values make illuminated fog, light shafts and volumetric lighting more visible.");
+
         ImGui::DragFloat("Extinction Coefficient###VolFogExtinction", &fog.extinctionCoefficient, 0.001f, 0.0f, 1.0f, "%.4f");
+        drawTooltip("Controls how quickly light and scene visibility are attenuated while travelling through the fog. Higher values make distant objects disappear faster.");
 
         ImGui::TextDisabled("Extinction must be greater than or equal to scattering.");
 
         ImGui::Separator();
 
         ImGui::SliderFloat("Anisotropy (g)###VolFogAnisotropy", &fog.anisotropy, -0.99f, 0.99f, "%.2f");
+        drawTooltip("Controls the preferred scattering direction. 0 produces roughly uniform scattering, positive values favour forward scattering and negative values favour backward scattering.");
+
         ImGui::DragFloat("Max Distance###VolFogMaxDistance", &fog.maxDistance, 1.0f, 1.0f, 1000.0f, "%.1f");
+        drawTooltip("Maximum camera distance covered by the volumetric fog volume. Increasing it makes fog affect farther parts of the scene, but spreads the available depth slices over a larger range.");
 
         fog.sanitize();
+
+        // -----------------------------------------------------------------
+        // Distance Fog
+        // -----------------------------------------------------------------
+
+        ImGui::Separator();
+        ImGui::Text("Distance Fog");
+
+        ImGui::Checkbox("Enabled###VolumetricFogDistanceEnabled", &fog.distanceFogEnabled);
+        drawTooltip("Enables an additional artist-controlled fog layer based on camera distance. Useful for hiding distant empty areas and controlling background visibility independently from the physical volumetric fog.");
+
+        if (fog.distanceFogEnabled)
+        {
+            ImGui::DragFloat("Start Distance###VolumetricFogDistanceStart", &fog.distanceFogStart, 1.0f, 0.0f, 10000.0f, "%.1f");
+            drawTooltip("Distance from the camera where the distance fog starts appearing. Objects closer than this are not affected by this additional fog layer.");
+
+            ImGui::DragFloat("End Distance###VolumetricFogDistanceEnd", &fog.distanceFogEnd, 1.0f, 0.0f, 10000.0f, "%.1f");
+            drawTooltip("Distance where the distance fog reaches its maximum opacity. The fog smoothly increases between Start Distance and End Distance.");
+
+            ImGui::SliderFloat("Max Opacity###VolumetricFogDistanceMaxOpacity", &fog.distanceFogMaxOpacity, 0.0f, 1.0f, "%.2f");
+            drawTooltip("Maximum strength of the distance fog. 0 means no effect and 1 allows distant areas to become completely covered by the fog color.");
+
+            float fogColor[3] = { fog.distanceFogColorR, fog.distanceFogColorG, fog.distanceFogColorB };
+
+            if (ImGui::ColorEdit3("Fog Color###VolumetricFogDistanceColor", fogColor))
+            {
+                fog.distanceFogColorR = fogColor[0];
+                fog.distanceFogColorG = fogColor[1];
+                fog.distanceFogColorB = fogColor[2];
+            }
+
+            drawTooltip("Target color used by the distance fog. Distant pixels gradually blend towards this color as the fog amount increases.");
+        }
+
+        fog.sanitize();
+
+        // -----------------------------------------------------------------
+        // Animation
+        // -----------------------------------------------------------------
 
         ImGui::Separator();
         ImGui::Text("Animation");
 
         ImGui::Checkbox("Animate Density###VolumetricFogAnimateDensity", &fog.animateDensity);
+        drawTooltip("Adds animated world-space noise to the fog density. Useful for making the fog look less uniform and creating slowly moving fog patterns.");
 
         if (fog.animateDensity)
         {
             ImGui::DragFloat("Noise Scale###VolumetricFogNoiseScale", &fog.noiseScale, 0.001f, 0.001f, 1.0f);
+            drawTooltip("Controls the size of the density noise pattern. Lower values create large smooth fog formations, while higher values create smaller and more frequent variations.");
+
             ImGui::SliderFloat("Noise Strength###VolumetricFogNoiseStrength", &fog.noiseStrength, 0.0f, 1.0f);
+            drawTooltip("Controls how strongly the noise modifies fog density. 0 keeps the fog homogeneous, while 1 applies the full density variation.");
 
             float windDirection[3] = { fog.windDirectionX, fog.windDirectionY, fog.windDirectionZ };
 
@@ -270,15 +333,29 @@ void SceneConfig::drawVolumetricFogSettings()
                 fog.windDirectionZ = windDirection[2];
             }
 
+            drawTooltip("World-space direction used to move the animated fog pattern. The direction is normalized internally.");
+
             ImGui::DragFloat("Wind Speed###VolumetricFogWindSpeed", &fog.windSpeed, 0.01f, 0.0f, 100.0f);
+            drawTooltip("Controls how fast the animated fog pattern moves along the wind direction.");
         }
 
         fog.sanitize();
 
+        // -----------------------------------------------------------------
+        // Debug
+        // -----------------------------------------------------------------
+
         ImGui::Separator();
         ImGui::Text("Debug");
 
-        static const char* DEBUG_VIEW_NAMES[] = { "Final", "Medium / Extinction Slice", "Lighting Slice", "Lighting Slice - No Shadows", "Accumulated Scattering", "Transmittance" };
+        static const char* DEBUG_VIEW_NAMES[] = {
+            "Final",
+            "Medium / Extinction Slice",
+            "Lighting Slice",
+            "Lighting Slice - No Shadows",
+            "Accumulated Scattering",
+            "Transmittance"
+        };
 
         int debugView = static_cast<int>(fog.debugView);
 
@@ -287,9 +364,14 @@ void SceneConfig::drawVolumetricFogSettings()
             fog.debugView = static_cast<VolumetricFogDebugView>(debugView);
         }
 
-        if (fog.debugView == VolumetricFogDebugView::Medium || fog.debugView == VolumetricFogDebugView::Lighting || fog.debugView == VolumetricFogDebugView::LightingNoShadows)
+        drawTooltip("Selects a volumetric fog debug visualization. Medium shows fog extinction, Lighting shows local volumetric lighting, Lighting No Shadows ignores shadow maps, Accumulated Scattering shows integrated fog light, and Transmittance shows how much scene light survives through the fog.");
+
+        if (fog.debugView == VolumetricFogDebugView::Medium ||
+            fog.debugView == VolumetricFogDebugView::Lighting ||
+            fog.debugView == VolumetricFogDebugView::LightingNoShadows)
         {
             ImGui::SliderFloat("Debug Slice###VolumetricFogDebugSlice", &fog.debugSlice, 0.0f, 1.0f);
+            drawTooltip("Selects which depth slice of the volumetric grid is displayed. 0 shows slices near the camera and 1 shows slices near the maximum fog distance.");
         }
 
         ImGui::Separator();
@@ -298,6 +380,8 @@ void SceneConfig::drawVolumetricFogSettings()
         {
             fog = VolumetricFogSettings{};
         }
+
+        drawTooltip("Restores all volumetric fog settings to their default values.");
     }
 }
 
