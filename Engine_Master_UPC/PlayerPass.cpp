@@ -151,7 +151,7 @@ void PlayerPass::prepare(const RenderContext& ctx)
     GPULightsConstantBuffer lightsCB{};
     lightsCB = packLightsForGPU(app->getModuleScene()->getLightComponents(),m_lighting->ambientColor,m_lighting->ambientIntensity);
 
-    m_lightsAddress = ctx.ringBuffer->allocate( &lightsCB, sizeof(GPULightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
+    m_lightsAddress = ctx.ringBuffer->allocate(&lightsCB, sizeof(GPULightsConstantBuffer));
 
     m_hasShadowData = ctx.shadowData != nullptr;
 
@@ -171,7 +171,7 @@ void PlayerPass::prepare(const RenderContext& ctx)
 
     m_sceneDataCB->renderFlags = DirectX::SimpleMath::Vector4(ssaoSettings.enabled ? 1.0f : 0.0f, ssaoSettings.enabled && ssaoSettings.debugView ? 1.0f : 0.0f, 0.0f, 0.0f);
 
-    m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB), app->getModuleD3D12()->getCurrentFrame());
+    m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB));
 
     m_hasSSAOData = false;
     m_ssaoSRV = {};

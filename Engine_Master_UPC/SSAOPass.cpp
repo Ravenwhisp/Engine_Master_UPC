@@ -240,6 +240,5 @@ void SSAOPass::uploadConstants(const RenderContext& ctx)
 
     m_ssaoCBAddress = ctx.ringBuffer->allocate(
         &m_ssaoData,
-        sizeof(SSAODataCB),
-        app->getModuleD3D12()->getCurrentFrame());
+        sizeof(SSAODataCB));
 }

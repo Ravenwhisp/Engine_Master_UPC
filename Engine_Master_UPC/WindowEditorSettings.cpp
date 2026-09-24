@@ -27,6 +27,8 @@ void WindowEditorSettings::drawInternal()
     ImGui::Separator();
     drawSceneSettings();
     ImGui::Separator();
+    drawDebugDrawSettings();
+    ImGui::Separator();
     drawFrustumCullingSettings();
     ImGui::Separator();
     drawScriptsSettings();
@@ -95,6 +97,15 @@ void WindowEditorSettings::drawSceneSettings()
         ImGui::Checkbox("Show NavPath###SceneShowNavPath", &m_settings->sceneEditor.showNavPath);
         ImGui::Checkbox("Show Light Component###SceneLightComponent", &m_settings->sceneEditor.showLightComponent);
         ImGui::Checkbox("Show Camera Frustum###SceneCameraFrustum", &m_settings->sceneEditor.showCameraFrustum);
+    }
+}
+
+void WindowEditorSettings::drawDebugDrawSettings()
+{
+    if (ImGui::CollapsingHeader("Debug Draw"))
+    {
+        ImGui::Checkbox("Show Script Gizmos###DebugDrawShowScriptGizmos", &m_settings->debugDraw.showScriptGizmos);
+        ImGui::SetItemTooltip("Draws the gizmos submitted by Script::drawGizmo().");
     }
 }
 

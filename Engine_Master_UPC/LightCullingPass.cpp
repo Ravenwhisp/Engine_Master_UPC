@@ -140,8 +140,7 @@ void LightCullingPass::prepare(const RenderContext& ctx)
 
     m_lightsCBAddress = ctx.ringBuffer->allocate(
         &lightsCB,
-        sizeof(GPULightsConstantBuffer),
-        app->getModuleD3D12()->getCurrentFrame());
+        sizeof(GPULightsConstantBuffer));
 
     if (m_lightsCBAddress == 0)
     {

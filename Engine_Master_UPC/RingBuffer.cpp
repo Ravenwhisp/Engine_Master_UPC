@@ -15,7 +15,7 @@ RingBuffer::~RingBuffer() {
     m_mappedData = nullptr;
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size, uint64_t currentFrame)
+D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size)
 {
     // Real number of valid bytes the caller provided. Never copy more than
     // this: the aligned memcpy below would otherwise read past srcData into
@@ -30,7 +30,12 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
     if (size == 0 || size > m_totalMemorySize)
         return 0;
 
-    size_t allocationOffset;
+    const size_t availableSize = m_totalMemorySize - m_usedMemorySize;
+    if (size > availableSize)
+        return 0;
+
+    size_t allocationOffset = 0;
+    size_t reservationSize = size;
 
     // Check if we need to wrap around
     if (m_tail >= m_head) {
@@ -38,14 +43,16 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
         if (m_tail + size <= m_totalMemorySize) {
             // Fits in remaining space at the end
             allocationOffset = m_tail;
-            m_tail += size;
+            m_tail = (m_tail + size) % m_totalMemorySize;
         }
         else {
             // Need to wrap to beginning
-            if (size <= m_head) {
+            const size_t wrapPadding = m_totalMemorySize - m_tail;
+            if (size <= m_head && wrapPadding + size <= availableSize) {
                 // Can wrap if enough space at beginning
                 allocationOffset = 0;
                 m_tail = size;
+                reservationSize += wrapPadding;
             }
             else {
                 // Not enough space
@@ -67,19 +74,39 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size,
     }
 
     memcpy(m_mappedData + allocationOffset, srcData, dataSize);
-    m_allocationQueue.push_back({ currentFrame, allocationOffset, size });
+    m_usedMemorySize += reservationSize;
+    m_allocationQueue.push_back({ 0, allocationOffset, reservationSize });
+    ++m_pendingAllocationCount;
     return m_Resource->GetGPUVirtualAddress() + allocationOffset;
 }
 
+void RingBuffer::commitPendingAllocations(uint64_t fenceValue)
+{
+    if (m_pendingAllocationCount == 0)
+        return;
 
-void RingBuffer::free(uint64_t lastCompletedFrame)
+    assert(fenceValue != 0);
+    assert(m_pendingAllocationCount <= m_allocationQueue.size());
+
+    auto allocation = m_allocationQueue.rbegin();
+    for (size_t i = 0; i < m_pendingAllocationCount; ++i, ++allocation)
+    {
+        allocation->fenceValue = fenceValue;
+    }
+
+    m_pendingAllocationCount = 0;
+}
+
+void RingBuffer::free(uint64_t completedFenceValue)
 {
     while (!m_allocationQueue.empty() &&
-        m_allocationQueue.front().frameIndex < lastCompletedFrame)
+        m_allocationQueue.front().fenceValue != 0 &&
+        m_allocationQueue.front().fenceValue <= completedFenceValue)
     {
         const AllocationInfo& frontAlloc = m_allocationQueue.front();
 
         m_head = (m_head + frontAlloc.size) % m_totalMemorySize;
+        m_usedMemorySize -= frontAlloc.size;
 
         m_allocationQueue.pop_front();
     }
@@ -88,6 +115,7 @@ void RingBuffer::free(uint64_t lastCompletedFrame)
     {
         m_head = 0;
         m_tail = 0;
+        m_usedMemorySize = 0;
     }
 }
 
@@ -95,6 +123,8 @@ void RingBuffer::reset()
 {
     m_head = 0;
     m_tail = 0;
+    m_usedMemorySize = 0;
+    m_pendingAllocationCount = 0;
 
 	std::deque<AllocationInfo> empty;
 	std::swap(m_allocationQueue, empty);

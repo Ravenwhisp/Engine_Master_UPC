@@ -173,6 +173,5 @@ void SSAOBlurPass::uploadConstants(const RenderContext& ctx)
 
     m_blurCBAddress = ctx.ringBuffer->allocate(
         &m_blurData,
-        sizeof(BlurData),
-        app->getModuleD3D12()->getCurrentFrame());
+        sizeof(BlurData));
 }

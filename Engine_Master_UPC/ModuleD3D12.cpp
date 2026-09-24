@@ -5,6 +5,7 @@
 #include "ModuleCamera.h"
 #include "ModuleDescriptors.h"
 #include "ModuleEditor.h"
+#include "ModuleRender.h"
 #include "Transform.h"
 #include <d3dcompiler.h>
 #include "RingBuffer.h"
@@ -36,7 +37,7 @@ void ModuleD3D12::preRender()
     m_frameIndex = m_swapChain->getCurrentBackBufferIndex();
     m_commandQueue->waitForFenceValue(m_fenceValues[m_frameIndex]);
     m_swapChain->updateCurrentBackBuffer();
-    m_lastCompletedFenceValue = std::max(m_lastCompletedFenceValue, m_fenceValues[m_frameIndex]);
+    m_lastCompletedFenceValue = m_commandQueue->getCompletedFenceValue();
 
     // Reset command list and allocator
     m_commandList = m_commandQueue->getCommandList();
@@ -45,12 +46,14 @@ void ModuleD3D12::preRender()
 void ModuleD3D12::executeCurrentCommandList()
 {
     m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
+    app->getModuleRender()->commitRingBufferAllocations(m_fenceValues[m_frameIndex]);
     m_commandList = m_commandQueue->getCommandList();
 }
 
 void ModuleD3D12::postRender()
 {
     m_fenceValues[m_frameIndex] = m_commandQueue->executeCommandList(m_commandList);
+    app->getModuleRender()->commitRingBufferAllocations(m_fenceValues[m_frameIndex]);
 
     // Present the frame and allow tearing
     m_swapChain->present();

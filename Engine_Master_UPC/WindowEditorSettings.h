@@ -25,6 +25,7 @@ private:
     void drawEngineInformation();
     void drawCameraSettings();
     void drawSceneSettings();
+    void drawDebugDrawSettings();
     void drawFrustumCullingSettings();
     void drawScriptsSettings();
     void drawScriptReloadModal();
