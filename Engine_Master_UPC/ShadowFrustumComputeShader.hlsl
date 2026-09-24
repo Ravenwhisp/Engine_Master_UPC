@@ -61,16 +61,32 @@ cbuffer ShadowFrustumParams : register(b0)
     float2 cascadePadding;
 };
 
-float LinearizeViewDepth(float deviceDepth)
+// Camera's fixed near/far clip planes. Stable frame to frame, unlike the
+// rendered depth buffer's min/max.
+void GetStableCameraDepthRange(out float nearPlane, out float farPlane)
 {
-    float denominator = deviceDepth + cameraProjection._33;
+    float nearDenominator = cameraProjection._33;
+    float farDenominator = 1.0f + cameraProjection._33;
 
-    if (abs(denominator) < 0.000001f)
+    if (abs(nearDenominator) < 0.000001f)
     {
-        denominator = denominator < 0.0f ? -0.000001f : 0.000001f;
+        nearDenominator = nearDenominator < 0.0f ? -0.000001f : 0.000001f;
     }
 
-    return -cameraProjection._43 / denominator;
+    if (abs(farDenominator) < 0.000001f)
+    {
+        farDenominator = farDenominator < 0.0f ? -0.000001f : 0.000001f;
+    }
+
+    nearPlane = abs(cameraProjection._43 / nearDenominator);
+    farPlane = abs(cameraProjection._43 / farDenominator);
+
+    if (farPlane < nearPlane)
+    {
+        float temp = nearPlane;
+        nearPlane = farPlane;
+        farPlane = temp;
+    }
 }
 
 void BuildFrustumCorners(float nearDistance, float farDistance, out float3 corners[8])
@@ -178,7 +194,6 @@ float4x4 BuildLightViewProjection(float nearDistance, float farDistance)
 
     float4 sphere = ComputeBoundingSphere(corners);
     float3 normalizedLightDirection = normalize(lightDirection);
-    float3 eye = sphere.xyz - normalizedLightDirection * (sphere.w + sunDistance);
     float3 up = float3(0.0f, 1.0f, 0.0f);
 
     if (abs(normalizedLightDirection.y) > 0.95f)
@@ -186,8 +201,33 @@ float4x4 BuildLightViewProjection(float nearDistance, float farDistance)
         up = float3(0.0f, 0.0f, 1.0f);
     }
 
-    float4x4 lightView = BuildLookAtRH(eye, sphere.xyz, up);
+    // Snap the center to whole shadow-map texels so the shadow doesn't "swim".
+    float3 zAxis = normalizedLightDirection;
+    float3 xAxis = normalize(cross(up, zAxis));
+    float3 yAxis = cross(zAxis, xAxis);
+
     float orthoSize = max(sphere.w * 2.0f, minOrthoSize);
+    float texelWorldSizeX = orthoSize * shadowMapTexelSizeX;
+    float texelWorldSizeY = orthoSize * shadowMapTexelSizeY;
+
+    float centerX = dot(sphere.xyz, xAxis);
+    float centerY = dot(sphere.xyz, yAxis);
+    float centerZ = dot(sphere.xyz, zAxis);
+
+    if (texelWorldSizeX > 0.0f)
+    {
+        centerX = floor(centerX / texelWorldSizeX) * texelWorldSizeX;
+    }
+
+    if (texelWorldSizeY > 0.0f)
+    {
+        centerY = floor(centerY / texelWorldSizeY) * texelWorldSizeY;
+    }
+
+    float3 snappedTarget = xAxis * centerX + yAxis * centerY + zAxis * centerZ;
+    float3 eye = snappedTarget - normalizedLightDirection * (sphere.w + sunDistance);
+
+    float4x4 lightView = BuildLookAtRH(eye, snappedTarget, up);
     float4x4 lightProjection = BuildOrthographicRH(orthoSize, orthoSize, 0.0f, sphere.w * 2.0f + sunDistance);
 
     return mul(lightView, lightProjection);
@@ -239,11 +279,10 @@ void main()
         return;
     }
 
-    float nearViewZ = LinearizeViewDepth(minMaxDepth.x);
-    float farViewZ = LinearizeViewDepth(minMaxDepth.y);
-
-    float nearDistance = max(-nearViewZ, 0.0001f);
-    float farDistance = max(-farViewZ, nearDistance + 0.0001f);
+    // Use the camera's fixed clip planes, not the visible depth range, so
+    // occlusion changes elsewhere on screen don't reshape the cascades.
+    float nearDistance, farDistance;
+    GetStableCameraDepthRange(nearDistance, farDistance);
 
     // Preserve the current full fitted shadow frustum.
     float4x4 fullLightViewProjection = BuildLightViewProjection(nearDistance, farDistance);
@@ -251,7 +290,7 @@ void main()
     ShadowDataOutput output = BuildShadowOutput(fullLightViewProjection, shadowsEnabled);
     
     // cascadePadding.x = debug enabled
-    // cascadePadding.y = depth-fitted camera near distance
+    // cascadePadding.y = camera near distance used to fit the cascades
     output.cascadePadding.y = nearDistance;
 
     uint activeCascadeCount = output.cascadeCount;
