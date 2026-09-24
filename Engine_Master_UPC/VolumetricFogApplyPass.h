@@ -30,7 +30,17 @@ private:
         uint32_t gridDepth = 64;
         uint32_t debugView = 0;
         float debugSlice = 0.5f;
-        uint32_t padding = 0;
+        uint32_t padding0 = 0;
+
+        uint32_t distanceFogEnabled = 0;
+        float distanceFogStart = 50.0f;
+        float distanceFogEnd = 150.0f;
+        float distanceFogMaxOpacity = 1.0f;
+
+        float distanceFogColorR = 0.25f;
+        float distanceFogColorG = 0.25f;
+        float distanceFogColorB = 0.25f;
+        uint32_t padding1 = 0;
     };
 
     void createRootSignature();

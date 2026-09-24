@@ -92,39 +92,89 @@ void VolumetricFogApplyPass::createPipelineState()
 void VolumetricFogApplyPass::prepare(const RenderContext& ctx)
 {
     m_enabled = false;
+
     m_renderSurface = &ctx.renderSurface;
+
     m_mediumVolume = nullptr;
     m_lightingVolume = nullptr;
     m_integratedVolume = nullptr;
+
     m_depthTexture = nullptr;
     m_sceneHDR = nullptr;
+
     m_constants = {};
+
     m_viewport = ctx.viewport;
     m_scissorRect = ctx.scissorRect;
 
-    if (m_computePass == nullptr || !m_computePass->isEnabled()) return;
+    if (m_computePass == nullptr || !m_computePass->isEnabled())
+        return;
 
     Scene* scene = app->getModuleScene()->getScene();
-    if (scene == nullptr) return;
+
+    if (scene == nullptr)
+        return;
 
     m_mediumVolume = m_computePass->getMediumVolume();
     m_lightingVolume = m_computePass->getLightingVolume();
     m_integratedVolume = m_computePass->getIntegratedVolume();
-    m_depthTexture = m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL).get();
-    m_sceneHDR = m_renderSurface->getTexture(RenderSurface::SCENE_HDR).get();
 
-    if (m_mediumVolume == nullptr || m_lightingVolume == nullptr || m_integratedVolume == nullptr || m_depthTexture == nullptr || m_sceneHDR == nullptr) return;
+    m_depthTexture =
+        m_renderSurface->getTexture(RenderSurface::DEPTH_STENCIL).get();
 
-    const VolumetricFog::GridConstants& grid = m_computePass->getGridConstants();
-    const VolumetricFogSettings& settings = scene->getVolumetricFogSettings();
+    m_sceneHDR =
+        m_renderSurface->getTexture(RenderSurface::SCENE_HDR).get();
+
+    if (m_mediumVolume == nullptr ||
+        m_lightingVolume == nullptr ||
+        m_integratedVolume == nullptr ||
+        m_depthTexture == nullptr ||
+        m_sceneHDR == nullptr)
+    {
+        return;
+    }
+
+    const VolumetricFog::GridConstants& grid =
+        m_computePass->getGridConstants();
+
+    const VolumetricFogSettings& settings =
+        scene->getVolumetricFogSettings();
 
     m_constants.nearDistance = grid.nearDistance;
     m_constants.maxDistance = grid.maxDistance;
+
     m_constants.projectionA = ctx.projection._33;
     m_constants.projectionB = ctx.projection._43;
+
     m_constants.gridDepth = grid.gridDepth;
-    m_constants.debugView = static_cast<uint32_t>(settings.debugView);
+
+    m_constants.debugView =
+        static_cast<uint32_t>(settings.debugView);
+
     m_constants.debugSlice = settings.debugSlice;
+
+    m_constants.distanceFogEnabled =
+        settings.distanceFogEnabled ? 1u : 0u;
+
+    m_constants.distanceFogStart =
+        settings.distanceFogStart;
+
+    m_constants.distanceFogEnd =
+        settings.distanceFogEnd;
+
+    m_constants.distanceFogMaxOpacity =
+        settings.distanceFogMaxOpacity;
+
+
+
+    m_constants.distanceFogColorR =
+        settings.distanceFogColorR;
+
+    m_constants.distanceFogColorG =
+        settings.distanceFogColorG;
+
+    m_constants.distanceFogColorB =
+        settings.distanceFogColorB;
 
     m_enabled = true;
 }
