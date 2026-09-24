@@ -10,13 +10,24 @@ cbuffer ApplyConstants : register(b0)
     uint gridDepth;
     uint debugView;
     float debugSlice;
-    uint padding;
+    uint padding0;
+
+    uint distanceFogEnabled;
+    float distanceFogStart;
+    float distanceFogEnd;
+    float distanceFogMaxOpacity;
+
+    float distanceFogColorR;
+    float distanceFogColorG;
+    float distanceFogColorB;
+    uint padding1;
 };
 
 Texture3D<float4> mediumVolume : register(t0);
 Texture3D<float4> lightingVolume : register(t1);
 Texture3D<float4> integratedVolume : register(t2);
 Texture2D<float> depthTexture : register(t3);
+
 SamplerState linearClampSampler : register(s0);
 
 static const uint DEBUG_FINAL = 0;
@@ -34,16 +45,19 @@ float4 SampleIntegratedVolume(float2 uv, float normalizedDepth)
     {
         float firstSliceZ = 0.5f / float(gridDepth);
         float4 firstSlice = integratedVolume.SampleLevel(linearClampSampler, float3(uv, firstSliceZ), 0.0f);
+
         return lerp(float4(0.0f, 0.0f, 0.0f, 1.0f), firstSlice, saturate(depthInSlices));
     }
 
     float volumeZ = (depthInSlices - 0.5f) / float(gridDepth);
+
     return integratedVolume.SampleLevel(linearClampSampler, float3(uv, saturate(volumeZ)), 0.0f);
 }
 
 float GetDebugSliceZ()
 {
     float slice = round(saturate(debugSlice) * float(gridDepth - 1));
+
     return (slice + 0.5f) / float(gridDepth);
 }
 
@@ -52,30 +66,55 @@ float3 DebugExposure(float3 value, float scale)
     return saturate(1.0f - exp(-max(value, 0.0f) * scale));
 }
 
+float GetDistanceFogAmount(float viewDepth)
+{
+    if (distanceFogEnabled == 0)
+        return 0.0f;
+
+    float distanceRange = max(distanceFogEnd - distanceFogStart, 0.001f);
+    float normalizedDistance = saturate((viewDepth - distanceFogStart) / distanceRange);
+
+    float smoothDistance = normalizedDistance * normalizedDistance * (3.0f - 2.0f * normalizedDistance);
+
+    return smoothDistance * saturate(distanceFogMaxOpacity);
+}
+
 float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
 {
     if (debugView == DEBUG_MEDIUM)
     {
         float4 medium = mediumVolume.SampleLevel(linearClampSampler, float3(coord, GetDebugSliceZ()), 0.0f);
         float extinction = 1.0f - exp(-max(medium.a, 0.0f) * 50.0f);
+
         return float4(extinction.xxx, 0.0f);
     }
 
     if (debugView == DEBUG_LIGHTING || debugView == DEBUG_LIGHTING_NO_SHADOWS)
     {
         float3 lighting = lightingVolume.SampleLevel(linearClampSampler, float3(coord, GetDebugSliceZ()), 0.0f).rgb;
+
         return float4(DebugExposure(lighting, 20.0f), 0.0f);
     }
 
     float deviceDepth = depthTexture.Load(int3(int2(position.xy), 0));
     float viewDepth = LinearizeVolumetricViewDepth(deviceDepth, projectionA, projectionB);
     float normalizedDepth = GetNormalizedVolumetricDepth(viewDepth, nearDistance, maxDistance);
+
     float4 integrated = SampleIntegratedVolume(coord, normalizedDepth);
 
     if (debugView == DEBUG_SCATTERING)
         return float4(DebugExposure(integrated.rgb, 1.0f), 0.0f);
+
     if (debugView == DEBUG_TRANSMITTANCE)
         return float4(integrated.aaa, 0.0f);
 
-    return float4(integrated.rgb, saturate(integrated.a));
+    float distanceFogAmount = GetDistanceFogAmount(viewDepth);
+    float3 distanceFogColor = float3(distanceFogColorR, distanceFogColorG, distanceFogColorB);
+
+    float volumetricWeight = 1.0f - distanceFogAmount;
+
+    float3 finalScattering = integrated.rgb * volumetricWeight + distanceFogColor * distanceFogAmount;
+    float finalTransmittance = integrated.a * volumetricWeight;
+
+    return float4(finalScattering, saturate(finalTransmittance));
 }
