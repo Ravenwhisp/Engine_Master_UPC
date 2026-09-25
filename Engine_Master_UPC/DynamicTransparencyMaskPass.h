@@ -2,21 +2,11 @@
 
 #include "IRenderPass.h"
 #include "SimpleMath.h"
+#include "DynamicTransparencyRenderData.h"
 
 class GameObject;
 class OcclusionTargetComponent;
 class RenderSurface;
-
-static constexpr UINT MAX_DYNAMIC_TRANSPARENCY_TARGETS = 2;
-
-struct DynamicTransparencyMaskCB
-{
-    DirectX::SimpleMath::Vector4 centerRadius[MAX_DYNAMIC_TRANSPARENCY_TARGETS]{};
-    DirectX::SimpleMath::Vector4 depthSoftness[MAX_DYNAMIC_TRANSPARENCY_TARGETS]{};
-    DirectX::SimpleMath::Vector4 settings = DirectX::SimpleMath::Vector4::Zero;
-};
-
-static_assert(sizeof(DynamicTransparencyMaskCB) % 16 == 0);
 
 class DynamicTransparencyMaskPass : public IRenderPass
 {
@@ -31,7 +21,7 @@ private:
     void createPipelineState();
 
     bool buildRegionForTarget(OcclusionTargetComponent* target, UINT targetIndex);
-    void accumulateProjectedBounds(GameObject* gameObject, const Matrix& orientationNeutralTransform, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, bool& hasProjectedPoint) const;
+    bool projectPoint(const Vector3& point, Vector3& screen) const;
 
 private:
     ComPtr<ID3D12Device4> m_device;
@@ -49,5 +39,4 @@ private:
     DynamicTransparencyMaskCB m_maskCB{};
     D3D12_GPU_VIRTUAL_ADDRESS m_maskCBAddress = 0;
 
-    float m_maxFalloffInfluence = 0.95f;
 };

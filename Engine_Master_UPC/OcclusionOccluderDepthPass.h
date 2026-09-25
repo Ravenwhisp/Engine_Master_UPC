@@ -6,7 +6,7 @@ class GameObject;
 class MeshRenderer;
 class RenderSurface;
 
-struct OcclusionTargetCoverageCB
+struct OcclusionCoverageCB
 {
     UINT hasDiffuseTex = 0;
     UINT hasDissolveComponent = 0;
@@ -14,10 +14,10 @@ struct OcclusionTargetCoverageCB
     float padding = 0.0f;
 };
 
-class OcclusionTargetDepthPass : public IRenderPass
+class OcclusionOccluderDepthPass : public IRenderPass
 {
 public:
-    OcclusionTargetDepthPass(ComPtr<ID3D12Device4> device);
+    OcclusionOccluderDepthPass(ComPtr<ID3D12Device4> device);
 
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;

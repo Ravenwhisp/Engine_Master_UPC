@@ -82,8 +82,7 @@ float4 main(PSInput input) : SV_Target
     int2 pixelCoord = int2(input.position.xy);
     float4 transparencyData = dynamicTransparencyMask.Load(int3(pixelCoord, 0));
 
-    float depthBias = falloffSettings.x;
-    float influence = EvaluateDynamicTransparencyInfluence(transparencyData, input.position.z, depthBias);
+    float influence = EvaluateDynamicTransparencyInfluence(transparencyData, input.position.z);
 
     bool hasDissolveComponent = falloffSettings.y > 0.5f;
     float dissolveAmount = falloffSettings.z;

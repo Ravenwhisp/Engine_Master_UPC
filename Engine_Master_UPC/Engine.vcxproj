@@ -318,6 +318,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DissolveComponent.h" />
     <ClInclude Include="DynamicTransparencyFalloffPass.h" />
     <ClInclude Include="DynamicTransparencyMaskPass.h" />
+    <ClInclude Include="DynamicTransparencyRenderData.h" />
     <ClInclude Include="ImporterSoundBank.h" />
     <ClInclude Include="ImporterVideo.h" />
     <ClInclude Include="ForwardPrepass.h" />
@@ -332,7 +333,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="NavRuntimeBlockerComponent.h" />
     <ClInclude Include="OcclusionOccluderComponent.h" />
     <ClInclude Include="OcclusionTargetComponent.h" />
-    <ClInclude Include="OcclusionTargetDepthPass.h" />
+    <ClInclude Include="OcclusionOccluderDepthPass.h" />
     <ClInclude Include="PdbPatcher.h" />
     <ClInclude Include="PlayerPass.h" />
     <ClInclude Include="FlowMapComponent.h" />
@@ -859,7 +860,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="NavRuntimeBlockerComponent.cpp" />
     <ClCompile Include="OcclusionOccluderComponent.cpp" />
     <ClCompile Include="OcclusionTargetComponent.cpp" />
-    <ClCompile Include="OcclusionTargetDepthPass.cpp" />
+    <ClCompile Include="OcclusionOccluderDepthPass.cpp" />
     <ClCompile Include="PdbPatcher.cpp" />
     <ClCompile Include="PlayerPass.cpp" />
     <ClCompile Include="PlayerRenderBufferComponent.cpp" />

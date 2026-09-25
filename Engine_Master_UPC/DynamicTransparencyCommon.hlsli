@@ -5,13 +5,13 @@
 
 static const float DYNAMIC_TRANSPARENCY_CORE_THRESHOLD = 0.999f;
 
-float EvaluateDynamicTransparencyInfluence(float4 transparencyData, float fragmentDepth, float depthBias)
+float EvaluateDynamicTransparencyInfluence(float4 transparencyData, float fragmentDepth)
 {
     float influence = 0.0f;
 
-    if (transparencyData.x > 0.0f && fragmentDepth < transparencyData.y - depthBias)
+    if (transparencyData.x > 0.0f && fragmentDepth < transparencyData.y)
         influence = max(influence, transparencyData.x);
-    if (transparencyData.z > 0.0f && fragmentDepth < transparencyData.w - depthBias)
+    if (transparencyData.z > 0.0f && fragmentDepth < transparencyData.w)
         influence = max(influence, transparencyData.z);
 
     return influence;

@@ -887,7 +887,7 @@
     <ClCompile Include="FlowMapComponent.cpp" />
     <ClCompile Include="FlowMapPass.cpp" />
     <ClCompile Include="OcclusionTargetComponent.cpp" />
-    <ClCompile Include="OcclusionTargetDepthPass.cpp" />
+    <ClCompile Include="OcclusionOccluderDepthPass.cpp" />
     <ClCompile Include="OcclusionOccluderComponent.cpp" />
     <ClCompile Include="DynamicTransparencyMaskPass.cpp" />
     <ClCompile Include="DynamicTransparencyFalloffPass.cpp" />
@@ -1034,7 +1034,7 @@
     </ClInclude>
     <ClInclude Include="OcclusionOccluderComponent.h" />
     <ClInclude Include="OcclusionTargetComponent.h" />
-    <ClInclude Include="OcclusionTargetDepthPass.h" />
+    <ClInclude Include="OcclusionOccluderDepthPass.h" />
     <ClInclude Include="PdbPatcher.h">
       <Filter>Source\Utilities</Filter>
     </ClInclude>
@@ -1920,7 +1920,7 @@
     <ClInclude Include="FlowMapGPUData.h" />
     <ClInclude Include="FlowMapPass.h" />
     <ClInclude Include="OcclusionTargetComponent.h" />
-    <ClInclude Include="OcclusionTargetDepthPass.h" />
+    <ClInclude Include="OcclusionOccluderDepthPass.h" />
     <ClInclude Include="OcclusionOccluderComponent.h" />
     <ClInclude Include="DynamicTransparencyMaskPass.h" />
     <ClInclude Include="DynamicTransparencyFalloffPass.h" />
@@ -2212,7 +2212,7 @@
     </ClCompile>
     <ClCompile Include="OcclusionOccluderComponent.cpp" />
     <ClCompile Include="OcclusionTargetComponent.cpp" />
-    <ClCompile Include="OcclusionTargetDepthPass.cpp" />
+    <ClCompile Include="OcclusionOccluderDepthPass.cpp" />
     <ClCompile Include="PdbPatcher.cpp">
       <Filter>Source\Utilities</Filter>
     </ClCompile>

@@ -1,5 +1,5 @@
 #include "Globals.h"
-#include "OcclusionTargetDepthPass.h"
+#include "OcclusionOccluderDepthPass.h"
 
 #include "Application.h"
 #include "ModuleScene.h"
@@ -10,7 +10,7 @@
 #include "RenderSurface.h"
 #include "Texture.h"
 
-#include "OcclusionTargetComponent.h"
+#include "OcclusionOccluderComponent.h"
 #include "DissolveComponent.h"
 
 #include "GameObject.h"
@@ -28,14 +28,14 @@
 #include <algorithm>
 
 
-OcclusionTargetDepthPass::OcclusionTargetDepthPass(ComPtr<ID3D12Device4> device) : m_device(device)
+OcclusionOccluderDepthPass::OcclusionOccluderDepthPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
     createRootSignature();
     createPipelineState();
 }
 
 
-void OcclusionTargetDepthPass::createRootSignature()
+void OcclusionOccluderDepthPass::createRootSignature()
 {
     CD3DX12_ROOT_PARAMETER rootParams[5] = {};
 
@@ -64,7 +64,7 @@ void OcclusionTargetDepthPass::createRootSignature()
 }
 
 
-void OcclusionTargetDepthPass::createPipelineState()
+void OcclusionOccluderDepthPass::createPipelineState()
 {
     ComPtr<ID3DBlob> vertexShaderBlob;
     ComPtr<ID3DBlob> pixelShaderBlob;
@@ -93,7 +93,7 @@ void OcclusionTargetDepthPass::createPipelineState()
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState.DepthEnable = TRUE;
     psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-    psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+    psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
     psoDesc.DepthStencilState.StencilEnable = FALSE;
 
     psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
@@ -106,7 +106,7 @@ void OcclusionTargetDepthPass::createPipelineState()
 }
 
 
-void OcclusionTargetDepthPass::prepare(const RenderContext& ctx)
+void OcclusionOccluderDepthPass::prepare(const RenderContext& ctx)
 {
     m_view = &ctx.view;
     m_projection = &ctx.projection;
@@ -116,14 +116,14 @@ void OcclusionTargetDepthPass::prepare(const RenderContext& ctx)
 
     m_meshRenderers.clear();
 
-    const auto& targets = app->getModuleScene()->getOcclusionTargetComponents();
+    const auto& occluders = app->getModuleScene()->getOcclusionOccluderComponents();
 
-    for (OcclusionTargetComponent* target : targets)
+    for (OcclusionOccluderComponent* occluder : occluders)
     {
-        if (target == nullptr || !target->isActive())
+        if (occluder == nullptr || !occluder->isActive())
             continue;
 
-        GameObject* owner = target->getOwner();
+        GameObject* owner = occluder->getOwner();
 
         if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
             continue;
@@ -133,14 +133,14 @@ void OcclusionTargetDepthPass::prepare(const RenderContext& ctx)
 }
 
 
-void OcclusionTargetDepthPass::collectMeshRenderers(GameObject* gameObject)
+void OcclusionOccluderDepthPass::collectMeshRenderers(GameObject* gameObject)
 {
     if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy())
         return;
 
     MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
-    if (renderer != nullptr && renderer->isActive())
+    if (renderer != nullptr && renderer->isActive() && renderer->getRenderMode() == RenderMode::DEFAULT)
     {
         if (std::find(m_meshRenderers.begin(), m_meshRenderers.end(), renderer) == m_meshRenderers.end())
             m_meshRenderers.push_back(renderer);
@@ -156,21 +156,21 @@ void OcclusionTargetDepthPass::collectMeshRenderers(GameObject* gameObject)
 }
 
 
-void OcclusionTargetDepthPass::apply(ID3D12GraphicsCommandList4* commandList)
+void OcclusionOccluderDepthPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
-    BEGIN_EVENT(commandList, "OcclusionTargetDepthPass");
+    BEGIN_EVENT(commandList, "OcclusionOccluderDepthPass");
 
-    std::shared_ptr<Texture> targetDepth = m_renderSurface->getTexture(RenderSurface::OCCLUSION_TARGET_DEPTH);
+    std::shared_ptr<Texture> occluderDepth = m_renderSurface->getTexture(RenderSurface::OCCLUSION_OCCLUDER_DEPTH);
 
-    if (!targetDepth)
+    if (!occluderDepth)
     {
         END_EVENT(commandList);
         return;
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE dsv = targetDepth->getDSV().cpu;
+    D3D12_CPU_DESCRIPTOR_HANDLE dsv = occluderDepth->getDSV().cpu;
 
-    commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
+    commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
     commandList->OMSetRenderTargets(0, nullptr, FALSE, &dsv);
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);
@@ -195,7 +195,7 @@ void OcclusionTargetDepthPass::apply(ID3D12GraphicsCommandList4* commandList)
 }
 
 
-void OcclusionTargetDepthPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
+void OcclusionOccluderDepthPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
 {
     if (renderer == nullptr || !renderer->isActive())
         return;
@@ -270,7 +270,7 @@ void OcclusionTargetDepthPass::renderMeshRenderer(ID3D12GraphicsCommandList4* co
         if (material == nullptr)
             continue;
 
-        OcclusionTargetCoverageCB coverageCB{};
+        OcclusionCoverageCB coverageCB{};
         coverageCB.hasDiffuseTex = material->getMaterial().hasDiffuseTex != 0 ? 1u : 0u;
 
         if (dissolve != nullptr)
@@ -279,7 +279,7 @@ void OcclusionTargetDepthPass::renderMeshRenderer(ID3D12GraphicsCommandList4* co
             coverageCB.dissolveAmount = dissolve->getDissolveAmount();
         }
 
-        commandList->SetGraphicsRootConstantBufferView(1, app->getModuleRender()->allocateInRingBuffer(&coverageCB, sizeof(OcclusionTargetCoverageCB)));
+        commandList->SetGraphicsRootConstantBufferView(1, app->getModuleRender()->allocateInRingBuffer(&coverageCB, sizeof(OcclusionCoverageCB)));
 
         // BasicMaterial's descriptor table starts with SLOT_DIFFUSE (t0).
         commandList->SetGraphicsRootDescriptorTable(2, material->getTableGPUHandle());

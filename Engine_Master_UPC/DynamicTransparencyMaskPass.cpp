@@ -32,12 +32,12 @@ DynamicTransparencyMaskPass::DynamicTransparencyMaskPass(ComPtr<ID3D12Device4> d
 
 void DynamicTransparencyMaskPass::createRootSignature()
 {
-    CD3DX12_DESCRIPTOR_RANGE targetDepthRange;
-    targetDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
+    CD3DX12_DESCRIPTOR_RANGE occluderDepthRange;
+    occluderDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
 
     CD3DX12_ROOT_PARAMETER rootParams[2] = {};
     rootParams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[1].InitAsDescriptorTable(1, &targetDepthRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[1].InitAsDescriptorTable(1, &occluderDepthRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -74,7 +74,7 @@ void DynamicTransparencyMaskPass::createPipelineState()
 
     psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
     psoDesc.NumRenderTargets = 1;
-    psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    psoDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     psoDesc.SampleDesc = { 1, 0 };
@@ -82,123 +82,108 @@ void DynamicTransparencyMaskPass::createPipelineState()
     DXCall(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
-bool DynamicTransparencyMaskPass::buildRegionForTarget(OcclusionTargetComponent* target, UINT targetIndex)
+namespace
 {
-    if (target == nullptr || targetIndex >= MAX_DYNAMIC_TRANSPARENCY_TARGETS)
-        return false;
-
-    GameObject* targetRoot = target->getOwner();
-
-    if (targetRoot == nullptr)
-        return false;
-
-    float minX = FLT_MAX;
-    float minY = FLT_MAX;
-    float maxX = -FLT_MAX;
-    float maxY = -FLT_MAX;
-
-    float minDepth = FLT_MAX;
-
-    bool hasProjectedPoint = false;
-
-    Transform* targetTransform = targetRoot->GetTransform();
-
-    if (targetTransform == nullptr)
-        return false;
-
-    Matrix targetWorld = targetTransform->getGlobalMatrix();
-
-    Vector3 targetScale = Vector3::One;
-    Quaternion targetRotation = Quaternion::Identity;
-    Vector3 targetPosition = Vector3::Zero;
-
-    Matrix stableTargetWorld = targetWorld;
-
-    if (targetWorld.Decompose(targetScale, targetRotation, targetPosition))
+    // Prefer the body over weapons/attachments. BoundingBox stores mesh bounds,
+    // not the current skinned vertex silhouette.
+    MeshRenderer* findBodyRenderer(GameObject* object, bool requireSkin)
     {
-        stableTargetWorld =
-            Matrix::CreateScale(targetScale) *
-            Matrix::CreateTranslation(targetPosition);
+        if (!object || !object->IsActiveInWindowHierarchy())
+            return nullptr;
+        auto* renderer = object->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+        if (renderer && renderer->isActive() && renderer->hasMesh() && (!requireSkin || renderer->getSkin()))
+            return renderer;
+        if (auto* transform = object->GetTransform())
+            for (auto* child : transform->getAllChildren())
+                if (auto* body = findBodyRenderer(child, requireSkin))
+                    return body;
+        return nullptr;
     }
+}
 
-    const Matrix orientationNeutralTransform = targetWorld.Invert() * stableTargetWorld;
-
-    accumulateProjectedBounds(targetRoot, orientationNeutralTransform, minX, minY, maxX, maxY, minDepth, hasProjectedPoint);
-
-    if (!hasProjectedPoint)
+bool DynamicTransparencyMaskPass::projectPoint(const Vector3& point, Vector3& screen) const
+{
+    const Matrix viewProjection = *m_view * *m_projection;
+    const auto clip = Vector4::Transform(Vector4(point.x, point.y, point.z, 1.0f), viewProjection);
+    if (clip.w <= 0.0001f || clip.z < 0.0f || clip.z > clip.w)
         return false;
-
-    const float centerX = (minX + maxX) * 0.5f;
-    const float centerY = (minY + maxY) * 0.5f;
-
-    const float bubbleScale = std::max(target->getBubbleScale(), 1.0f);
-    const float radiusX = std::max((maxX - minX) * 0.5f * bubbleScale, 1.0f);
-    const float radiusY = std::max((maxY - minY) * 0.5f * bubbleScale, 1.0f);
-
-    const float representativeDepth = std::clamp(minDepth, 0.0f, 1.0f);
-    const float softness = std::clamp(target->getBubbleSoftness(), 0.0f, 1.0f);
-
-    m_maskCB.centerRadius[targetIndex] = DirectX::SimpleMath::Vector4(centerX, centerY, radiusX, radiusY);
-    m_maskCB.depthSoftness[targetIndex] = DirectX::SimpleMath::Vector4(representativeDepth, softness, 0.0f, 0.0f);
-
+    screen = Vector3(
+        m_viewport.TopLeftX + (clip.x / clip.w * 0.5f + 0.5f) * m_viewport.Width,
+        m_viewport.TopLeftY + (-clip.y / clip.w * 0.5f + 0.5f) * m_viewport.Height,
+        clip.z / clip.w);
     return true;
 }
 
-void DynamicTransparencyMaskPass::accumulateProjectedBounds(GameObject* gameObject, const Matrix& orientationNeutralTransform, float& minX, float& minY, float& maxX, float& maxY, float& minDepth, bool& hasProjectedPoint) const
+bool DynamicTransparencyMaskPass::buildRegionForTarget(OcclusionTargetComponent* target, UINT targetIndex)
 {
-    if (gameObject == nullptr || !gameObject->IsActiveInWindowHierarchy())
-        return;
-
-    MeshRenderer* renderer = gameObject->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
-
-    if (renderer != nullptr && renderer->isActive() && renderer->hasMesh())
+    if (!target || targetIndex >= MAX_DYNAMIC_TRANSPARENCY_TARGETS)
+        return false;
+    auto* root = target->getOwner();
+    if (!root || !root->GetTransform())
+        return false;
+    const Matrix world = root->GetTransform()->getGlobalMatrix();
+    const Vector3 position = Vector3::Transform(Vector3::Zero, world);
+    float height = target->getBodyHeight() * Vector3::TransformNormal(Vector3::UnitY, world).Length();
+    if (height <= 0.0001f)
     {
-        const Vector3* points = renderer->getBoundingBox().getPoints();
-
-        Matrix viewProjection = *m_view * *m_projection;
-        DirectX::XMMATRIX viewProjectionXM = DirectX::XMLoadFloat4x4(&viewProjection);
-
+        auto* body = findBodyRenderer(root, true);
+        if (!body)
+            body = findBodyRenderer(root, false);
+        if (!body)
+            return false;
+        const auto* points = body->getBoundingBox().getPoints();
+        float minY = FLT_MAX, maxY = -FLT_MAX;
         for (UINT i = 0; i < 8; ++i)
         {
-            const Vector3 stableWorldPoint = Vector3::Transform(points[i], orientationNeutralTransform);
-
-            DirectX::XMVECTOR worldPoint = DirectX::XMVectorSet(stableWorldPoint.x, stableWorldPoint.y, stableWorldPoint.z, 1.0f);
-            DirectX::XMVECTOR clipPoint = DirectX::XMVector4Transform(worldPoint, viewProjectionXM);
-
-            DirectX::XMFLOAT4 clip;
-            DirectX::XMStoreFloat4(&clip, clipPoint);
-
-            if (clip.w <= 0.0001f)
-                continue;
-
-            const float ndcX = clip.x / clip.w;
-            const float ndcY = clip.y / clip.w;
-            const float ndcZ = clip.z / clip.w;
-
-            if (ndcZ < 0.0f || ndcZ > 1.0f)
-                continue;
-
-            const float screenX = m_viewport.TopLeftX + (ndcX * 0.5f + 0.5f) * m_viewport.Width;
-            const float screenY = m_viewport.TopLeftY + (-ndcY * 0.5f + 0.5f) * m_viewport.Height;
-
-            minX = std::min(minX, screenX);
-            minY = std::min(minY, screenY);
-            maxX = std::max(maxX, screenX);
-            maxY = std::max(maxY, screenY);
-
-            minDepth = std::min(minDepth, ndcZ);
-
-            hasProjectedPoint = true;
+            minY = std::min(minY, points[i].y);
+            maxY = std::max(maxY, points[i].y);
         }
+        height = maxY - minY;
+    }
+    if (height <= 0.0001f)
+        return false;
+
+    // A rotation-independent body proxy anchored to the movement root. Neither
+    // weapon swings nor animated limbs can enlarge or activate this region.
+    float minX = FLT_MAX, minY = FLT_MAX, maxX = -FLT_MAX, maxY = -FLT_MAX;
+    const float halfWidth = height * 0.22f;
+    for (UINT i = 0; i < 8; ++i)
+    {
+        Vector3 screen;
+        const Vector3 corner = position + Vector3(
+            (i & 1) ? halfWidth : -halfWidth,
+            (i & 2) ? height : 0.0f,
+            (i & 4) ? halfWidth : -halfWidth);
+        // Disable near-plane-straddling proxies rather than project infinities.
+        if (!projectPoint(corner, screen))
+            return false;
+        minX = std::min(minX, screen.x); maxX = std::max(maxX, screen.x);
+        minY = std::min(minY, screen.y); maxY = std::max(maxY, screen.y);
     }
 
-    Transform* transform = gameObject->GetTransform();
+    const float scale = std::max(target->getBubbleScale(), 1.0f);
+    m_maskCB.centerRadius[targetIndex] = Vector4((minX + maxX) * 0.5f, (minY + maxY) * 0.5f,
+        std::max((maxX - minX) * 0.5f * scale, 1.0f), std::max((maxY - minY) * 0.5f * scale, 1.0f));
 
-    if (transform == nullptr)
-        return;
-
-    for (GameObject* child : transform->getAllChildren())
-        accumulateProjectedBounds(child, orientationNeutralTransform, minX, minY, maxX, maxY, minDepth, hasProjectedPoint);
+    const float margin = height * target->getOcclusionMargin();
+    const Matrix inverseView = m_view->Invert();
+    Vector3 towardCamera = Vector3::TransformNormal(Vector3::UnitZ, inverseView);
+    towardCamera.Normalize(); // Engine view space looks along -Z.
+    float cutoffDepth = 0.0f;
+    for (UINT probe = 0; probe < DYNAMIC_TRANSPARENCY_PROBES; ++probe)
+    {
+        const float fraction = target->getAnchorHeight() + (static_cast<float>(probe) - 1.0f) * 0.1f;
+        const Vector3 anchor = position + Vector3(0.0f, height * fraction, 0.0f);
+        Vector3 screen, biasedScreen;
+        if (!projectPoint(anchor, screen) || !projectPoint(anchor + towardCamera * margin, biasedScreen))
+            return false;
+        const float bias = std::max(screen.z - biasedScreen.z, 0.0000001f);
+        m_maskCB.probes[targetIndex * DYNAMIC_TRANSPARENCY_PROBES + probe] = Vector4(screen.x, screen.y, screen.z, bias);
+        if (probe == 1)
+            cutoffDepth = biasedScreen.z;
+    }
+    m_maskCB.depthSoftness[targetIndex] = Vector4(cutoffDepth, target->getBubbleSoftness(), 1.0f / scale, 0.0f);
+    return true;
 }
 
 void DynamicTransparencyMaskPass::prepare(const RenderContext& ctx)
@@ -233,7 +218,7 @@ void DynamicTransparencyMaskPass::prepare(const RenderContext& ctx)
             ++targetIndex;
     }
 
-    m_maskCB.settings = DirectX::SimpleMath::Vector4(static_cast<float>(targetIndex), m_maxFalloffInfluence, 0.0f, 0.0f);
+    m_maskCB.settings = DirectX::SimpleMath::Vector4(static_cast<float>(targetIndex), 0.0f, 0.0f, 0.0f);
     m_maskCBAddress = app->getModuleRender()->allocateInRingBuffer(&m_maskCB, sizeof(DynamicTransparencyMaskCB));
 }
 
@@ -241,10 +226,10 @@ void DynamicTransparencyMaskPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "DynamicTransparencyMaskPass");
 
-    std::shared_ptr<Texture> targetDepth = m_renderSurface->getTexture(RenderSurface::OCCLUSION_TARGET_DEPTH);
+    std::shared_ptr<Texture> occluderDepth = m_renderSurface->getTexture(RenderSurface::OCCLUSION_OCCLUDER_DEPTH);
     std::shared_ptr<Texture> mask = m_renderSurface->getTexture(RenderSurface::DYNAMIC_TRANSPARENCY_MASK);
 
-    if (!targetDepth || !mask)
+    if (!occluderDepth || !mask)
     {
         END_EVENT(commandList);
         return;
@@ -252,7 +237,7 @@ void DynamicTransparencyMaskPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     CD3DX12_RESOURCE_BARRIER barriers[2] =
     {
-        CD3DX12_RESOURCE_BARRIER::Transition(targetDepth->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+        CD3DX12_RESOURCE_BARRIER::Transition(occluderDepth->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
         CD3DX12_RESOURCE_BARRIER::Transition(mask->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET)
     };
 
@@ -273,13 +258,13 @@ void DynamicTransparencyMaskPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
     commandList->SetGraphicsRootConstantBufferView(0, m_maskCBAddress);
-    commandList->SetGraphicsRootDescriptorTable(1, targetDepth->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(1, occluderDepth->getSRV().gpu);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     commandList->DrawInstanced(3, 1, 0, 0);
 
     CD3DX12_RESOURCE_BARRIER restoreBarriers[2] =
     {
-        CD3DX12_RESOURCE_BARRIER::Transition(targetDepth->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE),
+        CD3DX12_RESOURCE_BARRIER::Transition(occluderDepth->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE),
         CD3DX12_RESOURCE_BARRIER::Transition(mask->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
     };
 

@@ -50,7 +50,7 @@
 #include "RenderContext.h"
 #include "WindowSceneEditor.h"
 #include "TransparentPass.h"
-#include "OcclusionTargetDepthPass.h"
+#include "OcclusionOccluderDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
 #include "DynamicTransparencyFalloffPass.h"
 
@@ -103,7 +103,7 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::unique_ptr<DeferredShadingPass>(m_meshRenderPass));
 
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
-    m_occlusionTargetDepthPass = std::make_unique<OcclusionTargetDepthPass>(device);
+    m_occlusionOccluderDepthPass = std::make_unique<OcclusionOccluderDepthPass>(device);
     m_dynamicTransparencyMaskPass = std::make_unique<DynamicTransparencyMaskPass>(device);
     m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
@@ -269,7 +269,7 @@ bool ModuleRender::cleanUp()
     m_lightCullingPass.reset();
     m_depthReductionPass.reset();
     m_dynamicTransparencyMaskPass.reset();
-    m_occlusionTargetDepthPass.reset();
+    m_occlusionOccluderDepthPass.reset();
     m_skinningComputePass.reset();
     m_videoPass.reset();
 
@@ -290,7 +290,7 @@ bool ModuleRender::cleanUp()
     m_lightCullingPass.reset();
     m_depthReductionPass.reset();
     m_dynamicTransparencyMaskPass.reset();
-    m_occlusionTargetDepthPass.reset();
+    m_occlusionOccluderDepthPass.reset();
     m_skinningComputePass.reset();
 
     m_imGuiPass.reset();
@@ -402,15 +402,15 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
     ssaoBlurTexture->setName(L"RenderSurface_SSAO_Blur");
     surface.attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTexture);
 
-    auto occlusionTargetDepth = std::shared_ptr<Texture>(
+    auto occlusionOccluderDepth = std::shared_ptr<Texture>(
         app->getModuleResources()->createDepthBuffer(width, height)
     );
-    occlusionTargetDepth->setName(L"RenderSurface_OcclusionTargetDepth");
+    occlusionOccluderDepth->setName(L"RenderSurface_OcclusionOccluderDepth");
     surface.attachTexture(
-        RenderSurface::OCCLUSION_TARGET_DEPTH,
-        occlusionTargetDepth
+        RenderSurface::OCCLUSION_OCCLUDER_DEPTH,
+        occlusionOccluderDepth
     );
-    auto dynamicTransparencyMask = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, DXGI_FORMAT_R16G16B16A16_FLOAT));
+    auto dynamicTransparencyMask = std::shared_ptr<Texture>(app->getModuleResources()->createGBuffer(width, height, DXGI_FORMAT_R32G32B32A32_FLOAT));
     dynamicTransparencyMask->setName(L"RenderSurface_DynamicTransparencyMask");
     surface.attachTexture(RenderSurface::DYNAMIC_TRANSPARENCY_MASK, dynamicTransparencyMask);
 }
@@ -740,13 +740,13 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     }
 
     {
-        PERF_RENDER("ModuleRender::renderScene::OcclusionTargetDepthPass");
-        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Occlusion target depth");
+        PERF_RENDER("ModuleRender::renderScene::OcclusionOccluderDepthPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Occlusion occluder depth");
 
-        if (m_occlusionTargetDepthPass != nullptr)
+        if (m_occlusionOccluderDepthPass != nullptr)
         {
-            m_occlusionTargetDepthPass->prepare(ctx);
-            m_occlusionTargetDepthPass->apply(commandList);
+            m_occlusionOccluderDepthPass->prepare(ctx);
+            m_occlusionOccluderDepthPass->apply(commandList);
         }
         endRenderPassProfile(commandList, profileIndex);
     }

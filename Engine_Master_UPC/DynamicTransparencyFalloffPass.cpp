@@ -377,7 +377,7 @@ void DynamicTransparencyFalloffPass::renderMeshRenderer(ID3D12GraphicsCommandLis
 
         DynamicTransparencyFalloffSettingsCB falloffCB{};
 
-        falloffCB.settings = DirectX::SimpleMath::Vector4(0.0001f, dissolve != nullptr ? 1.0f : 0.0f, dissolve != nullptr ? dissolve->getDissolveAmount() : 0.0f, m_fogEnabled ? 1.0f : 0.0f);
+        falloffCB.settings = DirectX::SimpleMath::Vector4(0.0f, dissolve != nullptr ? 1.0f : 0.0f, dissolve != nullptr ? dissolve->getDissolveAmount() : 0.0f, m_fogEnabled ? 1.0f : 0.0f);
         falloffCB.fogDepthParams = DirectX::SimpleMath::Vector4(m_fogNearDistance, m_fogMaxDistance, m_fogProjectionA, m_fogProjectionB);
         falloffCB.fogGridParams = DirectX::SimpleMath::Vector4(static_cast<float>(m_fogGridDepth), 0.0f, 0.0f, 0.0f);
 
