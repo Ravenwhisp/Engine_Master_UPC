@@ -357,4 +357,47 @@ float3 ComputePBRSurfaceLightingTiled(float3 worldPos, float3 albedo, float meta
         F0Metallic, F0NonMetallic, viewDirection, NdotV, horizon, otherMetallic, otherNonMetallic);
 }
 
+float3 ComputePBRSurfaceLightingUnculled(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO)
+{
+    float3 F0Metallic = albedo;
+    float3 F0NonMetallic = 0.04f;
+
+    float3 diffuseColorMetallic = 0.0f;
+    float3 diffuseColorNonMetallic = albedo / PI;
+
+    float3 viewDirection = normalize(viewPos - worldPos);
+    float3 reflection = normalize(reflect(-viewDirection, finalWorldNormal));
+    float NdotV = abs(dot(finalWorldNormal, viewDirection)) + 0.001f;
+    float horizon = min(1.0f + dot(reflection, finalWorldNormal), 1.0f);
+
+    alphaRoughness *= alphaRoughness;
+
+    float3 otherMetallic = 0.0f;
+    float3 otherNonMetallic = 0.0f;
+
+    // Deferred depth ranges exclude surfaces removed from the GBuffer. A
+    // transparent foreground wall must evaluate its own local-light support.
+    for (uint p = 0; p < min(pointCount, (uint) MAX_POINT_LIGHTS); ++p)
+    {
+        float3 delta = worldPos - pointLights[p].position;
+        if (pointLights[p].radius <= 0.0f || dot(delta, delta) >= pointLights[p].radius * pointLights[p].radius)
+            continue;
+        otherMetallic += ComputePointLight(p, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputePointLight(p, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+    }
+
+    for (uint s = 0; s < min(spotCount, (uint) MAX_SPOT_LIGHTS); ++s)
+    {
+        float3 delta = worldPos - spotLights[s].position;
+        float distanceAlongCone = dot(delta, normalize(spotLights[s].direction));
+        if (distanceAlongCone <= 0.0f || distanceAlongCone >= spotLights[s].radius)
+            continue;
+        otherMetallic += ComputeSpotLight(s, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        otherNonMetallic += ComputeSpotLight(s, worldPos, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+    }
+
+    return ComputePBRSurfaceLightingCommon(worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, screenSpaceAO,
+        F0Metallic, F0NonMetallic, viewDirection, NdotV, horizon, otherMetallic, otherNonMetallic);
+}
+
 #endif
