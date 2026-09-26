@@ -24,3 +24,4 @@ constexpr const char* H_EXTENSION = ".h";
 constexpr const char* BNK_EXTENSION = ".bnk";
 
 constexpr const char* VIDEO_EXTENSION = ".mp4";
+constexpr const char* LUT_EXTENSION = ".cube";

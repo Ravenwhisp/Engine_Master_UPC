@@ -559,8 +559,10 @@ namespace PostProcessAPI
 
     ENGINE_API void        setLutEnabled(bool enabled);
     ENGINE_API bool        isLutEnabled();
-    ENGINE_API void        setLutPath(const char* path);
-    ENGINE_API const char* getLutPath();
+    ENGINE_API void        setLutAsset(const AssetId& asset);
+    ENGINE_API AssetId     getLutAsset();
+    ENGINE_API void        setLutStrength(float strength);
+    ENGINE_API float       getLutStrength();
 
     ENGINE_API void  setChromaticAberrationEnabled(bool enabled);
     ENGINE_API bool  isChromaticAberrationEnabled();

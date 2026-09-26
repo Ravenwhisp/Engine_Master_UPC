@@ -15,7 +15,11 @@
 
 float ModuleHaptics::evaluateEnvelope(const HapticInstance& inst) const
 {
-    const HapticEffectDefinition& d = *inst.def;
+    const HapticEffectDefinition* definition = inst.getDefinition();
+    if (!definition)
+        return 0.0f;
+
+    const HapticEffectDefinition& d = *definition;
 
     if (d.durationSeconds <= 0.0f)
         return 0.0f;
@@ -165,10 +169,15 @@ uint32_t ModuleHaptics::submitAnonymous(const HapticEffectDefinition& def, float
     {
         auto lowest = std::min_element(ps.instances.begin(), ps.instances.end(), [](const HapticInstance& a, const HapticInstance& b)
         {
-                return static_cast<uint8_t>(a.def->priority) < static_cast<uint8_t>(b.def->priority);
+            const HapticEffectDefinition* aDefinition = a.getDefinition();
+            const HapticEffectDefinition* bDefinition = b.getDefinition();
+            const uint8_t aPriority = aDefinition ? static_cast<uint8_t>(aDefinition->priority) : 0;
+            const uint8_t bPriority = bDefinition ? static_cast<uint8_t>(bDefinition->priority) : 0;
+            return aPriority < bPriority;
         });
 
-        if (lowest != ps.instances.end() && static_cast<uint8_t>(lowest->def->priority) < static_cast<uint8_t>(def.priority))
+        const HapticEffectDefinition* lowestDefinition = lowest != ps.instances.end() ? lowest->getDefinition() : nullptr;
+        if (lowest != ps.instances.end() && (!lowestDefinition || static_cast<uint8_t>(lowestDefinition->priority) < static_cast<uint8_t>(def.priority)))
         {
             lowest->alive = false;
         }
@@ -183,8 +192,8 @@ uint32_t ModuleHaptics::submitAnonymous(const HapticEffectDefinition& def, float
     if (m_nextHandle == 0) m_nextHandle = 1;
 
     HapticInstance inst;
-    inst.anonDef = def;      
-    inst.def = &inst.anonDef;
+    inst.anonDef = def;
+    inst.usesAnonymousDefinition = true;
     inst.elapsed = 0.0f;
     inst.delay = def.delaySeconds;
     inst.scale = clamp01(scale);
@@ -217,10 +226,15 @@ uint32_t ModuleHaptics::submitInternal(const HapticEffectDefinition* def,
             ps.instances.begin(), ps.instances.end(),
             [](const HapticInstance& a, const HapticInstance& b)
             {
-                return static_cast<uint8_t>(a.def->priority) < static_cast<uint8_t>(b.def->priority);
+                const HapticEffectDefinition* aDefinition = a.getDefinition();
+                const HapticEffectDefinition* bDefinition = b.getDefinition();
+                const uint8_t aPriority = aDefinition ? static_cast<uint8_t>(aDefinition->priority) : 0;
+                const uint8_t bPriority = bDefinition ? static_cast<uint8_t>(bDefinition->priority) : 0;
+                return aPriority < bPriority;
             });
 
-        if (lowest != ps.instances.end() && static_cast<uint8_t>(lowest->def->priority) < static_cast<uint8_t>(def->priority))
+        const HapticEffectDefinition* lowestDefinition = lowest != ps.instances.end() ? lowest->getDefinition() : nullptr;
+        if (lowest != ps.instances.end() && (!lowestDefinition || static_cast<uint8_t>(lowestDefinition->priority) < static_cast<uint8_t>(def->priority)))
         {
             lowest->alive = false;
         }
@@ -237,6 +251,7 @@ uint32_t ModuleHaptics::submitInternal(const HapticEffectDefinition* def,
 
     HapticInstance inst;
     inst.def = def;
+    inst.usesAnonymousDefinition = false;
     inst.elapsed = 0.0f;
     inst.delay = def->delaySeconds;
     inst.scale = scale;
@@ -327,6 +342,13 @@ void ModuleHaptics::tickPlayer(int playerIndex, float dt)
         if (!inst.alive)
             continue;
 
+        const HapticEffectDefinition* definition = inst.getDefinition();
+        if (!definition)
+        {
+            inst.alive = false;
+            continue;
+        }
+
         if (inst.delay > 0.0f)
         {
             inst.delay -= dt;
@@ -335,7 +357,7 @@ void ModuleHaptics::tickPlayer(int playerIndex, float dt)
 
         inst.elapsed += dt;
 
-        if (inst.elapsed >= inst.def->durationSeconds)
+        if (inst.elapsed >= definition->durationSeconds)
             inst.alive = false;
     }
 
@@ -358,13 +380,17 @@ void ModuleHaptics::tickPlayer(int playerIndex, float dt)
         if (!inst.alive || inst.delay > 0.0f)
             continue;
 
+        const HapticEffectDefinition* definition = inst.getDefinition();
+        if (!definition)
+            continue;
+
         const float envelope = evaluateEnvelope(inst);
         const float combined = envelope * inst.scale;
 
-        leftMotor += inst.def->peak.leftMotor * combined;
-        rightMotor += inst.def->peak.rightMotor * combined;
-        leftTrigger += inst.def->peak.leftTrigger * combined;
-        rightTrigger += inst.def->peak.rightTrigger * combined;
+        leftMotor += definition->peak.leftMotor * combined;
+        rightMotor += definition->peak.rightMotor * combined;
+        leftTrigger += definition->peak.leftTrigger * combined;
+        rightTrigger += definition->peak.rightTrigger * combined;
     }
 
     ps.leftMotor = clamp01(leftMotor);
@@ -406,8 +432,9 @@ void ModuleHaptics::logActiveEffects(int player) const
 
     for (const HapticInstance& inst : ps.instances)
     {
-        if (!inst.alive) continue;
-        DEBUG_LOG("  handle=%u  id='%s'  elapsed=%.3fs / %.3fs  scale=%.2f  priority=%d", inst.handle, inst.def->id.c_str(), inst.elapsed, inst.def->durationSeconds, inst.scale, static_cast<int>(inst.def->priority));
+        const HapticEffectDefinition* definition = inst.getDefinition();
+        if (!inst.alive || !definition) continue;
+        DEBUG_LOG("  handle=%u  id='%s'  elapsed=%.3fs / %.3fs  scale=%.2f  priority=%d", inst.handle, definition->id.c_str(), inst.elapsed, definition->durationSeconds, inst.scale, static_cast<int>(definition->priority));
     }
 
     DEBUG_LOG("  mixed: L=%.2f  R=%.2f  LT=%.2f  RT=%.2f",

@@ -1,5 +1,6 @@
 #pragma once
 #include "IRenderPass.h"
+#include "AssetId.h"
 
 #include <d3d12.h>
 #include <wrl/client.h>
@@ -74,7 +75,7 @@ private:
         float    depthLinearizeB = 0.0f;
 
         float    outlineNormalThreshold = 0.35f;
-        float    paramPad0 = 0.0f;
+        float    lutStrength = 1.0f;
         float    paramPad1 = 0.0f;
         float    paramPad2 = 0.0f;
     };
@@ -93,7 +94,7 @@ private:
 
     std::shared_ptr<Texture> m_lutTexture;
     std::shared_ptr<Texture> m_identityLut;
-    std::string              m_loadedLutPath;
+    AssetId                  m_loadedLutAsset;
     int                      m_lutSize = 2;
 
     std::shared_ptr<Texture> m_dummyTexture;

@@ -6,7 +6,8 @@
 #include "ModuleResources.h"
 #include "UID.h"
 
-#include <cstdio>
+#include <sstream>
+#include <string>
 #include <vector>
 
 namespace
@@ -58,28 +59,28 @@ std::shared_ptr<Texture> CubeLut::createIdentity(ID3D12Device4& device, int size
     return buildLutTexture(device, size, rgba);
 }
 
-std::shared_ptr<Texture> CubeLut::load(ID3D12Device4& device, const std::string& path)
+std::shared_ptr<Texture> CubeLut::load(ID3D12Device4& device, const std::vector<uint8_t>& data)
 {
-    FILE* file = nullptr;
-    fopen_s(&file, path.c_str(), "r");
-    if (!file)
+    if (data.empty())
     {
-        DEBUG_ERROR("CubeLut: cannot open '%s'", path.c_str());
+        DEBUG_ERROR("CubeLut: LUT asset contains no data.");
         return nullptr;
     }
 
     int size = 0;
     std::vector<float> rgba;
     size_t writeIdx = 0;
-    char line[256];
+    const std::string text(data.begin(), data.end());
+    std::istringstream stream(text);
+    std::string line;
 
-    while (fgets(line, sizeof(line), file))
+    while (std::getline(stream, line))
     {
-        if (line[0] == '#' || line[0] == '\n' || line[0] == '\r')
+        if (line.empty() || line[0] == '#' || line[0] == '\r')
             continue;
 
         int parsedSize = 0;
-        if (size == 0 && sscanf_s(line, "LUT_3D_SIZE %d", &parsedSize) == 1 && parsedSize > 0)
+        if (size == 0 && sscanf_s(line.c_str(), "LUT_3D_SIZE %d", &parsedSize) == 1 && parsedSize > 0)
         {
             size = parsedSize;
             rgba.assign(static_cast<size_t>(size) * size * size * 4, 1.0f);
@@ -89,7 +90,7 @@ std::shared_ptr<Texture> CubeLut::load(ID3D12Device4& device, const std::string&
         if (size > 0)
         {
             float r = 0.0f, g = 0.0f, b = 0.0f;
-            if (sscanf_s(line, "%f %f %f", &r, &g, &b) == 3 && writeIdx + 4 <= rgba.size())
+            if (sscanf_s(line.c_str(), "%f %f %f", &r, &g, &b) == 3 && writeIdx + 4 <= rgba.size())
             {
                 rgba[writeIdx++] = r;
                 rgba[writeIdx++] = g;
@@ -98,11 +99,10 @@ std::shared_ptr<Texture> CubeLut::load(ID3D12Device4& device, const std::string&
             }
         }
     }
-    fclose(file);
 
     if (size == 0 || writeIdx != rgba.size())
     {
-        DEBUG_ERROR("CubeLut: malformed or incomplete .CUBE file '%s'", path.c_str());
+        DEBUG_ERROR("CubeLut: malformed or incomplete LUT asset.");
         return nullptr;
     }
 

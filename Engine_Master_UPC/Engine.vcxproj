@@ -312,6 +312,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Asset.h" />
     <ClInclude Include="ComponentVideo.h" />
     <ClInclude Include="VideoAsset.h" />
+    <ClInclude Include="LutAsset.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
     <ClInclude Include="DepthReductionPass.h" />
     <ClInclude Include="LightCullingPass.h" />
@@ -321,6 +322,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="DynamicTransparencyRenderData.h" />
     <ClInclude Include="ImporterSoundBank.h" />
     <ClInclude Include="ImporterVideo.h" />
+    <ClInclude Include="ImporterLut.h" />
     <ClInclude Include="ForwardPrepass.h" />
     <ClInclude Include="EmitterAnimation.h" />
     <ClInclude Include="EmitterRender.h" />

@@ -3662,8 +3662,10 @@ namespace PostProcessAPI
     // --- Colour grading (LUT) ---
     void  setLutEnabled(bool e)        { if (auto* pp = getSettings()) pp->lutEnabled = e; }
     bool  isLutEnabled()               { auto* pp = getSettings(); return pp ? pp->lutEnabled : false; }
-    void  setLutPath(const char* path) { if (auto* pp = getSettings()) pp->lutPath = path ? path : ""; }
-    const char* getLutPath()           { auto* pp = getSettings(); return pp ? pp->lutPath.c_str() : ""; }
+    void  setLutAsset(const AssetId& asset) { if (auto* pp = getSettings()) pp->lutAsset = asset; }
+    AssetId getLutAsset()              { auto* pp = getSettings(); return pp ? pp->lutAsset : AssetId(); }
+    void  setLutStrength(float s)      { if (auto* pp = getSettings()) pp->lutStrength = std::clamp(s, 0.0f, 1.0f); }
+    float getLutStrength()             { auto* pp = getSettings(); return pp ? pp->lutStrength : 1.0f; }
 
     // --- Chromatic aberration ---
     void  setChromaticAberrationEnabled(bool e)   { if (auto* pp = getSettings()) pp->chromaticAberrationEnabled = e; }

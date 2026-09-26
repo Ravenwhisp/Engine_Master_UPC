@@ -7,6 +7,7 @@
 #include "Application.h"
 #include "ModuleDescriptors.h"
 #include "ModuleScene.h"
+#include "ModuleAssets.h"
 #include "ModuleTime.h"
 
 #include "Scene.h"
@@ -14,6 +15,7 @@
 #include "PostProcessCommon.h"
 #include "Texture.h"
 #include "CubeLut.h"
+#include "LutAsset.h"
 #include "BloomPass.h"
 #include "UID.h"
 
@@ -86,20 +88,32 @@ void PostProcessPass::prepare(const RenderContext& ctx)
     m_params.exposure = settings.exposure;
 
     // Colour-grading LUT
-    if (settings.lutEnabled && !settings.lutPath.empty())
+    if (settings.lutEnabled && settings.lutAsset.isValid())
     {
-        if (settings.lutPath != m_loadedLutPath)
+        if (settings.lutAsset != m_loadedLutAsset)
         {
-            m_lutTexture = CubeLut::load(*m_device.Get(), settings.lutPath);
-            m_loadedLutPath = settings.lutPath;
-            if (m_lutTexture)
-                m_lutSize = static_cast<int>(m_lutTexture->getDesc().depth);
+            AssetId lutReference = settings.lutAsset;
+            std::shared_ptr<LutAsset> lutAsset = app->getModuleAssets()->load<LutAsset>(lutReference);
+            auto loadedTexture = lutAsset ? CubeLut::load(*m_device.Get(), lutAsset->getData()) : nullptr;
+            if (loadedTexture)
+            {
+                m_lutSize = static_cast<int>(loadedTexture->getDesc().depth);
+                m_lutTexture = std::move(loadedTexture);
+                m_loadedLutAsset = lutReference;
+            }
+            else
+            {
+                m_lutTexture.reset();
+                m_loadedLutAsset = lutReference;
+                m_lutSize = 0;
+            }
         }
     }
 
     const bool lutActive = settings.lutEnabled && m_lutTexture != nullptr;
     m_params.enableLUT = lutActive ? 1u : 0u;
     m_params.lutSize = static_cast<float>(m_lutSize);
+    m_params.lutStrength = std::clamp(settings.lutStrength, 0.0f, 1.0f);
 
     m_params.enableCA = settings.chromaticAberrationEnabled ? 1u : 0u;
     m_params.caStrength = settings.chromaticAberrationStrength;

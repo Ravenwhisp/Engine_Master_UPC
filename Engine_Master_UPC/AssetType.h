@@ -16,7 +16,8 @@
     X(SOUND_BANK)              \
     X(SCRIPT)                  \
     X(DATA_CONTAINER) 			\
-    X(VIDEO)                 	\
+	X(VIDEO)                 	\
+	X(LUT)                   	\
     X(UNKNOWN)
 
 #define ASSET_ENUM(name) name,

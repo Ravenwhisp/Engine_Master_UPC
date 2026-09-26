@@ -319,13 +319,30 @@ void SceneConfig::drawPostProcessSettings()
 
         ImGui::Separator();
         ImGui::Checkbox("Colour Grading (LUT)###PPLutEnabled", &pp.lutEnabled);
-        char lutBuffer[260];
-        strcpy_s(lutBuffer, pp.lutPath.c_str());
-        if (ImGui::InputText(".CUBE Path###PPLutPath", lutBuffer, IM_ARRAYSIZE(lutBuffer)))
+        ImGui::Text("LUT Asset");
+        ImGui::SameLine();
+        if (pp.lutAsset.isValid())
         {
-            pp.lutPath = lutBuffer;
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Assigned (UID %llu)", pp.lutAsset.m_uid);
         }
-        ImGui::TextDisabled("Path to a .CUBE LUT (relative to the working directory).");
+        else
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
+        }
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+            {
+                const UID droppedUID = *static_cast<const UID*>(payload->Data);
+                std::unique_ptr<AssetId> resolved(app->getModuleAssets()->findReference(droppedUID));
+                if (resolved && resolved->m_type == AssetType::LUT) pp.lutAsset = *resolved;
+            }
+            ImGui::EndDragDropTarget();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Clear###PPLutClear")) pp.lutAsset = AssetId();
+        ImGui::SliderFloat("LUT Strength###PPLutStrength", &pp.lutStrength, 0.0f, 1.0f);
+        ImGui::TextDisabled("Drag an imported .CUBE LUT asset here.");
 
         ImGui::Separator();
         ImGui::Checkbox("Chromatic Aberration###PPCAEnabled", &pp.chromaticAberrationEnabled);
