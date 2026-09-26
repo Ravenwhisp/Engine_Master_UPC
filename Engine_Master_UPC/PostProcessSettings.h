@@ -3,6 +3,9 @@
 #include "IArchive.h"
 #include "AssetId.h"
 
+#include <charconv>
+#include <string>
+
 struct PostProcessSettings : public ISerializable
 {
     float exposure = 0.0f;
@@ -55,9 +58,36 @@ struct PostProcessSettings : public ISerializable
         archive.serialize(bloomClamp, "bloomClamp");
 
         archive.serialize(lutEnabled, "lutEnabled");
-        archive.beginObject("lutAsset");
-        lutAsset.serialize(archive);
-        archive.endObject();
+
+        // This remains one serialized string to preserve the binary layout of
+        // scenes produced before LUTs became library assets. The value is an
+        // opaque AssetId token, never a filesystem path.
+        std::string serializedLutAsset;
+        if (archive.mode() == ArchiveMode::Output && lutAsset.isValid())
+        {
+            serializedLutAsset = std::to_string(lutAsset.m_uid) + "|" + lutAsset.m_libId + "|" + std::to_string(static_cast<uint32_t>(lutAsset.m_type));
+        }
+        archive.serialize(serializedLutAsset, "lutAsset");
+        if (archive.mode() == ArchiveMode::Input && !serializedLutAsset.empty())
+        {
+            const size_t firstSeparator = serializedLutAsset.find('|');
+            const size_t secondSeparator = serializedLutAsset.find('|', firstSeparator == std::string::npos ? firstSeparator : firstSeparator + 1);
+            if (firstSeparator != std::string::npos && secondSeparator != std::string::npos)
+            {
+                uint64_t uid = 0;
+                uint32_t type = static_cast<uint32_t>(AssetType::UNKNOWN);
+                const char* begin = serializedLutAsset.data();
+                const char* end = begin + serializedLutAsset.size();
+                const auto uidResult = std::from_chars(begin, begin + firstSeparator, uid);
+                const auto typeResult = std::from_chars(begin + secondSeparator + 1, end, type);
+                if (uidResult.ec == std::errc() && typeResult.ec == std::errc())
+                {
+                    lutAsset.m_uid = static_cast<UID>(uid);
+                    lutAsset.m_libId = serializedLutAsset.substr(firstSeparator + 1, secondSeparator - firstSeparator - 1);
+                    lutAsset.m_type = static_cast<AssetType>(type);
+                }
+            }
+        }
         archive.serialize(lutStrength, "lutStrength");
 
         archive.serialize(chromaticAberrationEnabled, "chromaticAberrationEnabled");
