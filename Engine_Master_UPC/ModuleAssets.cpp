@@ -403,6 +403,7 @@ void ModuleAssets::fixAllAssetReferences()
     // and unchanged sources keep their hash, so the pass is idempotent.
     const AssetType kOrder[] = {
         AssetType::TEXTURE,
+        AssetType::LUT,
         AssetType::MODEL,
         AssetType::FONT,
         AssetType::ANIMATION,

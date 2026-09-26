@@ -53,3 +53,4 @@ using SceneRef = AssetReference<class Scene>;
 using MaterialRef = AssetReference<class BasicMaterial>;
 using DataContainerRef = AssetReference<DataContainer>;
 using VideoRef = AssetReference<class VideoAsset>;
+using LutRef = AssetReference<class LutAsset>;

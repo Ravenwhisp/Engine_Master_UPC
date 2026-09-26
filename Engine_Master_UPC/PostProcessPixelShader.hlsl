@@ -56,7 +56,7 @@ cbuffer PostProcessParams : register(b0)
     float depthLinearizeB;
     
     float outlineNormalThreshold;
-    float paramPad0;
+    float lutStrength;
     float paramPad1;
     float paramPad2;
 };
@@ -147,7 +147,8 @@ float3 sampleScene(float2 uv)
 float3 applyLUT(float3 color)
 {
     float3 uvw = (saturate(color) * (lutSize - 1.0) + 0.5) / lutSize;
-    return lutTexture.SampleLevel(bilinearClamp, uvw, 0).rgb;
+    float3 gradedColor = lutTexture.SampleLevel(bilinearClamp, uvw, 0).rgb;
+    return lerp(color, gradedColor, saturate(lutStrength));
 }
 
 float3 sampleSceneBlurred(float2 uv, float blur)
@@ -223,6 +224,9 @@ float4 main(float2 uv : TEXCOORD) : SV_TARGET
     if (isBackground)
     {
         outColor = saturate(sampleScene(suv));
+
+        if (enableLUT != 0)
+            outColor = applyLUT(outColor);
     }
     else
     {

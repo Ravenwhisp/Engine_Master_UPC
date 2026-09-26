@@ -1,7 +1,7 @@
 #pragma once
 #include "ISerializable.h"
 #include "IArchive.h"
-#include <string>
+#include "AssetId.h"
 
 struct PostProcessSettings : public ISerializable
 {
@@ -14,8 +14,9 @@ struct PostProcessSettings : public ISerializable
     float bloomClamp = 0.1f;   // max brightness a pixel may contribute to bloom
 
     // Colour grading 
-    bool        lutEnabled = false;
-    std::string lutPath;
+    bool    lutEnabled = false;
+    AssetId lutAsset;
+    float   lutStrength = 1.0f;
 
     // Chromatic aberration
     bool  chromaticAberrationEnabled = false;
@@ -54,7 +55,10 @@ struct PostProcessSettings : public ISerializable
         archive.serialize(bloomClamp, "bloomClamp");
 
         archive.serialize(lutEnabled, "lutEnabled");
-        archive.serialize(lutPath, "lutPath");
+        archive.beginObject("lutAsset");
+        lutAsset.serialize(archive);
+        archive.endObject();
+        archive.serialize(lutStrength, "lutStrength");
 
         archive.serialize(chromaticAberrationEnabled, "chromaticAberrationEnabled");
         archive.serialize(chromaticAberrationStrength, "chromaticAberrationStrength");

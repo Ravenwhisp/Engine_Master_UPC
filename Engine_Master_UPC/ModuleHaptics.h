@@ -52,6 +52,12 @@ private:
         bool alive = true;
 
         HapticEffectDefinition anonDef;
+        bool usesAnonymousDefinition = false;
+
+        const HapticEffectDefinition* getDefinition() const
+        {
+            return usesAnonymousDefinition ? &anonDef : def;
+        }
     };
 
     struct PlayerState
