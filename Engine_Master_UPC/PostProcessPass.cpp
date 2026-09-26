@@ -122,6 +122,7 @@ void PostProcessPass::prepare(const RenderContext& ctx)
 
     // Reused from the SSAO geometry pass for distance-invariant crease detection.
     m_normalTexture = ctx.ssaoNormalTexture;
+    m_outlineDepthTexture = ctx.ssaoDepthTexture;
 
     m_runBloom = settings.bloomEnabled;
     m_params.enableBloom = settings.bloomEnabled ? 1u : 0u;
@@ -245,15 +246,15 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     auto sceneHDR = m_surface->getTexture(RenderSurface::SCENE_HDR);
     auto composite = m_surface->getTexture(RenderSurface::COMPOSITE);
     auto depthTex = m_surface->getTexture(RenderSurface::DEPTH_STENCIL);
-    if (!sceneHDR || !composite || !depthTex || !m_normalTexture)
+    if (!sceneHDR || !composite || !depthTex || !m_normalTexture || !m_outlineDepthTexture)
         return;
 
-    // Make the HDR scene and the depth buffer readable in the shader (the depth buffer feeds the outline edge detection).
-    CD3DX12_RESOURCE_BARRIER toRead[2] = {
-        CD3DX12_RESOURCE_BARRIER::Transition(sceneHDR->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-        CD3DX12_RESOURCE_BARRIER::Transition(depthTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-    };
-    commandList->ResourceBarrier(2, toRead);
+    // Outlines describe the original geometry, including transparent walls.
+    // SSAO depth and normals are a matching, uncut pair and are already SRVs.
+    // MainDepth remains writable for the overlay passes below.
+    CD3DX12_RESOURCE_BARRIER toRead = CD3DX12_RESOURCE_BARRIER::Transition(
+        sceneHDR->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    commandList->ResourceBarrier(1, &toRead);
 
     // Bloom reads the HDR scene and produces its own blurred texture.
     D3D12_GPU_DESCRIPTOR_HANDLE bloomHandle = m_dummyTexture->getSRV().gpu;
@@ -280,16 +281,12 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootDescriptorTable(1, sceneHDR->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(2, bloomHandle);
     commandList->SetGraphicsRootDescriptorTable(3, lut->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(4, depthTex->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(4, m_outlineDepthTexture->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(5, m_normalTexture->getSRV().gpu);
 
     PostProcess::drawFullscreenTriangle(commandList);
 
-    // Restore the depth buffer to a writable state and re-bind COLOR_0 + depth
-    // so the overlay passes (debug draw / UI / fonts) inherit a valid target.
-    CD3DX12_RESOURCE_BARRIER depthBack = CD3DX12_RESOURCE_BARRIER::Transition(depthTex->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-    commandList->ResourceBarrier(1, &depthBack);
-
+    // MainDepth was not sampled; keep it bound for the overlay passes.
     D3D12_CPU_DESCRIPTOR_HANDLE dsv = depthTex->getDSV().cpu;
     commandList->OMSetRenderTargets(1, &targetRTV, FALSE, &dsv);
 

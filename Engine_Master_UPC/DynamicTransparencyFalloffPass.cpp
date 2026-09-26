@@ -45,7 +45,7 @@ DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Devi
 
 void DynamicTransparencyFalloffPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParams[17] = {};
+    CD3DX12_ROOT_PARAMETER rootParams[15] = {};
 
     CD3DX12_DESCRIPTOR_RANGE materialRange, irradianceRange, environmentRange, brdfRange, shadowRange, maskRange, dissolveRange, samplerRange, integratedFogRange;
 
@@ -75,8 +75,6 @@ void DynamicTransparencyFalloffPass::createRootSignature()
     rootParams[13].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[14].InitAsDescriptorTable(1, &integratedFogRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    rootParams[15].InitAsShaderResourceView(15, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[16].InitAsShaderResourceView(16, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
     rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -151,8 +149,6 @@ void DynamicTransparencyFalloffPass::prepare(const RenderContext& ctx)
     m_sceneDataCBAddress = m_deferredShadingPass != nullptr ? m_deferredShadingPass->getSceneDataCBAddress() : 0;
     m_lightsCBAddress = m_deferredShadingPass != nullptr ? m_deferredShadingPass->getLightsCBAddress() : 0;
 
-    m_pointLightIndexBufferAddress = m_deferredShadingPass != nullptr ? m_deferredShadingPass->getPointLightIndexBufferAddress() : 0;
-    m_spotLightIndexBufferAddress = m_deferredShadingPass != nullptr ? m_deferredShadingPass->getSpotLightIndexBufferAddress() : 0;
 
     m_hasShadowData = ctx.shadowData != nullptr;
 
@@ -282,8 +278,6 @@ void DynamicTransparencyFalloffPass::apply(ID3D12GraphicsCommandList4* commandLi
     if (m_fogEnabled && m_integratedFogVolume != nullptr)
         commandList->SetGraphicsRootDescriptorTable(14, m_integratedFogVolume->getSRV().gpu);
 
-    commandList->SetGraphicsRootShaderResourceView(15, m_pointLightIndexBufferAddress);
-    commandList->SetGraphicsRootShaderResourceView(16, m_spotLightIndexBufferAddress);
 
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -377,7 +371,7 @@ void DynamicTransparencyFalloffPass::renderMeshRenderer(ID3D12GraphicsCommandLis
 
         DynamicTransparencyFalloffSettingsCB falloffCB{};
 
-        falloffCB.settings = DirectX::SimpleMath::Vector4(0.0001f, dissolve != nullptr ? 1.0f : 0.0f, dissolve != nullptr ? dissolve->getDissolveAmount() : 0.0f, m_fogEnabled ? 1.0f : 0.0f);
+        falloffCB.settings = DirectX::SimpleMath::Vector4(0.0f, dissolve != nullptr ? 1.0f : 0.0f, dissolve != nullptr ? dissolve->getDissolveAmount() : 0.0f, m_fogEnabled ? 1.0f : 0.0f);
         falloffCB.fogDepthParams = DirectX::SimpleMath::Vector4(m_fogNearDistance, m_fogMaxDistance, m_fogProjectionA, m_fogProjectionB);
         falloffCB.fogGridParams = DirectX::SimpleMath::Vector4(static_cast<float>(m_fogGridDepth), 0.0f, 0.0f, 0.0f);
 

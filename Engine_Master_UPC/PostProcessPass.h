@@ -99,6 +99,7 @@ private:
     std::shared_ptr<Texture> m_dummyTexture;
 
     Texture* m_normalTexture = nullptr;
+    Texture* m_outlineDepthTexture = nullptr;
 
     RenderSurface* m_surface = nullptr;
     D3D12_VIEWPORT m_viewport{};

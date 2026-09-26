@@ -100,8 +100,7 @@ PSOutput main(VSOutput IN)
         int2 pixelCoord = int2(IN.clipPos.xy);
         float4 transparencyData = dynamicTransparencyMask.Load(int3(pixelCoord, 0));
 
-        const float depthBias = 0.0001f;
-        float influence = EvaluateDynamicTransparencyInfluence(transparencyData, IN.clipPos.z, depthBias);
+        float influence = EvaluateDynamicTransparencyInfluence(transparencyData, IN.clipPos.z);
 
         if (influence > 0.0f)
             discard;

@@ -1,7 +1,6 @@
 #include "PBRLighting.hlsli"
 #include "DynamicTransparencyFalloffCommon.hlsli"
 #include "DynamicTransparencyCommon.hlsli"
-#include "LightTileCullingCommon.hlsli"
 
 cbuffer FalloffSettingsCB : register(b5)
 {
@@ -19,8 +18,6 @@ Texture2D<float4> dynamicTransparencyMask : register(t12);
 Texture2D dissolveNoise : register(t13);
 Texture3D<float4> integratedFogVolume : register(t14);
 
-StructuredBuffer<int> pointLightIndices : register(t15);
-StructuredBuffer<int> spotLightIndices : register(t16);
 
 struct PSInput
 {
@@ -82,8 +79,7 @@ float4 main(PSInput input) : SV_Target
     int2 pixelCoord = int2(input.position.xy);
     float4 transparencyData = dynamicTransparencyMask.Load(int3(pixelCoord, 0));
 
-    float depthBias = falloffSettings.x;
-    float influence = EvaluateDynamicTransparencyInfluence(transparencyData, input.position.z, depthBias);
+    float influence = EvaluateDynamicTransparencyInfluence(transparencyData, input.position.z);
 
     bool hasDissolveComponent = falloffSettings.y > 0.5f;
     float dissolveAmount = falloffSettings.z;
@@ -148,8 +144,7 @@ float4 main(PSInput input) : SV_Target
 
     // Do NOT use screen-space SSAO here.
     // MainDepth belongs to the real scene behind the transparent occluder.
-    const uint tileIndex = GetTileIndex(uint2(input.position.xy), tileCount);
-    float3 finalColor = ComputePBRSurfaceLightingTiled(input.worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, 1.0f, tileIndex, pointLightIndices, spotLightIndices);
+    float3 finalColor = ComputePBRSurfaceLightingUnculled(input.worldPos, albedo, metallic, alphaRoughness, ao, emissive, finalWorldNormal, 1.0f);
 
     bool fogEnabled = falloffSettings.w > 0.5f;
 

@@ -23,7 +23,7 @@
 #include "ShadowFrustumComputePass.h"
 #include "LightCullingPass.h"
 #include "VolumetricFogComputePass.h"
-#include "OcclusionTargetDepthPass.h"
+#include "OcclusionOccluderDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
 #include "VideoPass.h"
 
@@ -106,7 +106,7 @@ private:
     SkyBoxPass* m_skyBoxPass;
 
     std::unique_ptr<SkinningComputePass> m_skinningComputePass;
-    std::unique_ptr<OcclusionTargetDepthPass> m_occlusionTargetDepthPass;
+    std::unique_ptr<OcclusionOccluderDepthPass> m_occlusionOccluderDepthPass;
     std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
     std::unique_ptr<DepthReductionPass> m_depthReductionPass;
     std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
