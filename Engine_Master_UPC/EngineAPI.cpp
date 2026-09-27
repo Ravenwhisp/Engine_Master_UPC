@@ -3197,12 +3197,23 @@ namespace TrailAPI
 
     bool isTrailGenerating(TrailComponent* trailComponent)
     {
-        return trailComponent->isGenerating();
+        return trailComponent ? trailComponent->isGenerating() : false;
     }
 
     void generateTrail(TrailComponent* trailComponent, bool value)
     {
-        return trailComponent->generate(value);
+        if (trailComponent)
+        {
+            trailComponent->generate(value);
+        }
+    }
+
+    void clearTrail(TrailComponent* trailComponent)
+    {
+        if (trailComponent)
+        {
+            trailComponent->clear();
+        }
     }
 }
 

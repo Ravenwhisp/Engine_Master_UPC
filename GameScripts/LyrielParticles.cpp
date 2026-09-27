@@ -168,6 +168,7 @@ void LyrielParticles::SetArrowTrailActive(Transform* arrowTransform)
 
     if (trailComponent != nullptr)
     {
+        TrailAPI::clearTrail(trailComponent);
         TrailAPI::generateTrail(trailComponent, true);
     }
 }
@@ -191,6 +192,7 @@ void LyrielParticles::SetArrowTrailInactive(Transform* arrowTransform)
     if (trailComponent != nullptr)
     {
         TrailAPI::generateTrail(trailComponent, false);
+        TrailAPI::clearTrail(trailComponent);
     }
 }
 
