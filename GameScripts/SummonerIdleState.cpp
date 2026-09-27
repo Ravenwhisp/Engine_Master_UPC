@@ -43,7 +43,10 @@ void SummonerIdleState::OnStateUpdate()
 		return;
 	}
 
-	// can get stunned???
+	if (m_controller->trySendStunTrigger(m_animation))
+	{
+		return;
+	}
 
 	m_controller->updateCurrentTarget();
 	if (!m_controller->hasValidTarget())

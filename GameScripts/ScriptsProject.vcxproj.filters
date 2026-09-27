@@ -665,6 +665,45 @@
     <ClInclude Include="Checkpoint1_Level1_Event.h">
       <Filter>Systems\Checkpoints\Events\Level1</Filter>
     </ClInclude>
+    <ClInclude Include="Checkpoint1_Level2_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint2_Level1_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint2_Level2_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint3_Level1_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint3_Level2_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint4_Level1_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint4_Level2_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint5_Level1_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint5_Level2_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint6_Level1_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint6_Level2_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint7_Level1_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Checkpoint8_Level1_Event.h">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClInclude>
     <ClInclude Include="CheckpointEvent.h">
       <Filter>Systems\Checkpoints\Events</Filter>
     </ClInclude>
@@ -675,6 +714,9 @@
     </ClInclude>
     <ClInclude Include="PersistingManager.h" />
     <ClInclude Include="PersistingCheckpointState.h" />
+    <ClInclude Include="GameplayHaptics.h" />
+    <ClInclude Include="HapticTester.h" />
+    <ClInclude Include="UIRect.h" />
     <ClInclude Include="AelorinAttackConfig.h">
       <Filter>Enemies\Aelorin</Filter>
     </ClInclude>
@@ -749,7 +791,6 @@
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="EngineDependencies\SimpleMath.cpp" />
     <ClCompile Include="DebugDrawTest.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
@@ -942,6 +983,7 @@
     <ClCompile Include="HealthPickup.cpp">
       <Filter>Interaction/Gameplay\HealthDrop</Filter>
     </ClCompile>
+    <ClCompile Include="..\Engine_Master_UPC\SimpleMath.cpp" />
     <ClCompile Include="SpikeTrap.cpp">
       <Filter>Interaction/Gameplay\Traps</Filter>
     </ClCompile>
@@ -1221,6 +1263,45 @@
     <ClCompile Include="Checkpoint1_Level1_Event.cpp">
       <Filter>Systems\Checkpoints\Events\Level1</Filter>
     </ClCompile>
+    <ClCompile Include="Checkpoint1_Level2_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint2_Level1_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint2_Level2_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint3_Level1_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint3_Level2_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint4_Level1_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint4_Level2_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint5_Level1_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint5_Level2_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint6_Level1_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint6_Level2_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint7_Level1_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="Checkpoint8_Level1_Event.cpp">
+      <Filter>Systems\Checkpoints\Events</Filter>
+    </ClCompile>
     <ClCompile Include="CheckpointEvent.cpp">
       <Filter>Systems\Checkpoints\Events</Filter>
     </ClCompile>
@@ -1232,6 +1313,7 @@
     <ClCompile Include="GameplayEventAction.cpp" />
     <ClCompile Include="PersistingManager.cpp" />
     <ClCompile Include="PersistingCheckpointState.cpp" />
+    <ClCompile Include="HapticTester.cpp" />
     <ClCompile Include="AelorinAttackExecutor.cpp">
       <Filter>Enemies\Aelorin</Filter>
     </ClCompile>

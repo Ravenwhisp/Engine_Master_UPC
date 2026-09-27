@@ -13,6 +13,8 @@
 #include "LyrielConfig.h"
 #include "PlayerRotation.h"
 
+#include <vector>
+
 LyrielBasicAttack::LyrielBasicAttack(GameObject* owner)
     : LyrielAbilityBase(owner)
 {
@@ -185,10 +187,84 @@ bool LyrielBasicAttack::spawnArrowToDirection(const Vector3& direction)
     const Vector3 startPosition = TransformAPI::getGlobalPosition(spawnTransform);
 
     const float range = m_lyrielCharacter->getConfig()->m_basicAimArrowRange;
-    const float arrowLifetime = range / m_lyrielCharacter->getConfig()->m_basicArrowSpeed;
-    arrow->launch(startPosition, direction, m_lyrielCharacter->getConfig()->m_basicArrowSpeed, arrowLifetime, nullptr, m_lyrielCharacter->getConfig()->m_basicAttackDamage);
+    const float arrowSpeed = m_lyrielCharacter->getConfig()->m_basicArrowSpeed;
+
+    if (GameObject* breakable = findBreakableInAimLine(startPosition, direction))
+    {
+        Transform* breakableTransform = GameObjectAPI::getTransform(breakable);
+        if (breakableTransform != nullptr)
+        {
+            Vector3 breakableDirection = TransformAPI::getGlobalPosition(breakableTransform) - startPosition;
+            const float distance = breakableDirection.Length();
+
+            if (distance > 0.0001f)
+            {
+                breakableDirection.Normalize();
+                arrow->launch(startPosition, breakableDirection, arrowSpeed, distance / arrowSpeed, breakable, m_lyrielCharacter->getConfig()->m_basicAttackDamage);
+                return true;
+            }
+        }
+    }
+
+    const float arrowLifetime = range / arrowSpeed;
+    arrow->launch(startPosition, direction, arrowSpeed, arrowLifetime, nullptr, m_lyrielCharacter->getConfig()->m_basicAttackDamage);
 
     return true;
+}
+
+GameObject* LyrielBasicAttack::findBreakableInAimLine(const Vector3& origin, const Vector3& direction) const
+{
+    if (m_lyrielCharacter == nullptr)
+    {
+        return nullptr;
+    }
+
+    Vector3 flatDirection = direction;
+    flatDirection.y = 0.0f;
+
+    if (flatDirection.LengthSquared() <= 0.0001f)
+    {
+        return nullptr;
+    }
+
+    flatDirection.Normalize();
+
+    const LyrielConfig* config = m_lyrielCharacter->getConfig();
+    const float range = config->m_basicAimArrowRange;
+    const float lineHalfWidthSq = config->m_chargedLineHalfWidth * config->m_chargedLineHalfWidth;
+
+    GameObject* closestBreakable = nullptr;
+    float closestDistance = range;
+
+    const std::vector<GameObject*> breakables = SceneAPI::findAllGameObjectsByTag(Tag::BREAKABLE, true);
+    for (GameObject* breakable : breakables)
+    {
+        Transform* breakableTransform = breakable != nullptr ? GameObjectAPI::getTransform(breakable) : nullptr;
+        if (breakableTransform == nullptr)
+        {
+            continue;
+        }
+
+        Vector3 toBreakable = TransformAPI::getGlobalPosition(breakableTransform) - origin;
+        toBreakable.y = 0.0f;
+
+        const float forwardDistance = toBreakable.Dot(flatDirection);
+        if (forwardDistance < 0.0f || forwardDistance > closestDistance)
+        {
+            continue;
+        }
+
+        Vector3 lateralOffset = toBreakable - flatDirection * forwardDistance;
+        if (lateralOffset.LengthSquared() > lineHalfWidthSq)
+        {
+            continue;
+        }
+
+        closestBreakable = breakable;
+        closestDistance = forwardDistance;
+    }
+
+    return closestBreakable;
 }
 
 void LyrielBasicAttack::faceTarget(GameObject* target)

@@ -42,7 +42,15 @@ void SkeletonEnemyController::Update()
 
 	updateCurrentTarget();
 	updateGuardCooldown(dt);
-	//updateStun(dt);
+
+	if (isDowned())
+	{
+		clearStun();
+	}
+	else
+	{
+		updateStun(dt);
+	}
 }
 
 Transform* SkeletonEnemyController::acquireCurrentTarget()

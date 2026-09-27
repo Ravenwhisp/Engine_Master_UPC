@@ -7,6 +7,7 @@
 #include "DeathSound.h"
 #include "LyrielSound.h"
 #include "EnemyDamageable.h"
+#include "EnemyBaseController.h"
 #include "BreakableDamageable.h"
 #include "BreakableObject.h"
 #include "CrystalShadowMark.h"
@@ -271,6 +272,10 @@ GameObject* PlayerTargetController::findDefaultEnemyTarget() const
 {
     const std::vector<GameObject*> enemies = SceneAPI::findAllGameObjectsByTag(Tag::ENEMY, true);
 
+    GameObject* bestTarget = nullptr;
+    int bestPriority = -101;
+    float bestDistanceSq = FLT_MAX;
+
     for (GameObject* enemy : enemies)
     {
         if (enemy == nullptr)
@@ -280,11 +285,30 @@ GameObject* PlayerTargetController::findDefaultEnemyTarget() const
 
         if (isTargetInRange(enemy) && isTargetAlive(enemy) && isTargetable(enemy))
         {
-            return enemy;
+            EnemyBaseController* controller = GameObjectAPI::findScript<EnemyBaseController>(enemy);
+            const int priority = controller != nullptr ? controller->getTargetPriority() : 0;
+
+            Transform* playerTransform = GameObjectAPI::getTransform(getOwner());
+            Transform* enemyTransform = GameObjectAPI::getTransform(enemy);
+            if (playerTransform == nullptr || enemyTransform == nullptr)
+            {
+                continue;
+            }
+
+            Vector3 difference = TransformAPI::getGlobalPosition(enemyTransform) - TransformAPI::getGlobalPosition(playerTransform);
+            difference.y = 0.0f;
+            const float distanceSq = difference.LengthSquared();
+
+            if (bestTarget == nullptr || priority > bestPriority || (priority == bestPriority && distanceSq < bestDistanceSq))
+            {
+                bestTarget = enemy;
+                bestPriority = priority;
+                bestDistanceSq = distanceSq;
+            }
         }
     }
 
-    return nullptr;
+    return bestTarget;
 }
 
 bool PlayerTargetController::canUpdateTarget() const
@@ -420,10 +444,15 @@ bool PlayerTargetController::tryComputeTargetScore(GameObject* target, const Vec
 
 GameObject* PlayerTargetController::findBestTarget(const Vector3& aimDirection, float& outBestScore) const
 {
-    GameObject* bestTarget = nullptr;
-    outBestScore = FLT_MAX;
+    GameObject* bestEnemy = nullptr;
+    int bestEnemyPriority = -101;
+    float bestEnemyScore = FLT_MAX;
 
-    // Check all currently valid targets and keep the one with the lowest score as the real target
+    GameObject* bestNonEnemy = nullptr;
+    float bestNonEnemyScore = FLT_MAX;
+
+    // Priority orders enemies first; existing aim and distance scoring breaks ties.
+    // Non-enemies such as breakables keep the existing geometric scoring.
     for (GameObject* target : m_targetsInRange)
     {
         float score = FLT_MAX;
@@ -433,14 +462,33 @@ GameObject* PlayerTargetController::findBestTarget(const Vector3& aimDirection, 
             continue;
         }
 
-        if (score < outBestScore)
+        if (GameObjectAPI::getTag(target) == Tag::ENEMY)
         {
-            outBestScore = score;
-            bestTarget = target;
+            EnemyBaseController* controller = GameObjectAPI::findScript<EnemyBaseController>(target);
+            const int priority = controller != nullptr ? controller->getTargetPriority() : 0;
+
+            if (bestEnemy == nullptr || priority > bestEnemyPriority || (priority == bestEnemyPriority && score < bestEnemyScore))
+            {
+                bestEnemy = target;
+                bestEnemyPriority = priority;
+                bestEnemyScore = score;
+            }
+        }
+        else if (score < bestNonEnemyScore)
+        {
+            bestNonEnemy = target;
+            bestNonEnemyScore = score;
         }
     }
 
-    return bestTarget;
+    if (bestEnemy == nullptr || (bestNonEnemy != nullptr && bestNonEnemyScore < bestEnemyScore))
+    {
+        outBestScore = bestNonEnemyScore;
+        return bestNonEnemy;
+    }
+
+    outBestScore = bestEnemyScore;
+    return bestEnemy;
 }
 
 bool PlayerTargetController::shouldSwitchTarget(GameObject* candidate, const Vector3& aimDirection, float candidateScore) const
@@ -471,6 +519,19 @@ bool PlayerTargetController::shouldSwitchTarget(GameObject* candidate, const Vec
     if (!tryComputeTargetScore(m_currentTarget, aimDirection, currentScore))
     {
         return true;
+    }
+
+    if (GameObjectAPI::getTag(candidate) == Tag::ENEMY && GameObjectAPI::getTag(m_currentTarget) == Tag::ENEMY)
+    {
+        EnemyBaseController* candidateController = GameObjectAPI::findScript<EnemyBaseController>(candidate);
+        EnemyBaseController* currentController = GameObjectAPI::findScript<EnemyBaseController>(m_currentTarget);
+        const int candidatePriority = candidateController != nullptr ? candidateController->getTargetPriority() : 0;
+        const int currentPriority = currentController != nullptr ? currentController->getTargetPriority() : 0;
+
+        if (candidatePriority > currentPriority)
+        {
+            return true;
+        }
     }
 
     // Only switch if the new target is clearly better than the current one.

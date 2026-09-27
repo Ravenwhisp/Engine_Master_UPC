@@ -4,6 +4,7 @@
 #include "EnemyBaseController.h"
 #include "EnemySound.h"
 #include "EnemyStunParticles.h"
+#include "SkeletonEnemyController.h"
 
 EnemyStunnedState::EnemyStunnedState(GameObject* owner)
 	: StateMachineScript(owner)
@@ -13,6 +14,7 @@ EnemyStunnedState::EnemyStunnedState(GameObject* owner)
 void EnemyStunnedState::OnStateEnter()
 {
 	m_controller    = GameObjectAPI::findScript<EnemyBaseController>(getOwner());
+	m_skeletonController = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
 	m_animation     = AnimationAPI::getAnimationComponent(getOwner());
 	m_stunParticles = GameObjectAPI::findScript<EnemyStunParticles>(getOwner());
 
@@ -54,6 +56,11 @@ void EnemyStunnedState::OnStateUpdate()
 		return;
 	}
 
+	if (m_skeletonController && m_skeletonController->trySendReviveTrigger(m_animation))
+	{
+		return;
+	}
+
 	if (m_stunParticles) m_stunParticles->updateStunParticle();
 	m_controller->updateCurrentTarget();
 
@@ -64,7 +71,16 @@ void EnemyStunnedState::OnStateUpdate()
 		return;
 	}
 
-	AnimationAPI::sendTrigger(m_animation, m_controller->hasValidTarget() ? "ToChase" : "ToIdle");
+	if (!m_controller->hasValidTarget())
+	{
+		AnimationAPI::sendTrigger(m_animation, "ToIdle");
+		return;
+	}
+
+	if (!AnimationAPI::sendTrigger(m_animation, "ToChase"))
+	{
+		AnimationAPI::sendTrigger(m_animation, "ToRecover");
+	}
 }
 
 void EnemyStunnedState::OnStateExit()

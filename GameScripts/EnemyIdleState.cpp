@@ -2,6 +2,7 @@
 #include "EnemyIdleState.h"
 
 #include "EnemyBaseController.h"
+#include "SkeletonEnemyController.h"
 
 EnemyIdleState::EnemyIdleState(GameObject* owner)
     : StateMachineScript(owner)
@@ -11,6 +12,7 @@ EnemyIdleState::EnemyIdleState(GameObject* owner)
 void EnemyIdleState::OnStateEnter()
 {
     m_controller = GameObjectAPI::findScript<EnemyBaseController>(getOwner());
+    m_skeletonController = GameObjectAPI::findScript<SkeletonEnemyController>(getOwner());
     m_animation = AnimationAPI::getAnimationComponent(getOwner());
 
     if (!m_controller)
@@ -39,6 +41,11 @@ void EnemyIdleState::OnStateUpdate()
     }
 
     if (m_controller->trySendDeathTrigger(m_animation))
+    {
+        return;
+    }
+
+    if (m_skeletonController && m_skeletonController->trySendReviveTrigger(m_animation))
     {
         return;
     }

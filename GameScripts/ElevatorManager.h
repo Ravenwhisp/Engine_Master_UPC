@@ -32,6 +32,7 @@ private:
 
     void startPlatformMove(int targetIndex);
     void updatePlatformMove();
+    void snapPlatformToTarget();
 
     int getTotalWaves() const;
 
@@ -56,6 +57,8 @@ public:
 
     int m_wavesPerCycle = 2;
 
+    ComponentRef<Transform> m_checkpointRef;
+
 private:
     std::vector<CrystalShadowMark*> m_crystalScripts;
     std::vector<CombatAreaEvent*> m_combatAreas;
@@ -76,4 +79,6 @@ private:
 
     int m_cheatWaveIndex = 0;
     bool m_cheatWasPressed = false;
+
+    GameObject* m_checkpoint;
 };

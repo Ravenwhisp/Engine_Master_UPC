@@ -4,6 +4,7 @@
 #include "StateMachineScript.h"
 
 class EnemyBaseController;
+class SkeletonEnemyController;
 class AnimationComponent;
 
 class EnemyIdleState : public StateMachineScript
@@ -19,5 +20,6 @@ public:
 
 private:
     EnemyBaseController* m_controller = nullptr;
+    SkeletonEnemyController* m_skeletonController = nullptr;
     AnimationComponent* m_animation = nullptr;
 };

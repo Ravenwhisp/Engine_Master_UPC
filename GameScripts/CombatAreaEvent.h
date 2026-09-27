@@ -2,7 +2,6 @@
 
 #include "ScriptAPI.h"
 #include "GameplayEventAction.h"
-#include "ParticleLifecycle.h"
 
 class GameplayEventTrigger;
 
@@ -14,7 +13,6 @@ public:
     explicit CombatAreaEvent(GameObject* owner);
 
     void Update() override;
-    void OnGameStop() override;
 
     void executeEvent(GameplayEventTrigger* trigger) override;
 
@@ -24,18 +22,11 @@ public:
     FieldList getExposedFields() const override;
 
 private:
-    struct BarricadeVisualSlot
-    {
-        GameObject* mistInstance = nullptr;
-        GameObject* burstInstance = nullptr;
-    };
-
     void closeArea();
     void openArea();
 
     void setBlockerState(const ComponentRef<Transform>& blockerTransformRef, bool blocked);
-    void activateBarricadeVisuals(const ComponentRef<Transform>& visualsTransformRef, BarricadeVisualSlot& slot);
-    void destroyBarricadeVisuals(BarricadeVisualSlot& slot);
+    void setVisualsState(const ComponentRef<Transform>& visualsTransformRef, bool active);
 
     void removeDeadEnemies();
     bool shouldRemoveEnemy(const ComponentRef<Transform>& enemyTransformRef) const;
@@ -52,12 +43,6 @@ public:
 private:
     std::vector<ComponentRef<Transform>> m_remainingEnemies;
 
-    BarricadeVisualSlot m_entranceBarricadeVfx;
-    BarricadeVisualSlot m_exitBarricadeVfx;
-    ParticleLifecycle::TimedParticleTracker m_timedParticles;
-
     bool m_isActive = false;
     bool m_hasCompleted = false;
-
-    static constexpr float kBarricadeBurstDuration = 3.0f;
 };

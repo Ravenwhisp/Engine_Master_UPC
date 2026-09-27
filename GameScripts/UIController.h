@@ -18,6 +18,7 @@ public:
 
 	void ChangeScene(const std::string& sceneName);
     void ChangeScene2(const AssetId& sceneName);
+    void ChangeLevel();
 	void ExitApplication();
     void StartGame(const std::string& sceneName);
 	void PauseGame(bool pause);

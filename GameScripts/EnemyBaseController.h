@@ -30,6 +30,8 @@ public:
     virtual const EnemyBaseDataConfig* getBaseDataConfig() const;
     virtual const EnemyBaseAttackConfig* getAttackConfig() const { return nullptr; }
 
+    int getTargetPriority() const;
+
 
     float getDistanceToCurrentTarget() const;
     bool isCurrentTargetInRange(float range) const;
@@ -88,6 +90,7 @@ protected:
 
 public:
     int m_enemyType = static_cast<int>(NavAgentProfile::EnemyGround);
+    int m_targetPriority = 0;
 
     float m_moveSpeed = 3.5f;
     float m_turnSpeedDegrees = 360.0f;

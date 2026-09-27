@@ -147,6 +147,7 @@ void LyrielChargedAttack::beginCharge()
     setAbilityLocked(true);
 
     applyChargingMovementSlowdown(m_config->m_chargedMovementSlowdownPercentage);
+    startChargingHaptics();
 
     m_chargeTimer = 0.0f;
     m_maxHoldTimer = 0.0f;
@@ -202,6 +203,7 @@ void LyrielChargedAttack::updateCharge()
 
     const float maxTime = m_lyrielCharacter->getConfig()->m_chargedMaxChargeTime;
     const float chargeRatio = maxTime > 0.0f ? (m_chargeTimer / maxTime) : 1.0f;
+    updateChargingHaptics(chargeRatio);
     if (m_character != nullptr)
     {
         PlayerAnimationController* anim = m_character->getAnimationController();
@@ -234,6 +236,7 @@ void LyrielChargedAttack::updateCharge()
 void LyrielChargedAttack::releaseChargeAndShoot()
 {
     m_isCharging = false;
+    stopChargingHaptics();
 
     if (m_particles != nullptr)
     {

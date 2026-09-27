@@ -31,7 +31,8 @@ public:
 
 	FieldList getExposedFields() const override;
 	
-    void takeDamage(const HitContext& ctx) override;
+	void takeDamage(float amount) override;
+	void takeDamage(const HitContext& ctx) override;
 	void kill() override;
 	bool lastHitExploitShadowMark() const { return m_lastHitExploitedShadowMark; }
 	float getShadowExecutionThresholdMultiplier() const;
@@ -57,6 +58,7 @@ protected:
 	float m_dissolveDuration = 1.0f;
 	void loadDissolveComponent();
 	DissolveComponent* findDissolveInHierarchy(Transform* transform);
+	DamageHighlightComponent* findDamageHighlightInHierarchy(Transform* transform);
 	
 	Transform2D* getHealthBarContainerTransform() const { return m_healthBarContainerTransform; }
 	void bindHealthBarUI(Transform2D* container, UISlider* slider1, UISlider* slider2);
@@ -65,6 +67,11 @@ private:
 	void resolveHealthBarReferences();
 	void updateHealthBarFade();
 	void updateDissolveEffect();
+	void setupDamageHighlight();
+	void updateDamageHighlight();
+	void playDamageHighlight();
+	void updateHitShake();
+	void playHitShake();
 
 	void resolveReaperGauge();
 	void updateShadowExecutionPreviewAvailability();
@@ -96,6 +103,22 @@ private:
 	float m_healthBarFadeTime = 0.25f;
 	float m_healthBarFadeTimer = 0.0f;
 	bool m_healthBarFadeActive = false;
+
+	ComponentRef<Transform> m_renderer;
+	DamageHighlightComponent* m_damageHighlight = nullptr;
+	bool m_damageHighlightActive = false;
+	float m_damageHighlightTimer = 0.0f;
+	float m_damageHighlightSpeed = 1.0f;
+
+	Transform* m_hitShakeTransform = nullptr;
+	ComponentRef<Transform> m_hitShakeTarget;
+	Vector3 m_hitShakeBasePosition = Vector3::Zero;
+	float m_hitShakeTimer = 0.0f;
+	bool m_hitShakeActive = false;
+	bool m_hitShakeEnabled = true;
+	float m_hitShakeDuration = 0.16f;
+	float m_hitShakeStrength = 0.15f;
+	float m_hitShakeFrequency = 18.0f;
 
 	// Shadow Execution Health Bar effects
 	bool m_shadowExecutionPreviewActive = false;

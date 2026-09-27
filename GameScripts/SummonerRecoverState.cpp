@@ -44,6 +44,11 @@ void SummonerRecoverState::OnStateUpdate()
 		return;
 	}
 
+	if (m_controller->trySendStunTrigger(m_animation))
+	{
+		return;
+	}
+
 	m_stateTimer += Time::getDeltaTime();
 
 	m_controller->updateCurrentTarget();

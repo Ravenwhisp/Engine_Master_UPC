@@ -21,6 +21,15 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(EnemyDamageable, Damageable,
 	FIELD_GROUP_LABEL("Health Bar"),
 	SERIALIZED_COMPONENT_REF(m_healthBarContainer, "Health Bar Container", ComponentType::TRANSFORM2D),
 	SERIALIZED_FLOAT(m_healthBarFadeTime, "Health Bar Fade Time", 0.0f, 5.0f, 0.05f),
+	FIELD_GROUP_LABEL("Damage Highlight"),
+	SERIALIZED_COMPONENT_REF(m_renderer, "Mesh Renderer", ComponentType::TRANSFORM),
+	SERIALIZED_FLOAT(m_damageHighlightSpeed, "Damage Highlight Speed", 0.1f, 5.0f, 0.05f),
+	FIELD_GROUP_LABEL("Hit Shake"),
+	SERIALIZED_BOOL(m_hitShakeEnabled, "Enable Hit Shake"),
+	SERIALIZED_COMPONENT_REF(m_hitShakeTarget, "Hit Shake Visual", ComponentType::TRANSFORM),
+	SERIALIZED_FLOAT(m_hitShakeDuration, "Hit Shake Duration", 0.01f, 1.0f, 0.01f),
+	SERIALIZED_FLOAT(m_hitShakeStrength, "Hit Shake Strength", 0.0f, 1.0f, 0.01f),
+	SERIALIZED_FLOAT(m_hitShakeFrequency, "Hit Shake Frequency", 1.0f, 60.0f, 1.0f),
 	FIELD_GROUP_LABEL("Shadow Execution Preview"),
 	SERIALIZED_COMPONENT_REF(m_shadowExecutionPreview, "Shadow Execution Preview", ComponentType::UISLIDER),
 	SERIALIZED_COMPONENT_REF(m_shadowExecutionThresholdMarker, "Shadow Execution Threshold Marker", ComponentType::TRANSFORM2D),
@@ -107,11 +116,14 @@ void EnemyDamageable::Start()
 	}
 
 	loadDissolveComponent();
+	setupDamageHighlight();
 }
 
 void EnemyDamageable::Update()
 {
 	Damageable::Update();
+	updateDamageHighlight();
+	updateHitShake();
 	updateHealthBarFade();
 	updateShadowExecutionPreviewAvailability();
 	updateShadowExecutionPreviewAnimation(Time::getDeltaTime());
@@ -120,6 +132,13 @@ void EnemyDamageable::Update()
 	{
 		updateDissolveEffect();
 	}
+}
+
+void EnemyDamageable::takeDamage(float amount)
+{
+	EnemyHitContext hit;
+	hit.damage = amount;
+	takeDamage(hit);
 }
 
 void EnemyDamageable::takeDamage(const HitContext& ctx)
@@ -222,6 +241,9 @@ void EnemyDamageable::onDamaged(float amount)
 		m_enemySound->playHurt();
 	}
 
+	playDamageHighlight();
+	playHitShake();
+
 	if (m_shadowExecutionPreviewActive && !m_shadowExecutionPreviewHitAnimating)
 	{
 		updateShadowExecutionPreview();
@@ -244,6 +266,12 @@ void EnemyDamageable::onDamaged(float amount)
 void EnemyDamageable::onDeath()
 {
 	Damageable::onDeath();
+
+	// The health bar should not remain visible while the enemy death flow plays.
+	if (m_healthBarContainerTransform)
+	{
+		GameObjectAPI::setActive(m_healthBarContainerTransform->getOwner(), false);
+	}
 
 	if (auto* stunVisuals = GameObjectAPI::findScript<EnemyStunParticles>(getOwner()))
 	{
@@ -450,6 +478,112 @@ void EnemyDamageable::updateHealthBarFade()
 		setHealthBarAlpha(1.0f);
 		m_healthBarFadeActive = false;
 	}
+}
+
+void EnemyDamageable::setupDamageHighlight()
+{
+	m_hitShakeTransform = m_hitShakeTarget.getReferencedComponent();
+
+	Transform* rendererTransform = m_renderer.getReferencedComponent();
+	if (rendererTransform != nullptr)
+	{
+		m_damageHighlight = ShadersAPI::getDamageHighlightComponent(ComponentAPI::getOwner(rendererTransform));
+		if (m_hitShakeTransform == nullptr)
+		{
+			m_hitShakeTransform = rendererTransform;
+		}
+	}
+
+	if (m_damageHighlight == nullptr)
+	{
+		m_damageHighlight = findDamageHighlightInHierarchy(GameObjectAPI::getTransform(m_owner));
+	}
+
+	if (m_damageHighlight == nullptr)
+	{
+		Debug::warn("EnemyDamageable on '%s' has no DamageHighlight component in its hierarchy.", GameObjectAPI::getName(m_owner));
+	}
+
+	if (m_hitShakeEnabled && m_hitShakeTransform == nullptr)
+	{
+		Debug::warn("EnemyDamageable on '%s' has no hit-shake visual transform.", GameObjectAPI::getName(m_owner));
+	}
+}
+
+void EnemyDamageable::updateDamageHighlight()
+{
+	if (!m_damageHighlightActive)
+	{
+		return;
+	}
+
+	m_damageHighlightTimer -= Time::getDeltaTime() * m_damageHighlightSpeed;
+	if (m_damageHighlightTimer <= 0.0f)
+	{
+		m_damageHighlightTimer = 0.0f;
+		m_damageHighlightActive = false;
+	}
+
+	ShadersAPI::setDamageHighlightIntensity(m_damageHighlight, m_damageHighlightTimer);
+}
+
+void EnemyDamageable::playDamageHighlight()
+{
+	if (m_damageHighlight == nullptr)
+	{
+		return;
+	}
+
+	m_damageHighlightActive = true;
+	m_damageHighlightTimer = 1.0f;
+}
+
+void EnemyDamageable::updateHitShake()
+{
+	if (!m_hitShakeActive)
+	{
+		return;
+	}
+
+	if (!m_hitShakeEnabled || m_hitShakeTransform == nullptr)
+	{
+		if (m_hitShakeTransform != nullptr)
+		{
+			TransformAPI::setPosition(m_hitShakeTransform, m_hitShakeBasePosition);
+		}
+
+		m_hitShakeActive = false;
+		return;
+	}
+
+	m_hitShakeTimer += Time::getDeltaTime();
+	const float duration = (std::max)(m_hitShakeDuration, 0.0001f);
+	const float progress = std::clamp(m_hitShakeTimer / duration, 0.0f, 1.0f);
+	const float offset = sinf(m_hitShakeTimer * m_hitShakeFrequency * 6.28318531f) * m_hitShakeStrength * (1.0f - progress);
+
+	TransformAPI::setPosition(m_hitShakeTransform, m_hitShakeBasePosition + Vector3(offset, 0.0f, 0.0f));
+
+	if (progress >= 1.0f)
+	{
+		TransformAPI::setPosition(m_hitShakeTransform, m_hitShakeBasePosition);
+		m_hitShakeActive = false;
+	}
+}
+
+void EnemyDamageable::playHitShake()
+{
+	if (!m_hitShakeEnabled || m_hitShakeTransform == nullptr)
+	{
+		return;
+	}
+
+	if (!m_hitShakeActive)
+	{
+		m_hitShakeBasePosition = TransformAPI::getPosition(m_hitShakeTransform);
+	}
+
+	m_hitShakeTimer = 0.0f;
+	m_hitShakeActive = true;
 }
 
 void EnemyDamageable::updateDissolveEffect()
@@ -720,6 +854,36 @@ DissolveComponent* EnemyDamageable::findDissolveInHierarchy(Transform* transform
 		if (DissolveComponent* dissolve = findDissolveInHierarchy(child))
 		{
 			return dissolve;
+		}
+	}
+
+	return nullptr;
+}
+
+DamageHighlightComponent* EnemyDamageable::findDamageHighlightInHierarchy(Transform* transform)
+{
+	if (!transform)
+	{
+		return nullptr;
+	}
+
+	GameObject* object = ComponentAPI::getOwner(transform);
+	if (DamageHighlightComponent* highlight = ShadersAPI::getDamageHighlightComponent(object))
+	{
+		if (m_hitShakeTransform == nullptr)
+		{
+			m_hitShakeTransform = transform;
+		}
+
+		return highlight;
+	}
+
+	const int childCount = TransformAPI::getChildCount(transform);
+	for (int i = 0; i < childCount; ++i)
+	{
+		if (DamageHighlightComponent* highlight = findDamageHighlightInHierarchy(TransformAPI::getChild(transform, i)))
+		{
+			return highlight;
 		}
 	}
 

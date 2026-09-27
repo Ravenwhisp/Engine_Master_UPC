@@ -39,6 +39,8 @@ private:
 	void resetMaxChargeAnimation();
 
 private:
+	float m_attackUIHeightOffset = 0.05f;
+
 	// Taunt
 	ComponentRef<Transform> m_tauntUI;
 	Transform* m_tauntUITransform = nullptr;
