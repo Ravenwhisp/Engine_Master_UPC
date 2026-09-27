@@ -442,6 +442,26 @@ void MeshRenderer::serialize(IArchive& archive)
         {
             m_customBoundingBox = false;
         }
+
+        m_meshAsset.m_type = AssetType::MESH;
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        if (meshAsset)
+        {
+            addMesh(*meshAsset, !m_customBoundingBox);
+        }
+
+        for (auto& matRef : m_materialAssets)
+        {
+            if (matRef.isValid())
+            {
+                matRef.m_type = AssetType::MATERIAL;
+                auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+                if (matAsset)
+                {
+                    addMaterial(*matAsset);
+                }
+            }
+        }
     }
     else
     {
@@ -516,51 +536,12 @@ void MeshRenderer::clearSkin()
     m_skin.reset();
 }
 
-void MeshRenderer::fixReferences(
-    const SceneReferenceResolver& resolver)
+std::shared_ptr<BasicMesh>& MeshRenderer::getMesh()
 {
-    m_mesh = nullptr;
-    m_materials.clear();
+    return m_mesh;
+}
 
-    if (m_meshAsset.isValid())
-    {
-        m_meshAsset.m_type =
-            AssetType::MESH;
-
-        auto meshAsset =
-            app->getModuleAssets()->load<MeshAsset>(
-                m_meshAsset
-            );
-
-        if (meshAsset)
-        {
-            addMesh(
-                *meshAsset,
-                !m_customBoundingBox
-            );
-        }
-    }
-
-    for (auto& matRef : m_materialAssets)
-    {
-        if (matRef.isValid())
-        {
-            matRef.m_type =
-                AssetType::MATERIAL;
-
-            auto matAsset =
-                app->getModuleAssets()->load<MaterialAsset>(
-                    matRef
-                );
-
-            if (matAsset)
-            {
-                addMaterial(*matAsset);
-            }
-        }
-    }
-
-    recompute();
-
-    updateBoundingBoxWorld();
+std::vector<std::shared_ptr<BasicMaterial>>& MeshRenderer::getMaterials()
+{
+    return m_materials;
 }
