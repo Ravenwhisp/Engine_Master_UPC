@@ -31,7 +31,10 @@ void SpiderEnemyController::Start()
 
 void SpiderEnemyController::Update()
 {
+	const float dt = Time::getDeltaTime();
+
 	updateCurrentTarget();
+	updateStun(dt);
 }
 
 Transform* SpiderEnemyController::acquireCurrentTarget()

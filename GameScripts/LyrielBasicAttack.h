@@ -20,6 +20,7 @@ private:
     void startAbility() override;
     bool spawnArrowToTarget(GameObject* target);
     bool spawnArrowToDirection(const Vector3& direction);
+    GameObject* findBreakableInAimLine(const Vector3& origin, const Vector3& direction) const;
     void faceTarget(GameObject* target);
 
     LyrielParticles* m_particles = nullptr;

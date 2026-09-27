@@ -2,6 +2,7 @@
 
 #include "ScriptAPI.h"
 #include <vector>
+#include "GameplayHaptics.h"
 
 class ReaperGauge;
 class DeathCharacter;
@@ -73,7 +74,10 @@ private:
 
     std::vector<GameObject*> m_hitEnemies;
 
-    // Tracks spawned VFX until their configured cleanup time.
+    GameplayHapticRumble m_deathExecutionHaptic;
+    GameplayHapticRumble m_lyrielExecutionHaptic;
+
+    // Lista para trackear las partículas que deben morir tras 1 segundo
     std::vector<SpawnedPrefab> m_temporaryPrefabs;
 
 public:

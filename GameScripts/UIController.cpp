@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "UIController.h"
 #include "AssetId.h"
+#include "PersistingCheckpointState.h"
 #include "PersistingPowerupState.h"
 
 UIController::UIController(GameObject* owner): Script(owner) {}
@@ -17,6 +18,7 @@ static const ScriptMethodInfo UIControllerMethods[] =
 {
 	{ "ChangeScene", nullptr, ScriptMethodParamType::String, "sceneName", [](Script* s, const void* param) { static_cast<UIController*>(s)->ChangeScene(*static_cast<const std::string*>(param)); } },
 	{ "ChangeScene2", nullptr, ScriptMethodParamType::AssetId, "sceneName", [](Script* s, const void* param) { static_cast<UIController*>(s)->ChangeScene2(*static_cast<const AssetId*>(param)); } },
+	{ "ChangeLevel", [](Script* s) { static_cast<UIController*>(s)->ChangeLevel(); }  },
 	{ "ExitApplication", [](Script* s) { static_cast<UIController*>(s)->ExitApplication(); } },
 	{ "PauseGame", nullptr, ScriptMethodParamType::Bool, "pause", [](Script* s, const void* param) { static_cast<UIController*>(s)->PauseGame(*static_cast<const bool*>(param)); } }
 };
@@ -34,6 +36,25 @@ void UIController::ChangeScene(const std::string& sceneName)
 void UIController::ChangeScene2(const AssetId& sceneID)
 {
 	SceneAPI::requestSceneChange(sceneID);
+}
+
+void UIController::ChangeLevel()
+{
+	switch (PersistingCheckpointState::Get().m_lastSceneId)
+	{
+	case SceneId::LEVEL1:
+		SceneAPI::requestSceneChange("Level1");
+		break;
+	case SceneId::LEVEL2:
+		SceneAPI::requestSceneChange("Level2");
+		break;
+	case SceneId::LEVEL3:
+		SceneAPI::requestSceneChange("BossLevel");
+		break;
+	default:
+		SceneAPI::requestSceneChange("Main_Menu");
+		break;
+	}
 }
 
 void UIController::ExitApplication()

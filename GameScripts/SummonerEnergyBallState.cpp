@@ -49,6 +49,11 @@ void SummonerEnergyBallState::OnStateUpdate()
 		return;
 	}
 
+	if (m_controller->trySendStunTrigger(m_animation))
+	{
+		return;
+	}
+
 	m_controller->faceCurrentTarget();
 
 	m_stateTimer += Time::getDeltaTime();

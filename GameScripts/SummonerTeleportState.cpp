@@ -27,6 +27,11 @@ void SummonerTeleportState::OnStateEnter()
 		return;
 	}
 
+	if (m_controller->trySendStunTrigger(m_animation))
+	{
+		return;
+	}
+
 	Debug::log("[SummonerTeleportState] ENTER");
 
 	if (m_controller->isForcedMovementActive())
@@ -77,6 +82,12 @@ void SummonerTeleportState::OnStateEnter()
 
 void SummonerTeleportState::OnStateUpdate()
 {
+	if (!m_controller || !m_animation)
+	{
+		return;
+	}
+
+	m_controller->trySendStunTrigger(m_animation);
 }
 
 void SummonerTeleportState::OnStateExit()

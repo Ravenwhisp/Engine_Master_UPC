@@ -225,6 +225,13 @@ void ShadowExecution::beginExecution()
     m_isActive = true;
     m_reaperGauge->consume();
 
+    const int deathPlayerIndex = m_deathCharacter->getPlayerIndex();
+    const int lyrielPlayerIndex = m_lyrielCharacter->getPlayerIndex();
+    GameplayHapticRumble::playImpact(deathPlayerIndex, 0.85f, 0.20f);
+    GameplayHapticRumble::playImpact(lyrielPlayerIndex, 0.85f, 0.20f);
+    m_deathExecutionHaptic.update(deathPlayerIndex, 0.24f, 0.18f);
+    m_lyrielExecutionHaptic.update(lyrielPlayerIndex, 0.24f, 0.18f);
+
     if (m_sound != nullptr)
     {
         m_sound->playShadowExecution();
@@ -257,6 +264,10 @@ void ShadowExecution::updateExecution(float dt)
     if (progress > 1.0f) progress = 1.0f;
 
     m_currentRadius = progress * m_maxRadius;
+
+    const float hapticIntensity = 0.18f + 0.16f * progress;
+    m_deathExecutionHaptic.update(m_deathCharacter->getPlayerIndex(), hapticIntensity, hapticIntensity * 0.75f);
+    m_lyrielExecutionHaptic.update(m_lyrielCharacter->getPlayerIndex(), hapticIntensity, hapticIntensity * 0.75f);
 
     applyAoEDamage();
 
@@ -328,6 +339,8 @@ void ShadowExecution::endExecution()
     m_executionTimer = 0.0f;
     m_currentRadius = 0.0f;
     m_hitEnemies.clear();
+    m_deathExecutionHaptic.stop();
+    m_lyrielExecutionHaptic.stop();
 
     Transform2DAPI::setAlpha(m_executionTransform2D, 0);
     Transform2DAPI::setScale(m_executionTransform2D, Vector2(0.0f, 0.0f));

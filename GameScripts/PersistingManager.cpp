@@ -24,6 +24,25 @@ void PersistingManager::Start()
     PersistingCheckpointState::Get().m_brokenBreakables.clear();
     PersistingCheckpointState::Get().m_triggeredEvents.clear();
     PersistingCheckpointState::Get().m_solvedPuzzles.fill(false);
+
+    PersistingCheckpointState::Get().m_lastSceneId = static_cast<SceneId>(m_levelNumber);
+
+    if (PersistingCheckpointState::Get().m_lastCheckpointId != CheckpointId::NONE &&
+        static_cast<int>(PersistingCheckpointState::Get().m_lastCheckpointId / 100) != m_levelNumber)
+    {
+        if (m_levelNumber == 2)
+        {
+            PersistingCheckpointState::Get().m_lastCheckpointId = CheckpointId::LEVEL_2;
+        }
+        else if (m_levelNumber == 3)
+        {
+            PersistingCheckpointState::Get().m_lastCheckpointId = CheckpointId::LEVEL_3;
+        }
+        else
+        {
+            PersistingCheckpointState::Get().m_lastCheckpointId = CheckpointId::NONE;
+        }
+    }
 }
 
 void PersistingManager::OnGameStop()

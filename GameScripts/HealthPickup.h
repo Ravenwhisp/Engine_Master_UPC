@@ -36,6 +36,7 @@ public:
     std::string m_legacyCollectParticlePath;
     float   m_spawnHeight           = 1.5f;   // fallback height when no custom spawn-from
     float   m_fallGravity           = 8.0f;
+    float   m_pickupEnableDelay     = 2.0f;
     Vector3 m_landingPosition       = Vector3::Zero;  // target floor position, set by spawner
     bool    m_hasCustomSpawnFrom    = false;
 
@@ -58,4 +59,7 @@ private:
     float m_dissolveDuration = 0.5f;
     float m_dissolveTimer = 0.0f;
     bool m_destroyQueued = false;
+
+    float m_pickupEnableTimer = 0.0f;
+    bool m_canBePickedUp = false;
 };

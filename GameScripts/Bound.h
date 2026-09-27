@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #include "ScriptAPI.h"
+#include "GameplayHaptics.h"
 
 class Transform;
 class Transform2D;
 class Damageable;
-class HeartbeatHaptic;
 class CooperativeSound;
 class BoundConfig;
 
@@ -43,11 +43,12 @@ public:
     Vector3 m_center = Vector3(0.0f, 0.0f, 0.0f);
     float   m_currentRadius = 0.0f;
 
-    float m_separationHapticHpGate = 0.5f;
-
     AssetReference<BoundConfig> m_config;
 
 private:
-    HeartbeatHaptic* m_haptic = nullptr;
+    GameplayHapticRumble m_firstPlayerHaptic;
+    GameplayHapticRumble m_secondPlayerHaptic;
+    int m_firstPlayerIndex = 0;
+    int m_secondPlayerIndex = 1;
     CooperativeSound* m_coopSound = nullptr;
 };

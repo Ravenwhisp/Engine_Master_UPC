@@ -1,8 +1,11 @@
 #include "pch.h"
 #include "ChargedAttackBase.h"
 
+#include "CharacterBase.h"
 #include "PlayerMovement.h"
 #include "EnemyBaseController.h"
+
+#include <algorithm>
 
 ChargedAttackBase::ChargedAttackBase(GameObject* owner)
     : AbilityBase(owner)
@@ -40,6 +43,31 @@ void ChargedAttackBase::resetChargingMovementSlowdown()
     }
 
     m_playerMovement->resetMovementMultiplier();
+}
+
+void ChargedAttackBase::startChargingHaptics()
+{
+    updateChargingHaptics(0.0f);
+}
+
+void ChargedAttackBase::updateChargingHaptics(float chargeRatio)
+{
+    if (m_character == nullptr || m_character->isDowned())
+    {
+        stopChargingHaptics();
+        return;
+    }
+
+    chargeRatio = std::clamp(chargeRatio, 0.0f, 1.0f);
+    m_chargeHaptic.update(
+        getPlayerIndex(),
+        0.12f + 0.28f * chargeRatio,
+        0.08f + 0.36f * chargeRatio);
+}
+
+void ChargedAttackBase::stopChargingHaptics()
+{
+    m_chargeHaptic.stop();
 }
 
 void ChargedAttackBase::tryStunTarget(GameObject* target, bool isMaxCharge, bool stunEnabled, float stunDuration) const

@@ -38,12 +38,20 @@ void SkeletonChaseState::OnStateUpdate()
 		return;
 	}
 
+	if (m_skeletonController->trySendDeathTrigger(m_animation))
+	{
+		return;
+	}
+
 	if (m_skeletonController->trySendReviveTrigger(m_animation))
 	{
 		return;
 	}
 
-	// stunned? //
+	if (m_skeletonController->trySendStunTrigger(m_animation))
+	{
+		return;
+	}
 
 	if (!m_skeletonController->hasValidTarget())
 	{

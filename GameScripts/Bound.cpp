@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Bound.h"
 #include "Damageable.h"
-#include "HeartbeatHaptic.h"
+#include "CharacterBase.h"
 #include "CooperativeSound.h"
 #include "BoundConfig.h"
 #include "Transform2D.h"
@@ -27,18 +27,21 @@ void Bound::Start()
     if (player1 != nullptr)
     {
         m_firstDamageable = GameObjectAPI::findScript<Damageable>(player1);
+
+        if (CharacterBase* character = GameObjectAPI::findScript<CharacterBase>(player1))
+        {
+            m_firstPlayerIndex = character->getPlayerIndex();
+        }
     }
 
     if (player2 != nullptr)
     {
         m_secondDamageable = GameObjectAPI::findScript<Damageable>(player2);
-    }
 
-    m_haptic = GameObjectAPI::findScript<HeartbeatHaptic>(m_owner);
-
-    if (m_haptic != nullptr)
-    {
-        m_haptic->m_variant = HapticEffectDefinition::HeartbeatVariant::Separation;
+        if (CharacterBase* character = GameObjectAPI::findScript<CharacterBase>(player2))
+        {
+            m_secondPlayerIndex = character->getPlayerIndex();
+        }
     }
 
     const auto coopGOs = SceneAPI::findAllGameObjectsWithScript<CooperativeSound>();
@@ -54,7 +57,6 @@ void Bound::Start()
         m_showBoundDistance = cfg->m_showBoundDistance;
         baseDamage = cfg->m_baseDamage;
         m_radiusThreshold = cfg->m_radiusThreshold;
-        m_separationHapticHpGate = cfg->m_separationHapticHpGate;
     }
 }
 
@@ -106,21 +108,25 @@ void Bound::Update()
         m_firstDamageable->takeDamage(HitContext{ damage, true });
         m_secondDamageable->takeDamage(HitContext{ damage, true });
 
-        const bool p1LowHp = m_firstDamageable->getHpPercent() < m_separationHapticHpGate;
-        const bool p2LowHp = m_secondDamageable->getHpPercent() < m_separationHapticHpGate;
+        const float intensity = std::clamp(excess, 0.0f, 1.0f);
+        const float leftMotor = 0.20f + 0.55f * intensity;
+        const float rightMotor = 0.15f + 0.45f * intensity;
 
-        if (m_haptic)
-        {
-            if (p1LowHp && p2LowHp)
-                m_haptic->tick(min(excess, 1.0f));
-            else
-                m_haptic->stop();
-        }
+        if (!m_firstDamageable->isDead())
+            m_firstPlayerHaptic.update(m_firstPlayerIndex, leftMotor, rightMotor);
+        else
+            m_firstPlayerHaptic.stop();
+
+        if (!m_secondDamageable->isDead())
+            m_secondPlayerHaptic.update(m_secondPlayerIndex, leftMotor, rightMotor);
+        else
+            m_secondPlayerHaptic.stop();
     }
     else
     {
         if (m_coopSound) m_coopSound->stopBoundDamageLoop();
-        if (m_haptic) m_haptic->stop();
+        m_firstPlayerHaptic.stop();
+        m_secondPlayerHaptic.stop();
     }
 }
 

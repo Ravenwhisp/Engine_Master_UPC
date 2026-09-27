@@ -43,6 +43,11 @@ void SpiderChaseState::OnStateUpdate()
 		return;
 	}
 
+	if (m_spiderController->trySendStunTrigger(m_animation))
+	{
+		return;
+	}
+
 	if (!m_spiderController->hasValidTarget())
 	{
 		AnimationAPI::sendTrigger(m_animation, "ToIdle");

@@ -59,6 +59,8 @@ void DeathChargedAttack::Update()
         const float chargeRatio = m_config->m_chargedMaxChargeTime > 0.0f
             ? (m_chargeTime / m_config->m_chargedMaxChargeTime) : 1.0f;
 
+        updateChargingHaptics(chargeRatio);
+
         if (m_character != nullptr)
         {
             PlayerAnimationController* anim = m_character->getAnimationController();
@@ -107,6 +109,7 @@ void DeathChargedAttack::startCharging()
 
     setAbilityLocked(true);
     applyChargingMovementSlowdown(m_config->m_chargedMovementSlowdownPercentage);
+    startChargingHaptics();
 
     if (m_attackAnims != nullptr && m_character != nullptr)
     {
@@ -133,6 +136,8 @@ void DeathChargedAttack::startCharging()
 
 void DeathChargedAttack::fireAttack()
 {
+    stopChargingHaptics();
+
     const bool  isMaxCharge   = (m_chargeTime >= m_config->m_chargedMaxChargeTime);
     const bool  isChargedShot = (m_chargeTime >= m_config->m_chargedMinChargeTime);
 

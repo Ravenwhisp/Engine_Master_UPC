@@ -11,18 +11,6 @@ namespace ObjectVfxIds
         return AssetId(6448028941363253388ULL, "0f6088eddd09221af406ea8c64485088", AssetType::PREFAB);
     }
 
-    // Assets/Prefabs/Particles/VFXRemake/Objects/Doors_Barricades/PS_BarricadesMist.prefab
-    inline AssetId barricadeMist()
-    {
-        return AssetId(15273449107757228221ULL, "fa43c1d628ba49431efb586779ad07af", AssetType::PREFAB);
-    }
-
-    // Assets/Prefabs/Particles/VFXRemake/Objects/Doors_Barricades/PS_BarricadesParticles.prefab
-    inline AssetId barricadeBurst()
-    {
-        return AssetId(11466636781170600960ULL, "8db70634adecb71377d75c889814c250", AssetType::PREFAB);
-    }
-
     // Assets/Prefabs/Particles/VFXRemake/Objects/Spectral Path/PS_SpectralPathEntrances.prefab
     inline AssetId spectralPathEntrance()
     {

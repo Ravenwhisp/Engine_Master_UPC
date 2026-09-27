@@ -2,6 +2,9 @@
 #include "LyrielUI.h"
 
 IMPLEMENT_SCRIPT_FIELDS_INHERITED(LyrielUI, CharacterUI,
+	FIELD_GROUP_LABEL("World-space Attack UI"),
+	SERIALIZED_FLOAT(m_attackUIHeightOffset, "Height Offset", 0.0f, 1.0f, 0.01f),
+
 	FIELD_GROUP_LABEL("Basic Attack Aim"),
 	SERIALIZED_COMPONENT_REF(m_basicAttackUI, "Basic Attack Aim UI", ComponentType::TRANSFORM),
 	SERIALIZED_FLOAT(m_basicAttackYawOffset, "Basic Attack Yaw Offset (deg)", -360.0f, 360.0f, 5.0f),
@@ -101,7 +104,10 @@ void LyrielUI::updateBasicAttackUI(const Vector3& origin, const Vector3& aimDire
 	const float yawRad = std::atan2(flatDirection.x, flatDirection.z);
 	const float targetYawDeg = yawRad * (180.0f / 3.14159265f) + m_basicAttackYawOffset;
 
-	TransformAPI::setGlobalPosition(m_basicAttackUITransform, origin);
+	Vector3 uiPosition = origin;
+	uiPosition.y += m_attackUIHeightOffset;
+
+	TransformAPI::setGlobalPosition(m_basicAttackUITransform, uiPosition);
 	TransformAPI::setGlobalRotationEuler(m_basicAttackUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
 }
 
@@ -142,7 +148,10 @@ void LyrielUI::updateChargedAttackUI(const Vector3& origin, const Vector3& aimDi
 	const float yawRad = std::atan2(flatDirection.x, flatDirection.z);
 	const float targetYawDeg = yawRad * (180.0f / 3.14159265f);
 
-	TransformAPI::setGlobalPosition(m_chargedAttackUITransform, origin);
+	Vector3 uiPosition = origin;
+	uiPosition.y += m_attackUIHeightOffset;
+
+	TransformAPI::setGlobalPosition(m_chargedAttackUITransform, uiPosition);
 	TransformAPI::setGlobalRotationEuler(m_chargedAttackUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
 	TransformAPI::setScale(m_chargedAttackUITransform, Vector3(1.0f, 1.0f, range));
 }
@@ -201,7 +210,10 @@ void LyrielUI::updateArrowVolleyUI(const Vector3& origin, const Vector3& aimDire
 	const float yawRad = std::atan2(flatDirection.x, flatDirection.z);
 	const float targetYawDeg = yawRad * (180.0f / 3.14159265f);
 
-	TransformAPI::setGlobalPosition(m_arrowVolleyUITransform, origin);
+	Vector3 uiPosition = origin;
+	uiPosition.y += m_attackUIHeightOffset;
+
+	TransformAPI::setGlobalPosition(m_arrowVolleyUITransform, uiPosition);
 	TransformAPI::setGlobalRotationEuler(m_arrowVolleyUITransform, Vector3(0.0f, targetYawDeg, 0.0f));
 }
 

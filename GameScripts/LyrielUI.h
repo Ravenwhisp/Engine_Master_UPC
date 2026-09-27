@@ -44,6 +44,8 @@ public:
 	float m_uiScaleSpeed = 8.0f;
 
 private:
+	float m_attackUIHeightOffset = 0.06f;
+
 	// Basic Attack Aim
 	ComponentRef<Transform> m_basicAttackUI;
 	Transform* m_basicAttackUITransform = nullptr;

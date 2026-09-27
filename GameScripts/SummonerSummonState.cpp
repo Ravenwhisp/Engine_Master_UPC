@@ -53,6 +53,11 @@ void SummonerSummonState::OnStateUpdate()
 		return;
 	}
 
+	if (m_controller->trySendStunTrigger(m_animation))
+	{
+		return;
+	}
+
 	m_stateTimer += Time::getDeltaTime();
 
 	const float summonCastTime = m_controller->m_attackConfig.get()->m_summonCastTime;

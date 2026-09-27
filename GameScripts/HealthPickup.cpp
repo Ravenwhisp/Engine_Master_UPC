@@ -13,6 +13,7 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(HealthPickup, Pickup,
     SERIALIZED_STRING(m_legacyCollectParticlePath, "Collect Particle Prefab Path"),
     SERIALIZED_FLOAT(m_spawnHeight, "Spawn Height",        0.0f,   5.0f, 0.1f),
     SERIALIZED_FLOAT(m_fallGravity, "Fall Gravity",        0.0f,  20.0f, 0.5f),
+    SERIALIZED_FLOAT(m_pickupEnableDelay, "Pickup Enable Delay", 0.0f, 10.0f, 0.1f),
     SERIALIZED_FLOAT(m_idleSpeed, "Idle Speed",          0.0f,  10.0f, 0.05f),
     SERIALIZED_FLOAT(m_horizontalAmplitude, "Horizontal Amplitude",0.0f,   3.0f, 0.05f),
     SERIALIZED_FLOAT(m_verticalAmplitude, "Vertical Amplitude",  0.0f,   3.0f, 0.05f),
@@ -55,6 +56,8 @@ void HealthPickup::Start()
 
     m_isFalling    = true;
     m_fallVelocity = 0.0f;
+    m_pickupEnableTimer = 0.0f;
+    m_canBePickedUp = false;
 
     const auto coopGOs = SceneAPI::findAllGameObjectsWithScript<CooperativeSound>();
     if (!coopGOs.empty())
@@ -77,6 +80,12 @@ void HealthPickup::Update()
         return;
     }
 
+    if (!m_canBePickedUp)
+    {
+        m_pickupEnableTimer += Time::getDeltaTime();
+        m_canBePickedUp = m_pickupEnableTimer >= m_pickupEnableDelay;
+    }
+
     if (m_isFalling)
     {
         fallAnimation();
@@ -91,7 +100,7 @@ void HealthPickup::OnTriggerEnter(GameObject* player)
 {
     Debug::log("HealthPickup triggered by %s", GameObjectAPI::getName(player));
 
-    if (m_collected)
+    if (m_collected || !m_canBePickedUp)
     {
         return;
     }

@@ -89,6 +89,7 @@ void SkeletonDamageable::startDowned()
 void SkeletonDamageable::confirmKill()
 {
 	m_lifeState = SkeletonLifeState::PermanentlyDead;
+	Damageable::kill();
 }
 
 void SkeletonDamageable::completeRevive()

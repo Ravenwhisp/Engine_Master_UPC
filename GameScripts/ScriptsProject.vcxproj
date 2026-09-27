@@ -71,11 +71,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\Engine\</OutDir>
+    <OutDir>$(SolutionDir)..\Engine_OUT\</OutDir>
     <TargetName>GameScripts</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\Game\</OutDir>
+    <OutDir>$(SolutionDir)..\Engine_OUT\</OutDir>
     <TargetName>GameScripts</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -120,7 +120,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)../Engine/Assets/;$(SolutionDir)EngineDependencies;$(SolutionDir)EngineDependencies\ffmpeg\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)..\Engine_Master_UPC;$(SolutionDir)..\Engine_Master_UPC\Assets;$(SolutionDir)..\Engine_Master_UPC\3rdParty\ffmpeg\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -129,7 +129,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\Engine\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\Engine_OUT\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -143,7 +143,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)../Engine/Assets/;$(SolutionDir)EngineDependencies;$(SolutionDir)EngineDependencies\ffmpeg\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)..\Engine_Master_UPC;$(SolutionDir)..\Engine_Master_UPC\Assets;$(SolutionDir)..\Engine_Master_UPC\3rdParty\ffmpeg\include</AdditionalIncludeDirectories>
       <AdditionalHeaderUnitDependencies>
       </AdditionalHeaderUnitDependencies>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -153,7 +153,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\Game\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\Engine_OUT\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -202,13 +202,29 @@
     <ClInclude Include="CameraTransitionStepAction.h" />
     <ClInclude Include="ChargedAttackBase.h" />
     <ClInclude Include="Checkpoint1_Level1_Event.h" />
+    <ClInclude Include="Checkpoint1_Level2_Event.h" />
+    <ClInclude Include="Checkpoint2_Level1_Event.h" />
+    <ClInclude Include="Checkpoint2_Level2_Event.h" />
+    <ClInclude Include="Checkpoint3_Level1_Event.h" />
+    <ClInclude Include="Checkpoint3_Level2_Event.h" />
+    <ClInclude Include="Checkpoint4_Level1_Event.h" />
+    <ClInclude Include="Checkpoint4_Level2_Event.h" />
+    <ClInclude Include="Checkpoint5_Level1_Event.h" />
+    <ClInclude Include="Checkpoint5_Level2_Event.h" />
+    <ClInclude Include="Checkpoint6_Level1_Event.h" />
+    <ClInclude Include="Checkpoint6_Level2_Event.h" />
+    <ClInclude Include="Checkpoint7_Level1_Event.h" />
+    <ClInclude Include="Checkpoint8_Level1_Event.h" />
     <ClInclude Include="CheckpointEvent.h" />
     <ClInclude Include="CrystalVisuals.h" />
+    <ClInclude Include="GameplayHaptics.h" />
+    <ClInclude Include="HapticTester.h" />
     <ClInclude Include="PersistingManager.h" />
     <ClInclude Include="PersistingCheckpointState.h" />
     <ClInclude Include="ObjectVfxIds.h" />
     <ClInclude Include="SkeletonUI.h" />
     <ClInclude Include="SpectralPathEntranceVFX.h" />
+    <ClInclude Include="UIRect.h" />
     <ClInclude Include="CombatAreaEvent.h" />
     <ClInclude Include="DeathParticles.h" />
     <ClInclude Include="ElevatorManager.h" />
@@ -414,8 +430,22 @@
     <ClCompile Include="CameraTransitionStepAction.cpp" />
     <ClCompile Include="ChargedAttackBase.cpp" />
     <ClCompile Include="Checkpoint1_Level1_Event.cpp" />
+    <ClCompile Include="Checkpoint1_Level2_Event.cpp" />
+    <ClCompile Include="Checkpoint2_Level1_Event.cpp" />
+    <ClCompile Include="Checkpoint2_Level2_Event.cpp" />
+    <ClCompile Include="Checkpoint3_Level1_Event.cpp" />
+    <ClCompile Include="Checkpoint3_Level2_Event.cpp" />
+    <ClCompile Include="Checkpoint4_Level1_Event.cpp" />
+    <ClCompile Include="Checkpoint4_Level2_Event.cpp" />
+    <ClCompile Include="Checkpoint5_Level1_Event.cpp" />
+    <ClCompile Include="Checkpoint5_Level2_Event.cpp" />
+    <ClCompile Include="Checkpoint6_Level1_Event.cpp" />
+    <ClCompile Include="Checkpoint6_Level2_Event.cpp" />
+    <ClCompile Include="Checkpoint7_Level1_Event.cpp" />
+    <ClCompile Include="Checkpoint8_Level1_Event.cpp" />
     <ClCompile Include="CheckpointEvent.cpp" />
     <ClCompile Include="CrystalVisuals.cpp" />
+    <ClCompile Include="HapticTester.cpp" />
     <ClCompile Include="GameplayEventAction.cpp" />
     <ClCompile Include="PersistingManager.cpp" />
     <ClCompile Include="PersistingCheckpointState.cpp" />
@@ -525,7 +555,7 @@
     <ClCompile Include="EnemyDetectionAggro.cpp" />
     <ClCompile Include="DefeatConditionManager.cpp" />
     <ClCompile Include="HealthPickup.cpp" />
-    <ClCompile Include="EngineDependencies\SimpleMath.cpp">
+    <ClCompile Include="..\Engine_Master_UPC\SimpleMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
