@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "ShadowCascadeResolution.h"
 #include "LightComponent.h"
 #include "JsonArchive.h"
 #include "GameObject.h"
@@ -52,6 +53,10 @@ namespace
     {
         shadow.shadowMapSize = sanitizeShadowMapSize(shadow.shadowMapSize);
         shadow.pcfRadius = std::clamp(shadow.pcfRadius, 1u, 2u);
+        shadow.shadowDistance = std::max(0.1f, shadow.shadowDistance);
+        shadow.cascadeBlendFraction = std::clamp(shadow.cascadeBlendFraction, 0.0f, 0.3f);
+        shadow.normalBiasTexels = std::clamp(shadow.normalBiasTexels, 0.0f, 4.0f);
+        shadow.slopeBiasTexels = std::clamp(shadow.slopeBiasTexels, 0.0f, 4.0f);
         shadow.shadowBias = std::max(0.0f, shadow.shadowBias);
         shadow.shadowStrength = std::clamp(shadow.shadowStrength, 0.0f, 1.0f);
 
@@ -288,6 +293,11 @@ void LightComponent::drawUi()
         {
             ImGui::Separator();
             ImGui::Text("Cascaded Shadow Maps");
+            bool shadowChanged = ImGui::DragFloat("Shadow Distance", &m_data.shadow.shadowDistance, 1.0f, 0.1f, 10000.0f);
+            shadowChanged |= ImGui::SliderFloat("Cascade Blend", &m_data.shadow.cascadeBlendFraction, 0.0f, 0.3f);
+            shadowChanged |= ImGui::SliderFloat("Normal Bias (texels)", &m_data.shadow.normalBiasTexels, 0.0f, 4.0f);
+            shadowChanged |= ImGui::SliderFloat("Slope Bias (texels)", &m_data.shadow.slopeBiasTexels, 0.0f, 4.0f);
+            lightChanged |= shadowChanged;
 
             int cascadeCount = static_cast<int>(m_data.shadow.cascadeCount);
 
@@ -295,6 +305,12 @@ void LightComponent::drawUi()
             {
                 m_data.shadow.cascadeCount = static_cast<uint32_t>(cascadeCount);
                 lightChanged = true;
+            }
+
+            for (uint32_t i = 0; i < m_data.shadow.cascadeCount; ++i)
+            {
+                const uint32_t resolution = m_data.shadow.shadowMapSize / SHADOW_CASCADE_DIVISOR(i);
+                ImGui::TextDisabled("Cascade %u: %u x %u", i + 1, resolution, resolution);
             }
 
             static const char* CASCADE_FIT_MODE_NAMES[] = { "Fit to Scene", "Fit to Cascade" };
@@ -387,6 +403,10 @@ void LightComponent::serialize(IArchive& archive)
 
     archive.serialize(m_data.shadow.shadowBias, "ShadowBias");
     archive.serialize(m_data.shadow.shadowStrength, "ShadowStrength");
+    archive.serialize(m_data.shadow.shadowDistance, "ShadowDistance");
+    archive.serialize(m_data.shadow.cascadeBlendFraction, "ShadowCascadeBlend");
+    archive.serialize(m_data.shadow.normalBiasTexels, "ShadowNormalBiasTexels");
+    archive.serialize(m_data.shadow.slopeBiasTexels, "ShadowSlopeBiasTexels");
 
     uint32_t shadowCascadeCount = m_data.shadow.cascadeCount;
 

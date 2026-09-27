@@ -9,7 +9,7 @@
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
 Texture2D brdfTexture : register(t10);
-Texture2DArray shadowMap : register(t11);
+#include "CascadeShadowMaps.hlsli"
 
 SamplerState linearWrapSample : register(s0);
 SamplerState pointWrapSample : register(s1);
@@ -147,128 +147,6 @@ float3 computeIndirectLighting(float3 R, float NdotV, float3 N, float3 baseColou
 
 // ---------- SHADOW MAPPING ----------
 
-float4x4 GetCascadeViewProjection(uint cascadeIndex)
-{
-    if (cascadeIndex == 0)
-        return cascadeLightViewProjection[0];
-
-    if (cascadeIndex == 1)
-        return cascadeLightViewProjection[1];
-
-    if (cascadeIndex == 2)
-        return cascadeLightViewProjection[2];
-
-    return cascadeLightViewProjection[3];
-}
-
-bool GetCascadeShadowCoordinates(float3 worldPos, uint cascadeIndex, out float2 shadowUV, out float currentDepth)
-{
-    shadowUV = float2(0.0f, 0.0f);
-    currentDepth = 0.0f;
-
-    float4 shadowPos = mul(float4(worldPos, 1.0f), GetCascadeViewProjection(cascadeIndex));
-
-    if (shadowPos.w == 0.0f)
-        return false;
-
-    shadowPos.xyz /= shadowPos.w;
-
-    shadowUV.x = shadowPos.x * 0.5f + 0.5f;
-    shadowUV.y = -shadowPos.y * 0.5f + 0.5f;
-    currentDepth = shadowPos.z;
-
-    return shadowUV.x >= 0.0f && shadowUV.x <= 1.0f &&
-           shadowUV.y >= 0.0f && shadowUV.y <= 1.0f &&
-           currentDepth >= 0.0f && currentDepth <= 1.0f;
-}
-
-float EvaluateShadowSample(uint cascadeIndex, float2 shadowUV, float currentDepth)
-{
-    float closestDepth = shadowMap.Sample(linearClampSample, float3(shadowUV, float(cascadeIndex))).r;
-    return currentDepth - shadowBias > closestDepth ? 1.0f - shadowStrength : 1.0f;
-}
-
-float ComputeCascadeShadow(uint cascadeIndex, float2 shadowUV, float currentDepth)
-{
-    if (pcfEnabled == 0 || pcfRadius == 0)
-        return EvaluateShadowSample(cascadeIndex, shadowUV, currentDepth);
-
-    float shadowSum = 0.0f;
-    float sampleCount = 0.0f;
-    int radius = int(pcfRadius);
-
-    for (int y = -radius; y <= radius; ++y)
-    {
-        for (int x = -radius; x <= radius; ++x)
-        {
-            float2 offset = float2(x, y) * shadowMapTexelSize;
-            float2 sampleUV = shadowUV + offset;
-
-            if (sampleUV.x < 0.0f || sampleUV.x > 1.0f || sampleUV.y < 0.0f || sampleUV.y > 1.0f)
-                shadowSum += 1.0f;
-            else
-                shadowSum += EvaluateShadowSample(cascadeIndex, sampleUV, currentDepth);
-
-            sampleCount += 1.0f;
-        }
-    }
-
-    return shadowSum / sampleCount;
-}
-
-float ComputeShadow(float3 worldPos, out uint selectedCascadeIndex)
-{
-    selectedCascadeIndex = MAX_SHADOW_CASCADES;
-
-    if (shadowsEnabled == 0)
-        return 1.0f;
-
-    uint activeCascadeCount = clamp(cascadeCount, 1u, (uint) MAX_SHADOW_CASCADES);
-
-    float2 shadowUV;
-    float currentDepth;
-
-    if (GetCascadeShadowCoordinates(worldPos, 0u, shadowUV, currentDepth))
-    {
-        selectedCascadeIndex = 0u;
-        return ComputeCascadeShadow(0u, shadowUV, currentDepth);
-    }
-
-    if (activeCascadeCount > 1u && GetCascadeShadowCoordinates(worldPos, 1u, shadowUV, currentDepth))
-    {
-        selectedCascadeIndex = 1u;
-        return ComputeCascadeShadow(1u, shadowUV, currentDepth);
-    }
-
-    if (activeCascadeCount > 2u && GetCascadeShadowCoordinates(worldPos, 2u, shadowUV, currentDepth))
-    {
-        selectedCascadeIndex = 2u;
-        return ComputeCascadeShadow(2u, shadowUV, currentDepth);
-    }
-
-    if (activeCascadeCount > 3u && GetCascadeShadowCoordinates(worldPos, 3u, shadowUV, currentDepth))
-    {
-        selectedCascadeIndex = 3u;
-        return ComputeCascadeShadow(3u, shadowUV, currentDepth);
-    }
-
-    return 1.0f;
-}
-
-float3 GetCascadeDebugColor(uint cascadeIndex)
-{
-    if (cascadeIndex == 0u)
-        return float3(1.0f, 0.2f, 0.2f);
-
-    if (cascadeIndex == 1u)
-        return float3(0.2f, 1.0f, 0.2f);
-
-    if (cascadeIndex == 2u)
-        return float3(0.2f, 0.4f, 1.0f);
-
-    return float3(1.0f, 0.8f, 0.2f);
-}
-
 float3 ComputePBRSurfaceLightingCommon(float3 worldPos, float3 albedo, float metallic, float alphaRoughness, float ao, float3 emissive, float3 finalWorldNormal, float screenSpaceAO,
     float3 F0Metallic, float3 F0NonMetallic, float3 viewDirection, float NdotV, float horizon, float3 otherMetallic, float3 otherNonMetallic)
 {
@@ -278,18 +156,19 @@ float3 ComputePBRSurfaceLightingCommon(float3 worldPos, float3 albedo, float met
     float3 diffuseColorMetallic = 0.0f;
     float3 diffuseColorNonMetallic = albedo / PI;
 
+    uint selectedCascadeIndex;
+    float shadow = ComputeShadow(worldPos, finalWorldNormal, selectedCascadeIndex);
     for (uint i = 0; i < directionalCount; ++i)
     {
-        directionalMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        directionalNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        float visibility = i == shadowLightIndex ? shadow : 1.0f;
+        directionalMetallic += visibility * ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        directionalNonMetallic += visibility * ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
-    uint selectedCascadeIndex;
-    float shadow = ComputeShadow(worldPos, selectedCascadeIndex);
 
     float3 directionalLighting = lerp(directionalNonMetallic, directionalMetallic, metallic);
     float3 otherLighting = lerp(otherNonMetallic, otherMetallic, metallic);
-    float3 directLighting = directionalLighting * shadow + otherLighting;
+    float3 directLighting = directionalLighting + otherLighting;
 
     float diffuseAO = saturate(ao * screenSpaceAO);
     float specularAO = computeSpecularAO(NdotV, diffuseAO, alphaRoughness);

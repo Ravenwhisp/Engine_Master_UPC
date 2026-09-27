@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IRenderPass.h"
+#include "ShadowTypes.h"
 #include "SimpleMath.h"
 
 class GameObject;
@@ -75,6 +76,6 @@ private:
 
 
     D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowMapSRV{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, MAX_SHADOW_CASCADES> m_cascadeShadowMapSRVs{};
     bool m_hasShadowData = false;
 };

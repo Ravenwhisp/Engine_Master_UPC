@@ -68,24 +68,4 @@ cbuffer LightsCB : register(b2)
     SpotLight spotLights[MAX_SPOT_LIGHTS];
 };
 
-cbuffer ShadowData : register(b3)
-{
-    float4x4 lightViewProjection;
-
-    float shadowBias;
-    float shadowStrength;
-    uint shadowsEnabled;
-    float paddingShadow;
-
-    float2 shadowMapTexelSize;
-    uint pcfEnabled;
-    uint pcfRadius;
-
-    uint cascadeCount;
-    uint cascadeFitMode;
-    float2 cascadePadding;
-
-    float4 cascadeFarDistances;
-
-    float4x4 cascadeLightViewProjection[MAX_SHADOW_CASCADES];
-};
+#include "ShadowData.hlsli"

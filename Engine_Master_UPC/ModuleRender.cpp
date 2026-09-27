@@ -105,11 +105,9 @@ bool ModuleRender::init()
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_occlusionOccluderDepthPass = std::make_unique<OcclusionOccluderDepthPass>(device);
     m_dynamicTransparencyMaskPass = std::make_unique<DynamicTransparencyMaskPass>(device);
-    m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
-    m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
     m_lightCullingPass = std::make_unique<LightCullingPass>(device, m_meshRenderPass);
-    m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
-    m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get());
+    m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
+    m_debugDrawPass->registerStatic(m_shadowMapPass.get());
     m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
     m_ssaoPass = std::make_unique<SSAOPass>(device);
@@ -265,9 +263,7 @@ bool ModuleRender::cleanUp()
     m_ssaoGeometryPass.reset();
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
-    m_shadowFrustumComputePass.reset();
     m_lightCullingPass.reset();
-    m_depthReductionPass.reset();
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionOccluderDepthPass.reset();
     m_skinningComputePass.reset();
@@ -286,9 +282,7 @@ bool ModuleRender::cleanUp()
     m_ssaoGeometryPass.reset();
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
-    m_shadowFrustumComputePass.reset();
     m_lightCullingPass.reset();
-    m_depthReductionPass.reset();
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionOccluderDepthPass.reset();
     m_skinningComputePass.reset();
@@ -810,21 +804,6 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
         if (m_shadowMapPass != nullptr)
         {
-            if (m_shadowFrustumComputePass != nullptr)
-            {
-                m_shadowFrustumComputePass->prepare(ctx);
-            }
-
-            if (m_shadowFrustumComputePass != nullptr &&
-                m_shadowFrustumComputePass->isEnabled() &&
-                m_depthReductionPass != nullptr)
-            {
-                m_depthReductionPass->prepare(ctx);
-                m_depthReductionPass->apply(commandList);
-
-                m_shadowFrustumComputePass->apply(commandList);
-            }
-
             m_shadowMapPass->prepare(ctx);
             m_shadowMapPass->apply(commandList);
 
