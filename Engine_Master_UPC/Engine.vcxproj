@@ -346,6 +346,11 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ScriptLibraryLoader.h" />
     <ClInclude Include="ShadowFrustumComputePass.h" />
     <ClInclude Include="ShadowMapPass.h" />
+    <ClInclude Include="ShadowCascadeResolution.h" />
+    <ClInclude Include="ShadowCascadeMath.h" />
+    <ClInclude Include="ShadowData.hlsli" />
+    <ClInclude Include="ShadowSamplers.h" />
+    <ClInclude Include="CascadeShadowMaps.hlsli" />
     <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="SoundBankAsset.h" />
     <ClInclude Include="SpectralComponent.h" />
@@ -1408,6 +1413,10 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ShadowMapPixelShader.hlsl">
+      <ShaderType>Pixel</ShaderType>
+      <ShaderModel>6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="ShadowMapVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

@@ -19,8 +19,6 @@
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
-#include "DepthReductionPass.h"
-#include "ShadowFrustumComputePass.h"
 #include "LightCullingPass.h"
 #include "VolumetricFogComputePass.h"
 #include "OcclusionOccluderDepthPass.h"
@@ -108,8 +106,6 @@ private:
     std::unique_ptr<SkinningComputePass> m_skinningComputePass;
     std::unique_ptr<OcclusionOccluderDepthPass> m_occlusionOccluderDepthPass;
     std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
-    std::unique_ptr<DepthReductionPass> m_depthReductionPass;
-    std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
     std::unique_ptr<LightCullingPass> m_lightCullingPass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<VolumetricFogComputePass> m_volumetricFogComputePass;

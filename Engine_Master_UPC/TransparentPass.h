@@ -1,5 +1,6 @@
 #pragma once
 #include "IRenderPass.h"
+#include "ShadowTypes.h"
 
 #include "Lights.h"
 #include "LightComponent.h"
@@ -40,7 +41,7 @@ private:
 	D3D12_GPU_VIRTUAL_ADDRESS m_spotLightIndexBufferAddress = 0;
 
 	D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
-	D3D12_GPU_DESCRIPTOR_HANDLE m_shadowMapSRV{};
+	std::array<D3D12_GPU_DESCRIPTOR_HANDLE, MAX_SHADOW_CASCADES> m_cascadeShadowMapSRVs{};
 	bool m_hasShadowData = false;
 
 	D3D12_GPU_DESCRIPTOR_HANDLE m_ssaoSRV{};
