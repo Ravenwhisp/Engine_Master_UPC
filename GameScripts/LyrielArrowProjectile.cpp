@@ -56,6 +56,7 @@ void LyrielArrowProjectile::launch(const Vector3& startPosition, const Vector3& 
     if (transform != nullptr)
     {
         TransformAPI::setGlobalPosition(transform, startPosition);
+        TransformAPI::lookAt(transform, startPosition + m_direction);
     }
 
     m_inUse = true;

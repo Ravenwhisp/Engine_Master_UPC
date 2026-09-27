@@ -51,6 +51,7 @@ public:
 
 	bool isGenerating() { return m_generate; }
 	void generate(bool value) { m_generate = value; }
+	void clear() { m_points.clear(); }
 
 private:
 

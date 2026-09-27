@@ -42,18 +42,7 @@ bool ProjectilePool::createProjectile()
 {
 	if (!m_projectilePrefab.m_id.isValid())
 	{
-		Debug::error(
-			"[ProjectilePool] '%s' has no projectile prefab assigned. Set Projectile Prefab to LyrielArrow (not the VFX remake).",
-			GameObjectAPI::getName(getOwner()));
-		return false;
-	}
-
-	// The Lyriel VFX remake is not a safe pooled projectile; the original arrow prefab is.
-	if (m_projectilePrefab.m_id.m_uid == 14628721139268362793ULL)
-	{
-		Debug::error(
-			"[ProjectilePool] '%s' has the Lyriel VFX remake as Projectile Prefab. Assign Assets/Models/Weapons/Arrow/LyrielArrow.prefab.",
-			GameObjectAPI::getName(getOwner()));
+		Debug::error("[ProjectilePool] '%s' has no projectile prefab assigned.", GameObjectAPI::getName(getOwner()));
 		return false;
 	}
 
@@ -61,7 +50,7 @@ bool ProjectilePool::createProjectile()
 		m_projectilePrefab.m_id,
 		Vector3::Zero,
 		Vector3::Zero,
-		getOwner()
+		nullptr
 	);
 
 	if (!projectileObject)
