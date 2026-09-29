@@ -683,6 +683,9 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     Texture* ssaoRawTexture = outputSurface.getTexture(RenderSurface::SSAO_RAW).get();
     Texture* ssaoBlurTexture = outputSurface.getTexture(RenderSurface::SSAO_BLUR).get();
 
+    Texture* outlineDepthTexture = outputSurface.getTexture(RenderSurface::OUTLINE_DEPTH).get();
+    Texture* outlineNormalTexture = outputSurface.getTexture(RenderSurface::OUTLINE_NORMAL).get();
+
     const SSAOSettings* ssaoSettings = &app->getModuleScene()->getScene()->getSSAOSettings();
     const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
     const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
@@ -711,6 +714,8 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .ssaoBlurTexture = ssaoBlurTexture,
         .ssaoSettings = ssaoSettings,
         .ssaoData = nullptr,
+        .outlineDepthTexture = outlineDepthTexture,
+        .outlineNormalTexture = outlineNormalTexture,
         .lightingSettings = &app->getModuleScene()->getScene()->getLightingSettings(),
     };
 
