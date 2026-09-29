@@ -182,6 +182,8 @@ void MeshRenderer::drawUi()
 
     ImGui::Button("Drop Mesh Here");
 
+    ImGui::Checkbox("Draw Outline", &m_drawOutline);
+
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* payload =
