@@ -92,6 +92,9 @@ public:
 
     RenderMode getRenderMode() const { return m_renderMode; }
 
+    bool getDrawOutline() const { return m_drawOutline; }
+    void setDrawOutline(bool draw) { m_drawOutline = draw; }
+
 private:
     void recompute();
     void recalculateBoundingBox();
@@ -115,4 +118,6 @@ private:
     bool m_isCulled = false;
 
     RenderMode m_renderMode = RenderMode::DEFAULT;
+    
+    bool m_drawOutline = true;
 };
