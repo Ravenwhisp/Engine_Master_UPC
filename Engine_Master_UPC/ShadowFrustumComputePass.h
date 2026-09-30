@@ -21,32 +21,26 @@ public:
     struct FrustumConstants
     {
         Matrix inverseView = Matrix::Identity;
+        Matrix view = Matrix::Identity;
         Matrix projection = Matrix::Identity;
 
         Vector3 lightDirection = Vector3::Zero;
         float sunDistance = 20.0f;
 
-        float minOrthoSize = 10.0f;
-        Vector3 padding = Vector3::Zero;
-
         float shadowBias = 0.0005f;
         float shadowStrength = 1.0f;
-        uint32_t shadowsEnabled = 0;
         uint32_t pcfEnabled = 0;
-
         uint32_t pcfRadius = 0;
-        float shadowMapTexelSizeX = 0.0f;
-        float shadowMapTexelSizeY = 0.0f;
-        float paddingSettings = 0.0f;
 
+        float shadowMapTexelSize = 0.0f;
         uint32_t cascadeCount = 1;
         uint32_t cascadeFitMode = static_cast<uint32_t>(ShadowCascadeFitMode::FIT_TO_CASCADE);
+        uint32_t shadowLightIndex = 0;
+
         float cascadeSplit0 = 0.10f;
         float cascadeSplit1 = 0.30f;
-
         float cascadeSplit2 = 0.60f;
         uint32_t cascadeDebugEnabled = 0;
-        Vector2 cascadePadding = Vector2::Zero;
     };
 
 private:
@@ -109,6 +103,7 @@ private:
     D3D12_RESOURCE_STATES m_outputBufferState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
     FrustumConstants m_constants{};
+    D3D12_GPU_VIRTUAL_ADDRESS m_constantsAddress = 0;
 
     bool m_enabled = false;
     bool m_hasValidResult = false;
@@ -129,4 +124,6 @@ private:
     uint32_t m_observedDebugFrameIndex = 0;
     uint64_t m_observedDebugFrameFenceValue = 0;
     bool m_hasObservedDebugFrame = false;
+
+    
 };

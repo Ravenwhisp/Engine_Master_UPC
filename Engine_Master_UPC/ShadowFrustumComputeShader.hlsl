@@ -26,6 +26,16 @@ struct ShadowDataOutput
     float4 cascadeFarDistances;
 
     float4x4 cascadeLightViewProjection[MAX_SHADOW_CASCADES];
+    
+    float4x4 shadowCameraView;
+    float4 cascadeWorldTexelSize;
+    float4 cascadeDepthRanges;
+    float4 shadowLightDirection;
+
+    uint shadowLightIndex;
+    float cascadeBlendFraction;
+    float normalBiasTexels;
+    float slopeBiasTexels;
 };
 
 RWStructuredBuffer<ShadowDataOutput> outputShadowData : register(u0);
@@ -33,32 +43,26 @@ RWStructuredBuffer<ShadowDataOutput> outputShadowData : register(u0);
 cbuffer ShadowFrustumParams : register(b0)
 {
     float4x4 inverseView;
+    float4x4 cameraView;
     float4x4 cameraProjection;
 
     float3 lightDirection;
     float sunDistance;
 
-    float minOrthoSize;
-    float3 padding;
-
     float shadowBias;
     float shadowStrength;
-    uint shadowsEnabled;
     uint pcfEnabled;
-
     uint pcfRadius;
-    float shadowMapTexelSizeX;
-    float shadowMapTexelSizeY;
-    float paddingSettings;
 
+    float shadowMapTexelSize;
     uint cascadeCount;
     uint cascadeFitMode;
+    uint shadowLightIndex;
+
     float cascadeSplit0;
     float cascadeSplit1;
-
     float cascadeSplit2;
     uint cascadeDebugEnabled;
-    float2 cascadePadding;
 };
 
 float LinearizeDepth(float depth)
@@ -210,7 +214,7 @@ ShadowDataOutput BuildShadowOutput(float4x4 lightViewProjection, uint enabled)
     output.shadowsEnabled = enabled;
     output.paddingShadow = 0.0f;
 
-    output.shadowMapTexelSize = float2(shadowMapTexelSizeX, shadowMapTexelSizeY);
+    output.shadowMapTexelSize = float2(shadowMapTexelSize, shadowMapTexelSize);
     output.pcfEnabled = pcfEnabled;
     output.pcfRadius = pcfRadius;
 
@@ -229,6 +233,20 @@ ShadowDataOutput BuildShadowOutput(float4x4 lightViewProjection, uint enabled)
     output.cascadeLightViewProjection[1] = identityMatrix;
     output.cascadeLightViewProjection[2] = identityMatrix;
     output.cascadeLightViewProjection[3] = identityMatrix;
+    
+    output.shadowCameraView = cameraView;
+
+    output.cascadeWorldTexelSize = float4(shadowMapTexelSize, shadowMapTexelSize, shadowMapTexelSize, shadowMapTexelSize);
+
+    output.cascadeDepthRanges = float4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    output.shadowLightDirection = float4(normalize(lightDirection), 0.0f);
+
+    output.shadowLightIndex = shadowLightIndex;
+    
+    output.cascadeBlendFraction = 0.0f;
+    output.normalBiasTexels = 0.0f;
+    output.slopeBiasTexels = 0.0f;
 
     return output;
 }
@@ -252,7 +270,7 @@ void main()
 
     float4x4 fullLightViewProjection = BuildLightViewProjection(nearDistance, farDistance);
 
-    ShadowDataOutput output = BuildShadowOutput(fullLightViewProjection, shadowsEnabled);
+    ShadowDataOutput output = BuildShadowOutput(fullLightViewProjection, 1u);
     
     // cascadePadding.x = debug enabled
     // cascadePadding.y = camera near distance used to fit the cascades

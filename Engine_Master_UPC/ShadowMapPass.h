@@ -16,6 +16,8 @@ using Microsoft::WRL::ComPtr;
 class LightComponent;
 class MeshRenderer;
 
+class ShadowFrustumComputePass;
+
 
 class ShadowMapPass : public IRenderPass, public IDebugDrawable
 {
@@ -27,7 +29,7 @@ public:
     };
 
 public:
-    explicit ShadowMapPass(ComPtr<ID3D12Device4> device);
+    ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass);
     ~ShadowMapPass() override = default;
 
     void prepare(const RenderContext& ctx) override;
@@ -64,6 +66,7 @@ private:
 
 private:
     ComPtr<ID3D12Device4> m_device;
+    ShadowFrustumComputePass* m_shadowFrustumComputePass = nullptr;
 
     std::array<std::unique_ptr<Texture>, MAX_SHADOW_CASCADES> m_cascadeShadowMaps;
 
@@ -80,9 +83,4 @@ private:
     D3D12_RECT m_scissorRect{};
 
     ShadowFrameData m_frameData{};
-    std::array<std::vector<MeshRenderer*>, MAX_SHADOW_CASCADES> m_cascadeCasters;
-    std::array<Matrix, MAX_SHADOW_CASCADES> m_debugMatrices{};
-    uint32_t m_debugCascadeCount = 0;
-    bool m_drawDebug = false;
-    ComPtr<ID3D12PipelineState> m_alphaPipelineState;
 };
