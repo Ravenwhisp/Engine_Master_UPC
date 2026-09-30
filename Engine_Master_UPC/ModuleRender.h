@@ -15,6 +15,8 @@
 #include "RenderViewType.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "DepthReductionPass.h"
+#include "ShadowFrustumComputePass.h"
 #include "SSAOTypes.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
@@ -107,6 +109,8 @@ private:
     std::unique_ptr<OcclusionOccluderDepthPass> m_occlusionOccluderDepthPass;
     std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
     std::unique_ptr<LightCullingPass> m_lightCullingPass;
+    std::unique_ptr<DepthReductionPass> m_depthReductionPass;
+    std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<VolumetricFogComputePass> m_volumetricFogComputePass;
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;

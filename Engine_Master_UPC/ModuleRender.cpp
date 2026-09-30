@@ -106,6 +106,10 @@ bool ModuleRender::init()
     m_occlusionOccluderDepthPass = std::make_unique<OcclusionOccluderDepthPass>(device);
     m_dynamicTransparencyMaskPass = std::make_unique<DynamicTransparencyMaskPass>(device);
     m_lightCullingPass = std::make_unique<LightCullingPass>(device, m_meshRenderPass);
+
+    m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
+    m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
+
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
     m_debugDrawPass->registerStatic(m_shadowMapPass.get());
     m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
@@ -263,6 +267,8 @@ bool ModuleRender::cleanUp()
     m_ssaoGeometryPass.reset();
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
+    m_shadowFrustumComputePass.reset();
+    m_depthReductionPass.reset();
     m_lightCullingPass.reset();
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionOccluderDepthPass.reset();
@@ -778,6 +784,32 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
             m_geometryPass->prepare(ctx);
             m_geometryPass->apply(commandList);
         }
+        endRenderPassProfile(commandList, profileIndex);
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::DepthReductionPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Depth reduction");
+
+        if (m_depthReductionPass != nullptr)
+        {
+            m_depthReductionPass->prepare(ctx);
+            m_depthReductionPass->apply(commandList);
+        }
+
+        endRenderPassProfile(commandList, profileIndex);
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::ShadowFrustumComputePass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadow frustum compute");
+
+        if (m_shadowFrustumComputePass != nullptr)
+        {
+            m_shadowFrustumComputePass->prepare(ctx);
+            m_shadowFrustumComputePass->apply(commandList);
+        }
+
         endRenderPassProfile(commandList, profileIndex);
     }
 
