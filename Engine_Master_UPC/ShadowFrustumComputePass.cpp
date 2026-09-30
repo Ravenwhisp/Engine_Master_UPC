@@ -6,6 +6,7 @@
 #include "ModuleDescriptors.h"
 #include "ModuleResources.h"
 #include "ModuleScene.h"
+#include "RingBuffer.h"
 
 #include "DepthReductionPass.h"
 #include "RenderContext.h"
@@ -170,7 +171,7 @@ void ShadowFrustumComputePass::createRootSignature()
     rootParameters[1].InitAsUnorderedAccessView(0, 0);
 
     // b0: inverse view, projection, light direction and fitting settings
-    rootParameters[2].InitAsConstants(sizeof(FrustumConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[2].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
@@ -396,6 +397,7 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 {
     refreshDebugReadbackForCurrentFrame();
 
+    m_constantsAddress = 0;
     m_enabled = false;
     m_hasValidResult = false;
     m_captureDebugReadback = false;
@@ -460,27 +462,19 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
     lightDirection.Normalize();
 
     m_constants.inverseView = ctx.view.Invert().Transpose();
+    m_constants.view = ctx.view.Transpose();
     m_constants.projection = ctx.projection.Transpose();
 
     m_constants.lightDirection = lightDirection;
     m_constants.sunDistance = SHADOW_LIGHT_DISTANCE_PADDING;
 
-    m_constants.minOrthoSize = SHADOW_MIN_ORTHO_SIZE;
-    m_constants.padding = Vector3::Zero;
-
     m_constants.shadowBias = shadowSettings.shadowBias;
     m_constants.shadowStrength = shadowSettings.shadowStrength;
-    m_constants.shadowsEnabled = 1u;
-
     m_constants.pcfEnabled = shadowSettings.pcfEnabled ? 1u : 0u;
     m_constants.pcfRadius = shadowSettings.pcfEnabled ? shadowSettings.pcfRadius : 0u;
 
     const uint32_t shadowMapSize = std::max(1u, shadowSettings.shadowMapSize);
-    const float inverseShadowMapSize = 1.0f / static_cast<float>(shadowMapSize);
-
-    m_constants.shadowMapTexelSizeX = inverseShadowMapSize;
-    m_constants.shadowMapTexelSizeY = inverseShadowMapSize;
-    m_constants.paddingSettings = 0.0f;
+    m_constants.shadowMapTexelSize = 1.0f / static_cast<float>(shadowMapSize);
 
     m_constants.cascadeCount = std::clamp(shadowSettings.cascadeCount, 1u, MAX_SHADOW_CASCADES);
     m_constants.cascadeFitMode = static_cast<uint32_t>(shadowSettings.cascadeFitMode);
@@ -490,7 +484,39 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
     m_constants.cascadeSplit2 = shadowSettings.cascadeSplit2;
 
     m_constants.cascadeDebugEnabled = ctx.viewType == RenderViewType::Game && shadowSettings.cascadeDebugEnabled ? 1u : 0u;
-    m_constants.cascadePadding = Vector2::Zero;
+
+    m_constants.shadowLightIndex = 0;
+
+    uint32_t directionalIndex = 0;
+    for (const LightComponent* candidate : app->getModuleScene()->getLightComponents())
+    {
+        if (!candidate || !candidate->isActive() || !candidate->getOwner() ||
+            !candidate->getOwner()->IsActiveInWindowHierarchy() || !candidate->getOwner()->GetTransform())
+            continue;
+
+        if (candidate->getData().type != LightType::DIRECTIONAL)
+            continue;
+
+        if (candidate == light)
+        {
+            m_constants.shadowLightIndex = directionalIndex;
+            break;
+        }
+
+        ++directionalIndex;
+    }
+
+    if (ctx.ringBuffer == nullptr)
+    {
+        return;
+    }
+
+    m_constantsAddress = ctx.ringBuffer->allocate(&m_constants, sizeof(FrustumConstants));
+
+    if (m_constantsAddress == 0)
+    {
+        return;
+    }
 
     m_enabled = true;
 }
@@ -520,6 +546,7 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
     if (commandList == nullptr ||
         !m_enabled ||
+        m_constantsAddress == 0 ||
         m_depthReductionPass == nullptr ||
         m_shadowDataBuffer == nullptr)
     {
@@ -549,7 +576,7 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetComputeRootDescriptorTable(0, minMaxTexture->getSRV().gpu);
     commandList->SetComputeRootUnorderedAccessView(1, m_shadowDataBuffer->GetGPUVirtualAddress());
-    commandList->SetComputeRoot32BitConstants(2, sizeof(FrustumConstants) / sizeof(uint32_t), &m_constants, 0);
+    commandList->SetComputeRootConstantBufferView(2, m_constantsAddress);
 
     commandList->Dispatch(1, 1, 1);
 
