@@ -77,6 +77,7 @@ public:
 	ComPtr<ID3D12Resource>		getMaterialBuffer() const { return m_materialBuffer; }
 	PbrMetallicRoughnessData&	getMaterial() { return m_materialData; }
 	D3D12_GPU_DESCRIPTOR_HANDLE getTableGPUHandle() const;
+	D3D12_GPU_DESCRIPTOR_HANDLE getNormal() const;
 
 	void setMaterial(PbrMetallicRoughnessData& material) { m_materialData = material; }
 

@@ -10,6 +10,7 @@ using Microsoft::WRL::ComPtr;
 
 class Texture;
 struct SceneDataCB;
+class MeshRenderer;
 
 class OutlinePass : public IRenderPass
 {
@@ -22,6 +23,8 @@ public:
 private:
     void createRootSignature();
     void createPipelineState();
+
+    void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
 
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;
@@ -41,4 +44,6 @@ private:
     Texture* m_normalTexture = nullptr;
 
     D3D12_GPU_VIRTUAL_ADDRESS m_outlineCBAddress = 0;
+
+    std::vector<MeshRenderer*>	m_meshRenderers;
 };

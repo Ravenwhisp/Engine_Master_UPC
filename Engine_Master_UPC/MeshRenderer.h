@@ -24,6 +24,12 @@ struct ModelData
     BasicMaterial::PbrMetallicRoughnessData material;
 };
 
+struct OutlineData
+{
+    Matrix model;
+    Matrix normalMat;
+};
+
 enum class RenderMode : UINT
 {
     DEFAULT = 0,

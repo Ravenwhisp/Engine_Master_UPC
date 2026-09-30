@@ -53,6 +53,7 @@
 #include "OcclusionOccluderDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
 #include "DynamicTransparencyFalloffPass.h"
+#include "OutlinePass.h"
 
 #include "ModuleVideo.h"
 #include "VideoPlayback.h"
@@ -124,6 +125,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::make_unique<LineRendererPass>(device));
 
     m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
+
+    m_renderPasses.push_back(std::make_unique<OutlinePass>(device));
 
 
 
