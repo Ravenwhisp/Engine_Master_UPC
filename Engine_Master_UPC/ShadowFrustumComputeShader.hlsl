@@ -1,4 +1,3 @@
-#include "ShadowCascadeResolution.h"
 Texture2D<float2> inputMinMax : register(t0);
 
 #define MAX_SHADOW_CASCADES 4
@@ -62,32 +61,16 @@ cbuffer ShadowFrustumParams : register(b0)
     float2 cascadePadding;
 };
 
-// Camera's fixed near/far clip planes. Stable frame to frame, unlike the
-// rendered depth buffer's min/max.
-void GetStableCameraDepthRange(out float nearPlane, out float farPlane)
+float LinearizeDepth(float depth)
 {
-    float nearDenominator = cameraProjection._33;
-    float farDenominator = 1.0f + cameraProjection._33;
+    float denominator = depth + cameraProjection._33;
 
-    if (abs(nearDenominator) < 0.000001f)
+    if (abs(denominator) < 0.000001f)
     {
-        nearDenominator = nearDenominator < 0.0f ? -0.000001f : 0.000001f;
+        denominator = denominator < 0.0f ? -0.000001f : 0.000001f;
     }
 
-    if (abs(farDenominator) < 0.000001f)
-    {
-        farDenominator = farDenominator < 0.0f ? -0.000001f : 0.000001f;
-    }
-
-    nearPlane = abs(cameraProjection._43 / nearDenominator);
-    farPlane = abs(cameraProjection._43 / farDenominator);
-
-    if (farPlane < nearPlane)
-    {
-        float temp = nearPlane;
-        nearPlane = farPlane;
-        farPlane = temp;
-    }
+    return -cameraProjection._43 / denominator;
 }
 
 void BuildFrustumCorners(float nearDistance, float farDistance, out float3 corners[8])
@@ -146,7 +129,7 @@ float4 ComputeBoundingSphere(float3 corners[8])
         radius = max(radius, distance(center, corners[i]));
     }
 
-    radius = max(radius, minOrthoSize * 0.5f);
+    radius = max(radius, 0.0001f);
 
     return float4(center, radius);
 }
@@ -187,13 +170,13 @@ float4x4 BuildIdentityMatrix()
     );
 }
 
-float4x4 BuildLightViewProjection(float nearDistance, float farDistance, float resolutionDivisor)
+float4x4 BuildLightViewProjection(float nearDistance, float farDistance)
 {
     float3 corners[8];
-
     BuildFrustumCorners(nearDistance, farDistance, corners);
 
     float4 sphere = ComputeBoundingSphere(corners);
+
     float3 normalizedLightDirection = normalize(lightDirection);
     float3 up = float3(0.0f, 1.0f, 0.0f);
 
@@ -202,34 +185,16 @@ float4x4 BuildLightViewProjection(float nearDistance, float farDistance, float r
         up = float3(0.0f, 0.0f, 1.0f);
     }
 
-    // Snap the center to whole shadow-map texels so the shadow doesn't "swim".
-    float3 zAxis = normalizedLightDirection;
-    float3 xAxis = normalize(cross(up, zAxis));
-    float3 yAxis = cross(zAxis, xAxis);
+    float3 eye = sphere.xyz - normalizedLightDirection * (sphere.w + sunDistance);
 
-    float orthoSize = max(sphere.w * 2.0f, minOrthoSize);
-    float texelWorldSizeX = orthoSize * shadowMapTexelSizeX * resolutionDivisor;
-    float texelWorldSizeY = orthoSize * shadowMapTexelSizeY * resolutionDivisor;
+    float4x4 lightView = BuildLookAtRH(eye, sphere.xyz, up);
 
-    float centerX = dot(sphere.xyz, xAxis);
-    float centerY = dot(sphere.xyz, yAxis);
-    float centerZ = dot(sphere.xyz, zAxis);
-
-    if (texelWorldSizeX > 0.0f)
-    {
-        centerX = floor(centerX / texelWorldSizeX) * texelWorldSizeX;
-    }
-
-    if (texelWorldSizeY > 0.0f)
-    {
-        centerY = floor(centerY / texelWorldSizeY) * texelWorldSizeY;
-    }
-
-    float3 snappedTarget = xAxis * centerX + yAxis * centerY + zAxis * centerZ;
-    float3 eye = snappedTarget - normalizedLightDirection * (sphere.w + sunDistance);
-
-    float4x4 lightView = BuildLookAtRH(eye, snappedTarget, up);
-    float4x4 lightProjection = BuildOrthographicRH(orthoSize, orthoSize, 0.0f, sphere.w * 2.0f + sunDistance);
+    float orthoSize = sphere.w * 2.0f;
+    float4x4 lightProjection = BuildOrthographicRH(
+        orthoSize,
+        orthoSize,
+        0.0f,
+        sphere.w * 2.0f + sunDistance);
 
     return mul(lightView, lightProjection);
 }
@@ -280,13 +245,12 @@ void main()
         return;
     }
 
-    // Use the camera's fixed clip planes, not the visible depth range, so
-    // occlusion changes elsewhere on screen don't reshape the cascades.
-    float nearDistance, farDistance;
-    GetStableCameraDepthRange(nearDistance, farDistance);
+    float nearDistance = -LinearizeDepth(minMaxDepth.x);
+    float farDistance = -LinearizeDepth(minMaxDepth.y);
 
-    // Preserve the current full fitted shadow frustum.
-    float4x4 fullLightViewProjection = BuildLightViewProjection(nearDistance, farDistance, 1.0f);
+    farDistance = max(farDistance, nearDistance + 0.0001f);
+
+    float4x4 fullLightViewProjection = BuildLightViewProjection(nearDistance, farDistance);
 
     ShadowDataOutput output = BuildShadowOutput(fullLightViewProjection, shadowsEnabled);
     
@@ -305,7 +269,7 @@ void main()
     cascade0FarDistance = max(cascade0FarDistance, cascade0NearDistance + 0.0001f);
 
     output.cascadeFarDistances.x = cascade0FarDistance;
-    output.cascadeLightViewProjection[0] = BuildLightViewProjection(cascade0NearDistance, cascade0FarDistance, SHADOW_CASCADE_DIVISOR(0));
+    output.cascadeLightViewProjection[0] = BuildLightViewProjection(cascade0NearDistance, cascade0FarDistance);
 
     // Cascade 1
     if (activeCascadeCount > 1)
@@ -317,7 +281,7 @@ void main()
         cascade1FarDistance = max(cascade1FarDistance, cascade1NearDistance + 0.0001f);
 
         output.cascadeFarDistances.y = cascade1FarDistance;
-        output.cascadeLightViewProjection[1] = BuildLightViewProjection(cascade1NearDistance, cascade1FarDistance, SHADOW_CASCADE_DIVISOR(1));
+        output.cascadeLightViewProjection[1] = BuildLightViewProjection(cascade1NearDistance, cascade1FarDistance);
 
         // Cascade 2
         if (activeCascadeCount > 2)
@@ -329,7 +293,7 @@ void main()
             cascade2FarDistance = max(cascade2FarDistance, cascade2NearDistance + 0.0001f);
 
             output.cascadeFarDistances.z = cascade2FarDistance;
-            output.cascadeLightViewProjection[2] = BuildLightViewProjection(cascade2NearDistance, cascade2FarDistance, SHADOW_CASCADE_DIVISOR(2));
+            output.cascadeLightViewProjection[2] = BuildLightViewProjection(cascade2NearDistance, cascade2FarDistance);
 
             // Cascade 3
             if (activeCascadeCount > 3)
@@ -340,7 +304,7 @@ void main()
                 cascade3FarDistance = max(cascade3FarDistance, cascade3NearDistance + 0.0001f);
 
                 output.cascadeFarDistances.w = cascade3FarDistance;
-                output.cascadeLightViewProjection[3] = BuildLightViewProjection(cascade3NearDistance, cascade3FarDistance, SHADOW_CASCADE_DIVISOR(3));
+                output.cascadeLightViewProjection[3] = BuildLightViewProjection(cascade3NearDistance, cascade3FarDistance);
             }
         }
     }
