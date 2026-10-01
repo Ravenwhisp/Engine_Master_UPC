@@ -29,10 +29,37 @@ struct ShadowCasterCandidateGPU
     uint padding1;
 };
 
+struct ShadowIndirectCommandGPU
+{
+    float4x4 model;
+
+    uint vertexBufferAddressLow;
+    uint vertexBufferAddressHigh;
+    uint vertexBufferSize;
+    uint vertexBufferStride;
+
+    uint indexBufferAddressLow;
+    uint indexBufferAddressHigh;
+    uint indexBufferSize;
+    uint indexBufferFormat;
+
+    uint indexCountPerInstance;
+    uint instanceCount;
+    uint startIndexLocation;
+    int baseVertexLocation;
+    uint startInstanceLocation;
+};
+
 StructuredBuffer<ShadowCasterCandidateGPU> candidates : register(t0);
 
 RWStructuredBuffer<uint> visibilityMasks : register(u0);
 RWStructuredBuffer<uint> cascadeVisibleCounts : register(u1);
+RWStructuredBuffer<ShadowIndirectCommandGPU> indirectCommands0 : register(u2);
+RWStructuredBuffer<ShadowIndirectCommandGPU> indirectCommands1 : register(u3);
+RWStructuredBuffer<ShadowIndirectCommandGPU> indirectCommands2 : register(u4);
+RWStructuredBuffer<ShadowIndirectCommandGPU> indirectCommands3 : register(u5);
+
+
 
 cbuffer ShadowCasterCullingParams : register(b1)
 {
@@ -63,6 +90,32 @@ bool IntersectsCascade(ShadowCasterCandidateGPU candidate, uint cascadeIndex)
 
     return !(outsideLeft || outsideRight || outsideBottom || outsideTop || outsideNear || outsideFar);
 }
+
+ShadowIndirectCommandGPU BuildIndirectCommand(ShadowCasterCandidateGPU candidate)
+{
+    ShadowIndirectCommandGPU command;
+
+    command.model = candidate.model;
+
+    command.vertexBufferAddressLow = candidate.vertexBufferAddressLow;
+    command.vertexBufferAddressHigh = candidate.vertexBufferAddressHigh;
+    command.vertexBufferSize = candidate.vertexBufferSize;
+    command.vertexBufferStride = candidate.vertexBufferStride;
+
+    command.indexBufferAddressLow = candidate.indexBufferAddressLow;
+    command.indexBufferAddressHigh = candidate.indexBufferAddressHigh;
+    command.indexBufferSize = candidate.indexBufferSize;
+    command.indexBufferFormat = candidate.indexBufferFormat;
+
+    command.indexCountPerInstance = candidate.indexCountPerInstance;
+    command.instanceCount = candidate.instanceCount;
+    command.startIndexLocation = candidate.startIndexLocation;
+    command.baseVertexLocation = candidate.baseVertexLocation;
+    command.startInstanceLocation = candidate.startInstanceLocation;
+
+    return command;
+}
+
 
 [numthreads(64, 1, 1)]
 void main(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -103,12 +156,36 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     visibilityMasks[candidateIndex] = visibilityMask;
 
-    [unroll]
+    ShadowIndirectCommandGPU indirectCommand = BuildIndirectCommand(candidate);
+
+[unroll]
     for (uint cascadeIndex = 0; cascadeIndex < MAX_SHADOW_CASCADES; ++cascadeIndex)
     {
-        if ((visibilityMask & (1u << cascadeIndex)) != 0)
+        if ((visibilityMask & (1u << cascadeIndex)) == 0)
         {
-            InterlockedAdd(cascadeVisibleCounts[cascadeIndex], 1);
+            continue;
+        }
+
+        uint commandIndex = 0;
+        InterlockedAdd(cascadeVisibleCounts[cascadeIndex], 1, commandIndex);
+
+        switch (cascadeIndex)
+        {
+            case 0:
+                indirectCommands0[commandIndex] = indirectCommand;
+                break;
+
+            case 1:
+                indirectCommands1[commandIndex] = indirectCommand;
+                break;
+
+            case 2:
+                indirectCommands2[commandIndex] = indirectCommand;
+                break;
+
+            case 3:
+                indirectCommands3[commandIndex] = indirectCommand;
+                break;
         }
     }
 }
