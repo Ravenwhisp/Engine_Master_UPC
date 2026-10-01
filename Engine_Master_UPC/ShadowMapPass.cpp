@@ -170,16 +170,18 @@ void ShadowMapPass::prepareDisabledShadowData(const RenderContext& ctx)
 
     for (uint32_t i = 0; i < MAX_SHADOW_CASCADES; ++i)
     {
-        const Texture* texture =
-            m_cascadeShadowMaps[i]
-            ? m_cascadeShadowMaps[i].get()
-            : m_cascadeShadowMaps[0].get();
-
-        if (texture && texture->hasSRV())
-        {
-            m_frameData.cascadeShadowMapSRVs[i] = texture->getSRV().gpu;
-        }
+        const Texture* texture = m_cascadeShadowMaps[i] ? m_cascadeShadowMaps[i].get() : m_cascadeShadowMaps[0].get();
+        if (texture && texture->hasSRV()) m_frameData.cascadeShadowMapSRVs[i] = texture->getSRV().gpu;
     }
+
+    ShadowDataCB shadowCB{};
+    shadowCB.shadowsEnabled = 0;
+    shadowCB.shadowBias = SHADOW_BIAS;
+    shadowCB.shadowStrength = SHADOW_STRENGTH;
+    shadowCB.pcfEnabled = 0;
+    shadowCB.pcfRadius = 1;
+
+    if (ctx.ringBuffer != nullptr) m_frameData.shadowCBAddress = ctx.ringBuffer->allocate(&shadowCB, sizeof(ShadowDataCB));
 }
 
 void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light)
@@ -331,7 +333,6 @@ void ShadowMapPass::prepare(const RenderContext& ctx)
 }
 void ShadowMapPass::debugDraw()
 {
-   
 }
 
 void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)

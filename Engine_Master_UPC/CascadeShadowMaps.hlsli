@@ -12,14 +12,21 @@ float CompareCascade(uint index, float2 uv, float depth)
 {
     if (pcfEnabled == 0)
     {
-        if (index == 0) return cascadeShadowMap0.SampleCmpLevelZero(cascadePointSampler, uv, depth);
-        if (index == 1) return cascadeShadowMap1.SampleCmpLevelZero(cascadePointSampler, uv, depth);
-        if (index == 2) return cascadeShadowMap2.SampleCmpLevelZero(cascadePointSampler, uv, depth);
+        if (index == 0)
+            return cascadeShadowMap0.SampleCmpLevelZero(cascadePointSampler, uv, depth);
+        if (index == 1)
+            return cascadeShadowMap1.SampleCmpLevelZero(cascadePointSampler, uv, depth);
+        if (index == 2)
+            return cascadeShadowMap2.SampleCmpLevelZero(cascadePointSampler, uv, depth);
         return cascadeShadowMap3.SampleCmpLevelZero(cascadePointSampler, uv, depth);
     }
-    if (index == 0) return cascadeShadowMap0.SampleCmpLevelZero(cascadeComparisonSampler, uv, depth);
-    if (index == 1) return cascadeShadowMap1.SampleCmpLevelZero(cascadeComparisonSampler, uv, depth);
-    if (index == 2) return cascadeShadowMap2.SampleCmpLevelZero(cascadeComparisonSampler, uv, depth);
+
+    if (index == 0)
+        return cascadeShadowMap0.SampleCmpLevelZero(cascadeComparisonSampler, uv, depth);
+    if (index == 1)
+        return cascadeShadowMap1.SampleCmpLevelZero(cascadeComparisonSampler, uv, depth);
+    if (index == 2)
+        return cascadeShadowMap2.SampleCmpLevelZero(cascadeComparisonSampler, uv, depth);
     return cascadeShadowMap3.SampleCmpLevelZero(cascadeComparisonSampler, uv, depth);
 }
 
@@ -33,68 +40,53 @@ float2 GetCascadeTexelSize(uint index)
     return 1.0f / float2(width, height);
 }
 
-bool FilterCascade(uint index, float3 worldPos, float3 normal, out float visibility)
+bool FilterCascade(uint index, float3 worldPos, out float visibility)
 {
     visibility = 1.0f;
-    float cosine = saturate(dot(normal, -shadowLightDirection.xyz));
-    bool surface = dot(normal, normal) > 0.5f;
-    float sine = surface ? sqrt(saturate(1.0f - cosine * cosine)) : 0.0f;
-    float worldTexel = cascadeWorldTexelSize[index];
-    float3 biasedPosition = worldPos + normal * (normalBiasTexels * worldTexel * sine);
-    float4 projected = mul(float4(biasedPosition, 1), cascadeLightViewProjection[index]);
+
+    float4 projected = mul(float4(worldPos, 1.0f), cascadeLightViewProjection[index]);
     float3 ndc = projected.xyz / projected.w;
     float2 uv = float2(ndc.x * 0.5f + 0.5f, 0.5f - ndc.y * 0.5f);
-    float2 texel = GetCascadeTexelSize(index);
-    int radius = pcfEnabled != 0 ? int(pcfRadius) : 0;
-    // Require the entire filter footprint. Invalid coverage falls back to a coarser cascade.
-    float2 margin = (float(radius) + 0.5f) * texel;
-    if (any(uv < margin) || any(uv > 1.0f - margin) || ndc.z < 0 || ndc.z > 1)
+
+    if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f || ndc.z < 0.0f || ndc.z > 1.0f)
         return false;
-    float slope = surface ? min(sine / max(cosine, 0.2f), 2.0f) : 0.0f;
-    // Legacy bias is interpreted in cascade-zero texels, avoiding depth-range-dependent detachment.
-    float baseBiasTexels = shadowBias / max(shadowMapTexelSize.x, 0.000001f);
-    float bias = (baseBiasTexels + slopeBiasTexels * slope) * worldTexel / max(cascadeDepthRanges[index], 0.0001f);
-    float sum = 0;
+
+    float2 texelSize = GetCascadeTexelSize(index);
+    int radius = pcfEnabled != 0 ? int(pcfRadius) : 0;
+    float sum = 0.0f;
+
     for (int y = -radius; y <= radius; ++y)
         for (int x = -radius; x <= radius; ++x)
-            sum += CompareCascade(index, uv + float2(x, y) * texel, ndc.z - bias);
-    visibility = sum / float((2 * radius + 1) * (2 * radius + 1));
+            sum += CompareCascade(index, uv + float2(x, y) * texelSize, ndc.z - shadowBias);
+
+    float sampleCount = float((radius * 2 + 1) * (radius * 2 + 1));
+    visibility = sum / sampleCount;
     return true;
 }
 
 float ComputeShadow(float3 worldPos, float3 normal, out uint selectedCascadeIndex)
 {
     selectedCascadeIndex = MAX_SHADOW_CASCADES;
-    if (shadowsEnabled == 0) return 1.0f;
-    uint count = clamp(cascadeCount, 1u, (uint)MAX_SHADOW_CASCADES);
-    float depth = -mul(float4(worldPos, 1), shadowCameraView).z;
-    if (depth < cascadePadding.y || depth > cascadeFarDistances[count - 1]) return 1.0f;
-    uint index = 0;
-    while (index + 1 < count && depth > cascadeFarDistances[index]) ++index;
-    float visibility = 1;
-    bool valid = false;
-    for (uint candidate = index; candidate < count; ++candidate)
+
+    if (shadowsEnabled == 0)
+        return 1.0f;
+
+    uint count = clamp(cascadeCount, 1u, (uint) MAX_SHADOW_CASCADES);
+
+    for (uint index = 0; index < count; ++index)
     {
-        if (FilterCascade(candidate, worldPos, normal, visibility))
+        float visibility = 1.0f;
+
+        if (FilterCascade(index, worldPos, visibility))
         {
-            index = candidate;
-            selectedCascadeIndex = candidate;
-            valid = true;
-            break;
+            selectedCascadeIndex = index;
+            return lerp(1.0f - shadowStrength, 1.0f, visibility);
         }
     }
-    if (!valid) return 1.0f;
-    float nearDepth = index == 0 ? cascadePadding.y : cascadeFarDistances[index - 1];
-    float blendWidth = max((cascadeFarDistances[index] - nearDepth) * cascadeBlendFraction, 0.0001f);
-    float blend = cascadeBlendFraction > 0 ? saturate((depth - cascadeFarDistances[index] + blendWidth) / blendWidth) : 0;
-    if (blend > 0)
-    {
-        float nextVisibility = 1;
-        if (index + 1 == count || FilterCascade(index + 1, worldPos, normal, nextVisibility))
-            visibility = lerp(visibility, nextVisibility, blend);
-    }
-    return lerp(1.0f - shadowStrength, 1.0f, visibility);
+
+    return 1.0f;
 }
+
 float3 GetCascadeDebugColor(uint cascadeIndex)
 {
     if (cascadeIndex == 0u)

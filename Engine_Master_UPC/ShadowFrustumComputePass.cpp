@@ -83,6 +83,28 @@ namespace
         dd::line(&corners[3].x, &corners[7].x, color, 0, SHADOW_DEBUG_DEPTH_ENABLED);
     }
 
+    void drawAabbFromPoints(const Vector3 points[8], const float color[3])
+    {
+        Vector3 minPoint = points[0];
+        Vector3 maxPoint = points[0];
+
+        for (uint32_t i = 1; i < 8; ++i)
+        {
+            minPoint.x = std::min(minPoint.x, points[i].x); minPoint.y = std::min(minPoint.y, points[i].y); minPoint.z = std::min(minPoint.z, points[i].z);
+            maxPoint.x = std::max(maxPoint.x, points[i].x); maxPoint.y = std::max(maxPoint.y, points[i].y); maxPoint.z = std::max(maxPoint.z, points[i].z);
+        }
+
+        Vector3 corners[8] =
+        {
+            { minPoint.x, maxPoint.y, minPoint.z }, { maxPoint.x, maxPoint.y, minPoint.z },
+            { maxPoint.x, minPoint.y, minPoint.z }, { minPoint.x, minPoint.y, minPoint.z },
+            { minPoint.x, maxPoint.y, maxPoint.z }, { maxPoint.x, maxPoint.y, maxPoint.z },
+            { maxPoint.x, minPoint.y, maxPoint.z }, { minPoint.x, minPoint.y, maxPoint.z }
+        };
+
+        drawWireBox(corners, color);
+    }
+
     bool buildCameraSubFrustumCorners(const Matrix& view, const Matrix& projection, float nearDistance, float farDistance, Vector3 corners[8])
     {
         if (nearDistance <= 0.0f || farDistance <= nearDistance)
@@ -594,85 +616,21 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
 void ShadowFrustumComputePass::debugDraw()
 {
-    if (!m_drawDebugForCurrentView)
+    if (!m_drawDebugForCurrentView || !m_hasDebugShadowData) return;
+
+    const float fittedNearDistance = m_debugShadowData.cascadePadding.y;
+    const uint32_t activeCascadeCount = std::clamp(m_debugShadowData.cascadeCount, 1u, MAX_SHADOW_CASCADES);
+
+    const float cascadeFarDistances[MAX_SHADOW_CASCADES] =
     {
-        return;
-    }
-
-    Scene* scene = app->getModuleScene()->getScene();
-
-    if (scene == nullptr)
-    {
-        return;
-    }
-
-    const CameraComponent* gameCamera = scene->getDefaultCamera();
-
-    if (gameCamera == nullptr)
-    {
-        return;
-    }
-
-    const LightComponent* light = findMainShadowCastingDirectionalLight();
-
-    if (light == nullptr)
-    {
-        return;
-    }
-
-    const LightShadowSettings& shadowSettings = light->getData().shadow;
-
-    const Matrix cameraView = gameCamera->getViewMatrix();
-    const Matrix cameraProjection = gameCamera->getProjectionMatrix();
-
-    float fittedNearDistance = 0.0f;
-    float fittedFarDistance = 0.0f;
-
-    if (m_hasDebugShadowData)
-    {
-        fittedNearDistance = m_debugShadowData.cascadePadding.y;
-
-        fittedFarDistance = std::max(
-            std::max(m_debugShadowData.cascadeFarDistances.x, m_debugShadowData.cascadeFarDistances.y),
-            std::max(m_debugShadowData.cascadeFarDistances.z, m_debugShadowData.cascadeFarDistances.w));
-    }
-    else if (!getCameraDepthRange(cameraProjection, fittedNearDistance, fittedFarDistance))
-    {
-        return;
-    }
-
-    if (fittedNearDistance <= 0.0f || fittedFarDistance <= fittedNearDistance)
-    {
-        return;
-    }
-
-    const uint32_t activeCascadeCount = std::clamp(shadowSettings.cascadeCount, 1u, MAX_SHADOW_CASCADES);
-    const float fittedDepthRange = fittedFarDistance - fittedNearDistance;
-
-    float cascadeFarDistances[MAX_SHADOW_CASCADES] =
-    {
-        fittedFarDistance,
-        fittedFarDistance,
-        fittedFarDistance,
-        fittedFarDistance
+        m_debugShadowData.cascadeFarDistances.x,
+        m_debugShadowData.cascadeFarDistances.y,
+        m_debugShadowData.cascadeFarDistances.z,
+        m_debugShadowData.cascadeFarDistances.w
     };
 
-    cascadeFarDistances[0] = fittedNearDistance + fittedDepthRange * (activeCascadeCount > 1 ? shadowSettings.cascadeSplit0 : 1.0f);
-
-    if (activeCascadeCount > 1)
-    {
-        cascadeFarDistances[1] = fittedNearDistance + fittedDepthRange * (activeCascadeCount > 2 ? shadowSettings.cascadeSplit1 : 1.0f);
-    }
-
-    if (activeCascadeCount > 2)
-    {
-        cascadeFarDistances[2] = fittedNearDistance + fittedDepthRange * (activeCascadeCount > 3 ? shadowSettings.cascadeSplit2 : 1.0f);
-    }
-
-    if (activeCascadeCount > 3)
-    {
-        cascadeFarDistances[3] = fittedFarDistance;
-    }
+    const float fittedFarDistance = cascadeFarDistances[activeCascadeCount - 1];
+    if (fittedNearDistance <= 0.0f || fittedFarDistance <= fittedNearDistance) return;
 
     const float cascadeColors[MAX_SHADOW_CASCADES][3] =
     {
@@ -682,33 +640,26 @@ void ShadowFrustumComputePass::debugDraw()
         { 1.0f, 0.8f, 0.2f }
     };
 
-    Vector3 cameraFrustumCorners[8];
+    Vector3 cameraCorners[8];
 
-    if (buildCameraSubFrustumCorners(cameraView, cameraProjection, fittedNearDistance, fittedFarDistance, cameraFrustumCorners))
+    if (buildCameraSubFrustumCorners(m_debugCameraView, m_debugCameraProjection, fittedNearDistance, fittedFarDistance, cameraCorners))
     {
         const float cameraColor[3] = { 1.0f, 1.0f, 1.0f };
-        drawWireBox(cameraFrustumCorners, cameraColor);
+        drawAabbFromPoints(cameraCorners, cameraColor);
     }
 
     for (uint32_t cascadeIndex = 0; cascadeIndex < activeCascadeCount; ++cascadeIndex)
     {
         float cascadeNearDistance = fittedNearDistance;
 
-        if (shadowSettings.cascadeFitMode == ShadowCascadeFitMode::FIT_TO_CASCADE && cascadeIndex > 0)
-        {
+        if (m_debugShadowData.cascadeFitMode == static_cast<uint32_t>(ShadowCascadeFitMode::FIT_TO_CASCADE) && cascadeIndex > 0)
             cascadeNearDistance = cascadeFarDistances[cascadeIndex - 1];
-        }
 
         const float cascadeFarDistance = cascadeFarDistances[cascadeIndex];
 
         Vector3 cascadeCorners[8];
-
-        if (!buildCameraSubFrustumCorners(cameraView, cameraProjection, cascadeNearDistance, cascadeFarDistance, cascadeCorners))
-        {
-            continue;
-        }
-
-        drawWireBox(cascadeCorners, cascadeColors[cascadeIndex]);
+        if (buildCameraSubFrustumCorners(m_debugCameraView, m_debugCameraProjection, cascadeNearDistance, cascadeFarDistance, cascadeCorners))
+            drawAabbFromPoints(cascadeCorners, cascadeColors[cascadeIndex]);
     }
 }
 
