@@ -2,11 +2,13 @@
 
 #include "IRenderPass.h"
 #include "ShadowCasterTypes.h"
+#include "ShadowTypes.h"
 
 #include <cstdint>
 #include <d3d12.h>
 #include <wrl/client.h>
 #include <vector>
+#include <array>
 
 using Microsoft::WRL::ComPtr;
 
@@ -24,6 +26,16 @@ public:
     D3D12_GPU_VIRTUAL_ADDRESS getCandidateBufferAddress() const { return m_candidateBufferAddress; }
     uint32_t getCandidateCount() const { return m_candidateCount; }
 
+    ID3D12Resource* getIndirectCommandBuffer(uint32_t cascadeIndex) const
+    {
+        return cascadeIndex < MAX_SHADOW_CASCADES ? m_indirectCommandBuffers[cascadeIndex].Get() : nullptr;
+    }
+
+    ID3D12Resource* getCascadeCountBuffer() const
+    {
+        return m_cascadeCountBuffer.Get();
+    }
+
 private:
     void createRootSignature();
     void createPipelineState();
@@ -32,6 +44,8 @@ private:
 
     void buildCandidates();
     void ensureVisibilityMaskCapacity(uint32_t requiredCount);
+    void ensureIndirectCommandCapacity(uint32_t requiredCount);
+    void transitionIndirectCommandBuffer(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex, D3D12_RESOURCE_STATES newState);
 
     void transitionVisibilityMaskBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
     void transitionCascadeCountBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
@@ -63,4 +77,8 @@ private:
     std::vector<bool> m_debugReadbackPending;
 
     bool m_captureDebugReadback = false;
+
+    std::array<ComPtr<ID3D12Resource>, MAX_SHADOW_CASCADES> m_indirectCommandBuffers;
+    std::array<D3D12_RESOURCE_STATES, MAX_SHADOW_CASCADES> m_indirectCommandBufferStates{};
+    uint32_t m_indirectCommandCapacity = 0;
 };

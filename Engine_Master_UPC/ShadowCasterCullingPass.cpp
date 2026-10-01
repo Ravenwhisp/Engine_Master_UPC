@@ -81,10 +81,9 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
     if (m_candidateCount == 0 || ctx.ringBuffer == nullptr) return;
 
     ensureVisibilityMaskCapacity(m_candidateCount);
+    ensureIndirectCommandCapacity(m_candidateCount);
 
-    m_candidateBufferAddress = ctx.ringBuffer->allocate(
-        m_candidates.data(),
-        m_candidates.size() * sizeof(ShadowCasterCandidateGPU));
+    m_candidateBufferAddress = ctx.ringBuffer->allocate(m_candidates.data(), m_candidates.size() * sizeof(ShadowCasterCandidateGPU));
 }
 
 void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -123,6 +122,11 @@ void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
     transitionCascadeCountBuffer(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     transitionVisibilityMaskBuffer(commandList, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
+    for (uint32_t cascadeIndex = 0; cascadeIndex < MAX_SHADOW_CASCADES; ++cascadeIndex)
+    {
+        transitionIndirectCommandBuffer(commandList, cascadeIndex, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+    }
+
     commandList->SetPipelineState(m_pipelineState.Get());
     commandList->SetComputeRootSignature(m_rootSignature.Get());
 
@@ -131,6 +135,10 @@ void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetComputeRootUnorderedAccessView(2, m_cascadeCountBuffer->GetGPUVirtualAddress());
     commandList->SetComputeRootConstantBufferView(3, shadowDataAddress);
     commandList->SetComputeRoot32BitConstant(4, m_candidateCount, 0);
+    commandList->SetComputeRootUnorderedAccessView(5, m_indirectCommandBuffers[0]->GetGPUVirtualAddress());
+    commandList->SetComputeRootUnorderedAccessView(6, m_indirectCommandBuffers[1]->GetGPUVirtualAddress());
+    commandList->SetComputeRootUnorderedAccessView(7, m_indirectCommandBuffers[2]->GetGPUVirtualAddress());
+    commandList->SetComputeRootUnorderedAccessView(8, m_indirectCommandBuffers[3]->GetGPUVirtualAddress());
 
     const uint32_t groupCount = (m_candidateCount + 63u) / 64u;
     commandList->Dispatch(groupCount, 1, 1);
@@ -138,25 +146,53 @@ void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
     const CD3DX12_RESOURCE_BARRIER barriers[] =
     {
         CD3DX12_RESOURCE_BARRIER::UAV(m_visibilityMaskBuffer.Get()),
-        CD3DX12_RESOURCE_BARRIER::UAV(m_cascadeCountBuffer.Get())
+        CD3DX12_RESOURCE_BARRIER::UAV(m_cascadeCountBuffer.Get()),
+        CD3DX12_RESOURCE_BARRIER::UAV(m_indirectCommandBuffers[0].Get()),
+        CD3DX12_RESOURCE_BARRIER::UAV(m_indirectCommandBuffers[1].Get()),
+        CD3DX12_RESOURCE_BARRIER::UAV(m_indirectCommandBuffers[2].Get()),
+        CD3DX12_RESOURCE_BARRIER::UAV(m_indirectCommandBuffers[3].Get())
     };
 
     commandList->ResourceBarrier(_countof(barriers), barriers);
 
+    commandList->ResourceBarrier(_countof(barriers), barriers);
+
     recordDebugReadback(commandList);
+
+    for (uint32_t cascadeIndex = 0; cascadeIndex < MAX_SHADOW_CASCADES; ++cascadeIndex)
+    {
+        transitionIndirectCommandBuffer(commandList, cascadeIndex, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+    }
+
+    transitionCascadeCountBuffer(commandList, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
     END_EVENT(commandList);
 }
 
 void ShadowCasterCullingPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParameters[5] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
 
+    // t0: ShadowCasterCandidateGPU[]
     rootParameters[0].InitAsShaderResourceView(0, 0);
+
+    // u0: visibility masks
     rootParameters[1].InitAsUnorderedAccessView(0, 0);
+
+    // u1: per-cascade visible counters
     rootParameters[2].InitAsUnorderedAccessView(1, 0);
+
+    // b0: ShadowDataCB
     rootParameters[3].InitAsConstantBufferView(0, 0);
+
+    // b1: candidateCount
     rootParameters[4].InitAsConstants(1, 1, 0);
+
+    // u2-u5: compacted indirect commands
+    rootParameters[5].InitAsUnorderedAccessView(2, 0);
+    rootParameters[6].InitAsUnorderedAccessView(3, 0);
+    rootParameters[7].InitAsUnorderedAccessView(4, 0);
+    rootParameters[8].InitAsUnorderedAccessView(5, 0);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
@@ -336,6 +372,55 @@ void ShadowCasterCullingPass::ensureVisibilityMaskCapacity(uint32_t requiredCoun
 
     m_visibilityMaskCapacity = newCapacity;
     m_visibilityMaskBufferState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+}
+
+void ShadowCasterCullingPass::ensureIndirectCommandCapacity(uint32_t requiredCount)
+{
+    if (requiredCount == 0 || requiredCount <= m_indirectCommandCapacity) return;
+
+    uint32_t newCapacity = std::max(1024u, m_indirectCommandCapacity);
+
+    while (newCapacity < requiredCount)
+    {
+        newCapacity *= 2;
+    }
+
+    const size_t bufferSize = static_cast<size_t>(newCapacity) * sizeof(ShadowIndirectCommandGPU);
+
+    for (uint32_t cascadeIndex = 0; cascadeIndex < MAX_SHADOW_CASCADES; ++cascadeIndex)
+    {
+        if (m_indirectCommandBuffers[cascadeIndex])
+        {
+            app->getModuleResources()->deferResourceRelease(std::move(m_indirectCommandBuffers[cascadeIndex]));
+        }
+
+        const std::string name = "ShadowIndirectCommands_" + std::to_string(cascadeIndex);
+
+        m_indirectCommandBuffers[cascadeIndex] = app->getModuleResources()->createDefaultBuffer(
+            bufferSize,
+            D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            name.c_str());
+
+        m_indirectCommandBufferStates[cascadeIndex] = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    }
+
+    m_indirectCommandCapacity = newCapacity;
+}
+
+void ShadowCasterCullingPass::transitionIndirectCommandBuffer(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex, D3D12_RESOURCE_STATES newState)
+{
+    if (!commandList || cascadeIndex >= MAX_SHADOW_CASCADES) return;
+
+    ComPtr<ID3D12Resource>& buffer = m_indirectCommandBuffers[cascadeIndex];
+    D3D12_RESOURCE_STATES& state = m_indirectCommandBufferStates[cascadeIndex];
+
+    if (!buffer || state == newState) return;
+
+    const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), state, newState);
+    commandList->ResourceBarrier(1, &barrier);
+
+    state = newState;
 }
 
 void ShadowCasterCullingPass::transitionVisibilityMaskBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
