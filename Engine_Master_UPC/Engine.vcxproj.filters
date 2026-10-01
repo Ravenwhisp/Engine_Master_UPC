@@ -2897,6 +2897,7 @@
     <FxCompile Include="LineRendererPixelShader.hlsl" />
     <FxCompile Include="LineRendererVertexShader.hlsl" />
     <FxCompile Include="ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="ShadowCasterCullingComputeShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">
