@@ -346,21 +346,60 @@ void ShadowMapPass::buildShadowCasterList(const RenderContext& ctx, const LightC
 
         if (intersectsLightFrustum(*renderer, lightViewProjection)) m_shadowCasters.push_back(renderer);
     }
+
+    //temp
+    char buffer[128];
+    sprintf_s(buffer, "[Shadow Culling] Total renderers: %zu | Casters: %zu\n",
+        app->getModuleScene()->getMeshRenderers().size(), m_shadowCasters.size());
+    OutputDebugStringA(buffer);
+
 }
+
 
 void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex)
 {
-    (void)cascadeIndex;
+    //NO CULLED LIST
+    uint32_t drawCount = 0;
 
-    for (MeshRenderer* renderer : m_shadowCasters)
+    for (MeshRenderer* renderer : app->getModuleScene()->getMeshRenderers())
     {
-        if (renderer != nullptr)
-        {
-            renderMeshRenderer(commandList, *renderer);
-        }
+        if (renderer == nullptr || !renderer->isActive() || !renderer->hasMesh()) continue;
+
+        GameObject* owner = renderer->getOwner();
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy() || renderer->getTransform() == nullptr) continue;
+
+        const auto& mesh = renderer->getMesh();
+        if (mesh && mesh->hasIndexBuffer())
+            drawCount += static_cast<uint32_t>(mesh->getSubmeshes().size());
+
+        renderMeshRenderer(commandList, *renderer);
     }
+
+    char buffer[128];
+    sprintf_s(buffer, "[Shadow NO CULLING] Cascade %u -> %u draw calls\n", cascadeIndex, drawCount);
+    OutputDebugStringA(buffer);
 }
 
+//void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex)
+//{
+//    //CULLED LIST
+//    uint32_t drawCount = 0;
+//
+//    for (MeshRenderer* renderer : m_shadowCasters)
+//    {
+//        if (renderer == nullptr) continue;
+//
+//        const auto& mesh = renderer->getMesh();
+//        if (mesh && mesh->hasIndexBuffer())
+//            drawCount += static_cast<uint32_t>(mesh->getSubmeshes().size());
+//
+//        renderMeshRenderer(commandList, *renderer);
+//    }
+//
+//    char buffer[128];
+//    sprintf_s(buffer, "[Shadow] Cascade %u -> %u draw calls\n", cascadeIndex, drawCount);
+//    OutputDebugStringA(buffer);
+//}
 
 void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer)
 {

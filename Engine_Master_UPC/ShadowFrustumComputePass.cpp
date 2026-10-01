@@ -462,7 +462,7 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
         history.cascadeSplit1 != shadowSettings.cascadeSplit1 ||
         history.cascadeSplit2 != shadowSettings.cascadeSplit2;
 
-    static constexpr uint32_t CASCADE_UPDATE_INTERVALS[MAX_SHADOW_CASCADES] = { 1u, 2u, 4u, 8u }; 
+    static constexpr uint32_t CASCADE_UPDATE_INTERVALS[MAX_SHADOW_CASCADES] = { 1u, 1u, 1u, 1u }; 
 
     m_cascadeUpdateMask = 0;
 
