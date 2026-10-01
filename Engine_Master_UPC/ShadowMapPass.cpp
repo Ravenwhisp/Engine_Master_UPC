@@ -33,6 +33,81 @@ namespace
 {
     constexpr D3D12_RESOURCE_STATES CASCADE_SHADER_RESOURCE_STATE =
         static_cast<D3D12_RESOURCE_STATES>(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+
+    bool buildConservativeLightViewProjection(const RenderContext& ctx, const Vector3& lightDirection, float sunDistance, Matrix& lightViewProjection)
+    {
+        const Matrix inverseViewProjection = (ctx.view * ctx.projection).Invert();
+
+        const Vector4 clipCorners[8] =
+        {
+            Vector4(-1.0f, -1.0f, 0.0f, 1.0f), Vector4(1.0f, -1.0f, 0.0f, 1.0f),
+            Vector4(-1.0f,  1.0f, 0.0f, 1.0f), Vector4(1.0f,  1.0f, 0.0f, 1.0f),
+            Vector4(-1.0f, -1.0f, 1.0f, 1.0f), Vector4(1.0f, -1.0f, 1.0f, 1.0f),
+            Vector4(-1.0f,  1.0f, 1.0f, 1.0f), Vector4(1.0f,  1.0f, 1.0f, 1.0f)
+        };
+
+        Vector3 worldCorners[8];
+        Vector3 center = Vector3::Zero;
+
+        for (uint32_t i = 0; i < 8; ++i)
+        {
+            Vector4 world = Vector4::Transform(clipCorners[i], inverseViewProjection);
+            if (std::abs(world.w) <= 0.000001f) return false;
+
+            world /= world.w;
+            worldCorners[i] = Vector3(world.x, world.y, world.z);
+            center += worldCorners[i];
+        }
+
+        center /= 8.0f;
+
+        float radius = 0.0f;
+        for (const Vector3& corner : worldCorners) radius = std::max(radius, Vector3::Distance(center, corner));
+
+        if (radius <= 0.0001f) return false;
+
+        Vector3 direction = lightDirection;
+        direction.Normalize();
+
+        const Vector3 up = std::abs(direction.y) > 0.95f ? Vector3::Forward : Vector3::Up;
+        const Vector3 eye = center - direction * (radius + sunDistance);
+
+        const Matrix lightView = Matrix::CreateLookAt(eye, center, up);
+        const Matrix lightProjection = Matrix::CreateOrthographic(radius * 2.0f, radius * 2.0f, 0.0f, radius * 2.0f + sunDistance);
+
+        lightViewProjection = lightView * lightProjection;
+        return true;
+    }
+
+    bool intersectsLightFrustum(const MeshRenderer& renderer, const Matrix& lightViewProjection)
+    {
+        if (renderer.getSkin() != nullptr) return true;
+
+        const Vector3* points = renderer.getBoundingBox().getPoints();
+
+        bool outsideLeft = true;
+        bool outsideRight = true;
+        bool outsideBottom = true;
+        bool outsideTop = true;
+        bool outsideNear = true;
+        bool outsideFar = true;
+
+        for (uint32_t i = 0; i < 8; ++i)
+        {
+            const Vector4 clip = Vector4::Transform(Vector4(points[i].x, points[i].y, points[i].z, 1.0f), lightViewProjection);
+
+            outsideLeft &= clip.x < -clip.w;
+            outsideRight &= clip.x > clip.w;
+            outsideBottom &= clip.y < -clip.w;
+            outsideTop &= clip.y > clip.w;
+            outsideNear &= clip.z < 0.0f;
+            outsideFar &= clip.z > clip.w;
+        }
+
+        return !(outsideLeft || outsideRight || outsideBottom || outsideTop || outsideNear || outsideFar);
+    }
+
 }
 
 ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass)
@@ -243,11 +318,41 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
     }
 }
 
+void ShadowMapPass::buildShadowCasterList(const RenderContext& ctx, const LightComponent& light)
+{
+    m_shadowCasters.clear();
+
+    const GameObject* owner = light.getOwner();
+    const Transform* transform = owner != nullptr ? owner->GetTransform() : nullptr;
+
+    if (transform == nullptr) return;
+
+    Vector3 lightDirection = transform->getForward();
+    if (lightDirection.LengthSquared() <= 0.000001f) return;
+
+    Matrix lightViewProjection;
+
+    if (!buildConservativeLightViewProjection(ctx, lightDirection, 20.0f, lightViewProjection))
+    {
+        return;
+    }
+
+    for (MeshRenderer* renderer : app->getModuleScene()->getMeshRenderers())
+    {
+        if (renderer == nullptr || !renderer->isActive() || !renderer->hasMesh()) continue;
+
+        GameObject* rendererOwner = renderer->getOwner();
+        if (rendererOwner == nullptr || !rendererOwner->IsActiveInWindowHierarchy() || renderer->getTransform() == nullptr) continue;
+
+        if (intersectsLightFrustum(*renderer, lightViewProjection)) m_shadowCasters.push_back(renderer);
+    }
+}
+
 void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex)
 {
     (void)cascadeIndex;
 
-    for (MeshRenderer* renderer : app->getModuleScene()->getMeshRenderers())
+    for (MeshRenderer* renderer : m_shadowCasters)
     {
         if (renderer != nullptr)
         {
@@ -255,6 +360,7 @@ void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList, uint3
         }
     }
 }
+
 
 void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer)
 {
@@ -327,6 +433,7 @@ void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, 
     }
 }
 
+
 void ShadowMapPass::transitionCascadeShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
 {
     if (!commandList) return;
@@ -359,7 +466,6 @@ void ShadowMapPass::transitionCascadeShadowMap(ID3D12GraphicsCommandList4* comma
     state = newState;
 }
 
-
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
     m_currentShadowView = ctx.viewType == RenderViewType::Game ? 1u : 0u;
@@ -368,12 +474,15 @@ void ShadowMapPass::prepare(const RenderContext& ctx)
 
     if (light == nullptr)
     {
+        m_shadowCasters.clear();
         prepareDisabledShadowData(ctx);
         return;
     }
 
+    buildShadowCasterList(ctx, *light);
     prepareDirectionalShadowData(ctx, *light);
 }
+
 void ShadowMapPass::debugDraw()
 {
 }
