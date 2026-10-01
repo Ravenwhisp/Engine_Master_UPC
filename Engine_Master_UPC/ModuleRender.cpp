@@ -109,8 +109,9 @@ bool ModuleRender::init()
 
     m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
-
+    m_shadowCasterCullingPass = std::make_unique<ShadowCasterCullingPass>(device, m_shadowFrustumComputePass.get());
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get());
+
     m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
     m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
@@ -267,6 +268,7 @@ bool ModuleRender::cleanUp()
     m_ssaoGeometryPass.reset();
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
+    m_shadowCasterCullingPass.reset();
     m_shadowFrustumComputePass.reset();
     m_depthReductionPass.reset();
     m_lightCullingPass.reset();
@@ -808,6 +810,19 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         {
             m_shadowFrustumComputePass->prepare(ctx);
             m_shadowFrustumComputePass->apply(commandList);
+        }
+
+        endRenderPassProfile(commandList, profileIndex);
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::ShadowCasterCullingPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadow caster culling");
+
+        if (m_shadowCasterCullingPass != nullptr)
+        {
+            m_shadowCasterCullingPass->prepare(ctx);
+            m_shadowCasterCullingPass->apply(commandList);
         }
 
         endRenderPassProfile(commandList, profileIndex);
