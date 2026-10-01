@@ -51,6 +51,7 @@ private:
 
     void renderCasters(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex);
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
+    void buildShadowCasterList(const RenderContext& ctx, const LightComponent& light);
 
     void updateShadowViewportAndScissor(uint32_t size);
 
@@ -87,4 +88,5 @@ private:
     D3D12_RECT m_scissorRect{};
 
     ShadowFrameData m_frameData{};
+    std::vector<MeshRenderer*> m_shadowCasters;
 };
