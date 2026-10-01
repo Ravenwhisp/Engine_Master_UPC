@@ -350,7 +350,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="ShadowCascadeMath.h" />
     <ClInclude Include="ShadowData.hlsli" />
     <ClInclude Include="ShadowSamplers.h" />
-    <ClInclude Include="CascadeShadowMaps.hlsli" />
+    <ClInclude Include="CascadeShadowMaps.hlsli">
+      <FileType>Document</FileType>
+    </ClInclude>
     <ClInclude Include="ShadowTypes.h" />
     <ClInclude Include="SoundBankAsset.h" />
     <ClInclude Include="SpectralComponent.h" />

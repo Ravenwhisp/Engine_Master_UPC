@@ -111,7 +111,7 @@ bool ModuleRender::init()
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
 
     m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get());
-    m_debugDrawPass->registerStatic(m_shadowMapPass.get());
+    m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
     m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
     m_ssaoPass = std::make_unique<SSAOPass>(device);
@@ -831,16 +831,16 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     }
 
     {
-        PERF_RENDER("ModuleRender::renderScene::DepthFittedShadowMap");
-        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadows (fit + maps)");
+        PERF_RENDER("ModuleRender::renderScene::ShadowMapPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadow maps");
 
         if (m_shadowMapPass != nullptr)
         {
             m_shadowMapPass->prepare(ctx);
             m_shadowMapPass->apply(commandList);
-
             ctx.shadowData = &m_shadowMapPass->getFrameData();
         }
+
         endRenderPassProfile(commandList, profileIndex);
     }
 

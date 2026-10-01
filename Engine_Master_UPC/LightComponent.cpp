@@ -53,10 +53,6 @@ namespace
     {
         shadow.shadowMapSize = sanitizeShadowMapSize(shadow.shadowMapSize);
         shadow.pcfRadius = std::clamp(shadow.pcfRadius, 1u, 2u);
-        shadow.shadowDistance = std::max(0.1f, shadow.shadowDistance);
-        shadow.cascadeBlendFraction = std::clamp(shadow.cascadeBlendFraction, 0.0f, 0.3f);
-        shadow.normalBiasTexels = std::clamp(shadow.normalBiasTexels, 0.0f, 4.0f);
-        shadow.slopeBiasTexels = std::clamp(shadow.slopeBiasTexels, 0.0f, 4.0f);
         shadow.shadowBias = std::max(0.0f, shadow.shadowBias);
         shadow.shadowStrength = std::clamp(shadow.shadowStrength, 0.0f, 1.0f);
 
@@ -293,11 +289,6 @@ void LightComponent::drawUi()
         {
             ImGui::Separator();
             ImGui::Text("Cascaded Shadow Maps");
-            bool shadowChanged = ImGui::DragFloat("Shadow Distance", &m_data.shadow.shadowDistance, 1.0f, 0.1f, 10000.0f);
-            shadowChanged |= ImGui::SliderFloat("Cascade Blend", &m_data.shadow.cascadeBlendFraction, 0.0f, 0.3f);
-            shadowChanged |= ImGui::SliderFloat("Normal Bias (texels)", &m_data.shadow.normalBiasTexels, 0.0f, 4.0f);
-            shadowChanged |= ImGui::SliderFloat("Slope Bias (texels)", &m_data.shadow.slopeBiasTexels, 0.0f, 4.0f);
-            lightChanged |= shadowChanged;
 
             int cascadeCount = static_cast<int>(m_data.shadow.cascadeCount);
 
