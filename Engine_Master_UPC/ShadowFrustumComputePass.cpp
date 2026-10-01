@@ -226,13 +226,18 @@ void ShadowFrustumComputePass::createOutputBuffer()
 
     static_assert(BUFFER_SIZE == 512, "ShadowDataBuffer must be large enough for cascaded shadow data.");
 
-    m_shadowDataBuffer = app->getModuleResources()->createDefaultBuffer(
-        BUFFER_SIZE,
-        D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-        "ShadowDataBuffer");
+    for (uint32_t i = 0; i < SHADOW_VIEW_COUNT; ++i)
+    {
+        const char* name = i == 0 ? "ShadowDataBuffer_Editor" : "ShadowDataBuffer_Game";
 
-    m_outputBufferState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        m_shadowDataBuffers[i] = app->getModuleResources()->createDefaultBuffer(
+            BUFFER_SIZE,
+            D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            name);
+
+        m_outputBufferStates[i] = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    }
 }
 
 void ShadowFrustumComputePass::createDebugReadbackBuffers()
@@ -346,7 +351,7 @@ void ShadowFrustumComputePass::refreshDebugReadbackForCurrentFrame()
 
 void ShadowFrustumComputePass::recordDebugReadback(ID3D12GraphicsCommandList4* commandList)
 {
-    if (commandList == nullptr || !m_captureDebugReadback || m_shadowDataBuffer == nullptr)
+    if (commandList == nullptr || !m_captureDebugReadback || m_currentShadowView >= SHADOW_VIEW_COUNT || m_shadowDataBuffers[m_currentShadowView] == nullptr)
     {
         return;
     }
@@ -372,7 +377,7 @@ void ShadowFrustumComputePass::recordDebugReadback(ID3D12GraphicsCommandList4* c
     commandList->CopyBufferRegion(
         m_debugReadbackBuffers[frameIndex].Get(),
         0,
-        m_shadowDataBuffer.Get(),
+        m_shadowDataBuffers[m_currentShadowView].Get(),
         0,
         sizeof(ShadowDataCB));
 
@@ -435,19 +440,49 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 
     if (light == nullptr)
     {
+        m_cascadeUpdateHistory[0].valid = false;
+        m_cascadeUpdateHistory[1].valid = false;
         return;
     }
 
     const LightShadowSettings& shadowSettings = light->getData().shadow;
 
-    m_drawDebugForCurrentView =
-        ctx.renderDebug &&
-        ctx.viewType == RenderViewType::Editor &&
-        shadowSettings.cascadeDebugEnabled;
+    const uint64_t frameNumber = app->getModuleD3D12()->getFrameNumber();
+    const uint32_t cascadeCount = std::clamp(shadowSettings.cascadeCount, 1u, MAX_SHADOW_CASCADES);
 
-    m_captureDebugReadback =
-        ctx.viewType == RenderViewType::Game &&
-        shadowSettings.cascadeDebugEnabled;
+    m_currentShadowView = ctx.viewType == RenderViewType::Game ? 1u : 0u;
+    CascadeUpdateHistory& history = m_cascadeUpdateHistory[m_currentShadowView];
+
+    const bool cascadeConfigChanged =
+        !history.valid ||
+        history.shadowMapSize != shadowSettings.shadowMapSize ||
+        history.cascadeCount != cascadeCount ||
+        history.cascadeFitMode != static_cast<uint32_t>(shadowSettings.cascadeFitMode) ||
+        history.cascadeSplit0 != shadowSettings.cascadeSplit0 ||
+        history.cascadeSplit1 != shadowSettings.cascadeSplit1 ||
+        history.cascadeSplit2 != shadowSettings.cascadeSplit2;
+
+    static constexpr uint32_t CASCADE_UPDATE_INTERVALS[MAX_SHADOW_CASCADES] = { 1u, 2u, 4u, 8u };
+
+    m_cascadeUpdateMask = 0;
+
+    for (uint32_t i = 0; i < cascadeCount; ++i)
+    {
+        if (frameNumber % CASCADE_UPDATE_INTERVALS[i] == 0) m_cascadeUpdateMask |= 1u << i;
+    }
+
+    if (cascadeConfigChanged) m_cascadeUpdateMask = (1u << cascadeCount) - 1u;
+
+    history.shadowMapSize = shadowSettings.shadowMapSize;
+    history.cascadeCount = cascadeCount;
+    history.cascadeFitMode = static_cast<uint32_t>(shadowSettings.cascadeFitMode);
+    history.cascadeSplit0 = shadowSettings.cascadeSplit0;
+    history.cascadeSplit1 = shadowSettings.cascadeSplit1;
+    history.cascadeSplit2 = shadowSettings.cascadeSplit2;
+
+    m_drawDebugForCurrentView = ctx.renderDebug && ctx.viewType == RenderViewType::Editor && shadowSettings.cascadeDebugEnabled;
+
+    m_captureDebugReadback = ctx.viewType == RenderViewType::Game && shadowSettings.cascadeDebugEnabled;
 
     if (m_captureDebugReadback)
     {
@@ -498,12 +533,14 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
     const uint32_t shadowMapSize = std::max(1u, shadowSettings.shadowMapSize);
     m_constants.shadowMapTexelSize = 1.0f / static_cast<float>(shadowMapSize);
 
-    m_constants.cascadeCount = std::clamp(shadowSettings.cascadeCount, 1u, MAX_SHADOW_CASCADES);
+    m_constants.cascadeCount = cascadeCount;
     m_constants.cascadeFitMode = static_cast<uint32_t>(shadowSettings.cascadeFitMode);
 
     m_constants.cascadeSplit0 = shadowSettings.cascadeSplit0;
     m_constants.cascadeSplit1 = shadowSettings.cascadeSplit1;
     m_constants.cascadeSplit2 = shadowSettings.cascadeSplit2;
+
+    m_constants.cascadeUpdateMask = m_cascadeUpdateMask;
 
     m_constants.cascadeDebugEnabled = ctx.viewType == RenderViewType::Game && shadowSettings.cascadeDebugEnabled ? 1u : 0u;
 
@@ -545,19 +582,17 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 
 void ShadowFrustumComputePass::transitionOutputBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
 {
-    if (commandList == nullptr || m_shadowDataBuffer == nullptr || m_outputBufferState == newState)
-    {
-        return;
-    }
+    if (commandList == nullptr || m_currentShadowView >= SHADOW_VIEW_COUNT) return;
 
-    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-        m_shadowDataBuffer.Get(),
-        m_outputBufferState,
-        newState);
+    ComPtr<ID3D12Resource>& buffer = m_shadowDataBuffers[m_currentShadowView];
+    D3D12_RESOURCE_STATES& state = m_outputBufferStates[m_currentShadowView];
 
+    if (buffer == nullptr || state == newState) return;
+
+    const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), state, newState);
     commandList->ResourceBarrier(1, &barrier);
 
-    m_outputBufferState = newState;
+    state = newState;
 }
 
 void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -568,9 +603,9 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
     if (commandList == nullptr ||
         !m_enabled ||
-        m_constantsAddress == 0 ||
         m_depthReductionPass == nullptr ||
-        m_shadowDataBuffer == nullptr)
+        m_currentShadowView >= SHADOW_VIEW_COUNT ||
+        m_shadowDataBuffers[m_currentShadowView] == nullptr)
     {
         END_EVENT(commandList);
         return;
@@ -597,12 +632,12 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetComputeRootSignature(m_rootSignature.Get());
 
     commandList->SetComputeRootDescriptorTable(0, minMaxTexture->getSRV().gpu);
-    commandList->SetComputeRootUnorderedAccessView(1, m_shadowDataBuffer->GetGPUVirtualAddress());
+    commandList->SetComputeRootUnorderedAccessView(1, m_shadowDataBuffers[m_currentShadowView]->GetGPUVirtualAddress());
     commandList->SetComputeRootConstantBufferView(2, m_constantsAddress);
 
     commandList->Dispatch(1, 1, 1);
 
-    CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_shadowDataBuffer.Get());
+    CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_shadowDataBuffers[m_currentShadowView].Get());
     commandList->ResourceBarrier(1, &uavBarrier);
 
     recordDebugReadback(commandList);
@@ -610,6 +645,7 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     transitionOutputBuffer(commandList, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
     m_hasValidResult = true;
+    m_cascadeUpdateHistory[m_currentShadowView].valid = true;
 
     END_EVENT(commandList);
 }
@@ -665,10 +701,7 @@ void ShadowFrustumComputePass::debugDraw()
 
 D3D12_GPU_VIRTUAL_ADDRESS ShadowFrustumComputePass::getShadowDataBufferAddress() const
 {
-    if (m_shadowDataBuffer == nullptr)
-    {
-        return 0;
-    }
+    if (m_currentShadowView >= SHADOW_VIEW_COUNT || m_shadowDataBuffers[m_currentShadowView] == nullptr) return 0;
 
-    return m_shadowDataBuffer->GetGPUVirtualAddress();
+    return m_shadowDataBuffers[m_currentShadowView]->GetGPUVirtualAddress();
 }

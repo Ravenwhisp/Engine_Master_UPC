@@ -61,23 +61,32 @@ void ShadowMapPass::updateShadowViewportAndScissor(uint32_t size)
     m_scissorRect.bottom = static_cast<LONG>(size);
 }
 
-void ShadowMapPass::createCascadeShadowMap( uint32_t size, uint32_t cascadeCount)
+void ShadowMapPass::createCascadeShadowMap(uint32_t size, uint32_t cascadeCount)
 {
     cascadeCount = std::clamp(cascadeCount, 1u, MAX_SHADOW_CASCADES);
+
     m_currentCascadeShadowMapSize = size;
     m_currentCascadeCount = cascadeCount;
-    for (uint32_t i = 0; i < MAX_SHADOW_CASCADES; ++i)
+
+    for (uint32_t viewIndex = 0; viewIndex < SHADOW_VIEW_COUNT; ++viewIndex)
     {
-        if (i < cascadeCount)
+        for (uint32_t cascadeIndex = 0; cascadeIndex < MAX_SHADOW_CASCADES; ++cascadeIndex)
         {
-            const uint32_t resolution = std::max(1u, size / SHADOW_CASCADE_DIVISOR(i));
-            m_cascadeShadowMaps[i].reset(app->getModuleResources()->createShadowMap(resolution));
-            m_cascadeShadowMaps[i]->setName(L"ShadowCascade_" + std::to_wstring(i));
-            m_cascadeShadowMapStates[i] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-        }
-        else
-        {
-            m_cascadeShadowMaps[i].reset();
+            if (cascadeIndex < cascadeCount)
+            {
+                const uint32_t resolution = std::max(1u, size / SHADOW_CASCADE_DIVISOR(cascadeIndex));
+
+                m_cascadeShadowMaps[viewIndex][cascadeIndex].reset(app->getModuleResources()->createShadowMap(resolution));
+
+                const std::wstring viewName = viewIndex == 0 ? L"Editor" : L"Game";
+                m_cascadeShadowMaps[viewIndex][cascadeIndex]->setName(L"ShadowCascade_" + viewName + L"_" + std::to_wstring(cascadeIndex));
+
+                m_cascadeShadowMapStates[viewIndex][cascadeIndex] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+            }
+            else
+            {
+                m_cascadeShadowMaps[viewIndex][cascadeIndex].reset();
+            }
         }
     }
 }
@@ -86,8 +95,14 @@ void ShadowMapPass::resizeCascadeShadowMapIfNeeded(uint32_t size, uint32_t casca
 {
     size = size == 0 ? DEFAULT_SHADOW_MAP_SIZE : size;
     cascadeCount = std::clamp(cascadeCount, 1u, MAX_SHADOW_CASCADES);
-    if (m_cascadeShadowMaps[0] && size == m_currentCascadeShadowMapSize && cascadeCount == m_currentCascadeCount)
+
+    if (m_cascadeShadowMaps[m_currentShadowView][0] &&
+        size == m_currentCascadeShadowMapSize &&
+        cascadeCount == m_currentCascadeCount)
+    {
         return;
+    }
+
     createCascadeShadowMap(size, cascadeCount);
 }
 
@@ -170,8 +185,15 @@ void ShadowMapPass::prepareDisabledShadowData(const RenderContext& ctx)
 
     for (uint32_t i = 0; i < MAX_SHADOW_CASCADES; ++i)
     {
-        const Texture* texture = m_cascadeShadowMaps[i] ? m_cascadeShadowMaps[i].get() : m_cascadeShadowMaps[0].get();
-        if (texture && texture->hasSRV()) m_frameData.cascadeShadowMapSRVs[i] = texture->getSRV().gpu;
+        const Texture* texture = m_cascadeShadowMaps[m_currentShadowView][i] ? 
+            m_cascadeShadowMaps[m_currentShadowView][i].get() : 
+            m_cascadeShadowMaps[m_currentShadowView][0].get();
+
+        if (texture && texture->hasSRV()) 
+        {
+            m_frameData.cascadeShadowMapSRVs[i] = texture->getSRV().gpu;
+        }
+            
     }
 
     ShadowDataCB shadowCB{};
@@ -214,9 +236,9 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
     {
         const uint32_t sourceIndex = i < m_activeCascadeCount ? i : 0;
 
-        if (m_cascadeShadowMaps[sourceIndex] && m_cascadeShadowMaps[sourceIndex]->hasSRV())
+        if (m_cascadeShadowMaps[m_currentShadowView][sourceIndex] && m_cascadeShadowMaps[m_currentShadowView][sourceIndex]->hasSRV())
         {
-            m_frameData.cascadeShadowMapSRVs[i] = m_cascadeShadowMaps[sourceIndex]->getSRV().gpu;
+            m_frameData.cascadeShadowMapSRVs[i] = m_cascadeShadowMaps[m_currentShadowView][sourceIndex]->getSRV().gpu;
         }
     }
 }
@@ -305,22 +327,43 @@ void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, 
     }
 }
 
-void ShadowMapPass::transitionCascadeShadowMap( ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
+void ShadowMapPass::transitionCascadeShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
 {
     if (!commandList) return;
+
     for (uint32_t i = 0; i < MAX_SHADOW_CASCADES; ++i)
     {
-        if (!m_cascadeShadowMaps[i] || m_cascadeShadowMapStates[i] == newState) continue;
+        if (!m_cascadeShadowMaps[m_currentShadowView][i] || m_cascadeShadowMapStates[m_currentShadowView][i] == newState) continue;
+
         auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_cascadeShadowMaps[i]->getD3D12Resource().Get(), m_cascadeShadowMapStates[i], newState);
+            m_cascadeShadowMaps[m_currentShadowView][i]->getD3D12Resource().Get(),
+            m_cascadeShadowMapStates[m_currentShadowView][i],
+            newState);
+
         commandList->ResourceBarrier(1, &barrier);
-        m_cascadeShadowMapStates[i] = newState;
+        m_cascadeShadowMapStates[m_currentShadowView][i] = newState;
     }
+}
+
+void ShadowMapPass::transitionCascadeShadowMap(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex, D3D12_RESOURCE_STATES newState)
+{
+    if (!commandList || cascadeIndex >= MAX_SHADOW_CASCADES) return;
+
+    auto& shadowMap = m_cascadeShadowMaps[m_currentShadowView][cascadeIndex];
+    auto& state = m_cascadeShadowMapStates[m_currentShadowView][cascadeIndex];
+
+    if (!shadowMap || state == newState) return;
+
+    auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(shadowMap->getD3D12Resource().Get(), state, newState);
+    commandList->ResourceBarrier(1, &barrier);
+    state = newState;
 }
 
 
 void ShadowMapPass::prepare(const RenderContext& ctx)
 {
+    m_currentShadowView = ctx.viewType == RenderViewType::Game ? 1u : 0u;
+
     const LightComponent* light = findMainShadowCastingDirectionalLight();
 
     if (light == nullptr)
@@ -341,7 +384,7 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     BEGIN_EVENT(commandList, "ShadowMapPass");
 
-    if (m_cascadeShadowMaps[0] == nullptr || !m_cascadeShadowMaps[0]->hasDSV())
+    if (m_cascadeShadowMaps[m_currentShadowView][0] == nullptr || !m_cascadeShadowMaps[m_currentShadowView][0]->hasDSV())
     {
         END_EVENT(commandList);
         return;
@@ -371,28 +414,37 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootConstantBufferView(1, shadowDataAddress);
     commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // Cascaded shadow maps.
-    if (m_cascadeShadowMaps[0] != nullptr && m_cascadeShadowMaps[0]->hasDSV() && m_activeCascadeCount > 0)
+    // Cascaded shadow maps
+    if (m_cascadeShadowMaps[m_currentShadowView][0] != nullptr &&
+        m_cascadeShadowMaps[m_currentShadowView][0]->hasDSV() &&
+        m_activeCascadeCount > 0)
     {
-        transitionCascadeShadowMap(commandList, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+        const uint32_t updateMask = m_shadowFrustumComputePass != nullptr
+            ? m_shadowFrustumComputePass->getCascadeUpdateMask()
+            : ((1u << m_activeCascadeCount) - 1u);
 
         for (uint32_t cascadeIndex = 0; cascadeIndex < m_activeCascadeCount; ++cascadeIndex)
         {
-            const Texture& cascade = *m_cascadeShadowMaps[cascadeIndex];
+            if ((updateMask & (1u << cascadeIndex)) == 0u) continue;
+
+            Texture& cascade = *m_cascadeShadowMaps[m_currentShadowView][cascadeIndex];
+
+            transitionCascadeShadowMap(commandList, cascadeIndex, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
             updateShadowViewportAndScissor(cascade.getDesc().width);
             commandList->RSSetViewports(1, &m_viewport);
             commandList->RSSetScissorRects(1, &m_scissorRect);
-            D3D12_CPU_DESCRIPTOR_HANDLE cascadeDSV = cascade.getDSV().cpu;
+
+            const D3D12_CPU_DESCRIPTOR_HANDLE cascadeDSV = cascade.getDSV().cpu;
 
             commandList->OMSetRenderTargets(0, nullptr, false, &cascadeDSV);
             commandList->ClearDepthStencilView(cascadeDSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
             commandList->SetGraphicsRoot32BitConstant(2, cascadeIndex, 0);
 
             renderCasters(commandList, cascadeIndex);
+
+            transitionCascadeShadowMap(commandList, cascadeIndex, CASCADE_SHADER_RESOURCE_STATE);
         }
-
-        transitionCascadeShadowMap(commandList, CASCADE_SHADER_RESOURCE_STATE);
     }
-
     END_EVENT(commandList);
 }

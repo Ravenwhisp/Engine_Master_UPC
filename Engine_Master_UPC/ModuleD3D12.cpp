@@ -59,6 +59,7 @@ void ModuleD3D12::postRender()
     m_swapChain->present();
 
     m_graphicsMemory->Commit(m_commandQueue->getD3D12CommandQueue().Get());
+    ++m_frameNumber;
 }
 
 bool ModuleD3D12::cleanUp()
