@@ -63,6 +63,11 @@ cbuffer ShadowFrustumParams : register(b0)
     float cascadeSplit1;
     float cascadeSplit2;
     uint cascadeDebugEnabled;
+    
+    uint cascadeUpdateMask;
+    uint cascadeUpdatePadding0;
+    uint cascadeUpdatePadding1;
+    uint cascadeUpdatePadding2;
 };
 
 float LinearizeDepth(float depth)
@@ -254,6 +259,8 @@ ShadowDataOutput BuildShadowOutput(float4x4 lightViewProjection, uint enabled)
 [numthreads(1, 1, 1)]
 void main()
 {
+    ShadowDataOutput previousOutput = outputShadowData[0];
+    
     float2 minMaxDepth = inputMinMax.Load(int3(0, 0, 0));
 
     if (minMaxDepth.x > minMaxDepth.y)
@@ -327,5 +334,31 @@ void main()
         }
     }
 
+    if ((cascadeUpdateMask & (1u << 0)) == 0u)
+    {
+        output.cascadeFarDistances.x = previousOutput.cascadeFarDistances.x;
+        output.cascadeLightViewProjection[0] = previousOutput.cascadeLightViewProjection[0];
+    }
+
+    if ((cascadeUpdateMask & (1u << 1)) == 0u)
+    {
+        output.cascadeFarDistances.y = previousOutput.cascadeFarDistances.y;
+        output.cascadeLightViewProjection[1] = previousOutput.cascadeLightViewProjection[1];
+    }
+
+    if ((cascadeUpdateMask & (1u << 2)) == 0u)
+    {
+        output.cascadeFarDistances.z = previousOutput.cascadeFarDistances.z;
+        output.cascadeLightViewProjection[2] = previousOutput.cascadeLightViewProjection[2];
+    }
+
+    if ((cascadeUpdateMask & (1u << 3)) == 0u)
+    {
+        output.cascadeFarDistances.w = previousOutput.cascadeFarDistances.w;
+        output.cascadeLightViewProjection[3] = previousOutput.cascadeLightViewProjection[3];
+    }
+
+    outputShadowData[0] = output;
+    
     outputShadowData[0] = output;
 }
