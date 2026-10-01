@@ -311,6 +311,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Application.h" />
     <ClInclude Include="Asset.h" />
     <ClInclude Include="ComponentVideo.h" />
+    <ClInclude Include="ShadowCasterCullingPass.h" />
+    <ClInclude Include="ShadowCasterTypes.h" />
     <ClInclude Include="VideoAsset.h" />
     <ClInclude Include="LutAsset.h" />
     <ClInclude Include="DamageHighlightComponent.h" />
@@ -804,6 +806,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClCompile Include="CommandCreateGameObject.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentVideo.cpp" />
+    <ClCompile Include="ShadowCasterCullingPass.cpp" />
     <ClCompile Include="VideoAsset.cpp" />
     <ClCompile Include="ComponentSoundListener.cpp" />
     <ClCompile Include="ComponentSoundSource.cpp" />

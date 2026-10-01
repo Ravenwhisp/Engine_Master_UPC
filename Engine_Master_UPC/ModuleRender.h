@@ -17,6 +17,7 @@
 #include "ShadowMapPass.h"
 #include "DepthReductionPass.h"
 #include "ShadowFrustumComputePass.h"
+#include "ShadowCasterCullingPass.h"
 #include "SSAOTypes.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
@@ -115,6 +116,7 @@ private:
     std::unique_ptr<LightCullingPass> m_lightCullingPass;
     std::unique_ptr<DepthReductionPass> m_depthReductionPass;
     std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
+    std::unique_ptr<ShadowCasterCullingPass> m_shadowCasterCullingPass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<VolumetricFogComputePass> m_volumetricFogComputePass;
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;

@@ -901,6 +901,7 @@
     </ClCompile>
     <ClCompile Include="LineRendererComponent.cpp" />
     <ClCompile Include="LineRendererPass.cpp" />
+    <ClCompile Include="ShadowCasterCullingPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1937,6 +1938,8 @@
     <ClInclude Include="ShadowData.hlsli" />
     <ClInclude Include="ShadowSamplers.h" />
     <ClInclude Include="CascadeShadowMaps.hlsli" />
+    <ClInclude Include="ShadowCasterTypes.h" />
+    <ClInclude Include="ShadowCasterCullingPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
