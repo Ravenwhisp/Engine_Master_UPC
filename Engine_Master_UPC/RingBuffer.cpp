@@ -17,6 +17,11 @@ RingBuffer::~RingBuffer() {
 
 D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size)
 {
+    return allocateWithInfo(srcData, size).gpuAddress;
+}
+
+RingBufferAllocation RingBuffer::allocateWithInfo(const void* srcData, size_t size)
+{
     // Real number of valid bytes the caller provided. Never copy more than
     // this: the aligned memcpy below would otherwise read past srcData into
     // neighbouring heap pages and trigger random 0xC0000005 access violations
@@ -28,56 +33,79 @@ D3D12_GPU_VIRTUAL_ADDRESS RingBuffer::allocate(const void* srcData, size_t size)
     size = alignUp(size, m_alignment);
 
     if (size == 0 || size > m_totalMemorySize)
-        return 0;
+        return {};
 
     const size_t availableSize = m_totalMemorySize - m_usedMemorySize;
     if (size > availableSize)
-        return 0;
+        return {};
 
     size_t allocationOffset = 0;
     size_t reservationSize = size;
 
     // Check if we need to wrap around
-    if (m_tail >= m_head) {
+    if (m_tail >= m_head)
+    {
         // Case 1: tail >= head (normal case, no wrap yet)
-        if (m_tail + size <= m_totalMemorySize) {
+        if (m_tail + size <= m_totalMemorySize)
+        {
             // Fits in remaining space at the end
             allocationOffset = m_tail;
             m_tail = (m_tail + size) % m_totalMemorySize;
         }
-        else {
+        else
+        {
             // Need to wrap to beginning
             const size_t wrapPadding = m_totalMemorySize - m_tail;
-            if (size <= m_head && wrapPadding + size <= availableSize) {
+
+            if (size <= m_head && wrapPadding + size <= availableSize)
+            {
                 // Can wrap if enough space at beginning
                 allocationOffset = 0;
                 m_tail = size;
                 reservationSize += wrapPadding;
             }
-            else {
+            else
+            {
                 // Not enough space
-                return 0;
+                return {};
             }
         }
     }
-    else {
+    else
+    {
         // Case 2: tail < head (we've already wrapped)
-        if (m_tail + size <= m_head) {
+        if (m_tail + size <= m_head)
+        {
             // Fits in space between tail and head
             allocationOffset = m_tail;
             m_tail += size;
         }
-        else {
+        else
+        {
             // Not enough space
-            return 0;
+            return {};
         }
     }
 
     memcpy(m_mappedData + allocationOffset, srcData, dataSize);
+
     m_usedMemorySize += reservationSize;
     m_allocationQueue.push_back({ 0, allocationOffset, reservationSize });
     ++m_pendingAllocationCount;
-    return m_Resource->GetGPUVirtualAddress() + allocationOffset;
+
+    RingBufferAllocation allocation{};
+    allocation.resource = m_Resource.Get();
+    allocation.offset = allocationOffset;
+    allocation.size = dataSize;
+    allocation.gpuAddress = m_Resource->GetGPUVirtualAddress() + allocationOffset;
+
+    assert(allocation.gpuAddress == allocation.resource->GetGPUVirtualAddress() + allocation.offset);
+
+    const UINT64 resourceSize = allocation.resource->GetDesc().Width;
+    assert(allocation.offset <= resourceSize);
+    assert(allocation.size <= resourceSize - allocation.offset);
+
+    return allocation;
 }
 
 void RingBuffer::commitPendingAllocations(uint64_t fenceValue)
