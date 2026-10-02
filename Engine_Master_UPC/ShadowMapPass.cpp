@@ -14,11 +14,6 @@
 #include "Transform.h"
 #include "RingBuffer.h"
 
-#include "MeshRenderer.h"
-#include "BasicMesh.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "Skin.h"
 #include "ShadowFrustumComputePass.h"
 #include "ShadowCasterCullingPass.h"
 #include "ShadowCasterTypes.h"
@@ -27,88 +22,12 @@
 #include <d3dcompiler.h>
 #include "PlatformHelpers.h"
 
-#include <cmath>
 #include <algorithm>
-#include <limits>
 
 namespace
 {
     constexpr D3D12_RESOURCE_STATES CASCADE_SHADER_RESOURCE_STATE =
         static_cast<D3D12_RESOURCE_STATES>(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
-
-    bool buildConservativeLightViewProjection(const RenderContext& ctx, const Vector3& lightDirection, float sunDistance, Matrix& lightViewProjection)
-    {
-        const Matrix inverseViewProjection = (ctx.view * ctx.projection).Invert();
-
-        const Vector4 clipCorners[8] =
-        {
-            Vector4(-1.0f, -1.0f, 0.0f, 1.0f), Vector4(1.0f, -1.0f, 0.0f, 1.0f),
-            Vector4(-1.0f,  1.0f, 0.0f, 1.0f), Vector4(1.0f,  1.0f, 0.0f, 1.0f),
-            Vector4(-1.0f, -1.0f, 1.0f, 1.0f), Vector4(1.0f, -1.0f, 1.0f, 1.0f),
-            Vector4(-1.0f,  1.0f, 1.0f, 1.0f), Vector4(1.0f,  1.0f, 1.0f, 1.0f)
-        };
-
-        Vector3 worldCorners[8];
-        Vector3 center = Vector3::Zero;
-
-        for (uint32_t i = 0; i < 8; ++i)
-        {
-            Vector4 world = Vector4::Transform(clipCorners[i], inverseViewProjection);
-            if (std::abs(world.w) <= 0.000001f) return false;
-
-            world /= world.w;
-            worldCorners[i] = Vector3(world.x, world.y, world.z);
-            center += worldCorners[i];
-        }
-
-        center /= 8.0f;
-
-        float radius = 0.0f;
-        for (const Vector3& corner : worldCorners) radius = std::max(radius, Vector3::Distance(center, corner));
-
-        if (radius <= 0.0001f) return false;
-
-        Vector3 direction = lightDirection;
-        direction.Normalize();
-
-        const Vector3 up = std::abs(direction.y) > 0.95f ? Vector3::Forward : Vector3::Up;
-        const Vector3 eye = center - direction * (radius + sunDistance);
-
-        const Matrix lightView = Matrix::CreateLookAt(eye, center, up);
-        const Matrix lightProjection = Matrix::CreateOrthographic(radius * 2.0f, radius * 2.0f, 0.0f, radius * 2.0f + sunDistance);
-
-        lightViewProjection = lightView * lightProjection;
-        return true;
-    }
-
-    bool intersectsLightFrustum(const MeshRenderer& renderer, const Matrix& lightViewProjection)
-    {
-        if (renderer.getSkin() != nullptr) return true;
-
-        const Vector3* points = renderer.getBoundingBox().getPoints();
-
-        bool outsideLeft = true;
-        bool outsideRight = true;
-        bool outsideBottom = true;
-        bool outsideTop = true;
-        bool outsideNear = true;
-        bool outsideFar = true;
-
-        for (uint32_t i = 0; i < 8; ++i)
-        {
-            const Vector4 clip = Vector4::Transform(Vector4(points[i].x, points[i].y, points[i].z, 1.0f), lightViewProjection);
-
-            outsideLeft &= clip.x < -clip.w;
-            outsideRight &= clip.x > clip.w;
-            outsideBottom &= clip.y < -clip.w;
-            outsideTop &= clip.y > clip.w;
-            outsideNear &= clip.z < 0.0f;
-            outsideFar &= clip.z > clip.w;
-        }
-
-        return !(outsideLeft || outsideRight || outsideBottom || outsideTop || outsideNear || outsideFar);
-    }
 
 }
 
@@ -346,53 +265,6 @@ void ShadowMapPass::prepareDirectionalShadowData(const RenderContext& ctx, const
     }
 }
 
-void ShadowMapPass::buildShadowCasterList(const RenderContext& ctx, const LightComponent& light)
-{
-    m_shadowCasters.clear();
-
-    const GameObject* owner = light.getOwner();
-    const Transform* transform = owner != nullptr ? owner->GetTransform() : nullptr;
-
-    if (transform == nullptr) return;
-
-    Vector3 lightDirection = transform->getForward();
-    if (lightDirection.LengthSquared() <= 0.000001f) return;
-
-    Matrix lightViewProjection;
-
-    if (!buildConservativeLightViewProjection(ctx, lightDirection, 20.0f, lightViewProjection))
-    {
-        return;
-    }
-
-    for (MeshRenderer* renderer : app->getModuleScene()->getMeshRenderers())
-    {
-        if (renderer == nullptr || !renderer->isActive() || !renderer->hasMesh()) continue;
-
-        GameObject* rendererOwner = renderer->getOwner();
-        if (rendererOwner == nullptr || !rendererOwner->IsActiveInWindowHierarchy() || renderer->getTransform() == nullptr) continue;
-
-        if (intersectsLightFrustum(*renderer, lightViewProjection)) m_shadowCasters.push_back(renderer);
-    }
-
-    //temp
-    char buffer[128];
-    sprintf_s(buffer, "[Shadow Culling] Total renderers: %zu | Casters: %zu\n",
-        app->getModuleScene()->getMeshRenderers().size(), m_shadowCasters.size());
-    OutputDebugStringA(buffer);
-
-}
-
-void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex)
-{
-    (void)cascadeIndex;
-
-    for (MeshRenderer* renderer : m_shadowCasters)
-    {
-        if (renderer != nullptr) renderMeshRenderer(commandList, *renderer);
-    }
-}
-
 void ShadowMapPass::renderCastersIndirect(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex)
 {
     if (commandList == nullptr || m_shadowCasterCullingPass == nullptr || m_commandSignature == nullptr) return;
@@ -408,78 +280,6 @@ void ShadowMapPass::renderCastersIndirect(ID3D12GraphicsCommandList4* commandLis
 
     commandList->ExecuteIndirect(m_commandSignature.Get(), maxCommandCount, argumentBuffer, 0, countBuffer, countBufferOffset);
 }
-
-void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer)
-{
-    GameObject* owner = renderer.getOwner();
-
-    if (owner == nullptr || !owner->IsActiveInWindowHierarchy())
-    {
-        return;
-    }
-
-    if (!renderer.isActive())
-    {
-        return;
-    }
-
-    Transform* transform = renderer.getTransform();
-
-    if (transform == nullptr)
-    {
-        return;
-    }
-
-    const std::shared_ptr<BasicMesh>& mesh = renderer.getMesh();
-
-    if (mesh == nullptr)
-    {
-        return;
-    }
-
-    const Skin* skin = renderer.getSkin();
-
-    const VertexBuffer* gpuSkinnedVB = skin != nullptr ? skin->getCurrentGpuSkinnedVertexBuffer() : nullptr;
-    const VertexBuffer* cpuSkinnedVB = skin != nullptr && skin->isCpuSkinningFallbackEnabled() ? skin->getCpuSkinnedVertexBuffer() : nullptr;
-    const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
-
-    const bool useGpuSkinnedVB = gpuSkinnedVB != nullptr;
-    const bool useCpuSkinnedVB = !useGpuSkinnedVB && cpuSkinnedVB != nullptr;
-    const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
-
-    const VertexBuffer* activeVB = useGpuSkinnedVB ? gpuSkinnedVB : useCpuSkinnedVB ? cpuSkinnedVB : staticVB;
-
-    if (activeVB == nullptr)
-    {
-        return;
-    }
-
-    const Matrix model = useWorldSpaceSkinnedVB ? Matrix::Identity : transform->getGlobalMatrix();
-
-    ShadowDrawConstants constants{};
-    constants.model = model.Transpose();
-
-    commandList->SetGraphicsRoot32BitConstants(0, sizeof(ShadowDrawConstants) / sizeof(UINT32), &constants, 0);
-
-    D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
-    commandList->IASetVertexBuffers(0, 1, &vbv);
-
-    if (!mesh->hasIndexBuffer())
-    {
-        return;
-    }
-
-    D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
-    commandList->IASetIndexBuffer(&ibv);
-
-    const std::vector<Submesh>& submeshes = mesh->getSubmeshes();
-
-    for (const Submesh& submesh : submeshes)
-    {
-        commandList->DrawIndexedInstanced(submesh.indexCount, 1, submesh.indexStart, 0, 0);
-    }
-}
-
 
 void ShadowMapPass::transitionCascadeShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
 {
@@ -521,12 +321,10 @@ void ShadowMapPass::prepare(const RenderContext& ctx)
 
     if (light == nullptr)
     {
-        m_shadowCasters.clear();
         prepareDisabledShadowData(ctx);
         return;
     }
 
-    buildShadowCasterList(ctx, *light);
     prepareDirectionalShadowData(ctx, *light);
 }
 
