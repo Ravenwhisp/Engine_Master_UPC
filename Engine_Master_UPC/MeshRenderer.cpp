@@ -76,6 +76,14 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset, bool recalculateBounds)
     }
 }
 
+void MeshRenderer::setCastShadows(bool castShadows)
+{
+    if (m_castShadows == castShadows) return;
+
+    m_castShadows = castShadows;
+    markShadowCandidateDirty();
+}
+
 void MeshRenderer::recompute()
 {
     m_triangles = 0;
@@ -133,6 +141,7 @@ void MeshRenderer::updateBoundingBoxWorld()
     }
 
     m_boundingBox.update(transform->getGlobalMatrix());
+    markShadowCandidateDirty();
 }
 
 void MeshRenderer::addMaterial(MaterialAsset& materialAsset)
@@ -501,6 +510,7 @@ void MeshRenderer::serialize(IArchive& archive)
 void MeshRenderer::setMeshReference(AssetId& meshRef)
 {
     m_meshAsset = meshRef;
+    markShadowCandidateDirty();
 }
 
 void MeshRenderer::addMaterialReference(AssetId& materialRef)
@@ -508,11 +518,18 @@ void MeshRenderer::addMaterialReference(AssetId& materialRef)
     m_materialAssets.push_back(materialRef);
 }
 
+void MeshRenderer::setSkinReference(AssetId& skinUID)
+{
+    m_skinAsset = skinUID;
+    markShadowCandidateDirty();
+}
+
 Skin& MeshRenderer::ensureSkin()
 {
     if (!m_skin)
     {
         m_skin = std::make_unique<Skin>();
+        markShadowCandidateDirty();
     }
 
     return *m_skin;
@@ -520,19 +537,19 @@ Skin& MeshRenderer::ensureSkin()
 
 void MeshRenderer::clearSkin()
 {
-    if (m_skin)
-    {
-        m_skin->cleanUp();
-    }
+    if (!m_skin) return;
 
+    m_skin->cleanUp();
     m_skin.reset();
+
+    markShadowCandidateDirty();
 }
 
-void MeshRenderer::fixReferences(
-    const SceneReferenceResolver& resolver)
+void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
 {
     m_mesh = nullptr;
     m_materials.clear();
+    markShadowCandidateDirty();
 
     if (m_meshAsset.isValid())
     {
