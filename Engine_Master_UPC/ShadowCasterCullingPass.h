@@ -87,7 +87,11 @@ private:
     void resetRegistry();
     void initializeRegistry();
     void processDirtyQueue();
-    
+
+    bool buildPersistentCandidate(uint32_t slotIndex, ShadowCasterCandidateGPU& candidate) const;
+    void preparePersistentCandidateBuffer(const RenderContext& ctx);
+    void uploadPendingPersistentCandidates(ID3D12GraphicsCommandList4* commandList);
+    void transitionPersistentCandidateBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
 
     void ensureVisibilityMaskCapacity(uint32_t requiredCount);
     void ensureIndirectCommandCapacity(uint32_t requiredCount);
@@ -151,5 +155,18 @@ private:
     uint32_t m_candidateSlotHighWaterMark = 0;
     uint32_t m_liveCandidateSlotCount = 0;
     uint64_t m_registryId = 0;
+
+    ComPtr<ID3D12Resource> m_persistentCandidateBuffer;
+    uint32_t m_persistentCandidateCapacity = 0;
+    D3D12_RESOURCE_STATES m_persistentCandidateBufferState = D3D12_RESOURCE_STATE_COPY_DEST;
+
+    ID3D12Resource* m_pendingPersistentUploadResource = nullptr;
+    uint64_t m_pendingPersistentUploadOffset = 0;
+    uint64_t m_pendingPersistentUploadSize = 0;
+
+    bool m_persistentCandidateNeedsFullUpload = true;
+    uint32_t m_pendingPersistentCandidateCount = 0;
+    uint32_t m_pendingPersistentPopulatedCount = 0;
+
 
 };
