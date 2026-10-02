@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <chrono>
 
 namespace
 {
@@ -68,23 +69,73 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
         return;
     }
 
+    using Clock = std::chrono::steady_clock;
+
+    m_preparationStats = {};
+
+    const auto totalStart = Clock::now();
+
     m_candidateBufferAddress = 0;
     m_candidateCount = 0;
 
+    const auto buildStart = Clock::now();
+
     buildCandidates();
+
+    const auto buildEnd = Clock::now();
 
     m_candidateCount = static_cast<uint32_t>(m_candidates.size());
 
+    m_preparationStats.buildMs = std::chrono::duration<float, std::milli>(buildEnd - buildStart).count();
+    m_preparationStats.candidateCount = m_candidateCount;
+    m_preparationStats.uploadBytes = static_cast<uint64_t>(m_candidates.size()) * sizeof(ShadowCasterCandidateGPU);
+
     if (m_candidateCount > 0 && ctx.ringBuffer != nullptr)
     {
+        const auto capacityStart = Clock::now();
+
         ensureVisibilityMaskCapacity(m_candidateCount);
         ensureIndirectCommandCapacity(m_candidateCount);
 
+        const auto capacityEnd = Clock::now();
+
+        m_preparationStats.capacityMs = std::chrono::duration<float, std::milli>(capacityEnd - capacityStart).count();
+
+        const auto uploadStart = Clock::now();
+
         m_candidateBufferAddress = ctx.ringBuffer->allocate(m_candidates.data(), m_candidates.size() * sizeof(ShadowCasterCandidateGPU));
+
+        const auto uploadEnd = Clock::now();
+
+        m_preparationStats.uploadMs = std::chrono::duration<float, std::milli>(uploadEnd - uploadStart).count();
     }
+
+    const auto totalEnd = Clock::now();
+
+    m_preparationStats.totalMs = std::chrono::duration<float, std::milli>(totalEnd - totalStart).count();
 
     m_candidateFrameIndex = frameIndex;
     m_candidateFenceValue = fenceValue;
+
+    ++m_preparationProfileLogCounter;
+
+    if (m_preparationProfileLogCounter >= 120)
+    {
+        DEBUG_LOG(
+            "[Shadow Candidates] Total %.3f ms | Build %.3f ms | Capacity %.3f ms | Upload %.3f ms | Renderers %u/%u | Skinned %u | Candidates %u | Skinned Candidates %u | Upload %.2f MiB",
+            m_preparationStats.totalMs,
+            m_preparationStats.buildMs,
+            m_preparationStats.capacityMs,
+            m_preparationStats.uploadMs,
+            m_preparationStats.eligibleRenderers,
+            m_preparationStats.visitedRenderers,
+            m_preparationStats.skinnedRenderers,
+            m_preparationStats.candidateCount,
+            m_preparationStats.skinnedCandidateCount,
+            static_cast<double>(m_preparationStats.uploadBytes) / (1024.0 * 1024.0));
+
+        m_preparationProfileLogCounter = 0;
+    }
 }
 
 void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -253,6 +304,8 @@ void ShadowCasterCullingPass::buildCandidates()
 
     for (MeshRenderer* renderer : app->getModuleScene()->getMeshRenderers())
     {
+        ++m_preparationStats.visitedRenderers;
+
         if (renderer == nullptr || !renderer->isActive() || !renderer->hasMesh() || !renderer->getCastShadows()) continue;
 
         GameObject* owner = renderer->getOwner();
@@ -277,6 +330,14 @@ void ShadowCasterCullingPass::buildCandidates()
         const VertexBuffer* activeVB = useGpuSkinnedVB ? gpuSkinnedVB : useCpuSkinnedVB ? cpuSkinnedVB : staticVB;
 
         if (activeVB == nullptr) continue;
+
+        ++m_preparationStats.eligibleRenderers;
+
+        if (useWorldSpaceSkinnedVB)
+        {
+            ++m_preparationStats.skinnedRenderers;
+            m_preparationStats.skinnedCandidateCount += static_cast<uint32_t>(mesh->getSubmeshes().size());
+        }
 
         const Matrix model = useWorldSpaceSkinnedVB ? Matrix::Identity : transform->getGlobalMatrix();
         const Matrix modelTranspose = model.Transpose();

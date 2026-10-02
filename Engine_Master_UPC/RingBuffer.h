@@ -13,6 +13,16 @@ struct AllocationInfo
     size_t size;
 };
 
+struct RingBufferAllocation
+{
+    ID3D12Resource* resource = nullptr;
+    D3D12_GPU_VIRTUAL_ADDRESS gpuAddress = 0;
+    size_t offset = 0;
+    size_t size = 0;
+
+    bool isValid() const { return resource != nullptr && gpuAddress != 0 && size > 0; }
+};
+
 class RingBuffer : public Buffer 
 {
 public:
@@ -25,6 +35,9 @@ public:
 
     D3D12_GPU_VIRTUAL_ADDRESS allocate(const void* data, size_t size);
     D3D12_GPU_VIRTUAL_ADDRESS allocate(const void* data, size_t size, uint64_t) { return allocate(data, size); }
+
+    RingBufferAllocation allocateWithInfo(const void* data, size_t size);
+
     void commitPendingAllocations(uint64_t fenceValue);
     void free(uint64_t completedFenceValue);
     void reset();

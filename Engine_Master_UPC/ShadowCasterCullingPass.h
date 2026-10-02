@@ -20,21 +20,32 @@ public:
     ShadowCasterCullingPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass);
     ~ShadowCasterCullingPass() override = default;
 
+    struct PreparationStats
+    {
+        float buildMs = 0.0f;
+        float capacityMs = 0.0f;
+        float uploadMs = 0.0f;
+        float totalMs = 0.0f;
+
+        uint32_t visitedRenderers = 0;
+        uint32_t eligibleRenderers = 0;
+        uint32_t skinnedRenderers = 0;
+        uint32_t candidateCount = 0;
+        uint32_t skinnedCandidateCount = 0;
+
+        uint64_t uploadBytes = 0;
+    };
+
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
 
     D3D12_GPU_VIRTUAL_ADDRESS getCandidateBufferAddress() const { return m_candidateBufferAddress; }
     uint32_t getCandidateCount() const { return m_candidateCount; }
 
-    ID3D12Resource* getIndirectCommandBuffer(uint32_t cascadeIndex) const
-    {
-        return cascadeIndex < MAX_SHADOW_CASCADES ? m_indirectCommandBuffers[cascadeIndex].Get() : nullptr;
-    }
+    ID3D12Resource* getIndirectCommandBuffer(uint32_t cascadeIndex) const { return cascadeIndex < MAX_SHADOW_CASCADES ? m_indirectCommandBuffers[cascadeIndex].Get() : nullptr; }
+    ID3D12Resource* getCascadeCountBuffer() const { return m_cascadeCountBuffer.Get(); }
 
-    ID3D12Resource* getCascadeCountBuffer() const
-    {
-        return m_cascadeCountBuffer.Get();
-    }
+    const PreparationStats& getPreparationStats() const { return m_preparationStats; }
 
 private:
 
@@ -75,4 +86,7 @@ private:
     std::array<ComPtr<ID3D12Resource>, MAX_SHADOW_CASCADES> m_indirectCommandBuffers;
     std::array<D3D12_RESOURCE_STATES, MAX_SHADOW_CASCADES> m_indirectCommandBufferStates{};
     uint32_t m_indirectCommandCapacity = 0;
+
+    PreparationStats m_preparationStats{};
+    uint32_t m_preparationProfileLogCounter = 0;
 };
