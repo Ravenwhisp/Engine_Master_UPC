@@ -40,7 +40,6 @@ private:
     void createRootSignature();
     void createPipelineState();
     void createCounterResources();
-    void createDebugReadbackBuffers();
 
     void buildCandidates();
     void ensureVisibilityMaskCapacity(uint32_t requiredCount);
@@ -49,9 +48,6 @@ private:
 
     void transitionVisibilityMaskBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
     void transitionCascadeCountBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
-
-    void refreshDebugReadback();
-    void recordDebugReadback(ID3D12GraphicsCommandList4* commandList);
 
 private:
     ComPtr<ID3D12Device4> m_device;
@@ -72,11 +68,6 @@ private:
     ComPtr<ID3D12Resource> m_cascadeCountBuffer;
     ComPtr<ID3D12Resource> m_zeroCountUploadBuffer;
     D3D12_RESOURCE_STATES m_cascadeCountBufferState = D3D12_RESOURCE_STATE_COPY_DEST;
-
-    std::vector<ComPtr<ID3D12Resource>> m_debugReadbackBuffers;
-    std::vector<bool> m_debugReadbackPending;
-
-    bool m_captureDebugReadback = false;
 
     std::array<ComPtr<ID3D12Resource>, MAX_SHADOW_CASCADES> m_indirectCommandBuffers;
     std::array<D3D12_RESOURCE_STATES, MAX_SHADOW_CASCADES> m_indirectCommandBufferStates{};
