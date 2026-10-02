@@ -2,6 +2,7 @@
 #include "ShadowCasterCullingPass.h"
 
 #include "Application.h"
+#include "ModuleD3D12.h"
 #include "ModuleResources.h"
 #include "ModuleScene.h"
 #include "RenderContext.h"
@@ -52,6 +53,21 @@ ShadowCasterCullingPass::ShadowCasterCullingPass(ComPtr<ID3D12Device4> device, S
 
 void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
 {
+    ModuleD3D12* d3d12 = app->getModuleD3D12();
+
+    if (d3d12 == nullptr)
+    {
+        return;
+    }
+
+    const uint32_t frameIndex = d3d12->getCurrentFrameIndex();
+    const uint64_t fenceValue = d3d12->getCurrentFrame();
+
+    if (m_candidateFrameIndex == frameIndex && m_candidateFenceValue == fenceValue)
+    {
+        return;
+    }
+
     m_candidateBufferAddress = 0;
     m_candidateCount = 0;
 
@@ -59,12 +75,16 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
 
     m_candidateCount = static_cast<uint32_t>(m_candidates.size());
 
-    if (m_candidateCount == 0 || ctx.ringBuffer == nullptr) return;
+    if (m_candidateCount > 0 && ctx.ringBuffer != nullptr)
+    {
+        ensureVisibilityMaskCapacity(m_candidateCount);
+        ensureIndirectCommandCapacity(m_candidateCount);
 
-    ensureVisibilityMaskCapacity(m_candidateCount);
-    ensureIndirectCommandCapacity(m_candidateCount);
+        m_candidateBufferAddress = ctx.ringBuffer->allocate(m_candidates.data(), m_candidates.size() * sizeof(ShadowCasterCandidateGPU));
+    }
 
-    m_candidateBufferAddress = ctx.ringBuffer->allocate(m_candidates.data(), m_candidates.size() * sizeof(ShadowCasterCandidateGPU));
+    m_candidateFrameIndex = frameIndex;
+    m_candidateFenceValue = fenceValue;
 }
 
 void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -233,7 +253,7 @@ void ShadowCasterCullingPass::buildCandidates()
 
     for (MeshRenderer* renderer : app->getModuleScene()->getMeshRenderers())
     {
-        if (renderer == nullptr || !renderer->isActive() || !renderer->hasMesh()) continue;
+        if (renderer == nullptr || !renderer->isActive() || !renderer->hasMesh() || !renderer->getCastShadows()) continue;
 
         GameObject* owner = renderer->getOwner();
         Transform* transform = renderer->getTransform();

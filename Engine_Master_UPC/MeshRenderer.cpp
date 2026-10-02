@@ -35,6 +35,7 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     }
 
     newMeshRenderer->m_renderMode = m_renderMode;
+    newMeshRenderer->m_castShadows = m_castShadows;
 
     newMeshRenderer->m_boundingBox.setBounds(
         m_boundingBox.getMin(),
@@ -178,6 +179,13 @@ void MeshRenderer::drawUi()
     {
         m_renderMode =
             static_cast<RenderMode>(typeIndex);
+    }
+
+    bool castShadows = m_castShadows;
+
+    if (ImGui::Checkbox("Cast Shadows", &castShadows))
+    {
+        setCastShadows(castShadows);
     }
 
     ImGui::Button("Drop Mesh Here");
@@ -420,6 +428,8 @@ void MeshRenderer::serialize(IArchive& archive)
         archive.serialize(renderMode, "Render Mode");
         m_renderMode = static_cast<RenderMode>(renderMode);
 
+        archive.serialize(m_castShadows, "Cast Shadows");
+
         JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
 
         if (!jsonArchive || jsonArchive->hasKey("BoundingBox"))
@@ -471,6 +481,8 @@ void MeshRenderer::serialize(IArchive& archive)
 
         UINT renderMode = static_cast<UINT>(m_renderMode);
         archive.serialize(renderMode, "Render Mode");
+
+        archive.serialize(m_castShadows, "Cast Shadows");
 
         archive.beginObject("BoundingBox");
 

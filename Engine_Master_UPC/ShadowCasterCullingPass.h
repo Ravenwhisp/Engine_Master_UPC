@@ -60,6 +60,8 @@ private:
 
     D3D12_GPU_VIRTUAL_ADDRESS m_candidateBufferAddress = 0;
     uint32_t m_candidateCount = 0;
+    uint32_t m_candidateFrameIndex = UINT32_MAX;
+    uint64_t m_candidateFenceValue = UINT64_MAX;
 
     ComPtr<ID3D12Resource> m_visibilityMaskBuffer;
     uint32_t m_visibilityMaskCapacity = 0;
