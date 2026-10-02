@@ -68,6 +68,7 @@ private:
         bool dirtyQueued = false;
         bool skinned = false;
         uint64_t lastProcessedRevision = 0;
+        uint32_t skinnedListIndex = UINT32_MAX;
     };
 
     struct ShadowCandidateSlot
@@ -95,8 +96,13 @@ private:
     void transitionVisibilityMaskBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
     void transitionCascadeCountBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
 
+    void reconcileCandidateSlots(uint32_t entryIndex, ShadowCasterRegistryEntry& entry);
+    void reconcileSkinnedMembership(const ShadowCasterHandle& handle, ShadowCasterRegistryEntry& entry);
+
+    void releaseCandidateSlot(uint32_t slotIndex);
     void releaseCandidateSlots(ShadowCasterRegistryEntry& entry);
-    void removeSkinnedHandle(const ShadowCasterHandle& handle);
+    void removeSkinnedHandle(ShadowCasterRegistryEntry& entry);
+
     uint32_t allocateCandidateSlot(uint32_t ownerEntryIndex, uint32_t submeshIndex);
 
 private:
