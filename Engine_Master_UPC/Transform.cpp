@@ -128,9 +128,18 @@ void Transform::setRotationEuler(const Vector3& eulerDegrees)
 void Transform::markDirty()
 {
     m_dirty = true;
-    for (auto child : m_children)
+
+    if (m_owner != nullptr)
     {
-        child->GetTransform()->markDirty();
+        m_owner->onTransformDirty();
+    }
+
+    for (GameObject* child : m_children)
+    {
+        if (child != nullptr && child->GetTransform() != nullptr)
+        {
+            child->GetTransform()->markDirty();
+        }
     }
 }
 
@@ -184,6 +193,22 @@ void Transform::calculateMatrix() const
     m_normalMatrix = m_normalMatrix.Transpose();
 
     m_dirty = false;
+}
+
+void Transform::setRoot(Transform* root)
+{
+    if (m_root == root)
+    {
+        return;
+    }
+
+    m_root = root;
+    markDirty();
+
+    if (m_owner != nullptr)
+    {
+        m_owner->onHierarchyActiveChange();
+    }
 }
 
 void Transform::removeChild(UID id)

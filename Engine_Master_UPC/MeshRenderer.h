@@ -62,6 +62,9 @@ public:
     void drawUi() override;
     void debugDraw() override;
     void onTransformChange() override;
+    void onTransformDirty() override;
+    void onActiveChange() override;
+    void onHierarchyActiveChange() override;
     void update() override;
 
     void registerShadowCaster();
@@ -109,7 +112,7 @@ private:
     void recompute();
     void recalculateBoundingBox();
     void updateBoundingBoxWorld();
-    void markShadowCandidateDirty() { ++m_shadowCandidateRevision; }
+    void markShadowCandidateDirty();
 
     std::shared_ptr<BasicMesh> m_mesh;
     std::unique_ptr<Skin> m_skin;

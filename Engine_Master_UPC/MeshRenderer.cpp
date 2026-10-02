@@ -395,6 +395,21 @@ void MeshRenderer::onTransformChange()
     updateBoundingBoxWorld();
 }
 
+void MeshRenderer::onTransformDirty()
+{
+    markShadowCandidateDirty();
+}
+
+void MeshRenderer::onActiveChange()
+{
+    markShadowCandidateDirty();
+}
+
+void MeshRenderer::onHierarchyActiveChange()
+{
+    markShadowCandidateDirty();
+}
+
 void MeshRenderer::update()
 {
     if (!m_owner || !m_owner->GetTransform())
@@ -408,6 +423,23 @@ void MeshRenderer::update()
             m_owner,
             *this
         );
+    }
+}
+
+void MeshRenderer::markShadowCandidateDirty()
+{
+    ++m_shadowCandidateRevision;
+
+    if (!m_shadowCasterHandle.isFormed() || app == nullptr || app->getModuleRender() == nullptr)
+    {
+        return;
+    }
+
+    ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
+
+    if (shadowCasterCullingPass != nullptr)
+    {
+        shadowCasterCullingPass->markRendererDirty(m_shadowCasterHandle);
     }
 }
 
