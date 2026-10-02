@@ -37,6 +37,7 @@ public:
     }
 
 private:
+
     void createRootSignature();
     void createPipelineState();
     void createCounterResources();

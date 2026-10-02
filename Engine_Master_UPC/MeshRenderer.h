@@ -9,6 +9,7 @@
 #include "Skin.h"
 
 #include <memory>
+#include <cstdint>
 
 class MaterialAsset;
 
@@ -71,13 +72,11 @@ public:
     void addMaterialReference(AssetId& materialRef);
     std::vector<AssetId>& getMaterialsReference() { return m_materialAssets; }
 
-    IDebugDrawable* getAsDebugDrawable()
-    {
-        return static_cast<IDebugDrawable*>(this);
-    }
+    IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
 
     AssetId& getSkinReference() { return m_skinAsset; }
-    void setSkinReference(AssetId& skinUID) { m_skinAsset = skinUID; }
+
+    void setSkinReference(AssetId& skinUID);
 
     bool hasSkin() const { return m_skin != nullptr; }
 
@@ -93,12 +92,16 @@ public:
     RenderMode getRenderMode() const { return m_renderMode; }
 
     bool getCastShadows() const { return m_castShadows; }
-    void setCastShadows(bool castShadows) { m_castShadows = castShadows; }
+
+    void setCastShadows(bool castShadows);
+
+    uint64_t getShadowCandidateRevision() const { return m_shadowCandidateRevision; }
 
 private:
     void recompute();
     void recalculateBoundingBox();
     void updateBoundingBoxWorld();
+    void markShadowCandidateDirty() { ++m_shadowCandidateRevision; }
 
     std::shared_ptr<BasicMesh> m_mesh;
     std::unique_ptr<Skin> m_skin;
@@ -118,6 +121,8 @@ private:
     bool m_isCulled = false;
 
     bool m_castShadows = true;
+
+    uint64_t m_shadowCandidateRevision = 1;
 
     RenderMode m_renderMode = RenderMode::DEFAULT;
 };
