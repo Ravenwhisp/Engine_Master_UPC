@@ -15,9 +15,8 @@ using Microsoft::WRL::ComPtr;
 
 class LightComponent;
 class MeshRenderer;
-
 class ShadowFrustumComputePass;
-
+class ShadowCasterCullingPass;
 
 class ShadowMapPass : public IRenderPass, public IDebugDrawable
 {
@@ -29,7 +28,7 @@ public:
     };
 
 public:
-    ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass);
+    ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass, ShadowCasterCullingPass* shadowCasterCullingPass);
     ~ShadowMapPass() override = default;
 
     void prepare(const RenderContext& ctx) override;
@@ -44,6 +43,8 @@ public:
 private:
     void createRootSignature();
     void createPipelineState();
+    void createCommandSignature();
+    void renderCastersIndirect(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex);
 
     const LightComponent* findMainShadowCastingDirectionalLight() const;
     void prepareDisabledShadowData(const RenderContext& ctx);
@@ -69,6 +70,7 @@ private:
 private:
     ComPtr<ID3D12Device4> m_device;
     ShadowFrustumComputePass* m_shadowFrustumComputePass = nullptr;
+    ShadowCasterCullingPass* m_shadowCasterCullingPass = nullptr;
 
     static constexpr uint32_t SHADOW_VIEW_COUNT = 2;
 
@@ -82,6 +84,7 @@ private:
     uint32_t m_activeCascadeCount = 0;
 
     ComPtr<ID3D12RootSignature> m_rootSignature;
+    ComPtr<ID3D12CommandSignature> m_commandSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;
 
     D3D12_VIEWPORT m_viewport{};
