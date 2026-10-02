@@ -9,10 +9,13 @@
 #include <wrl/client.h>
 #include <vector>
 #include <array>
+#include <unordered_map>
 
 using Microsoft::WRL::ComPtr;
 
 class ShadowFrustumComputePass;
+class MeshRenderer;
+class Scene;
 
 class ShadowCasterCullingPass : public IRenderPass
 {
@@ -49,11 +52,44 @@ public:
 
 private:
 
+    struct ShadowCasterHandle
+    {
+        uint32_t index = UINT32_MAX;
+        uint32_t generation = 0;
+
+        bool isFormed() const { return index != UINT32_MAX; }
+    };
+
+    struct ShadowCasterRegistryEntry
+    {
+        MeshRenderer* renderer = nullptr;
+        uint32_t generation = 1;
+        std::vector<uint32_t> candidateSlots;
+
+        bool alive = false;
+        bool dirtyQueued = false;
+        bool skinned = false;
+    };
+
+    struct ShadowCandidateSlot
+    {
+        uint32_t ownerEntryIndex = UINT32_MAX;
+        uint32_t submeshIndex = UINT32_MAX;
+        bool alive = false;
+    };
+
     void createRootSignature();
     void createPipelineState();
     void createCounterResources();
 
     void buildCandidates();
+    void ensureRegistryBootstrap();
+    void resetRegistry();
+    void initializeRegistry();
+    ShadowCasterHandle registerRenderer(MeshRenderer* renderer);
+    uint32_t allocateCandidateSlot(uint32_t ownerEntryIndex, uint32_t submeshIndex);
+    bool isRegistryHandleAlive(const ShadowCasterHandle& handle) const;
+
     void ensureVisibilityMaskCapacity(uint32_t requiredCount);
     void ensureIndirectCommandCapacity(uint32_t requiredCount);
     void transitionIndirectCommandBuffer(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex, D3D12_RESOURCE_STATES newState);
@@ -89,4 +125,22 @@ private:
 
     PreparationStats m_preparationStats{};
     uint32_t m_preparationProfileLogCounter = 0;
+
+    Scene* m_registryScene = nullptr;
+    bool m_registryInitialized = false;
+
+    std::vector<ShadowCasterRegistryEntry> m_registryEntries;
+    std::vector<ShadowCandidateSlot> m_candidateSlots;
+
+    std::unordered_map<MeshRenderer*, ShadowCasterHandle> m_rendererHandles;
+
+    std::vector<uint32_t> m_freeRegistryEntries;
+    std::vector<uint32_t> m_freeCandidateSlots;
+
+    std::vector<ShadowCasterHandle> m_dirtyHandles;
+    std::vector<ShadowCasterHandle> m_skinnedHandles;
+
+    uint32_t m_candidateSlotHighWaterMark = 0;
+    uint32_t m_liveCandidateSlotCount = 0;
+
 };
