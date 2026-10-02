@@ -3,7 +3,6 @@
 
 #include "Application.h"
 #include "ModuleResources.h"
-#include "ModuleD3D12.h"
 #include "ModuleScene.h"
 #include "RenderContext.h"
 #include "RingBuffer.h"
@@ -49,32 +48,14 @@ ShadowCasterCullingPass::ShadowCasterCullingPass(ComPtr<ID3D12Device4> device, S
     createRootSignature();
     createPipelineState();
     createCounterResources();
-    createDebugReadbackBuffers();
 }
 
 void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
 {
-    refreshDebugReadback();
-
     m_candidateBufferAddress = 0;
     m_candidateCount = 0;
-    m_captureDebugReadback = ctx.viewType == RenderViewType::Game;
 
     buildCandidates();
-
-    uint32_t forceVisibleCount = 0;
-
-    for (const ShadowCasterCandidateGPU& candidate : m_candidates)
-    {
-        if ((candidate.flags & SHADOW_CASTER_FLAG_FORCE_VISIBLE) != 0)
-        {
-            ++forceVisibleCount;
-        }
-    }
-
-    char buffer[128];
-    sprintf_s(buffer, "[Shadow GPU Candidates] Total: %zu | Force visible: %u\n", m_candidates.size(), forceVisibleCount);
-    OutputDebugStringA(buffer);
 
     m_candidateCount = static_cast<uint32_t>(m_candidates.size());
 
@@ -154,10 +135,6 @@ void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
     };
 
     commandList->ResourceBarrier(_countof(barriers), barriers);
-
-    commandList->ResourceBarrier(_countof(barriers), barriers);
-
-    recordDebugReadback(commandList);
 
     for (uint32_t cascadeIndex = 0; cascadeIndex < MAX_SHADOW_CASCADES; ++cascadeIndex)
     {
@@ -248,30 +225,6 @@ void ShadowCasterCullingPass::createCounterResources()
     m_zeroCountUploadBuffer->Unmap(0, nullptr);
 
     m_cascadeCountBufferState = D3D12_RESOURCE_STATE_COPY_DEST;
-}
-
-void ShadowCasterCullingPass::createDebugReadbackBuffers()
-{
-    constexpr size_t COUNTER_BUFFER_SIZE = sizeof(uint32_t) * MAX_SHADOW_CASCADES;
-
-    m_debugReadbackBuffers.resize(FRAMES_IN_FLIGHT);
-    m_debugReadbackPending.assign(FRAMES_IN_FLIGHT, false);
-
-    const CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_READBACK);
-    const CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(COUNTER_BUFFER_SIZE);
-
-    for (uint32_t i = 0; i < FRAMES_IN_FLIGHT; ++i)
-    {
-        DXCall(m_device->CreateCommittedResource(
-            &heapProperties,
-            D3D12_HEAP_FLAG_NONE,
-            &bufferDesc,
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            nullptr,
-            IID_PPV_ARGS(&m_debugReadbackBuffers[i])));
-
-        m_debugReadbackBuffers[i]->SetName(L"ShadowCasterCullingDebugReadback");
-    }
 }
 
 void ShadowCasterCullingPass::buildCandidates()
@@ -441,56 +394,4 @@ void ShadowCasterCullingPass::transitionCascadeCountBuffer(ID3D12GraphicsCommand
     commandList->ResourceBarrier(1, &barrier);
 
     m_cascadeCountBufferState = newState;
-}
-
-void ShadowCasterCullingPass::refreshDebugReadback()
-{
-    ModuleD3D12* d3d12 = app->getModuleD3D12();
-
-    if (!d3d12) return;
-
-    const uint32_t frameIndex = d3d12->getCurrentFrameIndex();
-
-    if (frameIndex >= m_debugReadbackBuffers.size() || !m_debugReadbackPending[frameIndex]) return;
-
-    void* mapped = nullptr;
-    const D3D12_RANGE readRange{ 0, sizeof(uint32_t) * MAX_SHADOW_CASCADES };
-
-    if (FAILED(m_debugReadbackBuffers[frameIndex]->Map(0, &readRange, &mapped)) || mapped == nullptr) return;
-
-    uint32_t counts[MAX_SHADOW_CASCADES] = {};
-    std::memcpy(counts, mapped, sizeof(counts));
-
-    const D3D12_RANGE writtenRange{ 0, 0 };
-    m_debugReadbackBuffers[frameIndex]->Unmap(0, &writtenRange);
-
-    char buffer[192];
-    sprintf_s(buffer, "[Shadow GPU Culling] C0: %u | C1: %u | C2: %u | C3: %u\n", counts[0], counts[1], counts[2], counts[3]);
-    OutputDebugStringA(buffer);
-
-    m_debugReadbackPending[frameIndex] = false;
-}
-
-void ShadowCasterCullingPass::recordDebugReadback(ID3D12GraphicsCommandList4* commandList)
-{
-    if (!m_captureDebugReadback || !commandList) return;
-
-    ModuleD3D12* d3d12 = app->getModuleD3D12();
-
-    if (!d3d12) return;
-
-    const uint32_t frameIndex = d3d12->getCurrentFrameIndex();
-
-    if (frameIndex >= m_debugReadbackBuffers.size() || m_debugReadbackPending[frameIndex]) return;
-
-    transitionCascadeCountBuffer(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
-
-    commandList->CopyBufferRegion(
-        m_debugReadbackBuffers[frameIndex].Get(),
-        0,
-        m_cascadeCountBuffer.Get(),
-        0,
-        sizeof(uint32_t) * MAX_SHADOW_CASCADES);
-
-    m_debugReadbackPending[frameIndex] = true;
 }
