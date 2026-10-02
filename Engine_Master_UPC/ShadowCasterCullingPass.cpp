@@ -81,6 +81,7 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
     }
 
     processDirtyQueue();
+    preparePersistentCandidateBuffer(ctx);
 
     using Clock = std::chrono::steady_clock;
 
@@ -154,6 +155,8 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
 void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "ShadowCasterCullingPass");
+
+    uploadPendingPersistentCandidates(commandList);
 
     if (commandList == nullptr ||
         m_shadowFrustumComputePass == nullptr ||
@@ -359,6 +362,14 @@ void ShadowCasterCullingPass::resetRegistry()
     m_registryInitialized = false;
 
     m_registryId = getNextShadowCasterRegistryId();
+
+    m_persistentCandidateNeedsFullUpload = true;
+
+    m_pendingPersistentUploadResource = nullptr;
+    m_pendingPersistentUploadOffset = 0;
+    m_pendingPersistentUploadSize = 0;
+    m_pendingPersistentCandidateCount = 0;
+    m_pendingPersistentPopulatedCount = 0;
 }
 
 void ShadowCasterCullingPass::initializeRegistry()
@@ -614,6 +625,223 @@ void ShadowCasterCullingPass::markRendererDirty(const ShadowCasterHandle& handle
 
     entry.dirtyQueued = true;
     m_dirtyHandles.push_back(handle);
+}
+
+bool ShadowCasterCullingPass::buildPersistentCandidate(uint32_t slotIndex, ShadowCasterCandidateGPU& candidate) const
+{
+    candidate = {};
+
+    if (slotIndex >= m_candidateSlots.size())
+    {
+        return false;
+    }
+
+    const ShadowCandidateSlot& slot = m_candidateSlots[slotIndex];
+
+    if (!slot.alive || slot.ownerEntryIndex >= m_registryEntries.size())
+    {
+        return false;
+    }
+
+    const ShadowCasterRegistryEntry& entry = m_registryEntries[slot.ownerEntryIndex];
+    MeshRenderer* renderer = entry.renderer;
+
+    if (!entry.alive || renderer == nullptr || !renderer->isActive() || !renderer->hasMesh() || !renderer->getCastShadows())
+    {
+        return false;
+    }
+
+    GameObject* owner = renderer->getOwner();
+    Transform* transform = renderer->getTransform();
+
+    if (owner == nullptr || !owner->IsActiveInWindowHierarchy() || transform == nullptr)
+    {
+        return false;
+    }
+
+    const std::shared_ptr<BasicMesh>& mesh = renderer->getMesh();
+
+    if (mesh == nullptr || !mesh->hasIndexBuffer())
+    {
+        return false;
+    }
+
+    const std::vector<Submesh>& submeshes = mesh->getSubmeshes();
+
+    if (slot.submeshIndex >= submeshes.size())
+    {
+        return false;
+    }
+
+    const Skin* skin = renderer->getSkin();
+
+    const VertexBuffer* gpuSkinnedVB = skin != nullptr ? skin->getCurrentGpuSkinnedVertexBuffer() : nullptr;
+    const VertexBuffer* cpuSkinnedVB = skin != nullptr && skin->isCpuSkinningFallbackEnabled() ? skin->getCpuSkinnedVertexBuffer() : nullptr;
+    const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
+
+    const bool useGpuSkinnedVB = gpuSkinnedVB != nullptr;
+    const bool useCpuSkinnedVB = !useGpuSkinnedVB && cpuSkinnedVB != nullptr;
+    const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
+
+    const VertexBuffer* activeVB = useGpuSkinnedVB ? gpuSkinnedVB : useCpuSkinnedVB ? cpuSkinnedVB : staticVB;
+
+    if (activeVB == nullptr)
+    {
+        return false;
+    }
+
+    const Matrix model = useWorldSpaceSkinnedVB ? Matrix::Identity : transform->getGlobalMatrix();
+    const Matrix modelTranspose = model.Transpose();
+
+    const Vector3* bounds = renderer->getBoundingBox().getPoints();
+
+    for (uint32_t i = 0; i < 8; ++i)
+    {
+        candidate.bounds[i][0] = bounds[i].x;
+        candidate.bounds[i][1] = bounds[i].y;
+        candidate.bounds[i][2] = bounds[i].z;
+        candidate.bounds[i][3] = 1.0f;
+    }
+
+    storeMatrix(modelTranspose, candidate.model);
+
+    const D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
+    const D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
+
+    splitGpuAddress(vbv.BufferLocation, candidate.vertexBufferAddressLow, candidate.vertexBufferAddressHigh);
+    candidate.vertexBufferSize = vbv.SizeInBytes;
+    candidate.vertexBufferStride = vbv.StrideInBytes;
+
+    splitGpuAddress(ibv.BufferLocation, candidate.indexBufferAddressLow, candidate.indexBufferAddressHigh);
+    candidate.indexBufferSize = ibv.SizeInBytes;
+    candidate.indexBufferFormat = static_cast<uint32_t>(ibv.Format);
+
+    const Submesh& submesh = submeshes[slot.submeshIndex];
+
+    candidate.indexCountPerInstance = static_cast<uint32_t>(submesh.indexCount);
+    candidate.instanceCount = 1;
+    candidate.startIndexLocation = static_cast<uint32_t>(submesh.indexStart);
+    candidate.baseVertexLocation = 0;
+    candidate.startInstanceLocation = 0;
+
+    candidate.flags = useWorldSpaceSkinnedVB ? SHADOW_CASTER_FLAG_FORCE_VISIBLE : 0u;
+
+    return true;
+}
+
+void ShadowCasterCullingPass::preparePersistentCandidateBuffer(const RenderContext& ctx)
+{
+    if (!m_registryInitialized || m_candidateSlotHighWaterMark == 0 || ctx.ringBuffer == nullptr)
+    {
+        return;
+    }
+
+    if (!m_persistentCandidateBuffer || m_candidateSlotHighWaterMark > m_persistentCandidateCapacity)
+    {
+        uint32_t newCapacity = std::max(1024u, m_persistentCandidateCapacity);
+
+        while (newCapacity < m_candidateSlotHighWaterMark)
+        {
+            newCapacity *= 2;
+        }
+
+        if (m_persistentCandidateBuffer)
+        {
+            app->getModuleResources()->deferResourceRelease(std::move(m_persistentCandidateBuffer));
+        }
+
+        m_persistentCandidateBuffer = app->getModuleResources()->createDefaultBuffer(
+            static_cast<size_t>(newCapacity) * sizeof(ShadowCasterCandidateGPU),
+            D3D12_RESOURCE_FLAG_NONE,
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            "ShadowPersistentCandidates");
+
+        m_persistentCandidateCapacity = newCapacity;
+        m_persistentCandidateBufferState = D3D12_RESOURCE_STATE_COPY_DEST;
+        m_persistentCandidateNeedsFullUpload = true;
+    }
+
+    if (!m_persistentCandidateNeedsFullUpload)
+    {
+        return;
+    }
+
+    std::vector<ShadowCasterCandidateGPU> snapshot(m_candidateSlotHighWaterMark);
+
+    uint32_t populatedCount = 0;
+
+    for (uint32_t slotIndex = 0; slotIndex < m_candidateSlotHighWaterMark; ++slotIndex)
+    {
+        if (buildPersistentCandidate(slotIndex, snapshot[slotIndex]))
+        {
+            ++populatedCount;
+        }
+    }
+
+    const size_t uploadSize = snapshot.size() * sizeof(ShadowCasterCandidateGPU);
+    const RingBufferAllocation allocation = ctx.ringBuffer->allocateWithInfo(snapshot.data(), uploadSize);
+
+    if (!allocation.isValid())
+    {
+        DEBUG_WARN("[Shadow Persistent] Failed to allocate full candidate upload.");
+        return;
+    }
+
+    m_pendingPersistentUploadResource = allocation.resource;
+    m_pendingPersistentUploadOffset = static_cast<uint64_t>(allocation.offset);
+    m_pendingPersistentUploadSize = static_cast<uint64_t>(allocation.size);
+    m_pendingPersistentCandidateCount = m_candidateSlotHighWaterMark;
+    m_pendingPersistentPopulatedCount = populatedCount;
+}
+
+void ShadowCasterCullingPass::transitionPersistentCandidateBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
+{
+    if (commandList == nullptr || !m_persistentCandidateBuffer || m_persistentCandidateBufferState == newState)
+    {
+        return;
+    }
+
+    const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_persistentCandidateBuffer.Get(), m_persistentCandidateBufferState, newState);
+
+    commandList->ResourceBarrier(1, &barrier);
+    m_persistentCandidateBufferState = newState;
+}
+
+void ShadowCasterCullingPass::uploadPendingPersistentCandidates(ID3D12GraphicsCommandList4* commandList)
+{
+    if (commandList == nullptr ||
+        !m_persistentCandidateBuffer ||
+        m_pendingPersistentUploadResource == nullptr ||
+        m_pendingPersistentUploadSize == 0)
+    {
+        return;
+    }
+
+    transitionPersistentCandidateBuffer(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
+
+    commandList->CopyBufferRegion(
+        m_persistentCandidateBuffer.Get(),
+        0,
+        m_pendingPersistentUploadResource,
+        m_pendingPersistentUploadOffset,
+        m_pendingPersistentUploadSize);
+
+    transitionPersistentCandidateBuffer(commandList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+    DEBUG_LOG(
+        "[Shadow Persistent] Full upload | Slots: %u | Populated: %u | Capacity: %u | Upload: %.2f MiB",
+        m_pendingPersistentCandidateCount,
+        m_pendingPersistentPopulatedCount,
+        m_persistentCandidateCapacity,
+        static_cast<double>(m_pendingPersistentUploadSize) / (1024.0 * 1024.0));
+
+    m_pendingPersistentUploadResource = nullptr;
+    m_pendingPersistentUploadOffset = 0;
+    m_pendingPersistentUploadSize = 0;
+    m_pendingPersistentCandidateCount = 0;
+    m_pendingPersistentPopulatedCount = 0;
+
+    m_persistentCandidateNeedsFullUpload = false;
 }
 
 void ShadowCasterCullingPass::buildCandidates()
