@@ -20,6 +20,8 @@
 #include "IndexBuffer.h"
 #include "Skin.h"
 #include "ShadowFrustumComputePass.h"
+#include "ShadowCasterCullingPass.h"
+#include "ShadowCasterTypes.h"
 
 #include <d3dx12.h>
 #include <d3dcompiler.h>
@@ -110,12 +112,14 @@ namespace
 
 }
 
-ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass)
+ShadowMapPass::ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass, ShadowCasterCullingPass* shadowCasterCullingPass)
     : m_device(device)
     , m_shadowFrustumComputePass(shadowFrustumComputePass)
+    , m_shadowCasterCullingPass(shadowCasterCullingPass)
 {
     createCascadeShadowMap(1u, 1u);
     createRootSignature();
+    createCommandSignature();
     createPipelineState();
 }
 
@@ -197,6 +201,30 @@ void ShadowMapPass::createRootSignature()
 
     DXCall(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
     DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+}
+
+void ShadowMapPass::createCommandSignature()
+{
+    D3D12_INDIRECT_ARGUMENT_DESC arguments[4]{};
+
+    arguments[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
+    arguments[0].Constant.RootParameterIndex = 0;
+    arguments[0].Constant.DestOffsetIn32BitValues = 0;
+    arguments[0].Constant.Num32BitValuesToSet = sizeof(ShadowDrawConstants) / sizeof(uint32_t);
+
+    arguments[1].Type = D3D12_INDIRECT_ARGUMENT_TYPE_VERTEX_BUFFER_VIEW;
+    arguments[1].VertexBuffer.Slot = 0;
+
+    arguments[2].Type = D3D12_INDIRECT_ARGUMENT_TYPE_INDEX_BUFFER_VIEW;
+
+    arguments[3].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
+
+    D3D12_COMMAND_SIGNATURE_DESC desc{};
+    desc.ByteStride = sizeof(ShadowIndirectCommandGPU);
+    desc.NumArgumentDescs = _countof(arguments);
+    desc.pArgumentDescs = arguments;
+
+    DXCall(m_device->CreateCommandSignature(&desc, m_rootSignature.Get(), IID_PPV_ARGS(&m_commandSignature)));
 }
 
 void ShadowMapPass::createPipelineState()
@@ -363,6 +391,22 @@ void ShadowMapPass::renderCasters(ID3D12GraphicsCommandList4* commandList, uint3
     {
         if (renderer != nullptr) renderMeshRenderer(commandList, *renderer);
     }
+}
+
+void ShadowMapPass::renderCastersIndirect(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex)
+{
+    if (commandList == nullptr || m_shadowCasterCullingPass == nullptr || m_commandSignature == nullptr) return;
+    if (cascadeIndex >= MAX_SHADOW_CASCADES) return;
+
+    ID3D12Resource* argumentBuffer = m_shadowCasterCullingPass->getIndirectCommandBuffer(cascadeIndex);
+    ID3D12Resource* countBuffer = m_shadowCasterCullingPass->getCascadeCountBuffer();
+    const uint32_t maxCommandCount = m_shadowCasterCullingPass->getCandidateCount();
+
+    if (argumentBuffer == nullptr || countBuffer == nullptr || maxCommandCount == 0) return;
+
+    const uint64_t countBufferOffset = static_cast<uint64_t>(cascadeIndex) * sizeof(uint32_t);
+
+    commandList->ExecuteIndirect(m_commandSignature.Get(), maxCommandCount, argumentBuffer, 0, countBuffer, countBufferOffset);
 }
 
 void ShadowMapPass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer)
@@ -553,7 +597,7 @@ void ShadowMapPass::apply(ID3D12GraphicsCommandList4* commandList)
             commandList->ClearDepthStencilView(cascadeDSV, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
             commandList->SetGraphicsRoot32BitConstant(2, cascadeIndex, 0);
 
-            renderCasters(commandList, cascadeIndex);
+            renderCastersIndirect(commandList, cascadeIndex);
 
             transitionCascadeShadowMap(commandList, cascadeIndex, CASCADE_SHADER_RESOURCE_STATE);
         }

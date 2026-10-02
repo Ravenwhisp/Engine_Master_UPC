@@ -110,7 +110,7 @@ bool ModuleRender::init()
     m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
     m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
     m_shadowCasterCullingPass = std::make_unique<ShadowCasterCullingPass>(device, m_shadowFrustumComputePass.get());
-    m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get());
+    m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get(), m_shadowCasterCullingPass.get());
 
     m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
     m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
