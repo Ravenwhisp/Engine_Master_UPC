@@ -10,12 +10,49 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "ModuleResources.h"
+#include "ModuleRender.h"
+
+#include "ShadowCasterCullingPass.h"
 
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
 #include "SceneReferenceResolver.h"
 
 MeshRenderer::~MeshRenderer() = default;
+
+bool MeshRenderer::init()
+{
+    if (app == nullptr || app->getModuleRender() == nullptr)
+    {
+        return true;
+    }
+
+    ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
+
+    if (shadowCasterCullingPass != nullptr)
+    {
+        m_shadowCasterHandle = shadowCasterCullingPass->registerRenderer(this);
+    }
+
+    return true;
+}
+
+bool MeshRenderer::cleanUp()
+{
+    if (app != nullptr && app->getModuleRender() != nullptr)
+    {
+        ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
+
+        if (shadowCasterCullingPass != nullptr)
+        {
+            shadowCasterCullingPass->unregisterRenderer(this, m_shadowCasterHandle);
+        }
+    }
+
+    m_shadowCasterHandle.reset();
+
+    return true;
+}
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 {

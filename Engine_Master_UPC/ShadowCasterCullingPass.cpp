@@ -42,12 +42,20 @@ namespace
         static_assert(sizeof(Matrix) == sizeof(float) * 16);
         std::memcpy(output, &matrix, sizeof(float) * 16);
     }
+
+    uint64_t getNextShadowCasterRegistryId()
+    {
+        static uint64_t nextRegistryId = 1;
+        return nextRegistryId++;
+    }
 }
 
 ShadowCasterCullingPass::ShadowCasterCullingPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass)
     : m_device(device)
     , m_shadowFrustumComputePass(shadowFrustumComputePass)
 {
+    m_registryId = getNextShadowCasterRegistryId();
+
     createRootSignature();
     createPipelineState();
     createCounterResources();
@@ -347,6 +355,8 @@ void ShadowCasterCullingPass::resetRegistry()
     m_candidateSlotHighWaterMark = 0;
     m_liveCandidateSlotCount = 0;
     m_registryInitialized = false;
+
+    m_registryId = getNextShadowCasterRegistryId();
 }
 
 void ShadowCasterCullingPass::initializeRegistry()
@@ -418,7 +428,7 @@ void ShadowCasterCullingPass::initializeRegistry()
         m_candidateSlotHighWaterMark);
 }
 
-ShadowCasterCullingPass::ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer* renderer)
+ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer * renderer)
 {
     if (renderer == nullptr)
     {
@@ -427,8 +437,9 @@ ShadowCasterCullingPass::ShadowCasterHandle ShadowCasterCullingPass::registerRen
 
     const auto existing = m_rendererHandles.find(renderer);
 
-    if (existing != m_rendererHandles.end())
+    if (existing != m_rendererHandles.end() && isRegistryHandleAlive(existing->second))
     {
+        renderer->setShadowCasterHandle(existing->second);
         return existing->second;
     }
 
@@ -454,10 +465,11 @@ ShadowCasterCullingPass::ShadowCasterHandle ShadowCasterCullingPass::registerRen
     entry.candidateSlots.clear();
 
     ShadowCasterHandle handle{};
+    handle.registryId = m_registryId;
     handle.index = entryIndex;
     handle.generation = entry.generation;
 
-    m_rendererHandles.emplace(renderer, handle);
+    m_rendererHandles[renderer] = handle;
     m_dirtyHandles.push_back(handle);
 
     const std::shared_ptr<BasicMesh>& mesh = renderer->getMesh();
@@ -489,7 +501,50 @@ ShadowCasterCullingPass::ShadowCasterHandle ShadowCasterCullingPass::registerRen
         }
     }
 
+    renderer->setShadowCasterHandle(handle);
+
     return handle;
+}
+
+void ShadowCasterCullingPass::unregisterRenderer(MeshRenderer* renderer, const ShadowCasterHandle& handle)
+{
+    if (renderer == nullptr || !isRegistryHandleAlive(handle))
+    {
+        return;
+    }
+
+    ShadowCasterRegistryEntry& entry = m_registryEntries[handle.index];
+
+    if (entry.renderer != renderer)
+    {
+        return;
+    }
+
+    removeSkinnedHandle(handle);
+    releaseCandidateSlots(entry);
+
+    const auto rendererIt = m_rendererHandles.find(renderer);
+
+    if (rendererIt != m_rendererHandles.end() && rendererIt->second == handle)
+    {
+        m_rendererHandles.erase(rendererIt);
+    }
+
+    entry.renderer = nullptr;
+    entry.alive = false;
+    entry.dirtyQueued = false;
+    entry.skinned = false;
+
+    ++entry.generation;
+
+    if (entry.generation == 0)
+    {
+        entry.generation = 1;
+    }
+
+    m_freeRegistryEntries.push_back(handle.index);
+
+    renderer->clearShadowCasterHandle();
 }
 
 uint32_t ShadowCasterCullingPass::allocateCandidateSlot(uint32_t ownerEntryIndex, uint32_t submeshIndex)
@@ -521,7 +576,7 @@ uint32_t ShadowCasterCullingPass::allocateCandidateSlot(uint32_t ownerEntryIndex
 
 bool ShadowCasterCullingPass::isRegistryHandleAlive(const ShadowCasterHandle& handle) const
 {
-    if (!handle.isFormed() || handle.index >= m_registryEntries.size())
+    if (!handle.isFormed() || handle.registryId != m_registryId || handle.index >= m_registryEntries.size())
     {
         return false;
     }
@@ -708,4 +763,48 @@ void ShadowCasterCullingPass::transitionCascadeCountBuffer(ID3D12GraphicsCommand
     commandList->ResourceBarrier(1, &barrier);
 
     m_cascadeCountBufferState = newState;
+}
+
+void ShadowCasterCullingPass::releaseCandidateSlots(ShadowCasterRegistryEntry& entry)
+{
+    for (uint32_t slotIndex : entry.candidateSlots)
+    {
+        if (slotIndex >= m_candidateSlots.size())
+        {
+            continue;
+        }
+
+        ShadowCandidateSlot& slot = m_candidateSlots[slotIndex];
+
+        if (!slot.alive)
+        {
+            continue;
+        }
+
+        slot.ownerEntryIndex = UINT32_MAX;
+        slot.submeshIndex = UINT32_MAX;
+        slot.alive = false;
+
+        m_freeCandidateSlots.push_back(slotIndex);
+
+        if (m_liveCandidateSlotCount > 0)
+        {
+            --m_liveCandidateSlotCount;
+        }
+    }
+
+    entry.candidateSlots.clear();
+}
+
+void ShadowCasterCullingPass::removeSkinnedHandle(const ShadowCasterHandle& handle)
+{
+    const auto it = std::find(m_skinnedHandles.begin(), m_skinnedHandles.end(), handle);
+
+    if (it == m_skinnedHandles.end())
+    {
+        return;
+    }
+
+    *it = m_skinnedHandles.back();
+    m_skinnedHandles.pop_back();
 }

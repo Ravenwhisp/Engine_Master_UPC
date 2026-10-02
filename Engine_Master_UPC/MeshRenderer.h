@@ -4,6 +4,7 @@
 #include "MeshAsset.h"
 #include "BoundingBox.h"
 #include "IDebugDrawable.h"
+#include "ShadowCasterHandle.h"
 
 #include "BasicMesh.h"
 #include "Skin.h"
@@ -56,6 +57,8 @@ public:
     Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
     const Engine::BoundingBox& getBoundingBox() const { return m_boundingBox; }
 
+    bool init() override;
+    bool cleanUp() override;
     void drawUi() override;
     void debugDraw() override;
     void onTransformChange() override;
@@ -92,8 +95,10 @@ public:
     RenderMode getRenderMode() const { return m_renderMode; }
 
     bool getCastShadows() const { return m_castShadows; }
-
     void setCastShadows(bool castShadows);
+    const ShadowCasterHandle& getShadowCasterHandle() const { return m_shadowCasterHandle; }
+    void setShadowCasterHandle(const ShadowCasterHandle& handle) { m_shadowCasterHandle = handle; }
+    void clearShadowCasterHandle() { m_shadowCasterHandle.reset(); }
 
     uint64_t getShadowCandidateRevision() const { return m_shadowCandidateRevision; }
 
@@ -123,6 +128,8 @@ private:
     bool m_castShadows = true;
 
     uint64_t m_shadowCandidateRevision = 1;
+
+    ShadowCasterHandle m_shadowCasterHandle{};
 
     RenderMode m_renderMode = RenderMode::DEFAULT;
 };

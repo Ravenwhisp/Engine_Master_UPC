@@ -39,6 +39,7 @@ class SkyBoxPass;
 class ForwardPrepass;
 class DeferredShadingPass;
 class GeometryPass;
+class ShadowCasterCullingPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
@@ -165,6 +166,7 @@ public:
     void commitRingBufferAllocations(uint64_t fenceValue);
     //D3D12_GPU_VIRTUAL_ADDRESS allocateInStructuredRingBuffer(const void* data, size_t size);
 
+    ShadowCasterCullingPass* getShadowCasterCullingPass() const { return m_shadowCasterCullingPass.get(); }
     int getTrianglesCount() const;
     int getMeshCount() const;
     const std::vector<RenderPassTiming>& getRenderPassTimings() const { return m_displayRenderTimings; }
