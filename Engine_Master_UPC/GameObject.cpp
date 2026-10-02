@@ -238,8 +238,15 @@ bool GameObject::IsActiveInWindowHierarchy() const
 
 void GameObject::SetActive(bool newActive)
 {
+    if (m_active == newActive)
+    {
+        return;
+    }
+
     const bool wasActive = m_active;
     m_active = newActive;
+
+    onHierarchyActiveChange();
 
     if (newActive && !wasActive)
     {
@@ -761,6 +768,41 @@ int GameObject::findComponentIndex(const Component* component) const
     }
 
     return -1;
+}
+
+void GameObject::onTransformDirty()
+{
+    for (const auto& component : m_components)
+    {
+        if (component)
+        {
+            component->onTransformDirty();
+        }
+    }
+}
+
+void GameObject::onHierarchyActiveChange()
+{
+    for (const auto& component : m_components)
+    {
+        if (component)
+        {
+            component->onHierarchyActiveChange();
+        }
+    }
+
+    if (m_transform == nullptr)
+    {
+        return;
+    }
+
+    for (GameObject* child : m_transform->getAllChildren())
+    {
+        if (child != nullptr)
+        {
+            child->onHierarchyActiveChange();
+        }
+    }
 }
 
 void GameObject::onTransformChange()

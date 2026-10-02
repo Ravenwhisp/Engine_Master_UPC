@@ -45,7 +45,7 @@ public:
 	Transform* getRoot() const { return m_root; }
 	const std::vector<GameObject*>& getAllChildren() const { return m_children; }
 
-	void setRoot(Transform* root) { m_root = root; markDirty(); }
+	void setRoot(Transform* root);
 	void addChild(GameObject* child) { m_children.push_back(child); markDirty(); }
 	void clearChildren() { m_children.clear(); markDirty(); }
 	void removeChild(UID id);

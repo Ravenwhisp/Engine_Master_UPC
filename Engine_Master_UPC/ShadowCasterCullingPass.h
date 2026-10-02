@@ -54,6 +54,7 @@ public:
     ShadowCasterHandle registerRenderer(MeshRenderer* renderer);
     void unregisterRenderer(MeshRenderer* renderer, const ShadowCasterHandle& handle);
     bool isRegistryHandleAlive(const ShadowCasterHandle& handle) const;
+    void markRendererDirty(const ShadowCasterHandle& handle);
 
 private:
 
@@ -66,6 +67,7 @@ private:
         bool alive = false;
         bool dirtyQueued = false;
         bool skinned = false;
+        uint64_t lastProcessedRevision = 0;
     };
 
     struct ShadowCandidateSlot
@@ -83,6 +85,7 @@ private:
     void ensureRegistryBootstrap();
     void resetRegistry();
     void initializeRegistry();
+    void processDirtyQueue();
     
 
     void ensureVisibilityMaskCapacity(uint32_t requiredCount);

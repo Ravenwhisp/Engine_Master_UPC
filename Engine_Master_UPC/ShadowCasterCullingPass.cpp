@@ -80,6 +80,8 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
         return;
     }
 
+    processDirtyQueue();
+
     using Clock = std::chrono::steady_clock;
 
     m_preparationStats = {};
@@ -428,6 +430,35 @@ void ShadowCasterCullingPass::initializeRegistry()
         m_candidateSlotHighWaterMark);
 }
 
+void ShadowCasterCullingPass::processDirtyQueue()
+{
+    if (m_dirtyHandles.empty())
+    {
+        return;
+    }
+
+    std::vector<ShadowCasterHandle> pendingHandles;
+    pendingHandles.swap(m_dirtyHandles);
+
+    for (const ShadowCasterHandle& handle : pendingHandles)
+    {
+        if (!isRegistryHandleAlive(handle))
+        {
+            continue;
+        }
+
+        ShadowCasterRegistryEntry& entry = m_registryEntries[handle.index];
+
+        if (entry.renderer == nullptr)
+        {
+            continue;
+        }
+
+        entry.lastProcessedRevision = entry.renderer->getShadowCandidateRevision();
+        entry.dirtyQueued = false;
+    }
+}
+
 ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer * renderer)
 {
     if (renderer == nullptr)
@@ -462,6 +493,7 @@ ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer * rend
     entry.alive = true;
     entry.dirtyQueued = true;
     entry.skinned = false;
+    entry.lastProcessedRevision = 0;
     entry.candidateSlots.clear();
 
     ShadowCasterHandle handle{};
@@ -584,6 +616,24 @@ bool ShadowCasterCullingPass::isRegistryHandleAlive(const ShadowCasterHandle& ha
     const ShadowCasterRegistryEntry& entry = m_registryEntries[handle.index];
 
     return entry.alive && entry.generation == handle.generation;
+}
+
+void ShadowCasterCullingPass::markRendererDirty(const ShadowCasterHandle& handle)
+{
+    if (!isRegistryHandleAlive(handle))
+    {
+        return;
+    }
+
+    ShadowCasterRegistryEntry& entry = m_registryEntries[handle.index];
+
+    if (entry.dirtyQueued)
+    {
+        return;
+    }
+
+    entry.dirtyQueued = true;
+    m_dirtyHandles.push_back(handle);
 }
 
 void ShadowCasterCullingPass::buildCandidates()

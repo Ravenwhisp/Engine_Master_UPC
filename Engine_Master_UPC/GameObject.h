@@ -82,6 +82,8 @@ public:
 	int findComponentIndex(const Component* component) const;
 
 	void onTransformChange();
+	void onTransformDirty();
+	void onHierarchyActiveChange();
 
 protected:
 	std::vector<std::unique_ptr<GameObject>> m_ownedChildren;
