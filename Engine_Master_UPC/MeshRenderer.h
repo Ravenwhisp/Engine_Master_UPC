@@ -92,6 +92,9 @@ public:
 
     RenderMode getRenderMode() const { return m_renderMode; }
 
+    bool getCastShadows() const { return m_castShadows; }
+    void setCastShadows(bool castShadows) { m_castShadows = castShadows; }
+
 private:
     void recompute();
     void recalculateBoundingBox();
@@ -113,6 +116,8 @@ private:
     int m_triangles = 0;
 
     bool m_isCulled = false;
+
+    bool m_castShadows = true;
 
     RenderMode m_renderMode = RenderMode::DEFAULT;
 };
