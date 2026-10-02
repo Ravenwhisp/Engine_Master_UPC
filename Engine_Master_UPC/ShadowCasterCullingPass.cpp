@@ -5,6 +5,7 @@
 #include "ModuleD3D12.h"
 #include "ModuleResources.h"
 #include "ModuleScene.h"
+#include "Scene.h"
 #include "RenderContext.h"
 #include "RingBuffer.h"
 
@@ -60,6 +61,8 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
     {
         return;
     }
+
+    ensureRegistryBootstrap();
 
     const uint32_t frameIndex = d3d12->getCurrentFrameIndex();
     const uint64_t fenceValue = d3d12->getCurrentFrame();
@@ -296,6 +299,236 @@ void ShadowCasterCullingPass::createCounterResources()
     m_zeroCountUploadBuffer->Unmap(0, nullptr);
 
     m_cascadeCountBufferState = D3D12_RESOURCE_STATE_COPY_DEST;
+}
+
+void ShadowCasterCullingPass::ensureRegistryBootstrap()
+{
+    ModuleScene* moduleScene = app->getModuleScene();
+
+    if (moduleScene == nullptr)
+    {
+        return;
+    }
+
+    Scene* scene = moduleScene->getScene();
+
+    if (scene != m_registryScene)
+    {
+        resetRegistry();
+        m_registryScene = scene;
+    }
+
+    if (scene == nullptr || m_registryInitialized)
+    {
+        return;
+    }
+
+    const std::vector<MeshRenderer*>& renderers = moduleScene->getMeshRenderers();
+
+    if (renderers.empty())
+    {
+        return;
+    }
+
+    initializeRegistry();
+    m_registryInitialized = true;
+}
+
+void ShadowCasterCullingPass::resetRegistry()
+{
+    m_registryEntries.clear();
+    m_candidateSlots.clear();
+    m_rendererHandles.clear();
+    m_freeRegistryEntries.clear();
+    m_freeCandidateSlots.clear();
+    m_dirtyHandles.clear();
+    m_skinnedHandles.clear();
+
+    m_candidateSlotHighWaterMark = 0;
+    m_liveCandidateSlotCount = 0;
+    m_registryInitialized = false;
+}
+
+void ShadowCasterCullingPass::initializeRegistry()
+{
+    ModuleScene* moduleScene = app->getModuleScene();
+
+    if (moduleScene == nullptr)
+    {
+        return;
+    }
+
+    const std::vector<MeshRenderer*>& renderers = moduleScene->getMeshRenderers();
+
+    for (MeshRenderer* renderer : renderers)
+    {
+        if (renderer == nullptr)
+        {
+            continue;
+        }
+
+        registerRenderer(renderer);
+    }
+
+#ifdef _DEBUG
+    uint32_t aliveRendererCount = 0;
+    uint32_t assignedSlotCount = 0;
+    std::vector<bool> seenSlots(m_candidateSlotHighWaterMark, false);
+
+    for (uint32_t entryIndex = 0; entryIndex < m_registryEntries.size(); ++entryIndex)
+    {
+        const ShadowCasterRegistryEntry& entry = m_registryEntries[entryIndex];
+
+        if (!entry.alive)
+        {
+            continue;
+        }
+
+        ++aliveRendererCount;
+
+        assert(entry.renderer != nullptr);
+        assert(entry.dirtyQueued);
+
+        for (uint32_t slotIndex : entry.candidateSlots)
+        {
+            assert(slotIndex < m_candidateSlotHighWaterMark);
+            assert(slotIndex < m_candidateSlots.size());
+            assert(!seenSlots[slotIndex]);
+
+            const ShadowCandidateSlot& slot = m_candidateSlots[slotIndex];
+
+            assert(slot.alive);
+            assert(slot.ownerEntryIndex == entryIndex);
+
+            seenSlots[slotIndex] = true;
+            ++assignedSlotCount;
+        }
+    }
+
+    assert(aliveRendererCount == m_rendererHandles.size());
+    assert(assignedSlotCount == m_liveCandidateSlotCount);
+    assert(m_dirtyHandles.size() == aliveRendererCount);
+#endif
+
+    DEBUG_LOG(
+        "[Shadow Registry] Bootstrap | Renderers: %zu | Potential draws: %u | Skinned: %zu | High-water: %u",
+        m_rendererHandles.size(),
+        m_liveCandidateSlotCount,
+        m_skinnedHandles.size(),
+        m_candidateSlotHighWaterMark);
+}
+
+ShadowCasterCullingPass::ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer* renderer)
+{
+    if (renderer == nullptr)
+    {
+        return {};
+    }
+
+    const auto existing = m_rendererHandles.find(renderer);
+
+    if (existing != m_rendererHandles.end())
+    {
+        return existing->second;
+    }
+
+    uint32_t entryIndex = UINT32_MAX;
+
+    if (!m_freeRegistryEntries.empty())
+    {
+        entryIndex = m_freeRegistryEntries.back();
+        m_freeRegistryEntries.pop_back();
+    }
+    else
+    {
+        entryIndex = static_cast<uint32_t>(m_registryEntries.size());
+        m_registryEntries.emplace_back();
+    }
+
+    ShadowCasterRegistryEntry& entry = m_registryEntries[entryIndex];
+
+    entry.renderer = renderer;
+    entry.alive = true;
+    entry.dirtyQueued = true;
+    entry.skinned = false;
+    entry.candidateSlots.clear();
+
+    ShadowCasterHandle handle{};
+    handle.index = entryIndex;
+    handle.generation = entry.generation;
+
+    m_rendererHandles.emplace(renderer, handle);
+    m_dirtyHandles.push_back(handle);
+
+    const std::shared_ptr<BasicMesh>& mesh = renderer->getMesh();
+
+    if (mesh != nullptr)
+    {
+        const std::vector<Submesh>& submeshes = mesh->getSubmeshes();
+
+        entry.candidateSlots.reserve(submeshes.size());
+
+        for (uint32_t submeshIndex = 0; submeshIndex < submeshes.size(); ++submeshIndex)
+        {
+            entry.candidateSlots.push_back(allocateCandidateSlot(entryIndex, submeshIndex));
+        }
+    }
+
+    const Skin* skin = renderer->getSkin();
+
+    if (skin != nullptr)
+    {
+        const VertexBuffer* gpuSkinnedVB = skin->getCurrentGpuSkinnedVertexBuffer();
+        const VertexBuffer* cpuSkinnedVB = skin->isCpuSkinningFallbackEnabled() ? skin->getCpuSkinnedVertexBuffer() : nullptr;
+
+        entry.skinned = gpuSkinnedVB != nullptr || cpuSkinnedVB != nullptr;
+
+        if (entry.skinned)
+        {
+            m_skinnedHandles.push_back(handle);
+        }
+    }
+
+    return handle;
+}
+
+uint32_t ShadowCasterCullingPass::allocateCandidateSlot(uint32_t ownerEntryIndex, uint32_t submeshIndex)
+{
+    uint32_t slotIndex = UINT32_MAX;
+
+    if (!m_freeCandidateSlots.empty())
+    {
+        slotIndex = m_freeCandidateSlots.back();
+        m_freeCandidateSlots.pop_back();
+    }
+    else
+    {
+        slotIndex = static_cast<uint32_t>(m_candidateSlots.size());
+        m_candidateSlots.emplace_back();
+    }
+
+    ShadowCandidateSlot& slot = m_candidateSlots[slotIndex];
+
+    slot.ownerEntryIndex = ownerEntryIndex;
+    slot.submeshIndex = submeshIndex;
+    slot.alive = true;
+
+    ++m_liveCandidateSlotCount;
+    m_candidateSlotHighWaterMark = std::max(m_candidateSlotHighWaterMark, slotIndex + 1);
+
+    return slotIndex;
+}
+
+bool ShadowCasterCullingPass::isRegistryHandleAlive(const ShadowCasterHandle& handle) const
+{
+    if (!handle.isFormed() || handle.index >= m_registryEntries.size())
+    {
+        return false;
+    }
+
+    const ShadowCasterRegistryEntry& entry = m_registryEntries[handle.index];
+
+    return entry.alive && entry.generation == handle.generation;
 }
 
 void ShadowCasterCullingPass::buildCandidates()
