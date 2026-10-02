@@ -10,6 +10,8 @@ private:
     std::string m_text = "New Label";
     float m_scale = 1.0f;
     DirectX::XMFLOAT4 m_color = { 1,1,1,1 };
+    UITextHorizontalAlignment m_horizontalAlignment = UITextHorizontalAlignment::Left;
+    UITextVerticalAlignment m_verticalAlignment = UITextVerticalAlignment::Top;
 
     std::string m_font;
     int m_fontId = UNKNOWN_FONT_ID;
@@ -44,6 +46,12 @@ public:
 
     const DirectX::XMFLOAT4& getColor() const { return m_color; }
     void setColor(const DirectX::XMFLOAT4& c) { m_color = c; }
+
+    UITextHorizontalAlignment getHorizontalAlignment() const { return m_horizontalAlignment; }
+    void setHorizontalAlignment(UITextHorizontalAlignment alignment) { m_horizontalAlignment = alignment; }
+
+    UITextVerticalAlignment getVerticalAlignment() const { return m_verticalAlignment; }
+    void setVerticalAlignment(UITextVerticalAlignment alignment) { m_verticalAlignment = alignment; }
 
     int getFontId();
 
