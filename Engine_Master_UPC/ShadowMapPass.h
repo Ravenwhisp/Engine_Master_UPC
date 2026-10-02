@@ -50,10 +50,6 @@ private:
     void prepareDisabledShadowData(const RenderContext& ctx);
     void prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light);
 
-    void renderCasters(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex);
-    void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
-    void buildShadowCasterList(const RenderContext& ctx, const LightComponent& light);
-
     void updateShadowViewportAndScissor(uint32_t size);
 
     void createCascadeShadowMap( uint32_t size, uint32_t cascadeCount);
@@ -91,5 +87,4 @@ private:
     D3D12_RECT m_scissorRect{};
 
     ShadowFrameData m_frameData{};
-    std::vector<MeshRenderer*> m_shadowCasters;
 };
