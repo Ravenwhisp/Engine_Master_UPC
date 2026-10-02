@@ -88,6 +88,7 @@ public:
     void setSkinReference(AssetId& skinUID);
 
     bool hasSkin() const { return m_skin != nullptr; }
+    bool hasSkinningConfiguration() const { return m_skinAsset.isValid(); }
 
     Skin* getSkin() { return m_skin.get(); }
     const Skin* getSkin() const { return m_skin.get(); }

@@ -419,7 +419,6 @@ void ShadowCasterCullingPass::initializeRegistry()
 
     assert(aliveRendererCount == m_rendererHandles.size());
     assert(assignedSlotCount == m_liveCandidateSlotCount);
-    assert(m_dirtyHandles.size() == aliveRendererCount);
 #endif
 
     DEBUG_LOG(
@@ -454,8 +453,14 @@ void ShadowCasterCullingPass::processDirtyQueue()
             continue;
         }
 
-        entry.lastProcessedRevision = entry.renderer->getShadowCandidateRevision();
         entry.dirtyQueued = false;
+
+        const uint64_t revisionToProcess = entry.renderer->getShadowCandidateRevision();
+
+        reconcileCandidateSlots(handle.index, entry);
+        reconcileSkinnedMembership(handle, entry);
+
+        entry.lastProcessedRevision = revisionToProcess;
     }
 }
 
@@ -494,6 +499,7 @@ ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer * rend
     entry.dirtyQueued = true;
     entry.skinned = false;
     entry.lastProcessedRevision = 0;
+    entry.skinnedListIndex = UINT32_MAX;
     entry.candidateSlots.clear();
 
     ShadowCasterHandle handle{};
@@ -504,34 +510,8 @@ ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer * rend
     m_rendererHandles[renderer] = handle;
     m_dirtyHandles.push_back(handle);
 
-    const std::shared_ptr<BasicMesh>& mesh = renderer->getMesh();
-
-    if (mesh != nullptr)
-    {
-        const std::vector<Submesh>& submeshes = mesh->getSubmeshes();
-
-        entry.candidateSlots.reserve(submeshes.size());
-
-        for (uint32_t submeshIndex = 0; submeshIndex < submeshes.size(); ++submeshIndex)
-        {
-            entry.candidateSlots.push_back(allocateCandidateSlot(entryIndex, submeshIndex));
-        }
-    }
-
-    const Skin* skin = renderer->getSkin();
-
-    if (skin != nullptr)
-    {
-        const VertexBuffer* gpuSkinnedVB = skin->getCurrentGpuSkinnedVertexBuffer();
-        const VertexBuffer* cpuSkinnedVB = skin->isCpuSkinningFallbackEnabled() ? skin->getCpuSkinnedVertexBuffer() : nullptr;
-
-        entry.skinned = gpuSkinnedVB != nullptr || cpuSkinnedVB != nullptr;
-
-        if (entry.skinned)
-        {
-            m_skinnedHandles.push_back(handle);
-        }
-    }
+    reconcileCandidateSlots(entryIndex, entry);
+    reconcileSkinnedMembership(handle, entry);
 
     renderer->setShadowCasterHandle(handle);
 
@@ -552,7 +532,7 @@ void ShadowCasterCullingPass::unregisterRenderer(MeshRenderer* renderer, const S
         return;
     }
 
-    removeSkinnedHandle(handle);
+    removeSkinnedHandle(entry);
     releaseCandidateSlots(entry);
 
     const auto rendererIt = m_rendererHandles.find(renderer);
@@ -815,46 +795,109 @@ void ShadowCasterCullingPass::transitionCascadeCountBuffer(ID3D12GraphicsCommand
     m_cascadeCountBufferState = newState;
 }
 
+void ShadowCasterCullingPass::reconcileCandidateSlots(uint32_t entryIndex, ShadowCasterRegistryEntry& entry)
+{
+    uint32_t desiredSlotCount = 0;
+
+    if (entry.renderer != nullptr)
+    {
+        const std::shared_ptr<BasicMesh>& mesh = entry.renderer->getMesh();
+
+        if (mesh != nullptr)
+        {
+            desiredSlotCount = static_cast<uint32_t>(mesh->getSubmeshes().size());
+        }
+    }
+
+    while (entry.candidateSlots.size() > desiredSlotCount)
+    {
+        releaseCandidateSlot(entry.candidateSlots.back());
+        entry.candidateSlots.pop_back();
+    }
+
+    while (entry.candidateSlots.size() < desiredSlotCount)
+    {
+        const uint32_t submeshIndex = static_cast<uint32_t>(entry.candidateSlots.size());
+        entry.candidateSlots.push_back(allocateCandidateSlot(entryIndex, submeshIndex));
+    }
+}
+
+void ShadowCasterCullingPass::reconcileSkinnedMembership(const ShadowCasterHandle& handle, ShadowCasterRegistryEntry& entry)
+{
+    const bool shouldBeSkinned = entry.renderer != nullptr && entry.renderer->hasSkinningConfiguration();
+
+    if (shouldBeSkinned == entry.skinned)
+    {
+        return;
+    }
+
+    if (shouldBeSkinned)
+    {
+        entry.skinned = true;
+        entry.skinnedListIndex = static_cast<uint32_t>(m_skinnedHandles.size());
+        m_skinnedHandles.push_back(handle);
+        return;
+    }
+
+    removeSkinnedHandle(entry);
+}
+
+void ShadowCasterCullingPass::releaseCandidateSlot(uint32_t slotIndex)
+{
+    if (slotIndex >= m_candidateSlots.size())
+    {
+        return;
+    }
+
+    ShadowCandidateSlot& slot = m_candidateSlots[slotIndex];
+
+    if (!slot.alive)
+    {
+        return;
+    }
+
+    slot.ownerEntryIndex = UINT32_MAX;
+    slot.submeshIndex = UINT32_MAX;
+    slot.alive = false;
+
+    m_freeCandidateSlots.push_back(slotIndex);
+
+    if (m_liveCandidateSlotCount > 0)
+    {
+        --m_liveCandidateSlotCount;
+    }
+}
+
 void ShadowCasterCullingPass::releaseCandidateSlots(ShadowCasterRegistryEntry& entry)
 {
     for (uint32_t slotIndex : entry.candidateSlots)
     {
-        if (slotIndex >= m_candidateSlots.size())
-        {
-            continue;
-        }
-
-        ShadowCandidateSlot& slot = m_candidateSlots[slotIndex];
-
-        if (!slot.alive)
-        {
-            continue;
-        }
-
-        slot.ownerEntryIndex = UINT32_MAX;
-        slot.submeshIndex = UINT32_MAX;
-        slot.alive = false;
-
-        m_freeCandidateSlots.push_back(slotIndex);
-
-        if (m_liveCandidateSlotCount > 0)
-        {
-            --m_liveCandidateSlotCount;
-        }
+        releaseCandidateSlot(slotIndex);
     }
 
     entry.candidateSlots.clear();
 }
 
-void ShadowCasterCullingPass::removeSkinnedHandle(const ShadowCasterHandle& handle)
+void ShadowCasterCullingPass::removeSkinnedHandle(ShadowCasterRegistryEntry& entry)
 {
-    const auto it = std::find(m_skinnedHandles.begin(), m_skinnedHandles.end(), handle);
-
-    if (it == m_skinnedHandles.end())
+    if (!entry.skinned || entry.skinnedListIndex == UINT32_MAX || entry.skinnedListIndex >= m_skinnedHandles.size())
     {
+        entry.skinned = false;
+        entry.skinnedListIndex = UINT32_MAX;
         return;
     }
 
-    *it = m_skinnedHandles.back();
+    const uint32_t removeIndex = entry.skinnedListIndex;
+    const ShadowCasterHandle movedHandle = m_skinnedHandles.back();
+
+    m_skinnedHandles[removeIndex] = movedHandle;
     m_skinnedHandles.pop_back();
+
+    if (removeIndex < m_skinnedHandles.size() && isRegistryHandleAlive(movedHandle))
+    {
+        m_registryEntries[movedHandle.index].skinnedListIndex = removeIndex;
+    }
+
+    entry.skinned = false;
+    entry.skinnedListIndex = UINT32_MAX;
 }
