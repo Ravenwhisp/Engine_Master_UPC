@@ -7,6 +7,45 @@
 #include "Application.h"
 #include "ModuleFont.h"
 
+namespace
+{
+    const char* horizontalAlignmentToString(uint32_t value)
+    {
+        switch (static_cast<UITextHorizontalAlignment>(value))
+        {
+        case UITextHorizontalAlignment::Center: return "Center";
+        case UITextHorizontalAlignment::Right:  return "Right";
+        case UITextHorizontalAlignment::Left:
+        default:                                return "Left";
+        }
+    }
+
+    uint32_t stringToHorizontalAlignment(const char* value)
+    {
+        if (std::strcmp(value, "Center") == 0) return static_cast<uint32_t>(UITextHorizontalAlignment::Center);
+        if (std::strcmp(value, "Right") == 0) return static_cast<uint32_t>(UITextHorizontalAlignment::Right);
+        return static_cast<uint32_t>(UITextHorizontalAlignment::Left);
+    }
+
+    const char* verticalAlignmentToString(uint32_t value)
+    {
+        switch (static_cast<UITextVerticalAlignment>(value))
+        {
+        case UITextVerticalAlignment::Center: return "Center";
+        case UITextVerticalAlignment::Bottom: return "Bottom";
+        case UITextVerticalAlignment::Top:
+        default:                              return "Top";
+        }
+    }
+
+    uint32_t stringToVerticalAlignment(const char* value)
+    {
+        if (std::strcmp(value, "Center") == 0) return static_cast<uint32_t>(UITextVerticalAlignment::Center);
+        if (std::strcmp(value, "Bottom") == 0) return static_cast<uint32_t>(UITextVerticalAlignment::Bottom);
+        return static_cast<uint32_t>(UITextVerticalAlignment::Top);
+    }
+}
+
 UIText::UIText(UID id, GameObject* owner)
     : Component(id, ComponentType::UITEXT, owner)
 {
@@ -16,9 +55,28 @@ UIText::UIText(UID id, GameObject* owner)
 void UIText::serialize(IArchive& archive)
 {
     Component::serialize(archive);
+
+    // Older scenes do not contain alignment fields. Reset before reading so
+    // missing keys always preserve the original top-left behaviour.
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        m_horizontalAlignment = UITextHorizontalAlignment::Left;
+        m_verticalAlignment = UITextVerticalAlignment::Top;
+    }
+
     archive.serialize(m_text, "Text");
     archive.serialize(m_scale, "Scale");
     archive.serialize(reinterpret_cast<DirectX::SimpleMath::Color&>(m_color), "Color");
+    archive.serializeStringEnum(m_horizontalAlignment, "HorizontalAlignment", horizontalAlignmentToString, stringToHorizontalAlignment);
+    archive.serializeStringEnum(m_verticalAlignment, "VerticalAlignment", verticalAlignmentToString, stringToVerticalAlignment);
+
+    if (archive.mode() == ArchiveMode::Input)
+    {
+        if (m_horizontalAlignment > UITextHorizontalAlignment::Right)
+            m_horizontalAlignment = UITextHorizontalAlignment::Left;
+        if (m_verticalAlignment > UITextVerticalAlignment::Bottom)
+            m_verticalAlignment = UITextVerticalAlignment::Top;
+    }
 
     archive.serialize(m_font, "Font");
 
@@ -47,6 +105,8 @@ std::unique_ptr<Component> UIText::clone(GameObject* newOwner) const
     clonedComponent->setText(m_text);
     clonedComponent->setFontScale(m_scale);
     clonedComponent->setColor(m_color);
+    clonedComponent->setHorizontalAlignment(m_horizontalAlignment);
+    clonedComponent->setVerticalAlignment(m_verticalAlignment);
 
     clonedComponent->setFont(m_font);
 
@@ -156,6 +216,10 @@ UITextCommand UIText::buildCommand(const Rect2D& rect)
     command.color = m_color;
     command.scale = m_scale;
     command.fontId = getFontId();
+    command.width = rect.w;
+    command.height = rect.h;
+    command.horizontalAlignment = m_horizontalAlignment;
+    command.verticalAlignment = m_verticalAlignment;
 
     command.effectFlags = m_effectFlags;
 
@@ -198,6 +262,20 @@ void UIText::drawUi()
     if (ImGui::ColorEdit4("Color", color))
     {
         m_color = { color[0], color[1], color[2], color[3] };
+    }
+
+    const char* horizontalAlignments[] = { "Left", "Center", "Right" };
+    int horizontalAlignment = static_cast<int>(m_horizontalAlignment);
+    if (ImGui::Combo("Horizontal Alignment", &horizontalAlignment, horizontalAlignments, IM_ARRAYSIZE(horizontalAlignments)))
+    {
+        m_horizontalAlignment = static_cast<UITextHorizontalAlignment>(horizontalAlignment);
+    }
+
+    const char* verticalAlignments[] = { "Top", "Center", "Bottom" };
+    int verticalAlignment = static_cast<int>(m_verticalAlignment);
+    if (ImGui::Combo("Vertical Alignment", &verticalAlignment, verticalAlignments, IM_ARRAYSIZE(verticalAlignments)))
+    {
+        m_verticalAlignment = static_cast<UITextVerticalAlignment>(verticalAlignment);
     }
 
     ModuleFont* fontModule = app->getModuleFont();
