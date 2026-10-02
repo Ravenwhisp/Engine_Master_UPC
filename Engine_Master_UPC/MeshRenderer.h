@@ -64,6 +64,9 @@ public:
     void onTransformChange() override;
     void update() override;
 
+    void registerShadowCaster();
+    void unregisterShadowCaster();
+
     void serialize(IArchive& archive) override;
     void fixReferences(const SceneReferenceResolver& resolver) override;
 

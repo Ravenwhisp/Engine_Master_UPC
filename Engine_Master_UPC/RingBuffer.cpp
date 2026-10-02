@@ -99,11 +99,15 @@ RingBufferAllocation RingBuffer::allocateWithInfo(const void* srcData, size_t si
     allocation.size = dataSize;
     allocation.gpuAddress = m_Resource->GetGPUVirtualAddress() + allocationOffset;
 
+#ifndef NDEBUG
+    assert(allocation.resource != nullptr);
     assert(allocation.gpuAddress == allocation.resource->GetGPUVirtualAddress() + allocation.offset);
 
     const UINT64 resourceSize = allocation.resource->GetDesc().Width;
+
     assert(allocation.offset <= resourceSize);
     assert(allocation.size <= resourceSize - allocation.offset);
+#endif
 
     return allocation;
 }

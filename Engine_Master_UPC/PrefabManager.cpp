@@ -15,6 +15,7 @@
 #include "PrefabInstanceComponent.h"
 #include "Component.h"
 #include "Transform.h"
+#include "MeshRenderer.h"
 #include "JsonArchive.h"
 
 #include <rapidjson/document.h>
@@ -231,14 +232,24 @@ bool PrefabManager::revertPrefab(GameObject* go, Scene* scene)
                 continue;
 
             Component* comp = go->GetComponent(ct);
+            bool componentAdded = false;
+
             if (!comp && ct != ComponentType::PREFAB_INSTANCE && ct != ComponentType::TRANSFORM)
+            {
                 comp = go->AddComponentWithUID(ct, GenerateUID());
+                componentAdded = comp != nullptr;
+            }
 
             if (comp)
             {
                 JsonArchive compArchive(ArchiveMode::Input);
                 compArchive.setValue(cn);
                 comp->serialize(compArchive);
+
+                if (componentAdded && ct == ComponentType::MODEL)
+                {
+                    static_cast<MeshRenderer*>(comp)->registerShadowCaster();
+                }
             }
         }
 

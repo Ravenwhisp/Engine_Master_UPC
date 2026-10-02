@@ -22,35 +22,13 @@ MeshRenderer::~MeshRenderer() = default;
 
 bool MeshRenderer::init()
 {
-    if (app == nullptr || app->getModuleRender() == nullptr)
-    {
-        return true;
-    }
-
-    ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
-
-    if (shadowCasterCullingPass != nullptr)
-    {
-        m_shadowCasterHandle = shadowCasterCullingPass->registerRenderer(this);
-    }
-
+    registerShadowCaster();
     return true;
 }
 
 bool MeshRenderer::cleanUp()
 {
-    if (app != nullptr && app->getModuleRender() != nullptr)
-    {
-        ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
-
-        if (shadowCasterCullingPass != nullptr)
-        {
-            shadowCasterCullingPass->unregisterRenderer(this, m_shadowCasterHandle);
-        }
-    }
-
-    m_shadowCasterHandle.reset();
-
+    unregisterShadowCaster();
     return true;
 }
 
@@ -431,6 +409,41 @@ void MeshRenderer::update()
             *this
         );
     }
+}
+
+void MeshRenderer::registerShadowCaster()
+{
+    if (m_shadowCasterHandle.isFormed() || app == nullptr || app->getModuleRender() == nullptr)
+    {
+        return;
+    }
+
+    ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
+
+    if (shadowCasterCullingPass != nullptr)
+    {
+        m_shadowCasterHandle = shadowCasterCullingPass->registerRenderer(this);
+    }
+}
+
+void MeshRenderer::unregisterShadowCaster()
+{
+    if (!m_shadowCasterHandle.isFormed())
+    {
+        return;
+    }
+
+    if (app != nullptr && app->getModuleRender() != nullptr)
+    {
+        ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
+
+        if (shadowCasterCullingPass != nullptr)
+        {
+            shadowCasterCullingPass->unregisterRenderer(this, m_shadowCasterHandle);
+        }
+    }
+
+    m_shadowCasterHandle.reset();
 }
 
 void MeshRenderer::serialize(IArchive& archive)
