@@ -312,6 +312,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="Asset.h" />
     <ClInclude Include="ComponentVideo.h" />
     <ClInclude Include="ShadowCasterCullingPass.h" />
+    <ClInclude Include="ShadowCasterHandle.h" />
     <ClInclude Include="ShadowCasterTypes.h" />
     <ClInclude Include="VideoAsset.h" />
     <ClInclude Include="LutAsset.h" />

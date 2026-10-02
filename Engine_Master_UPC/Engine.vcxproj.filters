@@ -1940,6 +1940,7 @@
     <ClInclude Include="CascadeShadowMaps.hlsli" />
     <ClInclude Include="ShadowCasterTypes.h" />
     <ClInclude Include="ShadowCasterCullingPass.h" />
+    <ClInclude Include="ShadowCasterHandle.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">

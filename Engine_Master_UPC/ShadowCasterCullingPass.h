@@ -3,6 +3,7 @@
 #include "IRenderPass.h"
 #include "ShadowCasterTypes.h"
 #include "ShadowTypes.h"
+#include "ShadowCasterHandle.h"
 
 #include <cstdint>
 #include <d3d12.h>
@@ -50,15 +51,11 @@ public:
 
     const PreparationStats& getPreparationStats() const { return m_preparationStats; }
 
+    ShadowCasterHandle registerRenderer(MeshRenderer* renderer);
+    void unregisterRenderer(MeshRenderer* renderer, const ShadowCasterHandle& handle);
+    bool isRegistryHandleAlive(const ShadowCasterHandle& handle) const;
+
 private:
-
-    struct ShadowCasterHandle
-    {
-        uint32_t index = UINT32_MAX;
-        uint32_t generation = 0;
-
-        bool isFormed() const { return index != UINT32_MAX; }
-    };
 
     struct ShadowCasterRegistryEntry
     {
@@ -86,9 +83,7 @@ private:
     void ensureRegistryBootstrap();
     void resetRegistry();
     void initializeRegistry();
-    ShadowCasterHandle registerRenderer(MeshRenderer* renderer);
-    uint32_t allocateCandidateSlot(uint32_t ownerEntryIndex, uint32_t submeshIndex);
-    bool isRegistryHandleAlive(const ShadowCasterHandle& handle) const;
+    
 
     void ensureVisibilityMaskCapacity(uint32_t requiredCount);
     void ensureIndirectCommandCapacity(uint32_t requiredCount);
@@ -96,6 +91,10 @@ private:
 
     void transitionVisibilityMaskBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
     void transitionCascadeCountBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
+
+    void releaseCandidateSlots(ShadowCasterRegistryEntry& entry);
+    void removeSkinnedHandle(const ShadowCasterHandle& handle);
+    uint32_t allocateCandidateSlot(uint32_t ownerEntryIndex, uint32_t submeshIndex);
 
 private:
     ComPtr<ID3D12Device4> m_device;
@@ -142,5 +141,6 @@ private:
 
     uint32_t m_candidateSlotHighWaterMark = 0;
     uint32_t m_liveCandidateSlotCount = 0;
+    uint64_t m_registryId = 0;
 
 };
