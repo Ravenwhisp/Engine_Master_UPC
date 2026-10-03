@@ -80,32 +80,33 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
         return;
     }
 
-    processDirtyQueue(ctx);
-    preparePersistentCandidateBuffer(ctx);
-
     using Clock = std::chrono::steady_clock;
 
     m_preparationStats = {};
 
     const auto totalStart = Clock::now();
 
+    processDirtyQueue(ctx);
+    preparePersistentCandidateBuffer(ctx);
+    flushRetiredPersistentCandidateSlots(ctx);
+    refreshSkinnedPersistentCandidates(ctx);
+
     m_candidateBufferAddress = 0;
     m_candidateCount = 0;
 
-    const auto buildStart = Clock::now();
+    const bool fullUploadReady =
+        m_pendingPersistentUploadResource != nullptr &&
+        m_pendingPersistentUploadSize > 0;
 
-    buildCandidates();
+    const bool persistentReady =
+        m_persistentCandidateBuffer != nullptr &&
+        (!m_persistentCandidateNeedsFullUpload || fullUploadReady);
 
-    const auto buildEnd = Clock::now();
-
-    m_candidateCount = static_cast<uint32_t>(m_candidates.size());
-
-    m_preparationStats.buildMs = std::chrono::duration<float, std::milli>(buildEnd - buildStart).count();
-    m_preparationStats.candidateCount = m_candidateCount;
-    m_preparationStats.uploadBytes = static_cast<uint64_t>(m_candidates.size()) * sizeof(ShadowCasterCandidateGPU);
-
-    if (m_candidateCount > 0 && ctx.ringBuffer != nullptr)
+    if (persistentReady && m_candidateSlotHighWaterMark > 0)
     {
+        m_candidateBufferAddress = m_persistentCandidateBuffer->GetGPUVirtualAddress();
+        m_candidateCount = m_candidateSlotHighWaterMark;
+
         const auto capacityStart = Clock::now();
 
         ensureVisibilityMaskCapacity(m_candidateCount);
@@ -114,14 +115,19 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
         const auto capacityEnd = Clock::now();
 
         m_preparationStats.capacityMs = std::chrono::duration<float, std::milli>(capacityEnd - capacityStart).count();
+    }
 
-        const auto uploadStart = Clock::now();
+    m_preparationStats.candidateCount = m_candidateCount;
+    m_preparationStats.skinnedRenderers = static_cast<uint32_t>(m_skinnedHandles.size());
+    m_preparationStats.skinnedCandidateCount = m_pendingPersistentUpdatedSlotCount;
 
-        m_candidateBufferAddress = ctx.ringBuffer->allocate(m_candidates.data(), m_candidates.size() * sizeof(ShadowCasterCandidateGPU));
-
-        const auto uploadEnd = Clock::now();
-
-        m_preparationStats.uploadMs = std::chrono::duration<float, std::milli>(uploadEnd - uploadStart).count();
+    if (m_pendingPersistentUploadSize > 0)
+    {
+        m_preparationStats.uploadBytes = m_pendingPersistentUploadSize;
+    }
+    else
+    {
+        m_preparationStats.uploadBytes = m_pendingPersistentUpdatedBytes;
     }
 
     const auto totalEnd = Clock::now();
@@ -136,17 +142,13 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
     if (m_preparationProfileLogCounter >= 120)
     {
         DEBUG_LOG(
-            "[Shadow Candidates] Total %.3f ms | Build %.3f ms | Capacity %.3f ms | Upload %.3f ms | Renderers %u/%u | Skinned %u | Candidates %u | Skinned Candidates %u | Upload %.2f MiB",
+            "[Shadow Persistent Prep] Total %.3f ms | Capacity %.3f ms | Slots %u | Live %u | Skinned %u | Pending upload %.2f KiB",
             m_preparationStats.totalMs,
-            m_preparationStats.buildMs,
             m_preparationStats.capacityMs,
-            m_preparationStats.uploadMs,
-            m_preparationStats.eligibleRenderers,
-            m_preparationStats.visitedRenderers,
-            m_preparationStats.skinnedRenderers,
-            m_preparationStats.candidateCount,
-            m_preparationStats.skinnedCandidateCount,
-            static_cast<double>(m_preparationStats.uploadBytes) / (1024.0 * 1024.0));
+            m_candidateCount,
+            m_liveCandidateSlotCount,
+            static_cast<uint32_t>(m_skinnedHandles.size()),
+            static_cast<double>(m_preparationStats.uploadBytes) / 1024.0);
 
         m_preparationProfileLogCounter = 0;
     }
@@ -356,6 +358,7 @@ void ShadowCasterCullingPass::resetRegistry()
     m_freeCandidateSlots.clear();
     m_dirtyHandles.clear();
     m_skinnedHandles.clear();
+    m_retiredCandidateSlots.clear();
 
     m_candidateSlotHighWaterMark = 0;
     m_liveCandidateSlotCount = 0;
@@ -563,6 +566,71 @@ void ShadowCasterCullingPass::queuePersistentCandidateUpdates(const std::vector<
     m_pendingPersistentUpdatedBytes += uploadSize;
 }
 
+void ShadowCasterCullingPass::refreshSkinnedPersistentCandidates(const RenderContext& ctx)
+{
+    if (!m_registryInitialized ||
+        m_persistentCandidateNeedsFullUpload ||
+        !m_persistentCandidateBuffer ||
+        ctx.ringBuffer == nullptr ||
+        m_skinnedHandles.empty())
+    {
+        return;
+    }
+
+    std::vector<uint32_t> skinnedSlots;
+
+    for (const ShadowCasterHandle& handle : m_skinnedHandles)
+    {
+        if (!isRegistryHandleAlive(handle))
+        {
+            continue;
+        }
+
+        const ShadowCasterRegistryEntry& entry = m_registryEntries[handle.index];
+
+        if (!entry.alive || !entry.skinned || entry.renderer == nullptr)
+        {
+            continue;
+        }
+
+        for (uint32_t slotIndex : entry.candidateSlots)
+        {
+            skinnedSlots.push_back(slotIndex);
+        }
+    }
+
+    if (skinnedSlots.empty())
+    {
+        return;
+    }
+
+    std::sort(skinnedSlots.begin(), skinnedSlots.end());
+    skinnedSlots.erase(std::unique(skinnedSlots.begin(), skinnedSlots.end()), skinnedSlots.end());
+
+    queuePersistentCandidateUpdates(skinnedSlots, ctx);
+}
+
+void ShadowCasterCullingPass::flushRetiredPersistentCandidateSlots(const RenderContext& ctx)
+{
+    if (m_retiredCandidateSlots.empty())
+    {
+        return;
+    }
+
+    std::sort(m_retiredCandidateSlots.begin(), m_retiredCandidateSlots.end());
+    m_retiredCandidateSlots.erase(std::unique(m_retiredCandidateSlots.begin(), m_retiredCandidateSlots.end()), m_retiredCandidateSlots.end());
+
+    if (!m_persistentCandidateBuffer ||
+        m_persistentCandidateNeedsFullUpload ||
+        m_candidateSlotHighWaterMark > m_persistentCandidateCapacity)
+    {
+        m_retiredCandidateSlots.clear();
+        return;
+    }
+
+    queuePersistentCandidateUpdates(m_retiredCandidateSlots, ctx);
+    m_retiredCandidateSlots.clear();
+}
 ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer * renderer)
 {
     if (renderer == nullptr)
@@ -1227,6 +1295,7 @@ void ShadowCasterCullingPass::releaseCandidateSlot(uint32_t slotIndex)
     slot.submeshIndex = UINT32_MAX;
     slot.alive = false;
 
+    m_retiredCandidateSlots.push_back(slotIndex);
     m_freeCandidateSlots.push_back(slotIndex);
 
     if (m_liveCandidateSlotCount > 0)

@@ -128,6 +128,12 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     ShadowCasterCandidateGPU candidate = candidates[candidateIndex];
+    
+    if (candidate.indexCountPerInstance == 0 || candidate.instanceCount == 0)
+    {
+        visibilityMasks[candidateIndex] = 0;
+        return;
+    }
 
     const uint activeCascadeCount = min(cascadeCount, (uint) MAX_SHADOW_CASCADES);
 
