@@ -80,7 +80,7 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
         return;
     }
 
-    processDirtyQueue();
+    processDirtyQueue(ctx);
     preparePersistentCandidateBuffer(ctx);
 
     using Clock = std::chrono::steady_clock;
@@ -370,6 +370,10 @@ void ShadowCasterCullingPass::resetRegistry()
     m_pendingPersistentUploadSize = 0;
     m_pendingPersistentCandidateCount = 0;
     m_pendingPersistentPopulatedCount = 0;
+    m_pendingPersistentCandidateCopies.clear();
+    m_pendingPersistentUpdatedSlotCount = 0;
+    m_pendingPersistentUpdatedBytes = 0;
+    m_persistentPartialUploadLogCounter = 0;
 }
 
 void ShadowCasterCullingPass::initializeRegistry()
@@ -440,7 +444,7 @@ void ShadowCasterCullingPass::initializeRegistry()
         m_candidateSlotHighWaterMark);
 }
 
-void ShadowCasterCullingPass::processDirtyQueue()
+void ShadowCasterCullingPass::processDirtyQueue(const RenderContext& ctx)
 {
     if (m_dirtyHandles.empty())
     {
@@ -449,6 +453,8 @@ void ShadowCasterCullingPass::processDirtyQueue()
 
     std::vector<ShadowCasterHandle> pendingHandles;
     pendingHandles.swap(m_dirtyHandles);
+
+    std::vector<uint32_t> dirtySlots;
 
     for (const ShadowCasterHandle& handle : pendingHandles)
     {
@@ -468,11 +474,93 @@ void ShadowCasterCullingPass::processDirtyQueue()
 
         const uint64_t revisionToProcess = entry.renderer->getShadowCandidateRevision();
 
+        for (uint32_t slotIndex : entry.candidateSlots)
+        {
+            dirtySlots.push_back(slotIndex);
+        }
+
         reconcileCandidateSlots(handle.index, entry);
         reconcileSkinnedMembership(handle, entry);
 
+        for (uint32_t slotIndex : entry.candidateSlots)
+        {
+            dirtySlots.push_back(slotIndex);
+        }
+
         entry.lastProcessedRevision = revisionToProcess;
     }
+
+    if (dirtySlots.empty())
+    {
+        return;
+    }
+
+    std::sort(dirtySlots.begin(), dirtySlots.end());
+    dirtySlots.erase(std::unique(dirtySlots.begin(), dirtySlots.end()), dirtySlots.end());
+
+    if (!m_persistentCandidateBuffer || m_candidateSlotHighWaterMark > m_persistentCandidateCapacity)
+    {
+        m_persistentCandidateNeedsFullUpload = true;
+        return;
+    }
+
+    if (m_persistentCandidateNeedsFullUpload)
+    {
+        return;
+    }
+
+    queuePersistentCandidateUpdates(dirtySlots, ctx);
+}
+
+void ShadowCasterCullingPass::queuePersistentCandidateUpdates(const std::vector<uint32_t>& slotIndices, const RenderContext& ctx)
+{
+    if (slotIndices.empty() || ctx.ringBuffer == nullptr || !m_persistentCandidateBuffer)
+    {
+        return;
+    }
+
+    std::vector<ShadowCasterCandidateGPU> candidates(slotIndices.size());
+
+    for (size_t i = 0; i < slotIndices.size(); ++i)
+    {
+        buildPersistentCandidate(slotIndices[i], candidates[i]);
+    }
+
+    const size_t uploadSize = candidates.size() * sizeof(ShadowCasterCandidateGPU);
+    const RingBufferAllocation allocation = ctx.ringBuffer->allocateWithInfo(candidates.data(), uploadSize);
+
+    if (!allocation.isValid())
+    {
+        DEBUG_WARN("[Shadow Persistent] Partial upload allocation failed. Falling back to full upload.");
+        m_persistentCandidateNeedsFullUpload = true;
+        m_pendingPersistentCandidateCopies.clear();
+        return;
+    }
+
+    m_pendingPersistentCandidateCopies.reserve(m_pendingPersistentCandidateCopies.size() + slotIndices.size());
+
+    for (size_t i = 0; i < slotIndices.size(); ++i)
+    {
+        const uint32_t slotIndex = slotIndices[i];
+
+        if (slotIndex >= m_persistentCandidateCapacity)
+        {
+            m_persistentCandidateNeedsFullUpload = true;
+            m_pendingPersistentCandidateCopies.clear();
+            return;
+        }
+
+        PendingPersistentCandidateCopy copy{};
+        copy.sourceResource = allocation.resource;
+        copy.sourceOffset = static_cast<uint64_t>(allocation.offset) + i * sizeof(ShadowCasterCandidateGPU);
+        copy.destinationOffset = static_cast<uint64_t>(slotIndex) * sizeof(ShadowCasterCandidateGPU);
+        copy.size = sizeof(ShadowCasterCandidateGPU);
+
+        m_pendingPersistentCandidateCopies.push_back(copy);
+    }
+
+    m_pendingPersistentUpdatedSlotCount += static_cast<uint32_t>(slotIndices.size());
+    m_pendingPersistentUpdatedBytes += uploadSize;
 }
 
 ShadowCasterHandle ShadowCasterCullingPass::registerRenderer(MeshRenderer * renderer)
@@ -766,6 +854,10 @@ void ShadowCasterCullingPass::preparePersistentCandidateBuffer(const RenderConte
         return;
     }
 
+    m_pendingPersistentCandidateCopies.clear();
+    m_pendingPersistentUpdatedSlotCount = 0;
+    m_pendingPersistentUpdatedBytes = 0;
+
     std::vector<ShadowCasterCandidateGPU> snapshot(m_candidateSlotHighWaterMark);
 
     uint32_t populatedCount = 0;
@@ -809,39 +901,86 @@ void ShadowCasterCullingPass::transitionPersistentCandidateBuffer(ID3D12Graphics
 
 void ShadowCasterCullingPass::uploadPendingPersistentCandidates(ID3D12GraphicsCommandList4* commandList)
 {
-    if (commandList == nullptr ||
-        !m_persistentCandidateBuffer ||
-        m_pendingPersistentUploadResource == nullptr ||
-        m_pendingPersistentUploadSize == 0)
+    if (commandList == nullptr || !m_persistentCandidateBuffer)
+    {
+        return;
+    }
+
+    const bool hasFullUpload = m_pendingPersistentUploadResource != nullptr && m_pendingPersistentUploadSize > 0;
+    const bool hasPartialUploads = !m_pendingPersistentCandidateCopies.empty();
+
+    if (!hasFullUpload && !hasPartialUploads)
     {
         return;
     }
 
     transitionPersistentCandidateBuffer(commandList, D3D12_RESOURCE_STATE_COPY_DEST);
 
-    commandList->CopyBufferRegion(
-        m_persistentCandidateBuffer.Get(),
-        0,
-        m_pendingPersistentUploadResource,
-        m_pendingPersistentUploadOffset,
-        m_pendingPersistentUploadSize);
+    if (hasFullUpload)
+    {
+        commandList->CopyBufferRegion(
+            m_persistentCandidateBuffer.Get(),
+            0,
+            m_pendingPersistentUploadResource,
+            m_pendingPersistentUploadOffset,
+            m_pendingPersistentUploadSize);
+
+        transitionPersistentCandidateBuffer(commandList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+        DEBUG_LOG(
+            "[Shadow Persistent] Full upload | Slots: %u | Populated: %u | Capacity: %u | Upload: %.2f MiB",
+            m_pendingPersistentCandidateCount,
+            m_pendingPersistentPopulatedCount,
+            m_persistentCandidateCapacity,
+            static_cast<double>(m_pendingPersistentUploadSize) / (1024.0 * 1024.0));
+
+        m_pendingPersistentUploadResource = nullptr;
+        m_pendingPersistentUploadOffset = 0;
+        m_pendingPersistentUploadSize = 0;
+        m_pendingPersistentCandidateCount = 0;
+        m_pendingPersistentPopulatedCount = 0;
+
+        m_pendingPersistentCandidateCopies.clear();
+        m_pendingPersistentUpdatedSlotCount = 0;
+        m_pendingPersistentUpdatedBytes = 0;
+
+        m_persistentCandidateNeedsFullUpload = false;
+        return;
+    }
+
+    for (const PendingPersistentCandidateCopy& copy : m_pendingPersistentCandidateCopies)
+    {
+        if (copy.sourceResource == nullptr || copy.size == 0)
+        {
+            continue;
+        }
+
+        commandList->CopyBufferRegion(
+            m_persistentCandidateBuffer.Get(),
+            copy.destinationOffset,
+            copy.sourceResource,
+            copy.sourceOffset,
+            copy.size);
+    }
 
     transitionPersistentCandidateBuffer(commandList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    DEBUG_LOG(
-        "[Shadow Persistent] Full upload | Slots: %u | Populated: %u | Capacity: %u | Upload: %.2f MiB",
-        m_pendingPersistentCandidateCount,
-        m_pendingPersistentPopulatedCount,
-        m_persistentCandidateCapacity,
-        static_cast<double>(m_pendingPersistentUploadSize) / (1024.0 * 1024.0));
+    ++m_persistentPartialUploadLogCounter;
 
-    m_pendingPersistentUploadResource = nullptr;
-    m_pendingPersistentUploadOffset = 0;
-    m_pendingPersistentUploadSize = 0;
-    m_pendingPersistentCandidateCount = 0;
-    m_pendingPersistentPopulatedCount = 0;
+    if (m_persistentPartialUploadLogCounter >= 60)
+    {
+        DEBUG_LOG(
+            "[Shadow Persistent] Partial updates | Slots: %u | Copies: %zu | Upload: %.2f KiB",
+            m_pendingPersistentUpdatedSlotCount,
+            m_pendingPersistentCandidateCopies.size(),
+            static_cast<double>(m_pendingPersistentUpdatedBytes) / 1024.0);
 
-    m_persistentCandidateNeedsFullUpload = false;
+        m_persistentPartialUploadLogCounter = 0;
+    }
+
+    m_pendingPersistentCandidateCopies.clear();
+    m_pendingPersistentUpdatedSlotCount = 0;
+    m_pendingPersistentUpdatedBytes = 0;
 }
 
 void ShadowCasterCullingPass::buildCandidates()
