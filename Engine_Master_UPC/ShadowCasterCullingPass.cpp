@@ -11,7 +11,6 @@
 
 #include "MeshRenderer.h"
 #include "BasicMesh.h"
-#include "MeshAsset.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "GameObject.h"
@@ -27,7 +26,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
-#include <chrono>
 
 namespace
 {
@@ -80,12 +78,6 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
         return;
     }
 
-    using Clock = std::chrono::steady_clock;
-
-    m_preparationStats = {};
-
-    const auto totalStart = Clock::now();
-
     processDirtyQueue(ctx);
     preparePersistentCandidateBuffer(ctx);
     flushRetiredPersistentCandidateSlots(ctx);
@@ -94,64 +86,20 @@ void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
     m_candidateBufferAddress = 0;
     m_candidateCount = 0;
 
-    const bool fullUploadReady =
-        m_pendingPersistentUploadResource != nullptr &&
-        m_pendingPersistentUploadSize > 0;
-
-    const bool persistentReady =
-        m_persistentCandidateBuffer != nullptr &&
-        (!m_persistentCandidateNeedsFullUpload || fullUploadReady);
+    const bool fullUploadReady = m_pendingPersistentUploadResource != nullptr && m_pendingPersistentUploadSize > 0;
+    const bool persistentReady = m_persistentCandidateBuffer != nullptr && (!m_persistentCandidateNeedsFullUpload || fullUploadReady);
 
     if (persistentReady && m_candidateSlotHighWaterMark > 0)
     {
         m_candidateBufferAddress = m_persistentCandidateBuffer->GetGPUVirtualAddress();
         m_candidateCount = m_candidateSlotHighWaterMark;
 
-        const auto capacityStart = Clock::now();
-
         ensureVisibilityMaskCapacity(m_candidateCount);
         ensureIndirectCommandCapacity(m_candidateCount);
-
-        const auto capacityEnd = Clock::now();
-
-        m_preparationStats.capacityMs = std::chrono::duration<float, std::milli>(capacityEnd - capacityStart).count();
     }
-
-    m_preparationStats.candidateCount = m_candidateCount;
-    m_preparationStats.skinnedRenderers = static_cast<uint32_t>(m_skinnedHandles.size());
-    m_preparationStats.skinnedCandidateCount = m_pendingPersistentUpdatedSlotCount;
-
-    if (m_pendingPersistentUploadSize > 0)
-    {
-        m_preparationStats.uploadBytes = m_pendingPersistentUploadSize;
-    }
-    else
-    {
-        m_preparationStats.uploadBytes = m_pendingPersistentUpdatedBytes;
-    }
-
-    const auto totalEnd = Clock::now();
-
-    m_preparationStats.totalMs = std::chrono::duration<float, std::milli>(totalEnd - totalStart).count();
 
     m_candidateFrameIndex = frameIndex;
     m_candidateFenceValue = fenceValue;
-
-    ++m_preparationProfileLogCounter;
-
-    if (m_preparationProfileLogCounter >= 120)
-    {
-        DEBUG_LOG(
-            "[Shadow Persistent Prep] Total %.3f ms | Capacity %.3f ms | Slots %u | Live %u | Skinned %u | Pending upload %.2f KiB",
-            m_preparationStats.totalMs,
-            m_preparationStats.capacityMs,
-            m_candidateCount,
-            m_liveCandidateSlotCount,
-            static_cast<uint32_t>(m_skinnedHandles.size()),
-            static_cast<double>(m_preparationStats.uploadBytes) / 1024.0);
-
-        m_preparationProfileLogCounter = 0;
-    }
 }
 
 void ShadowCasterCullingPass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -374,9 +322,7 @@ void ShadowCasterCullingPass::resetRegistry()
     m_pendingPersistentCandidateCount = 0;
     m_pendingPersistentPopulatedCount = 0;
     m_pendingPersistentCandidateCopies.clear();
-    m_pendingPersistentUpdatedSlotCount = 0;
-    m_pendingPersistentUpdatedBytes = 0;
-    m_persistentPartialUploadLogCounter = 0;
+ 
 }
 
 void ShadowCasterCullingPass::initializeRegistry()
@@ -561,9 +507,6 @@ void ShadowCasterCullingPass::queuePersistentCandidateUpdates(const std::vector<
 
         m_pendingPersistentCandidateCopies.push_back(copy);
     }
-
-    m_pendingPersistentUpdatedSlotCount += static_cast<uint32_t>(slotIndices.size());
-    m_pendingPersistentUpdatedBytes += uploadSize;
 }
 
 void ShadowCasterCullingPass::refreshSkinnedPersistentCandidates(const RenderContext& ctx)
@@ -923,8 +866,6 @@ void ShadowCasterCullingPass::preparePersistentCandidateBuffer(const RenderConte
     }
 
     m_pendingPersistentCandidateCopies.clear();
-    m_pendingPersistentUpdatedSlotCount = 0;
-    m_pendingPersistentUpdatedBytes = 0;
 
     std::vector<ShadowCasterCandidateGPU> snapshot(m_candidateSlotHighWaterMark);
 
@@ -1009,8 +950,6 @@ void ShadowCasterCullingPass::uploadPendingPersistentCandidates(ID3D12GraphicsCo
         m_pendingPersistentPopulatedCount = 0;
 
         m_pendingPersistentCandidateCopies.clear();
-        m_pendingPersistentUpdatedSlotCount = 0;
-        m_pendingPersistentUpdatedBytes = 0;
 
         m_persistentCandidateNeedsFullUpload = false;
         return;
@@ -1033,106 +972,7 @@ void ShadowCasterCullingPass::uploadPendingPersistentCandidates(ID3D12GraphicsCo
 
     transitionPersistentCandidateBuffer(commandList, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    ++m_persistentPartialUploadLogCounter;
-
-    if (m_persistentPartialUploadLogCounter >= 60)
-    {
-        DEBUG_LOG(
-            "[Shadow Persistent] Partial updates | Slots: %u | Copies: %zu | Upload: %.2f KiB",
-            m_pendingPersistentUpdatedSlotCount,
-            m_pendingPersistentCandidateCopies.size(),
-            static_cast<double>(m_pendingPersistentUpdatedBytes) / 1024.0);
-
-        m_persistentPartialUploadLogCounter = 0;
-    }
-
     m_pendingPersistentCandidateCopies.clear();
-    m_pendingPersistentUpdatedSlotCount = 0;
-    m_pendingPersistentUpdatedBytes = 0;
-}
-
-void ShadowCasterCullingPass::buildCandidates()
-{
-    m_candidates.clear();
-
-    for (MeshRenderer* renderer : app->getModuleScene()->getMeshRenderers())
-    {
-        ++m_preparationStats.visitedRenderers;
-
-        if (renderer == nullptr || !renderer->isActive() || !renderer->hasMesh() || !renderer->getCastShadows()) continue;
-
-        GameObject* owner = renderer->getOwner();
-        Transform* transform = renderer->getTransform();
-
-        if (owner == nullptr || !owner->IsActiveInWindowHierarchy() || transform == nullptr) continue;
-
-        const std::shared_ptr<BasicMesh>& mesh = renderer->getMesh();
-
-        if (mesh == nullptr || !mesh->hasIndexBuffer()) continue;
-
-        const Skin* skin = renderer->getSkin();
-
-        const VertexBuffer* gpuSkinnedVB = skin != nullptr ? skin->getCurrentGpuSkinnedVertexBuffer() : nullptr;
-        const VertexBuffer* cpuSkinnedVB = skin != nullptr && skin->isCpuSkinningFallbackEnabled() ? skin->getCpuSkinnedVertexBuffer() : nullptr;
-        const VertexBuffer* staticVB = mesh->getVertexBuffer().get();
-
-        const bool useGpuSkinnedVB = gpuSkinnedVB != nullptr;
-        const bool useCpuSkinnedVB = !useGpuSkinnedVB && cpuSkinnedVB != nullptr;
-        const bool useWorldSpaceSkinnedVB = useGpuSkinnedVB || useCpuSkinnedVB;
-
-        const VertexBuffer* activeVB = useGpuSkinnedVB ? gpuSkinnedVB : useCpuSkinnedVB ? cpuSkinnedVB : staticVB;
-
-        if (activeVB == nullptr) continue;
-
-        ++m_preparationStats.eligibleRenderers;
-
-        if (useWorldSpaceSkinnedVB)
-        {
-            ++m_preparationStats.skinnedRenderers;
-            m_preparationStats.skinnedCandidateCount += static_cast<uint32_t>(mesh->getSubmeshes().size());
-        }
-
-        const Matrix model = useWorldSpaceSkinnedVB ? Matrix::Identity : transform->getGlobalMatrix();
-        const Matrix modelTranspose = model.Transpose();
-
-        const Vector3* bounds = renderer->getBoundingBox().getPoints();
-
-        const D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
-        const D3D12_INDEX_BUFFER_VIEW ibv = mesh->getIndexBuffer()->getIndexBufferView();
-
-        for (const Submesh& submesh : mesh->getSubmeshes())
-        {
-            ShadowCasterCandidateGPU candidate{};
-
-            for (uint32_t i = 0; i < 8; ++i)
-            {
-                candidate.bounds[i][0] = bounds[i].x;
-                candidate.bounds[i][1] = bounds[i].y;
-                candidate.bounds[i][2] = bounds[i].z;
-                candidate.bounds[i][3] = 1.0f;
-            }
-
-            storeMatrix(modelTranspose, candidate.model);
-
-            splitGpuAddress(vbv.BufferLocation, candidate.vertexBufferAddressLow, candidate.vertexBufferAddressHigh);
-            candidate.vertexBufferSize = vbv.SizeInBytes;
-            candidate.vertexBufferStride = vbv.StrideInBytes;
-
-            splitGpuAddress(ibv.BufferLocation, candidate.indexBufferAddressLow, candidate.indexBufferAddressHigh);
-            candidate.indexBufferSize = ibv.SizeInBytes;
-            candidate.indexBufferFormat = static_cast<uint32_t>(ibv.Format);
-
-            candidate.indexCountPerInstance = static_cast<uint32_t>(submesh.indexCount);
-            candidate.instanceCount = 1;
-            candidate.startIndexLocation = static_cast<uint32_t>(submesh.indexStart);
-            candidate.baseVertexLocation = 0;
-            candidate.startInstanceLocation = 0;
-
-            candidate.flags = useWorldSpaceSkinnedVB ? SHADOW_CASTER_FLAG_FORCE_VISIBLE : 0u;
-
-            m_candidates.push_back(candidate);
-        }
-    }
 }
 
 void ShadowCasterCullingPass::ensureVisibilityMaskCapacity(uint32_t requiredCount)
