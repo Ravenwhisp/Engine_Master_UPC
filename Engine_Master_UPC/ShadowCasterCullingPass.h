@@ -78,6 +78,14 @@ private:
         bool alive = false;
     };
 
+    struct PendingPersistentCandidateCopy
+    {
+        ID3D12Resource* sourceResource = nullptr;
+        uint64_t sourceOffset = 0;
+        uint64_t destinationOffset = 0;
+        uint64_t size = 0;
+    };
+
     void createRootSignature();
     void createPipelineState();
     void createCounterResources();
@@ -86,12 +94,13 @@ private:
     void ensureRegistryBootstrap();
     void resetRegistry();
     void initializeRegistry();
-    void processDirtyQueue();
+    void processDirtyQueue(const RenderContext& ctx);
 
     bool buildPersistentCandidate(uint32_t slotIndex, ShadowCasterCandidateGPU& candidate) const;
     void preparePersistentCandidateBuffer(const RenderContext& ctx);
     void uploadPendingPersistentCandidates(ID3D12GraphicsCommandList4* commandList);
     void transitionPersistentCandidateBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
+    void queuePersistentCandidateUpdates(const std::vector<uint32_t>& slotIndices, const RenderContext& ctx);
 
     void ensureVisibilityMaskCapacity(uint32_t requiredCount);
     void ensureIndirectCommandCapacity(uint32_t requiredCount);
@@ -168,5 +177,10 @@ private:
     uint32_t m_pendingPersistentCandidateCount = 0;
     uint32_t m_pendingPersistentPopulatedCount = 0;
 
+    std::vector<PendingPersistentCandidateCopy> m_pendingPersistentCandidateCopies;
+
+    uint32_t m_pendingPersistentUpdatedSlotCount = 0;
+    uint64_t m_pendingPersistentUpdatedBytes = 0;
+    uint32_t m_persistentPartialUploadLogCounter = 0;
 
 };
