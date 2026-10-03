@@ -257,8 +257,9 @@ private:
     bool applyLoadedScene(const std::string& sceneName, std::shared_ptr<Scene> loadedScene);
 
 public:
-    void requestAsyncSceneLoad(const std::string& sceneName);
-    bool isAsyncSceneReady() const { return m_asyncSceneReady; }
-    bool isAsyncSceneLoading() const { return m_asyncLoadFuture.valid() && !m_asyncSceneReady; }
+    bool requestAsyncSceneLoad(const std::string& sceneName);
+    bool requestAsyncSceneChange();
+    bool isAsyncSceneReady() const { return m_asyncSceneReady && m_asyncLoadedScene != nullptr; }
+    bool isAsyncSceneLoading() const { return !m_asyncSceneName.empty() && !m_asyncSceneReady; }
 #pragma endregion
 };

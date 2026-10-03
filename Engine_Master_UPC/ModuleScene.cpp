@@ -217,32 +217,45 @@ void ModuleScene::update()
         if (m_asyncLoadFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
         {
             m_asyncLoadedScene = m_asyncLoadFuture.get();
-            m_asyncSceneReady = true;
+            if (m_asyncLoadedScene)
+            {
+                m_asyncSceneReady = true;
+            }
+            else
+            {
+                DEBUG_ERROR("[ModuleScene] Async scene load failed: %s", m_asyncSceneName.c_str());
+                if (m_pendingSceneLoad == m_asyncSceneName)
+                {
+                    m_pendingSceneLoad.clear();
+                }
+                m_asyncSceneName.clear();
+                m_asyncSceneReady = false;
+            }
         }
     }
 
     if (!m_pendingSceneLoad.empty())
     {
-        if (m_asyncLoadFuture.valid())
+        const bool isPendingAsyncScene =
+            !m_asyncSceneName.empty() && m_pendingSceneLoad == m_asyncSceneName;
+
+        if (isPendingAsyncScene)
         {
-            if (!m_asyncSceneReady)
+            if (m_asyncSceneReady)
             {
-                m_asyncLoadedScene = m_asyncLoadFuture.get();
-                m_asyncSceneReady = true;
+                applyLoadedScene(m_asyncSceneName, m_asyncLoadedScene);
+
+                m_asyncLoadedScene.reset();
+                m_asyncSceneName.clear();
+                m_asyncSceneReady = false;
+                m_pendingSceneLoad.clear();
             }
-
-            applyLoadedScene(m_asyncSceneName, m_asyncLoadedScene);
-
-            m_asyncLoadedScene = nullptr;
-            m_asyncSceneName.clear();
-            m_asyncSceneReady = false;
         }
         else
         {
             loadScene(m_pendingSceneLoad);
+            m_pendingSceneLoad.clear();
         }
-
-        m_pendingSceneLoad.clear();
     }
 
     if (m_pendingScene)
@@ -901,12 +914,17 @@ bool ModuleScene::applyLoadedScene(const std::string& sceneName, std::shared_ptr
     return true;
 }
 
-void ModuleScene::requestAsyncSceneLoad(const std::string& sceneName)
+bool ModuleScene::requestAsyncSceneLoad(const std::string& sceneName)
 {
-    if (m_asyncLoadFuture.valid())
+    if (sceneName.empty())
+    {
+        return false;
+    }
+
+    if (!m_asyncSceneName.empty())
     {
         DEBUG_WARN("[ModuleScene] Async scene load already running: %s", m_asyncSceneName.c_str());
-        return;
+        return false;
     }
 
     m_asyncSceneName = sceneName;
@@ -919,6 +937,20 @@ void ModuleScene::requestAsyncSceneLoad(const std::string& sceneName)
             return loadSceneData(sceneName);
         }
     );
+
+    return true;
+}
+
+bool ModuleScene::requestAsyncSceneChange()
+{
+    if (m_asyncSceneName.empty())
+    {
+        DEBUG_WARN("[ModuleScene] Cannot activate async scene: no async load exists.");
+        return false;
+    }
+
+    m_pendingSceneLoad = m_asyncSceneName;
+    return true;
 }
 
 #pragma endregion

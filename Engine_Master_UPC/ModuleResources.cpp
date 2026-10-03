@@ -49,6 +49,7 @@ bool ModuleResources::init()
 void ModuleResources::preRender()
 {
 	const uint64_t lastCompletedFrame = m_queue->getCompletedFenceValue();
+	std::lock_guard lock(m_deferredResourcesMutex);
 
 	int i = 0;
 	while (i < static_cast<int>(m_deferredResources.size()))
@@ -69,7 +70,10 @@ bool ModuleResources::cleanUp()
 {
 	m_resources.clear();
 	m_enviromentBrdfTexture.reset();
-	m_deferredResources.clear();
+	{
+		std::lock_guard lock(m_deferredResourcesMutex);
+		m_deferredResources.clear();
+	}
 	return true;
 }
 
@@ -99,8 +103,8 @@ ComPtr<ID3D12Resource> ModuleResources::createDefaultBuffer(const void* data, si
 
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
 	commandList->CopyResource(buffer.Get(), uploadBuffer.Get());
-	m_queue->executeCommandList(commandList);
-	m_queue->flush();
+	const uint64_t uploadFence = m_queue->executeCommandList(commandList);
+	deferResourceRelease(std::move(uploadBuffer), uploadFence);
 
 	if (name && name[0] != '\0')
 	{
@@ -834,9 +838,15 @@ void ModuleResources::setEnvironmentBrdfTexture(std::shared_ptr<Texture> texture
 
 void ModuleResources::deferResourceRelease(ComPtr<ID3D12Resource> resource)
 {
+	deferResourceRelease(std::move(resource), m_queue->signal());
+}
+
+void ModuleResources::deferResourceRelease(ComPtr<ID3D12Resource> resource, uint64_t fenceValue)
+{
 	DeferredResource deferred{};
-	deferred.frame = m_queue->signal();
+	deferred.frame = fenceValue;
 	deferred.resource = std::move(resource);
+	std::lock_guard lock(m_deferredResourcesMutex);
 	m_deferredResources.push_back(std::move(deferred));
 }
 
@@ -852,8 +862,8 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(dstTexture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	commandList->ResourceBarrier(1, &barrier);
 
-	m_queue->executeCommandList(commandList);
-	m_queue->flush();
+	const uint64_t uploadFence = m_queue->executeCommandList(commandList);
+	deferResourceRelease(std::move(stagingBuffer), uploadFence);
 }
 
 std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, bool shaderVisible)
