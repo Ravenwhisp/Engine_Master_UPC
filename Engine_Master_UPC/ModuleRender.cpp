@@ -816,32 +816,12 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     }
 
     {
-        PERF_RENDER("ModuleRender::renderScene::ShadowCasterCandidates");
-        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadow caster candidates");
-
-        if (m_shadowCasterCullingPass != nullptr)
-        {
-            m_shadowCasterCullingPass->prepare(ctx);
-        }
-
-        endRenderPassProfile(commandList, profileIndex);
-
-        if (m_renderProfilingActive && m_shadowCasterCullingPass != nullptr)
-        {
-            const auto& stats = m_shadowCasterCullingPass->getPreparationStats();
-
-            m_currentRenderTimings.push_back({ "  Candidate build", stats.buildMs, 0.0f });
-            m_currentRenderTimings.push_back({ "  Candidate capacity", stats.capacityMs, 0.0f });
-            m_currentRenderTimings.push_back({ "  Candidate upload", stats.uploadMs, 0.0f });
-        }
-    }
-
-    {
         PERF_RENDER("ModuleRender::renderScene::ShadowCasterCullingPass");
         const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadow caster culling");
 
         if (m_shadowCasterCullingPass != nullptr)
         {
+            m_shadowCasterCullingPass->prepare(ctx);
             m_shadowCasterCullingPass->apply(commandList);
         }
 
