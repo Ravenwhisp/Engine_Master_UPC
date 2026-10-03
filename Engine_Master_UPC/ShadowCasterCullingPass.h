@@ -101,6 +101,8 @@ private:
     void uploadPendingPersistentCandidates(ID3D12GraphicsCommandList4* commandList);
     void transitionPersistentCandidateBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
     void queuePersistentCandidateUpdates(const std::vector<uint32_t>& slotIndices, const RenderContext& ctx);
+    void refreshSkinnedPersistentCandidates(const RenderContext& ctx);
+    void flushRetiredPersistentCandidateSlots(const RenderContext& ctx);
 
     void ensureVisibilityMaskCapacity(uint32_t requiredCount);
     void ensureIndirectCommandCapacity(uint32_t requiredCount);
@@ -160,6 +162,7 @@ private:
 
     std::vector<ShadowCasterHandle> m_dirtyHandles;
     std::vector<ShadowCasterHandle> m_skinnedHandles;
+    std::vector<uint32_t> m_retiredCandidateSlots;
 
     uint32_t m_candidateSlotHighWaterMark = 0;
     uint32_t m_liveCandidateSlotCount = 0;
@@ -182,5 +185,6 @@ private:
     uint32_t m_pendingPersistentUpdatedSlotCount = 0;
     uint64_t m_pendingPersistentUpdatedBytes = 0;
     uint32_t m_persistentPartialUploadLogCounter = 0;
+
 
 };
