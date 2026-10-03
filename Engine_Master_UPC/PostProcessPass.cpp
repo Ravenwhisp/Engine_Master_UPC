@@ -135,8 +135,10 @@ void PostProcessPass::prepare(const RenderContext& ctx)
     m_params.depthLinearizeB = ctx.projection.m[3][2];
 
     // Reused from the SSAO geometry pass for distance-invariant crease detection.
-    m_normalTexture = ctx.ssaoNormalTexture;
-    m_outlineDepthTexture = ctx.ssaoDepthTexture;
+    /*m_normalTexture = ctx.ssaoNormalTexture;
+    m_outlineDepthTexture = ctx.ssaoDepthTexture;*/
+    m_normalTexture = ctx.outlineNormalTexture;
+    m_outlineDepthTexture = ctx.outlineDepthTexture;
 
     m_runBloom = settings.bloomEnabled;
     m_params.enableBloom = settings.bloomEnabled ? 1u : 0u;

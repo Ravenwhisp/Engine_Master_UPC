@@ -15,7 +15,7 @@ class MeshRenderer;
 class OutlinePass : public IRenderPass
 {
 public:
-    explicit OutlinePass(ComPtr<ID3D12Device4> device);
+    OutlinePass(ComPtr<ID3D12Device4> device);
 
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
@@ -24,7 +24,7 @@ private:
     void createRootSignature();
     void createPipelineState();
 
-    void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer)
+    void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer* renderer);
 
     ComPtr<ID3D12Device4> m_device;
     ComPtr<ID3D12RootSignature> m_rootSignature;

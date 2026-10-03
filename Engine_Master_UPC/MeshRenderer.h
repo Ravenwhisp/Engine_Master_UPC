@@ -28,6 +28,11 @@ struct OutlineData
 {
     Matrix model;
     Matrix normalMat;
+
+    float		normalFactor;
+    BOOL		hasNormalTex;
+
+    Vector2 padding;
 };
 
 enum class RenderMode : UINT

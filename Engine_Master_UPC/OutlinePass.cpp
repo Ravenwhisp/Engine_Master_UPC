@@ -2,9 +2,12 @@
 #include "OutlinePass.h"
 
 #include "ModuleDescriptors.h"
+#include "ModuleScene.h"
+#include "ModuleRender.h"
 #include "RenderContext.h"
 #include "SceneDataCB.h"
 #include "Texture.h"
+#include "IndexBuffer.h"
 #include "Application.h"
 #include "RingBuffer.h"
 #include "GameObject.h"
@@ -15,6 +18,8 @@
 #include "OptickProfiler.h"
 
 #include <d3dcompiler.h>
+
+
 
 OutlinePass::OutlinePass(ComPtr<ID3D12Device4> device)
 {
@@ -45,17 +50,27 @@ void OutlinePass::prepare(const RenderContext& ctx)
     PERF_RENDER("DeferredShadingPass::prepare::UploadSceneDataCB");
     m_sceneDataCBAddress = ctx.ringBuffer->allocate(m_sceneDataCB.get(), sizeof(SceneDataCB));
 
-    m_meshRenderers = app->getModuleScene()->getVisibleForwardMeshRenderers(RenderMode::TRANSP); //TODO: Change to get only renderers with draw outline
+    m_meshRenderers = app->getModuleScene()->getVisibleOutlineMeshRenderers();
 }
 
 void OutlinePass::apply(ID3D12GraphicsCommandList4* commandList)
 {
     BEGIN_EVENT(commandList, "OutlinePass");
 
+    const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+    CD3DX12_RESOURCE_BARRIER barrierToWrite1 = CD3DX12_RESOURCE_BARRIER::Transition(m_depthTexture->getD3D12Resource().Get(),D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    commandList->ResourceBarrier(1, &barrierToWrite1);
+    CD3DX12_RESOURCE_BARRIER barrierToWrite2 = CD3DX12_RESOURCE_BARRIER::Transition(m_normalTexture->getD3D12Resource().Get(),D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,D3D12_RESOURCE_STATE_RENDER_TARGET);
+    commandList->ResourceBarrier(1, &barrierToWrite2);
+
+    commandList->ClearRenderTargetView(m_normalTexture->getRTV().cpu, clearColor, 0, nullptr);
+    commandList->ClearDepthStencilView(m_depthTexture->getDSV().cpu, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr );
+
     D3D12_CPU_DESCRIPTOR_HANDLE rtv = m_normalTexture->getRTV().cpu;
     D3D12_CPU_DESCRIPTOR_HANDLE dsv = m_depthTexture->getDSV().cpu;
 
-    commandList->OMSetRenderTargets(1, rtv, FALSE, dsv);
+    commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
     commandList->RSSetViewports(1, &m_viewport);
     commandList->RSSetScissorRects(1, &m_scissorRect);
 
@@ -78,22 +93,26 @@ void OutlinePass::apply(ID3D12GraphicsCommandList4* commandList)
     }
 
 
-    auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_depthTexture->getD3D12Resource(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    commandList->ResourceBarrier(1, &barrier);
+    auto barrier1 = CD3DX12_RESOURCE_BARRIER::Transition(m_depthTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    commandList->ResourceBarrier(1, &barrier1);
+    CD3DX12_RESOURCE_BARRIER barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(m_normalTexture->getD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    commandList->ResourceBarrier(1, &barrier2);
+
+    END_EVENT(commandList);
 }
 
 void OutlinePass::createRootSignature()
 {
     CD3DX12_ROOT_PARAMETER rootParams[5] = {};
 
-    CD3DX12_DESCRIPTOR_RANGE normalRange, sampleRange;
-    normalRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
+    CD3DX12_DESCRIPTOR_RANGE materialRange, sampleRange;
+    materialRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     sampleRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
 
     rootParams[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL); //Model view projection
     rootParams[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); //Scene data
-    rootParams[2].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_ALL); //Outline data
-    rootParams[3].InitAsDescriptorTable(1, &normalRange, D3D12_SHADER_VISIBILITY_PIXEL); //Mesh normal
+    rootParams[2].InitAsConstantBufferView(4, 0, D3D12_SHADER_VISIBILITY_ALL); //Model data
+    rootParams[3].InitAsDescriptorTable(1, &materialRange, D3D12_SHADER_VISIBILITY_PIXEL); //Mesh normal
     rootParams[4].InitAsDescriptorTable(1, &sampleRange, D3D12_SHADER_VISIBILITY_PIXEL); //Texture samples
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -125,6 +144,8 @@ void OutlinePass::createPipelineState()
     psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
     psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+    psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     psoDesc.DepthStencilState.DepthEnable = TRUE;
@@ -133,7 +154,7 @@ void OutlinePass::createPipelineState()
     psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     psoDesc.SampleMask = UINT_MAX;
     psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-    psoDesc.NumRenderTargets = 1;
+    psoDesc.NumRenderTargets = 1 ;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
     psoDesc.SampleDesc = { 1, 0 };
 
@@ -196,12 +217,16 @@ void OutlinePass::renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, Me
     {
         const auto& material = materials.at(i).get();
 
-        OutlineData outlineData{};
-        outlineData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
-        outlineData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
-        commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&outlineData, sizeof(OutlineData)));
+        ModelData modelData{};
+        modelData.model = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getGlobalMatrix().Transpose();
+        modelData.normalMat = useWorldSpaceSkinnedVB ? Matrix::Identity.Transpose() : transform->getNormalMatrix().Transpose();
+        modelData.material = material->getMaterial();
 
-        commandList->SetGraphicsRootDescriptorTable(3, material->getNormal());
+        commandList->SetGraphicsRootConstantBufferView(2, app->getModuleRender()->allocateInRingBuffer(&modelData, sizeof(ModelData)));
+
+        commandList->SetGraphicsRootDescriptorTable(3, material->getTableGPUHandle());
+
+        commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         D3D12_VERTEX_BUFFER_VIEW vbv = activeVB->getVertexBufferView();
         commandList->IASetVertexBuffers(0, 1, &vbv);

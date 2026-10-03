@@ -399,6 +399,18 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
     ssaoBlurTexture->setName(L"RenderSurface_SSAO_Blur");
     surface.attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTexture);
 
+    auto outlineDepthTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createOutlineDepthBuffer(width, height)
+    );
+    outlineDepthTexture->setName(L"RenderSurface_Outline_Depth");
+    surface.attachTexture(RenderSurface::OUTLINE_DEPTH, outlineDepthTexture);
+
+    auto outlineNormalTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createOutlineTexture(width, height)
+    );
+    outlineNormalTexture->setName(L"RenderSurface_Outline_Normal");
+    surface.attachTexture(RenderSurface::OUTLINE_NORMAL, outlineNormalTexture);
+
     auto occlusionOccluderDepth = std::shared_ptr<Texture>(
         app->getModuleResources()->createDepthBuffer(width, height)
     );
