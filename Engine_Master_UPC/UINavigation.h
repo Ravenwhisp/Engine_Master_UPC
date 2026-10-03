@@ -1,5 +1,7 @@
 #pragma once
 
+#include "UID.h"
+
 class GameObject;
 
 class UINavigation
@@ -8,7 +10,7 @@ public:
     void update();
 
     void setSelected(GameObject* go);
-    GameObject* getSelected()  const { return m_selected; }
+    GameObject* getSelected() const;
     void clearSelection();
 
 private:
@@ -18,5 +20,5 @@ private:
     GameObject* findFirstSelectableButton() const;
 
 private:
-    GameObject* m_selected = nullptr;
+    UID m_selectedUid = INVALID_UID;
 };
