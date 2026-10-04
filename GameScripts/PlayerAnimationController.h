@@ -48,6 +48,7 @@ public:
     void beginChargeHold(const std::string& stateName, float blendTime, float speed, float pausePct);
     void setChargeProgress(float progress01);
     void endChargeHold(float releaseFraction = 1.0f);
+    void abortChargeHold();
 
 private:
     AnimationComponent* findAnimationComponent();
@@ -112,4 +113,5 @@ private:
     float m_dashMoveDuration = 0.4f;
     float m_dashHoldTimer = 0.0f;
     bool  m_dashJustStarted = false;
+    bool  m_attackOverrideDirty = false;
 };

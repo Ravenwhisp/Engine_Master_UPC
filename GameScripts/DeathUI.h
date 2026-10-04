@@ -44,10 +44,12 @@ private:
 	// Taunt
 	ComponentRef<Transform> m_tauntUI;
 	Transform* m_tauntUITransform = nullptr;
+	ComponentRef<Transform2D> m_tauntHUDControl;
 
 	// Charged Attack
 	ComponentRef<Transform> m_chargedAttackUI;
 	Transform* m_chargedAttackUITransform = nullptr;
+	ComponentRef<Transform2D> m_chargedHUDControl;
 
 	ComponentRef<UISlider> m_chargedAttackChargeSlider;
 	UISlider* m_chargedAttackChargeUISlider = nullptr;
@@ -64,6 +66,12 @@ private:
 
 	Transform* m_chargedSlashUITransform = nullptr;
 	UISlider* m_chargedSlashUISlider = nullptr;
+
+public:
+	Transform2D* m_tauntHUDControlTransform2D = nullptr;
+	Transform2D* m_chargedHUDControlTransform2D = nullptr;
+
+private:
 
 	bool m_wasMaxCharge = false;
 	bool m_isPlayingMaxChargePop = false;

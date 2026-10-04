@@ -19,6 +19,7 @@ public:
     explicit AmbientSoundLoop(GameObject* owner);
 
     void Start() override;
+    void Update() override;
 
     FieldList getExposedFields() const override;
 
@@ -29,6 +30,10 @@ public:
     bool        m_playOnStart = true;
 
 private:
-    ComponentSoundSource* m_source    = nullptr;
-    uint32_t              m_playingID = 0;
+    void tryPlay();
+
+    ComponentSoundSource* m_source     = nullptr;
+    uint32_t              m_playingID  = 0;
+    float                 m_retryTimer = 0.0f;
+    int                   m_retriesLeft = 20;
 };

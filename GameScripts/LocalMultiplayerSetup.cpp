@@ -27,6 +27,14 @@ LocalMultiplayerSetup::LocalMultiplayerSetup(GameObject* owner)
 
 void LocalMultiplayerSetup::Start()
 {
+    if(PlayerGamepadBinding::getGamepadDeviceIndex(0) >= 0)
+    {
+        m_setupMode = 1;
+    }
+    else
+    {
+        m_setupMode = 0;
+	}
     chooseConfiguration();
 }
 

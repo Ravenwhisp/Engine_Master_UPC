@@ -107,7 +107,8 @@ void PlayerAnimationController::Update()
     }
 
     const bool forceReplay = (freshDamage && desiredState == AnimState::Damaged)
-                          || (m_dashJustStarted && desiredState == AnimState::Dash);
+                          || (m_dashJustStarted && desiredState == AnimState::Dash)
+                          || (m_attackOverrideDirty && desiredState == AnimState::Attack);
     if (desiredState != m_currentState || forceReplay)
     {
         if (m_chargeHoldPaused && desiredState != AnimState::ChargeHold)
@@ -170,6 +171,7 @@ void PlayerAnimationController::Update()
     m_attackRequested = false;
     m_damagedRequested = false;
     m_dashJustStarted = false;
+    m_attackOverrideDirty = false;
 }
 
 void PlayerAnimationController::setMoving(bool moving)
@@ -216,6 +218,7 @@ void PlayerAnimationController::setAttackOverride(const std::string& stateName, 
     m_attackOverrideBlend = blendTime;
     m_attackOverrideSpeed = speed;
     m_hasAttackOverride = true;
+    m_attackOverrideDirty = true;
 }
 
 void PlayerAnimationController::clearAttackOverride()
@@ -294,6 +297,20 @@ void PlayerAnimationController::endChargeHold(float releaseFraction)
     const float releaseSpan = (dur - releaseStart) * frac;
     const float remaining = dur > 0.0001f ? (releaseSpan / spd) : 0.5f;
     m_chargeReleaseTimer = remaining > 0.0f ? remaining : 0.5f;
+}
+
+void PlayerAnimationController::abortChargeHold()
+{
+    m_chargeHoldActive = false;
+    m_chargeReleaseTimer = 0.0f;
+
+    if (m_chargeHoldPaused && m_animationComponent != nullptr)
+    {
+        AnimationAPI::play(m_animationComponent);
+        AnimationAPI::setSpeedMultiplier(m_animationComponent, 1.0f);
+    }
+
+    m_chargeHoldPaused = false;
 }
 
 const std::string& PlayerAnimationController::pickDamagedState()

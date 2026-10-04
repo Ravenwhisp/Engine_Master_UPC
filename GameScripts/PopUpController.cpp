@@ -176,10 +176,19 @@ void PopUpController::updateShowing(ActivePopUp& popUp, float dt)
 
     if (popUp.timer >= duration)
     {
-        updateShowTransition(popUp, 1.0f);
+        if (popUp.event->getCloseMode() == PopUpCloseMode::CloseOnTimeout)
+        {
+            prepareHideTransition(popUp);
+            popUp.state = PopUpState::Hiding;
+            popUp.timer = 0.0f;
+        }
+        else
+        {
+            updateShowTransition(popUp, 1.0f);
 
-        popUp.state = PopUpState::Waiting;
-        popUp.timer = 0.0f;
+            popUp.state = PopUpState::Waiting;
+            popUp.timer = 0.0f;
+        }
     }
 }
 

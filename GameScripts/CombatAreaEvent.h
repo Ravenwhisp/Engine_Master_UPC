@@ -19,6 +19,9 @@ public:
     bool isActive() const { return m_isActive; }
     bool hasCompleted() const { return m_hasCompleted; }
 
+    void setKeepEntranceBlockedOnCompletion(bool keepBlocked) { m_keepEntranceBlockedOnCompletion = keepBlocked; }
+    void setEntranceBlocked(bool blocked);
+
     FieldList getExposedFields() const override;
 
 private:
@@ -45,4 +48,5 @@ private:
 
     bool m_isActive = false;
     bool m_hasCompleted = false;
+    bool m_keepEntranceBlockedOnCompletion = false;
 };

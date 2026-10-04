@@ -137,7 +137,7 @@ Vector3 MeleeEnemyController::getChargeDirection() const
 
 	Transform* ownerTransform = GameObjectAPI::getTransform(getOwner());
 	Vector3 ownerPosition = TransformAPI::getGlobalPosition(ownerTransform);
-	Vector3 direction = TransformAPI::getForward(ownerTransform);
+	Vector3 direction = TransformAPI::getForward(ownerTransform); // Really necessary?
 	Vector3 targetPosition = TransformAPI::getGlobalPosition(m_currentTarget);
 
 	direction = targetPosition - ownerPosition;

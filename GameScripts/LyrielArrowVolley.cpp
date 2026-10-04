@@ -48,6 +48,19 @@ void LyrielArrowVolley::Update()
 	}
 }
 
+void LyrielArrowVolley::updateUI()
+{
+    AbilityBase::updateUI();
+
+    if (m_lyrielUI && m_lyrielUI->m_arrowVolleyHUDControlTransform2D)
+    {
+        const float dt = Time::getDeltaTime();
+        const bool isPressed = Input::isLeftTriggerPressed(getPlayerIndex());
+
+        updateHUDControlScale(m_lyrielUI->m_arrowVolleyHUDControlTransform2D, isPressed, dt);
+    }
+}
+
 void LyrielArrowVolley::startAbility()
 {
     beginAim();
@@ -87,6 +100,43 @@ void LyrielArrowVolley::onAttackWindowUpdate()
     {
         faceDirection(m_attackFacingDirection);
     }
+}
+
+void LyrielArrowVolley::cancelAbility()
+{
+    if (m_isAiming)
+    {
+        m_isAiming = false;
+
+        if (m_lyrielUI)
+        {
+            m_lyrielUI->hideArrowVolleyUI();
+        }
+    }
+
+    AbilityBase::cancelAbility();
+}
+
+void LyrielArrowVolley::onHitFrame()
+{
+    // Recompute the origin: Lyriel may have moved while the bow was being drawn.
+    Transform* spawnTransform = findArrowSpawnTransform();
+    const Vector3 origin = spawnTransform != nullptr
+        ? TransformAPI::getGlobalPosition(spawnTransform)
+        : m_pendingOrigin;
+
+    std::vector<Damageable*> targets;
+    collectEnemiesInCone(origin, m_pendingForward, targets);
+    applyVolleyDamage(targets);
+    spawnVolleyArrows(origin, m_pendingForward);
+
+    LyrielSound* sound = m_lyrielCharacter != nullptr ? m_lyrielCharacter->getSound() : nullptr;
+    if (sound != nullptr)
+    {
+        sound->playVolleyRelease();
+    }
+
+    Debug::log("[LyrielArrowVolley] Volley released. Targets hit: %d", static_cast<int>(targets.size()));
 }
 
 void LyrielArrowVolley::onAttackWindowFinished()
@@ -186,24 +236,16 @@ void LyrielArrowVolley::releaseAimAndCast()
     m_attackFacingDirection = forward;
     faceDirection(forward);
 
-    std::vector<Damageable*> targets;
-    collectEnemiesInCone(origin, forward, targets);
-    applyVolleyDamage(targets);
-    spawnVolleyArrows(origin, forward);
-    notifyAbilitySuccessfullyStarted();
+    // The volley leaves on the animation's release frame, not on button press.
+    m_pendingOrigin = origin;
+    m_pendingForward = forward;
 
-    LyrielSound* sound = m_lyrielCharacter != nullptr ? m_lyrielCharacter->getSound() : nullptr;
-    if (sound != nullptr)
-    {
-        sound->playVolleyRelease();
-    }
+    notifyAbilitySuccessfullyStarted();
 
     beginAttackPresentation();
 
     beginAttackWindow(m_lyrielCharacter->getConfig()->m_volleyAttackLockDuration);
     startCooldown();
-
-    Debug::log("[LyrielArrowVolley] Cast Arrow Volley. Targets hit: %d", static_cast<int>(targets.size()));
 }
 
 Vector3 LyrielArrowVolley::computeAimDirection() const
@@ -397,7 +439,7 @@ void LyrielArrowVolley::spawnVolleyArrows(const Vector3& origin, const Vector3& 
             dir.Normalize();
         }
 
-        arrow->launch(origin, dir, m_lyrielCharacter->getConfig()->m_volleyArrowSpeed, lifetime, nullptr, 0.0f);
+        arrow->launch(origin, dir, m_lyrielCharacter->getConfig()->m_volleyArrowSpeed, lifetime, nullptr, 0.0f, LyrielArrowProjectile::VisualModel::Volley);
     }
 }
 

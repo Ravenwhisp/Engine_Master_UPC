@@ -64,6 +64,11 @@ void DeathTaunt::Update()
             m_deathUI->hideTauntUI();
         }
 
+        if (m_deathParticles)
+        {
+            m_deathParticles->cancelTauntChains();
+        }
+
         return;
     }
 
@@ -87,6 +92,19 @@ void DeathTaunt::Update()
         {
             m_debugConeTimer = 0.0f;
         }
+    }
+}
+
+void DeathTaunt::updateUI()
+{
+    AbilityBase::updateUI();
+
+    if (m_deathUI && m_deathUI->m_tauntHUDControlTransform2D)
+    {
+        const float dt = Time::getDeltaTime();
+        const bool isPressed = Input::isLeftTriggerPressed(getPlayerIndex());
+
+        updateHUDControlScale(m_deathUI->m_tauntHUDControlTransform2D, isPressed, dt);
     }
 }
 
@@ -242,6 +260,7 @@ void DeathTaunt::releaseAimAndCast()
     m_castDirection = finalDirection;
     m_impactDelayTimer = m_deathCharacter->getConfig()->m_tauntImpactDelay;
     m_tauntState = TauntState::WaitingForImpact;
+    m_tauntChainsLaunched = false;
 
     DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
     if (sound != nullptr)
@@ -267,9 +286,29 @@ void DeathTaunt::releaseAimAndCast()
     setAbilityLocked(false);
 }
 
+void DeathTaunt::cancelAbility()
+{
+    // Only the aiming phase is abortable. Once cast, the impact resolves on its own
+    // timer and the cooldown is already paid.
+    if (m_tauntState == TauntState::Aiming)
+    {
+        m_tauntState = TauntState::Idle;
+        m_currentAimDirection = Vector3::Zero;
+
+        if (m_deathUI)
+        {
+            m_deathUI->hideTauntUI();
+        }
+    }
+
+    AbilityBase::cancelAbility();
+}
+
 void DeathTaunt::updateImpactDelay()
 {
     m_impactDelayTimer -= Time::getDeltaTime();
+
+    updateTauntChains();
 
     if (m_impactDelayTimer > 0.0f)
     {
@@ -279,6 +318,27 @@ void DeathTaunt::updateImpactDelay()
     m_impactDelayTimer = 0.0f;
 
     resolveImpact();
+}
+
+void DeathTaunt::updateTauntChains()
+{
+    // Fire the chains early enough that they bite exactly when the pull starts.
+    // Visual only: resolveImpact still decides who gets taunted and pulled.
+    if (m_tauntChainsLaunched || !m_deathParticles)
+    {
+        return;
+    }
+
+    const float travelTime = m_deathParticles->getTauntChainTravelTime();
+    if (m_impactDelayTimer > travelTime)
+    {
+        return;
+    }
+
+    m_tauntChainsLaunched = true;
+
+    const float remaining = m_impactDelayTimer > 0.0f ? m_impactDelayTimer : 0.0f;
+    m_deathParticles->launchTauntChains(collectEnemiesInCone(m_castOrigin, m_castDirection), remaining > 0.02f ? remaining : 0.02f);
 }
 
 void DeathTaunt::resolveImpact()
@@ -336,6 +396,18 @@ void DeathTaunt::resolveImpact()
         if (pullStarted)
         {
             ++pulled;
+
+            // Tell the chain VFX when this enemy's pull starts and ends, so the chain follows it in and then lets go.
+            if (m_deathParticles)
+            {
+                m_deathParticles->notifyTauntChainPullStarted(enemy);
+
+                DeathParticles* particles = m_deathParticles;
+                forcedMovement->setPullFinishedCallback([particles](GameObject* pulledEnemy)
+                {
+                    particles->notifyTauntChainPullFinished(pulledEnemy);
+                });
+            }
         }
     }
 

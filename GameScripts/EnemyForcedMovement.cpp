@@ -117,6 +117,7 @@ void EnemyForcedMovement::cancelPull()
 	}
 
 	clearPullData();
+	notifyPullFinished();
 }
 
 void EnemyForcedMovement::updatePull()
@@ -185,6 +186,20 @@ void EnemyForcedMovement::finishPull()
 
 	applyCompletionDamage();
 	clearPullData();
+	notifyPullFinished();
+}
+
+void EnemyForcedMovement::notifyPullFinished()
+{
+	if (!m_onPullFinished)
+	{
+		return;
+	}
+
+	// Clear before calling, so the callback can safely start a new pull and set a new callback.
+	PullFinishedCallback callback = std::move(m_onPullFinished);
+	m_onPullFinished = nullptr;
+	callback(getOwner());
 }
 
 void EnemyForcedMovement::applyCompletionDamage()

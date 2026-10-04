@@ -16,10 +16,11 @@ constexpr int popUpTransitionTypeCount = 3;
 static const char* popUpCloseModeNames[] =
 {
     "Both Players Confirm",
-    "Objective Completed"
+    "Objective Completed",
+    "None (closes on timeout)"
 };
 
-constexpr int popUpCloseModeCount = 2;
+constexpr int popUpCloseModeCount = 3;
 
 IMPLEMENT_SCRIPT_FIELDS(PopUpEvent,
     SERIALIZED_COMPONENT_REF_VECTOR(m_popUpImages, "PopUp Images", ComponentType::TRANSFORM2D),

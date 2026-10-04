@@ -28,7 +28,8 @@ static AttackAnimId animIdForSlot(int uiSlot)
 }
 
 IMPLEMENT_SCRIPT_FIELDS(AbilityBase,
-    SERIALIZED_ENUM_INT(m_uiSlot, "UI Slot", abilityUISlotNames, abilityUISlotCount)
+    SERIALIZED_ENUM_INT(m_uiSlot, "UI Slot", abilityUISlotNames, abilityUISlotCount),
+    SERIALIZED_FLOAT(m_moveLockDuration, "Move Lock Duration", 0.0f, 2.0f, 0.05f)
 )
 
 AbilityBase::AbilityBase(GameObject* owner)
@@ -72,6 +73,15 @@ void AbilityBase::tryAbility()
         return;
     }
 
+    if (m_character != nullptr)
+    {
+        AbilityBase* active = m_character->getActiveAbility();
+        if (active != nullptr)
+        {
+            active->cancelAbility();
+        }
+    }
+
     startAbility();
 }
 
@@ -109,6 +119,18 @@ void AbilityBase::updateUI()
 
     const AbilityUISlot slot = static_cast<AbilityUISlot>(m_uiSlot);
     m_characterUI->updateAbilityCooldown(slot, m_cooldownTimer / cooldown);
+}
+
+void AbilityBase::updateHUDControlScale(Transform2D* hudControl, bool isPressed, float dt)
+{
+    if (!hudControl)
+        return;
+
+    const float targetScale = isPressed ? 0.8f : 1.0f;
+    const float currentScale = Transform2DAPI::getScale(hudControl).x;
+    const float scale = MathAPI::moveTowards(currentScale, targetScale, dt);
+
+    Transform2DAPI::setScale(hudControl, Vector2(scale, scale));
 }
 
 void AbilityBase::reduceCooldown(float fraction)
@@ -159,6 +181,16 @@ void AbilityBase::updateAttackWindow(float dt)
     }
 
     onAttackWindowUpdate();
+
+    if (!m_moveLockReleased)
+    {
+        m_moveLockTimer -= dt;
+        if (m_moveLockTimer <= 0.0f)
+        {
+            m_moveLockReleased = true;
+            releaseMovementLock();
+        }
+    }
 
     if (m_attackStateTimer > 0.0f)
     {
@@ -261,7 +293,18 @@ bool AbilityBase::canStartAbility() const
 
     if (m_character->isUsingAbility())
     {
-        return false;
+        AbilityBase* active = m_character->getActiveAbility();
+        if (active == nullptr)
+        {
+            return false;
+        }
+
+        // The dash always cuts through. Anything else only once the active action
+        // already landed its hit and its move lock expired.
+        if (!canCancelOthers() && !active->isCancelable())
+        {
+            return false;
+        }
     }
 
     if (!canStartSpecificAbility())
@@ -277,6 +320,15 @@ void AbilityBase::setAbilityLocked(bool locked) //innecesario
     if (m_character != nullptr)
     {
         m_character->setUsingAbility(locked);
+
+        if (locked)
+        {
+            m_character->setActiveAbility(this);
+        }
+        else if (m_character->getActiveAbility() == this)
+        {
+            m_character->setActiveAbility(nullptr);
+        }
     }
 }
 
@@ -297,6 +349,8 @@ void AbilityBase::beginAttackWindow(float lockDuration)
     m_hitFired = false;
     m_sawOurClip = false;
     m_attackWindowElapsed = 0.0f;
+    m_moveLockTimer = m_moveLockDuration > 0.001f ? m_moveLockDuration : 0.4f;
+    m_moveLockReleased = false;
 }
 
 void AbilityBase::finishAttackWindow()
@@ -325,6 +379,62 @@ void AbilityBase::finishAttackWindow()
             {
                 animController->clearAttackOverride();
             }
+        }
+
+        PlayerState* playerState = m_character->getPlayerState();
+        if (playerState != nullptr && playerState->isRecoveringAttack())
+        {
+            playerState->setState(PlayerStateType::Normal);
+        }
+    }
+
+    onAttackWindowFinished();
+}
+
+bool AbilityBase::isCancelable() const
+{
+    return m_attackWindowActive && m_moveLockReleased && m_hitFired;
+}
+
+void AbilityBase::releaseMovementLock()
+{
+    if (m_character == nullptr)
+    {
+        return;
+    }
+
+    PlayerState* playerState = m_character->getPlayerState();
+    if (playerState != nullptr && playerState->isRecoveringAttack())
+    {
+        playerState->setState(PlayerStateType::Normal);
+    }
+}
+
+void AbilityBase::cancelAbility()
+{
+    const bool wasActive = m_attackWindowActive;
+
+    m_attackStateTimer = 0.0f;
+    m_attackWindowActive = false;
+    m_moveLockTimer = 0.0f;
+    m_moveLockReleased = true;
+
+    // Only the animation is cancelled. A committed attack still lands its hit, otherwise
+    // the ability is lost while its cooldown already started.
+    if (wasActive && !m_hitFired)
+    {
+        m_hitFired = true;
+        onHitFrame();
+    }
+
+    setAbilityLocked(false);
+
+    if (m_character != nullptr)
+    {
+        PlayerAnimationController* animController = m_character->getAnimationController();
+        if (animController != nullptr)
+        {
+            animController->clearAttackOverride();
         }
 
         PlayerState* playerState = m_character->getPlayerState();

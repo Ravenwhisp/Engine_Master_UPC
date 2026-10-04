@@ -15,6 +15,7 @@ public:
 
     void Start() override;
     void Update() override;
+	void updateUI() override;
     void drawGizmo() override;
 
 protected:
@@ -22,6 +23,8 @@ protected:
 
     void onAttackWindowUpdate() override;
     void onAttackWindowFinished() override;
+    void onHitFrame() override;
+    void cancelAbility() override;
 
     float getCooldown() const override;
 
@@ -47,4 +50,7 @@ private:
     bool m_isAiming = false;
     Vector3 m_currentAimDirection = Vector3::Zero;
     Vector3 m_attackFacingDirection = Vector3::Zero;
+
+    Vector3 m_pendingOrigin = Vector3::Zero;
+    Vector3 m_pendingForward = Vector3::Zero;
 };

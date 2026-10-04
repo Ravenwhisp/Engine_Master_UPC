@@ -62,15 +62,26 @@ protected:
     bool usesAnimHitTiming() const;
     void resolveCurrentAttackAnim();
 
+    // Cancel support: an ability that returns true can interrupt the active one.
+    virtual void cancelAbility();
+    virtual bool canCancelOthers() const { return false; }
+    bool isCancelable() const;
+    void releaseMovementLock();
+
     Vector3 computeCameraRelativeAimDirection(float deadzoneSq = 0.0001f) const;
 	Vector3 getFallbackFacingDirection() const;
 
     virtual void updateUI();
+    void updateHUDControlScale(Transform2D* hudControl, bool isPressed, float dt);
 
 protected:
     CharacterBase* m_character = nullptr;
     CharacterUI* m_characterUI = nullptr;
     int m_uiSlot = static_cast<int>(AbilityUISlot::BasicAttack);
+
+    float m_moveLockDuration = 0.4f;
+    float m_moveLockTimer = 0.0f;
+    bool  m_moveLockReleased = false;
 
     float m_cooldown = 0.0;
     float m_cooldownTimer = 0.0f;

@@ -1,9 +1,18 @@
 #include "pch.h"
 #include "EnvironmentSound.h"
 
+#include <string>
+#include <unordered_set>
+
 namespace
 {
     constexpr const char* k_bank = "LevelCommon.bnk";
+
+    bool isFirstReport(const char* eventName)
+    {
+        static std::unordered_set<std::string> reported;
+        return reported.insert(eventName).second;
+    }
 }
 
 uint32_t EnvironmentSound::play(GameObject* emitter, const char* eventName)
@@ -21,7 +30,19 @@ uint32_t EnvironmentSound::play(GameObject* emitter, const char* eventName)
         return 0;
     }
 
-    return AudioAPI::postEvent(source, k_bank, eventName);
+    const uint32_t playingID = AudioAPI::postEvent(source, k_bank, eventName);
+    if (playingID == 0)
+    {
+        Debug::warn("[EnvironmentSound] '%s' on '%s' was rejected (playingID=0). Bank '%s' loaded?",
+            eventName, GameObjectAPI::getName(emitter), k_bank);
+    }
+    else if (isFirstReport(eventName))
+    {
+        Debug::log("[EnvironmentSound] '%s' posted on '%s' (playingID=%u).",
+            eventName, GameObjectAPI::getName(emitter), playingID);
+    }
+
+    return playingID;
 }
 
 void EnvironmentSound::playGrouped(GameObject* emitter, const char* eventName, const char* groupName, uint32_t cooldownMs)

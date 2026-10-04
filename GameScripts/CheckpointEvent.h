@@ -7,8 +7,6 @@
 #include "PersistingCheckpointState.h"
 
 class GameplayEventTrigger;
-class ReaperGauge;
-class Damageable;
 
 class CheckpointEvent : public GameplayEventAction
 {
@@ -26,9 +24,6 @@ public:
 
 protected:
 	PersistingCheckpointState* m_PersistingCheckpointState = nullptr;
-    ReaperGauge* m_reaperGauge = nullptr;
-    Damageable* m_lyrielDamageable = nullptr;
-	Damageable* m_deathDamageable = nullptr;
 
 	CheckpointId m_checkpointId = CheckpointId::NONE;
 

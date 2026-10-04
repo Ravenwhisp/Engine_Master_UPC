@@ -34,6 +34,9 @@ public:
     bool isUsingAbility() const;
     void setUsingAbility(bool value);
 
+    AbilityBase* getActiveAbility() const { return m_activeAbility; }
+    void setActiveAbility(AbilityBase* ability) { m_activeAbility = ability; }
+
 protected:
     PlayerState* m_playerState = nullptr;
     PlayerController* m_playerController = nullptr;
@@ -45,4 +48,6 @@ protected:
     AbilityBase* m_basicAttack = nullptr;
     AbilityBase* m_chargedAttack = nullptr;
     AbilityBase* m_specialAbility = nullptr;
+
+    AbilityBase* m_activeAbility = nullptr;
 };

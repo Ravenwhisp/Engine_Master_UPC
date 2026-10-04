@@ -34,7 +34,6 @@ void PersistingCheckpointState::SetCheckpoint(CheckpointId checkpointId)
 void PersistingCheckpointState::Reset()
 {
 	m_lastCheckpointId = CheckpointId::NONE;
-	m_savedReaperGaugeAmount = 0.f;
 	std::fill_n(m_savedUnlockedPowerups, static_cast<size_t>(PowerupId::Count), false);
 
 	m_deadEnemies.clear();

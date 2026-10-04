@@ -15,7 +15,14 @@ public:
     void Update() override;
     FieldList getExposedFields() const override;
 
-    void launch(const Vector3& startPosition, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage);
+    enum class VisualModel
+    {
+        Basic = 0,
+        Charged = 1,
+        Volley = 2
+    };
+
+    void launch(const Vector3& startPosition, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage, VisualModel visual = VisualModel::Basic);
 
     void resetProjectile() override;
 
@@ -31,6 +38,11 @@ public:
     std::string m_legacyParticlePath;
     PrefabRef m_particlePrefab;
 
+	// visual prefabs for different arrow types
+    PrefabRef m_visualBasicPrefab;
+    PrefabRef m_visualChargedPrefab;
+    PrefabRef m_visualVolleyPrefab;
+
 private:
     Vector3 m_direction = Vector3::Zero;
 
@@ -42,4 +54,5 @@ private:
     float m_damage = 0.0f;
 
     GameObject* m_particleGO = nullptr;
+    GameObject* m_visualGO = nullptr; 
 };
