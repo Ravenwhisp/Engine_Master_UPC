@@ -181,29 +181,51 @@ float4x4 BuildIdentityMatrix()
 
 float4x4 BuildLightViewProjection(float nearDistance, float farDistance)
 {
-    float3 corners[8];
-    BuildFrustumCorners(nearDistance, farDistance, corners);
+    float3 cascadeCorners[8];
+    BuildFrustumCorners(nearDistance, farDistance, cascadeCorners);
 
-    float4 sphere = ComputeBoundingSphere(corners);
+    float4 cascadeSphere = ComputeBoundingSphere(cascadeCorners);
 
-    float3 normalizedLightDirection = normalize(lightDirection);
+    float2 minMaxDepth = inputMinMax.Load(int3(0, 0, 0));
+
+    float fullNearDistance = -LinearizeDepth(minMaxDepth.x);
+    float fullFarDistance = -LinearizeDepth(minMaxDepth.y);
+    fullFarDistance = max(fullFarDistance, fullNearDistance + 0.0001f);
+
+    float3 fullCorners[8];
+    BuildFrustumCorners(fullNearDistance, fullFarDistance, fullCorners);
+
+    float4 fullSphere = ComputeBoundingSphere(fullCorners);
+
+    float3 direction = normalize(lightDirection);
     float3 up = float3(0.0f, 1.0f, 0.0f);
 
-    if (abs(normalizedLightDirection.y) > 0.95f)
+    if (abs(direction.y) > 0.95f)
     {
         up = float3(0.0f, 0.0f, 1.0f);
     }
 
-    float3 eye = sphere.xyz - normalizedLightDirection * (sphere.w + sunDistance);
+    float centerOffsetAlongLight =
+        dot(cascadeSphere.xyz - fullSphere.xyz, direction);
 
-    float4x4 lightView = BuildLookAtRH(eye, sphere.xyz, up);
+    float eyeDistance =
+        centerOffsetAlongLight + fullSphere.w + sunDistance;
 
-    float orthoSize = sphere.w * 2.0f;
+    float3 eye = cascadeSphere.xyz - direction * eyeDistance;
+
+    float4x4 lightView = BuildLookAtRH(
+        eye,
+        eye + direction,
+        up);
+
+    float orthoSize = cascadeSphere.w * 2.0f;
+    float depthRange = fullSphere.w * 2.0f + sunDistance;
+
     float4x4 lightProjection = BuildOrthographicRH(
         orthoSize,
         orthoSize,
         0.0f,
-        sphere.w * 2.0f + sunDistance);
+        depthRange);
 
     return mul(lightView, lightProjection);
 }
