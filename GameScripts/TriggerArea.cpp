@@ -66,6 +66,11 @@ void TriggerArea::triggerSceneChange()
         return;
     }
 	Debug::log("Triggering scene change to: %s", m_sceneToLoad.c_str());
+	if ((m_sceneToLoad == "Level2" || m_sceneToLoad == "BossLevel") && SceneAPI::requestAsyncSceneChange())
+	{
+		return;
+	}
+
     SceneAPI::requestSceneChange(m_sceneToLoad.c_str());
 }
 

@@ -66,6 +66,7 @@ private:
     State m_state = State::Idle;
     int m_currentCycle = 0;
     int m_wavesCompleted = 0;
+    bool m_bossLevelLoadStarted = false;
     int m_wavesDoneInCycle = 0;
     float m_waveDelayTimer = 0.0f;
 

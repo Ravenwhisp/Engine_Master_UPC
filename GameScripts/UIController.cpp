@@ -3,6 +3,21 @@
 #include "AssetId.h"
 #include "PersistingCheckpointState.h"
 #include "PersistingPowerupState.h"
+#include <cstring>
+
+namespace
+{
+const char* getPersistedLevelName(SceneId sceneId)
+{
+	switch (sceneId)
+	{
+	case SceneId::LEVEL1: return "Level1";
+	case SceneId::LEVEL2: return "Level2";
+	case SceneId::LEVEL3: return "BossLevel";
+	default: return nullptr;
+	}
+}
+}
 
 IMPLEMENT_SCRIPT_FIELDS(UIController,
 	SERIALIZED_COMPONENT_REF(m_menuLights, "Main Menu Lights", ComponentType::TRANSFORM),
@@ -14,12 +29,23 @@ UIController::UIController(GameObject* owner): Script(owner) {}
 
 void UIController::Start()
 {
+	m_preloadedLevelName.clear();
 	Transform* menuLightsTransform = m_menuLights.getReferencedComponent();
 	if (menuLightsTransform)
 	{
 		m_menuLightsGO = ComponentAPI::getOwner(menuLightsTransform);
 	}
 	m_blackBgTransform = m_blackBg.getReferencedComponent();
+
+	const char* ownerName = GameObjectAPI::getName(getOwner());
+	if (ownerName != nullptr && std::strcmp(ownerName, "Lose") == 0)
+	{
+		if (const char* levelName = getPersistedLevelName(PersistingCheckpointState::Get().m_lastSceneId))
+		{
+			m_preloadedLevelName = levelName;
+			SceneAPI::beginAsyncSceneLoad(levelName);
+		}
+	}
 }
 void UIController::Update()
 {
@@ -76,21 +102,19 @@ void UIController::ChangeScene2(const AssetId& sceneID)
 
 void UIController::ChangeLevel()
 {
-	switch (PersistingCheckpointState::Get().m_lastSceneId)
+	const char* levelName = getPersistedLevelName(PersistingCheckpointState::Get().m_lastSceneId);
+	if (levelName == nullptr)
 	{
-	case SceneId::LEVEL1:
-		SceneAPI::requestSceneChange("Level1");
-		break;
-	case SceneId::LEVEL2:
-		SceneAPI::requestSceneChange("Level2");
-		break;
-	case SceneId::LEVEL3:
-		SceneAPI::requestSceneChange("BossLevel");
-		break;
-	default:
 		SceneAPI::requestSceneChange("Main_Menu");
-		break;
+		return;
 	}
+
+	if (m_preloadedLevelName == levelName && SceneAPI::requestAsyncSceneChange())
+	{
+		return;
+	}
+
+	SceneAPI::requestSceneChange(levelName);
 }
 
 void UIController::ExitApplication()

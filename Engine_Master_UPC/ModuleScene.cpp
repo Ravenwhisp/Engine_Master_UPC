@@ -212,6 +212,19 @@ bool ModuleScene::init()
 
 void ModuleScene::update()
 {
+    for (auto it = m_discardedAsyncLoadFutures.begin(); it != m_discardedAsyncLoadFutures.end();)
+    {
+        if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+        {
+            it->get();
+            it = m_discardedAsyncLoadFutures.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
     if (m_asyncLoadFuture.valid() && !m_asyncSceneReady)
     {
         if (m_asyncLoadFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
@@ -253,6 +266,7 @@ void ModuleScene::update()
         }
         else
         {
+            discardAsyncSceneLoad();
             loadScene(m_pendingSceneLoad);
             m_pendingSceneLoad.clear();
         }
@@ -260,12 +274,14 @@ void ModuleScene::update()
 
     if (m_pendingScene)
     {
+        discardAsyncSceneLoad();
         loadScene(m_pendingScene);
         m_pendingScene.reset();
     }
 
     if (m_pendingSceneAssetId.isValid())
     {
+        discardAsyncSceneLoad();
         loadScene(m_pendingSceneAssetId);
         m_pendingSceneAssetId = AssetId();
     }
@@ -939,6 +955,18 @@ bool ModuleScene::requestAsyncSceneLoad(const std::string& sceneName)
     );
 
     return true;
+}
+
+void ModuleScene::discardAsyncSceneLoad()
+{
+    if (m_asyncLoadFuture.valid())
+    {
+        m_discardedAsyncLoadFutures.push_back(std::move(m_asyncLoadFuture));
+    }
+
+    m_asyncLoadedScene.reset();
+    m_asyncSceneName.clear();
+    m_asyncSceneReady = false;
 }
 
 bool ModuleScene::requestAsyncSceneChange()

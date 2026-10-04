@@ -111,6 +111,7 @@ private:
 
 	// Música: al morir Arthur se vuelve a Level1_Chapel (una sola vez).
 	bool m_bossDefeated = false;
+	bool m_level2LoadStarted = false;
 	Damageable* m_damageable = nullptr;
 	ArthurSound* m_arthurSound = nullptr;
 	CameraShake* m_cameraShake = nullptr;
