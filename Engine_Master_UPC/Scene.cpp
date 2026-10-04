@@ -510,6 +510,14 @@ void Scene::destroyGameObject(GameObject* gameObject)
     auto mapIt = m_objectIndexMap.find(gameObject);
     if (mapIt == m_objectIndexMap.end()) return;
 
+    for (Component* component : gameObject->GetAllComponents())
+    {
+        if (component != nullptr && component->getType() == ComponentType::MODEL)
+        {
+            static_cast<MeshRenderer*>(component)->unregisterShadowCaster();
+        }
+    }
+
     // Renderer caches contain raw component pointers. Detach them before the
     // object can be cleaned up by the deferred destruction queue.
     if (app->getModuleScene())

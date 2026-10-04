@@ -15,6 +15,9 @@
 #include "RenderViewType.h"
 #include "SkinningComputePass.h"
 #include "ShadowMapPass.h"
+#include "DepthReductionPass.h"
+#include "ShadowFrustumComputePass.h"
+#include "ShadowCasterCullingPass.h"
 #include "SSAOTypes.h"
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
@@ -38,6 +41,7 @@ class DeferredShadingPass;
 class GeometryPass;
 class UIImagePass;
 class FontPass;
+class ShadowCasterCullingPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
@@ -111,6 +115,9 @@ private:
     std::unique_ptr<OcclusionOccluderDepthPass> m_occlusionOccluderDepthPass;
     std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
     std::unique_ptr<LightCullingPass> m_lightCullingPass;
+    std::unique_ptr<DepthReductionPass> m_depthReductionPass;
+    std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
+    std::unique_ptr<ShadowCasterCullingPass> m_shadowCasterCullingPass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<VolumetricFogComputePass> m_volumetricFogComputePass;
     std::unique_ptr<SSAOGeometryPass> m_ssaoGeometryPass;
@@ -163,6 +170,7 @@ public:
     void commitRingBufferAllocations(uint64_t fenceValue);
     //D3D12_GPU_VIRTUAL_ADDRESS allocateInStructuredRingBuffer(const void* data, size_t size);
 
+    ShadowCasterCullingPass* getShadowCasterCullingPass() const { return m_shadowCasterCullingPass.get(); }
     int getTrianglesCount() const;
     int getMeshCount() const;
     const std::vector<RenderPassTiming>& getRenderPassTimings() const { return m_displayRenderTimings; }

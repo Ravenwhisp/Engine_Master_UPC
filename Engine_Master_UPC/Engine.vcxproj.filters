@@ -901,6 +901,7 @@
     </ClCompile>
     <ClCompile Include="LineRendererComponent.cpp" />
     <ClCompile Include="LineRendererPass.cpp" />
+    <ClCompile Include="ShadowCasterCullingPass.cpp" />
     <ClCompile Include="OutlinePass.cpp">
       <Filter>Source\Rendering</Filter>
     </ClCompile>
@@ -1940,6 +1941,9 @@
     <ClInclude Include="ShadowData.hlsli" />
     <ClInclude Include="ShadowSamplers.h" />
     <ClInclude Include="CascadeShadowMaps.hlsli" />
+    <ClInclude Include="ShadowCasterTypes.h" />
+    <ClInclude Include="ShadowCasterCullingPass.h" />
+    <ClInclude Include="ShadowCasterHandle.h" />
     <ClInclude Include="OutlinePass.h">
       <Filter>Source\Rendering</Filter>
     </ClInclude>
@@ -2900,6 +2904,7 @@
     <FxCompile Include="LineRendererPixelShader.hlsl" />
     <FxCompile Include="LineRendererVertexShader.hlsl" />
     <FxCompile Include="ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="ShadowCasterCullingComputeShader.hlsl" />
     <FxCompile Include="OutlineVS.hlsl">
       <Filter>Shaders\Post Processing</Filter>
     </FxCompile>

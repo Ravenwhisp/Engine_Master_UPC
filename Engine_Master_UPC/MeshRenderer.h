@@ -4,11 +4,13 @@
 #include "MeshAsset.h"
 #include "BoundingBox.h"
 #include "IDebugDrawable.h"
+#include "ShadowCasterHandle.h"
 
 #include "BasicMesh.h"
 #include "Skin.h"
 
 #include <memory>
+#include <cstdint>
 
 class MaterialAsset;
 
@@ -66,10 +68,18 @@ public:
     Engine::BoundingBox& getBoundingBox() { return m_boundingBox; }
     const Engine::BoundingBox& getBoundingBox() const { return m_boundingBox; }
 
+    bool init() override;
+    bool cleanUp() override;
     void drawUi() override;
     void debugDraw() override;
     void onTransformChange() override;
+    void onTransformDirty() override;
+    void onActiveChange() override;
+    void onHierarchyActiveChange() override;
     void update() override;
+
+    void registerShadowCaster();
+    void unregisterShadowCaster();
 
     void serialize(IArchive& archive) override;
     void fixReferences(const SceneReferenceResolver& resolver) override;
@@ -82,15 +92,14 @@ public:
     void addMaterialReference(AssetId& materialRef);
     std::vector<AssetId>& getMaterialsReference() { return m_materialAssets; }
 
-    IDebugDrawable* getAsDebugDrawable()
-    {
-        return static_cast<IDebugDrawable*>(this);
-    }
+    IDebugDrawable* getAsDebugDrawable() { return static_cast<IDebugDrawable*>(this); }
 
     AssetId& getSkinReference() { return m_skinAsset; }
-    void setSkinReference(AssetId& skinUID) { m_skinAsset = skinUID; }
+
+    void setSkinReference(AssetId& skinUID);
 
     bool hasSkin() const { return m_skin != nullptr; }
+    bool hasSkinningConfiguration() const { return m_skinAsset.isValid(); }
 
     Skin* getSkin() { return m_skin.get(); }
     const Skin* getSkin() const { return m_skin.get(); }
@@ -103,6 +112,14 @@ public:
 
     RenderMode getRenderMode() const { return m_renderMode; }
 
+    bool getCastShadows() const { return m_castShadows; }
+    void setCastShadows(bool castShadows);
+    const ShadowCasterHandle& getShadowCasterHandle() const { return m_shadowCasterHandle; }
+    void setShadowCasterHandle(const ShadowCasterHandle& handle) { m_shadowCasterHandle = handle; }
+    void clearShadowCasterHandle() { m_shadowCasterHandle.reset(); }
+
+    uint64_t getShadowCandidateRevision() const { return m_shadowCandidateRevision; }
+    
     bool getDrawOutline() const { return m_drawOutline; }
     void setDrawOutline(bool draw) { m_drawOutline = draw; }
 
@@ -110,6 +127,7 @@ private:
     void recompute();
     void recalculateBoundingBox();
     void updateBoundingBoxWorld();
+    void markShadowCandidateDirty();
 
     std::shared_ptr<BasicMesh> m_mesh;
     std::unique_ptr<Skin> m_skin;
@@ -127,6 +145,12 @@ private:
     int m_triangles = 0;
 
     bool m_isCulled = false;
+
+    bool m_castShadows = true;
+
+    uint64_t m_shadowCandidateRevision = 1;
+
+    ShadowCasterHandle m_shadowCasterHandle{};
 
     RenderMode m_renderMode = RenderMode::DEFAULT;
     
