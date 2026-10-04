@@ -18,6 +18,7 @@
 #include "GameObject.h"
 #include "Transform.h"
 #include "ModuleScene.h"
+#include "ModuleResources.h"
 
 #include "Asset.h"
 #include "AnimationStateMachineAsset.h"
@@ -28,6 +29,7 @@
 #include "GenericTypeFactory.h"
 
 #include <filesystem>
+#include <stdexcept>
 #include <FileIO.h>
 
 namespace fs = std::filesystem;
@@ -438,13 +440,26 @@ void ModuleAssets::fixAllAssetReferences()
         for (const auto& [uid, sourcePath] : targets)
         {
             AssetId ref(uid, INVALID_ASSET_ID, type);
-            importAsset(sourcePath, ref);
+            try
+            {
+                importAsset(sourcePath, ref);
+            }
+            catch (const std::runtime_error& error)
+            {
+                app->getModuleResources()->collectCompletedResources();
+                DEBUG_ERROR("[ModuleAssets] Fix pass aborted at '%s': %s. Earlier imports may have completed.",
+                            sourcePath.string().c_str(), error.what());
+                return;
+            }
 
             // Drop cached instances so the next load reads the re-baked data.
             if (type == AssetType::PREFAB || type == AssetType::SCENE)
             {
                 unload(ref);
             }
+
+            // This loop runs without a render frame between imports.
+            app->getModuleResources()->collectCompletedResources();
         }
 
         totalRebaked += targets.size();
