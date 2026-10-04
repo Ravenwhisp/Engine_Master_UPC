@@ -3763,6 +3763,8 @@ namespace PostProcessAPI
     float getOutlineNoiseScale()        { auto* pp = getSettings(); return pp ? pp->outlineNoiseScale : 0.0f; }
     void  setOutlineBreakup(float b)    { if (auto* pp = getSettings()) pp->outlineBreakup = b; }
     float getOutlineBreakup()           { auto* pp = getSettings(); return pp ? pp->outlineBreakup : 0.0f; }
+    void  setDrawOutline(MeshRenderer* renderer, bool value) { renderer->setDrawOutline(value); }
+    bool  getDrawOutline(MeshRenderer* renderer) { return renderer->getDrawOutline(); }
 }
 
 namespace VideoAPI

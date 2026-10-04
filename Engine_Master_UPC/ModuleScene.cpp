@@ -480,6 +480,27 @@ const std::vector<MeshRenderer*> ModuleScene::getForwardMeshRenderers(RenderMode
     return meshRenderers;
 }
 
+const std::vector<MeshRenderer*> ModuleScene::getOutlineMeshRenderers()
+{
+    if (m_scene->isComponentCacheDirty())
+    {
+        rebuildComponentCaches();
+    }
+
+    std::vector<MeshRenderer*> meshRenderers = {};
+    for (MeshRenderer* renderer : m_meshRenderers)
+    {
+        if (renderer && renderer->getOwner() && renderer->getOwner()->GetTransform() &&
+            m_scene->containsGameObject(renderer->getOwner()) &&
+            renderer->getDrawOutline() == true)
+        {
+            meshRenderers.push_back(renderer);
+        }
+    }
+
+    return meshRenderers;
+}
+
 const std::vector<MeshRenderer*> ModuleScene::getVisibleMeshRenderers()
 {
     if (app->getSettings()->frustumCulling.enabled)
@@ -646,6 +667,39 @@ const std::vector<MeshRenderer*> ModuleScene::getVisibleForwardMeshRenderers(Ren
         return visibleMeshRenderers;
     }
     return app->getModuleScene()->getForwardMeshRenderers(mode);
+}
+
+const std::vector<MeshRenderer*> ModuleScene::getVisibleOutlineMeshRenderers()
+{
+    if (app->getSettings()->frustumCulling.enabled)
+    {
+        std::vector<MeshRenderer*> visibleMeshRenderers = {};
+        for (GameObject* gO : m_staticQuadtree->query())
+        {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getDrawOutline() == true)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+
+        for (GameObject* gO : m_dynamicQuadtree->query())
+        {
+            if (!gO || !m_scene->containsGameObject(gO) || !gO->GetTransform())
+                continue;
+
+            MeshRenderer* renderer = gO->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
+            if (renderer && renderer->getDrawOutline() == true)
+            {
+                visibleMeshRenderers.push_back(renderer);
+            }
+        }
+        return visibleMeshRenderers;
+    }
+    return app->getModuleScene()->getOutlineMeshRenderers();
 }
 
 

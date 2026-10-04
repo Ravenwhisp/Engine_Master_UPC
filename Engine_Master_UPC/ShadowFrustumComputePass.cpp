@@ -6,6 +6,7 @@
 #include "ModuleDescriptors.h"
 #include "ModuleResources.h"
 #include "ModuleScene.h"
+#include "RingBuffer.h"
 
 #include "DepthReductionPass.h"
 #include "RenderContext.h"
@@ -80,6 +81,28 @@ namespace
         dd::line(&corners[1].x, &corners[5].x, color, 0, SHADOW_DEBUG_DEPTH_ENABLED);
         dd::line(&corners[2].x, &corners[6].x, color, 0, SHADOW_DEBUG_DEPTH_ENABLED);
         dd::line(&corners[3].x, &corners[7].x, color, 0, SHADOW_DEBUG_DEPTH_ENABLED);
+    }
+
+    void drawAabbFromPoints(const Vector3 points[8], const float color[3])
+    {
+        Vector3 minPoint = points[0];
+        Vector3 maxPoint = points[0];
+
+        for (uint32_t i = 1; i < 8; ++i)
+        {
+            minPoint.x = std::min(minPoint.x, points[i].x); minPoint.y = std::min(minPoint.y, points[i].y); minPoint.z = std::min(minPoint.z, points[i].z);
+            maxPoint.x = std::max(maxPoint.x, points[i].x); maxPoint.y = std::max(maxPoint.y, points[i].y); maxPoint.z = std::max(maxPoint.z, points[i].z);
+        }
+
+        Vector3 corners[8] =
+        {
+            { minPoint.x, maxPoint.y, minPoint.z }, { maxPoint.x, maxPoint.y, minPoint.z },
+            { maxPoint.x, minPoint.y, minPoint.z }, { minPoint.x, minPoint.y, minPoint.z },
+            { minPoint.x, maxPoint.y, maxPoint.z }, { maxPoint.x, maxPoint.y, maxPoint.z },
+            { maxPoint.x, minPoint.y, maxPoint.z }, { minPoint.x, minPoint.y, maxPoint.z }
+        };
+
+        drawWireBox(corners, color);
     }
 
     bool buildCameraSubFrustumCorners(const Matrix& view, const Matrix& projection, float nearDistance, float farDistance, Vector3 corners[8])
@@ -170,7 +193,7 @@ void ShadowFrustumComputePass::createRootSignature()
     rootParameters[1].InitAsUnorderedAccessView(0, 0);
 
     // b0: inverse view, projection, light direction and fitting settings
-    rootParameters[2].InitAsConstants(sizeof(FrustumConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[2].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
@@ -203,13 +226,18 @@ void ShadowFrustumComputePass::createOutputBuffer()
 
     static_assert(BUFFER_SIZE == 512, "ShadowDataBuffer must be large enough for cascaded shadow data.");
 
-    m_shadowDataBuffer = app->getModuleResources()->createDefaultBuffer(
-        BUFFER_SIZE,
-        D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
-        D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-        "ShadowDataBuffer");
+    for (uint32_t i = 0; i < SHADOW_VIEW_COUNT; ++i)
+    {
+        const char* name = i == 0 ? "ShadowDataBuffer_Editor" : "ShadowDataBuffer_Game";
 
-    m_outputBufferState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        m_shadowDataBuffers[i] = app->getModuleResources()->createDefaultBuffer(
+            BUFFER_SIZE,
+            D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+            name);
+
+        m_outputBufferStates[i] = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    }
 }
 
 void ShadowFrustumComputePass::createDebugReadbackBuffers()
@@ -323,7 +351,7 @@ void ShadowFrustumComputePass::refreshDebugReadbackForCurrentFrame()
 
 void ShadowFrustumComputePass::recordDebugReadback(ID3D12GraphicsCommandList4* commandList)
 {
-    if (commandList == nullptr || !m_captureDebugReadback || m_shadowDataBuffer == nullptr)
+    if (commandList == nullptr || !m_captureDebugReadback || m_currentShadowView >= SHADOW_VIEW_COUNT || m_shadowDataBuffers[m_currentShadowView] == nullptr)
     {
         return;
     }
@@ -346,12 +374,7 @@ void ShadowFrustumComputePass::recordDebugReadback(ID3D12GraphicsCommandList4* c
 
     transitionOutputBuffer(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-    commandList->CopyBufferRegion(
-        m_debugReadbackBuffers[frameIndex].Get(),
-        0,
-        m_shadowDataBuffer.Get(),
-        0,
-        sizeof(ShadowDataCB));
+    commandList->CopyBufferRegion(m_debugReadbackBuffers[frameIndex].Get(), 0, m_shadowDataBuffers[m_currentShadowView].Get(), 0, sizeof(ShadowDataCB));
 
     m_debugReadbackPending[frameIndex] = true;
 }
@@ -396,6 +419,7 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 {
     refreshDebugReadbackForCurrentFrame();
 
+    m_constantsAddress = 0;
     m_enabled = false;
     m_hasValidResult = false;
     m_captureDebugReadback = false;
@@ -411,19 +435,47 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 
     if (light == nullptr)
     {
+        m_cascadeUpdateHistory[0].valid = false;
+        m_cascadeUpdateHistory[1].valid = false;
         return;
     }
 
     const LightShadowSettings& shadowSettings = light->getData().shadow;
 
-    m_drawDebugForCurrentView =
-        ctx.renderDebug &&
-        ctx.viewType == RenderViewType::Editor &&
-        shadowSettings.cascadeDebugEnabled;
+    const uint64_t frameNumber = app->getModuleD3D12()->getFrameNumber();
+    const uint32_t cascadeCount = std::clamp(shadowSettings.cascadeCount, 1u, MAX_SHADOW_CASCADES);
 
-    m_captureDebugReadback =
-        ctx.viewType == RenderViewType::Game &&
-        shadowSettings.cascadeDebugEnabled;
+    m_currentShadowView = ctx.viewType == RenderViewType::Game ? 1u : 0u;
+    CascadeUpdateHistory& history = m_cascadeUpdateHistory[m_currentShadowView];
+
+    const bool cascadeConfigChanged =
+        !history.valid ||
+        history.shadowMapSize != shadowSettings.shadowMapSize ||
+        history.cascadeCount != cascadeCount ||
+        history.cascadeFitMode != static_cast<uint32_t>(shadowSettings.cascadeFitMode) ||
+        history.cascadeSplit0 != shadowSettings.cascadeSplit0 ||
+        history.cascadeSplit1 != shadowSettings.cascadeSplit1 ||
+        history.cascadeSplit2 != shadowSettings.cascadeSplit2;
+
+    static constexpr uint32_t CASCADE_UPDATE_INTERVALS[MAX_SHADOW_CASCADES] = { 1u, 1u, 1u, 1u }; 
+
+    m_cascadeUpdateMask = 0;
+
+    for (uint32_t i = 0; i < cascadeCount; ++i)
+    {
+        if (frameNumber % CASCADE_UPDATE_INTERVALS[i] == 0) m_cascadeUpdateMask |= 1u << i;
+    }
+
+    if (cascadeConfigChanged) m_cascadeUpdateMask = (1u << cascadeCount) - 1u;
+
+    history.shadowMapSize = shadowSettings.shadowMapSize;
+    history.cascadeCount = cascadeCount;
+    history.cascadeFitMode = static_cast<uint32_t>(shadowSettings.cascadeFitMode);
+    history.cascadeSplit0 = shadowSettings.cascadeSplit0;
+    history.cascadeSplit1 = shadowSettings.cascadeSplit1;
+    history.cascadeSplit2 = shadowSettings.cascadeSplit2;
+
+    m_captureDebugReadback = ctx.viewType == RenderViewType::Game && shadowSettings.cascadeDebugEnabled;
 
     if (m_captureDebugReadback)
     {
@@ -460,56 +512,80 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
     lightDirection.Normalize();
 
     m_constants.inverseView = ctx.view.Invert().Transpose();
+    m_constants.view = ctx.view.Transpose();
     m_constants.projection = ctx.projection.Transpose();
 
     m_constants.lightDirection = lightDirection;
     m_constants.sunDistance = SHADOW_LIGHT_DISTANCE_PADDING;
 
-    m_constants.minOrthoSize = SHADOW_MIN_ORTHO_SIZE;
-    m_constants.padding = Vector3::Zero;
-
     m_constants.shadowBias = shadowSettings.shadowBias;
     m_constants.shadowStrength = shadowSettings.shadowStrength;
-    m_constants.shadowsEnabled = 1u;
-
     m_constants.pcfEnabled = shadowSettings.pcfEnabled ? 1u : 0u;
     m_constants.pcfRadius = shadowSettings.pcfEnabled ? shadowSettings.pcfRadius : 0u;
 
     const uint32_t shadowMapSize = std::max(1u, shadowSettings.shadowMapSize);
-    const float inverseShadowMapSize = 1.0f / static_cast<float>(shadowMapSize);
+    m_constants.shadowMapTexelSize = 1.0f / static_cast<float>(shadowMapSize);
 
-    m_constants.shadowMapTexelSizeX = inverseShadowMapSize;
-    m_constants.shadowMapTexelSizeY = inverseShadowMapSize;
-    m_constants.paddingSettings = 0.0f;
-
-    m_constants.cascadeCount = std::clamp(shadowSettings.cascadeCount, 1u, MAX_SHADOW_CASCADES);
+    m_constants.cascadeCount = cascadeCount;
     m_constants.cascadeFitMode = static_cast<uint32_t>(shadowSettings.cascadeFitMode);
 
     m_constants.cascadeSplit0 = shadowSettings.cascadeSplit0;
     m_constants.cascadeSplit1 = shadowSettings.cascadeSplit1;
     m_constants.cascadeSplit2 = shadowSettings.cascadeSplit2;
 
+    m_constants.cascadeUpdateMask = m_cascadeUpdateMask;
+
     m_constants.cascadeDebugEnabled = ctx.viewType == RenderViewType::Game && shadowSettings.cascadeDebugEnabled ? 1u : 0u;
-    m_constants.cascadePadding = Vector2::Zero;
+
+    m_constants.shadowLightIndex = 0;
+
+    uint32_t directionalIndex = 0;
+    for (const LightComponent* candidate : app->getModuleScene()->getLightComponents())
+    {
+        if (!candidate || !candidate->isActive() || !candidate->getOwner() ||
+            !candidate->getOwner()->IsActiveInWindowHierarchy() || !candidate->getOwner()->GetTransform())
+            continue;
+
+        if (candidate->getData().type != LightType::DIRECTIONAL)
+            continue;
+
+        if (candidate == light)
+        {
+            m_constants.shadowLightIndex = directionalIndex;
+            break;
+        }
+
+        ++directionalIndex;
+    }
+
+    if (ctx.ringBuffer == nullptr)
+    {
+        return;
+    }
+
+    m_constantsAddress = ctx.ringBuffer->allocate(&m_constants, sizeof(FrustumConstants));
+
+    if (m_constantsAddress == 0)
+    {
+        return;
+    }
 
     m_enabled = true;
 }
 
 void ShadowFrustumComputePass::transitionOutputBuffer(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState)
 {
-    if (commandList == nullptr || m_shadowDataBuffer == nullptr || m_outputBufferState == newState)
-    {
-        return;
-    }
+    if (commandList == nullptr || m_currentShadowView >= SHADOW_VIEW_COUNT) return;
 
-    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-        m_shadowDataBuffer.Get(),
-        m_outputBufferState,
-        newState);
+    ComPtr<ID3D12Resource>& buffer = m_shadowDataBuffers[m_currentShadowView];
+    D3D12_RESOURCE_STATES& state = m_outputBufferStates[m_currentShadowView];
 
+    if (buffer == nullptr || state == newState) return;
+
+    const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(buffer.Get(), state, newState);
     commandList->ResourceBarrier(1, &barrier);
 
-    m_outputBufferState = newState;
+    state = newState;
 }
 
 void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -521,7 +597,8 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     if (commandList == nullptr ||
         !m_enabled ||
         m_depthReductionPass == nullptr ||
-        m_shadowDataBuffer == nullptr)
+        m_currentShadowView >= SHADOW_VIEW_COUNT ||
+        m_shadowDataBuffers[m_currentShadowView] == nullptr)
     {
         END_EVENT(commandList);
         return;
@@ -548,12 +625,12 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetComputeRootSignature(m_rootSignature.Get());
 
     commandList->SetComputeRootDescriptorTable(0, minMaxTexture->getSRV().gpu);
-    commandList->SetComputeRootUnorderedAccessView(1, m_shadowDataBuffer->GetGPUVirtualAddress());
-    commandList->SetComputeRoot32BitConstants(2, sizeof(FrustumConstants) / sizeof(uint32_t), &m_constants, 0);
+    commandList->SetComputeRootUnorderedAccessView(1, m_shadowDataBuffers[m_currentShadowView]->GetGPUVirtualAddress());
+    commandList->SetComputeRootConstantBufferView(2, m_constantsAddress);
 
     commandList->Dispatch(1, 1, 1);
 
-    CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_shadowDataBuffer.Get());
+    CD3DX12_RESOURCE_BARRIER uavBarrier = CD3DX12_RESOURCE_BARRIER::UAV(m_shadowDataBuffers[m_currentShadowView].Get());
     commandList->ResourceBarrier(1, &uavBarrier);
 
     recordDebugReadback(commandList);
@@ -561,91 +638,28 @@ void ShadowFrustumComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     transitionOutputBuffer(commandList, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
     m_hasValidResult = true;
+    m_cascadeUpdateHistory[m_currentShadowView].valid = true;
 
     END_EVENT(commandList);
 }
 
 void ShadowFrustumComputePass::debugDraw()
 {
-    if (!m_drawDebugForCurrentView)
+    if (!m_drawDebugForCurrentView || !m_hasDebugShadowData) return;
+
+    const float fittedNearDistance = m_debugShadowData.cascadePadding.y;
+    const uint32_t activeCascadeCount = std::clamp(m_debugShadowData.cascadeCount, 1u, MAX_SHADOW_CASCADES);
+
+    const float cascadeFarDistances[MAX_SHADOW_CASCADES] =
     {
-        return;
-    }
-
-    Scene* scene = app->getModuleScene()->getScene();
-
-    if (scene == nullptr)
-    {
-        return;
-    }
-
-    const CameraComponent* gameCamera = scene->getDefaultCamera();
-
-    if (gameCamera == nullptr)
-    {
-        return;
-    }
-
-    const LightComponent* light = findMainShadowCastingDirectionalLight();
-
-    if (light == nullptr)
-    {
-        return;
-    }
-
-    const LightShadowSettings& shadowSettings = light->getData().shadow;
-
-    const Matrix cameraView = gameCamera->getViewMatrix();
-    const Matrix cameraProjection = gameCamera->getProjectionMatrix();
-
-    float fittedNearDistance = 0.0f;
-    float fittedFarDistance = 0.0f;
-
-    if (m_hasDebugShadowData)
-    {
-        fittedNearDistance = m_debugShadowData.cascadePadding.y;
-
-        fittedFarDistance = std::max(
-            std::max(m_debugShadowData.cascadeFarDistances.x, m_debugShadowData.cascadeFarDistances.y),
-            std::max(m_debugShadowData.cascadeFarDistances.z, m_debugShadowData.cascadeFarDistances.w));
-    }
-    else if (!getCameraDepthRange(cameraProjection, fittedNearDistance, fittedFarDistance))
-    {
-        return;
-    }
-
-    if (fittedNearDistance <= 0.0f || fittedFarDistance <= fittedNearDistance)
-    {
-        return;
-    }
-
-    const uint32_t activeCascadeCount = std::clamp(shadowSettings.cascadeCount, 1u, MAX_SHADOW_CASCADES);
-    const float fittedDepthRange = fittedFarDistance - fittedNearDistance;
-
-    float cascadeFarDistances[MAX_SHADOW_CASCADES] =
-    {
-        fittedFarDistance,
-        fittedFarDistance,
-        fittedFarDistance,
-        fittedFarDistance
+        m_debugShadowData.cascadeFarDistances.x,
+        m_debugShadowData.cascadeFarDistances.y,
+        m_debugShadowData.cascadeFarDistances.z,
+        m_debugShadowData.cascadeFarDistances.w
     };
 
-    cascadeFarDistances[0] = fittedNearDistance + fittedDepthRange * (activeCascadeCount > 1 ? shadowSettings.cascadeSplit0 : 1.0f);
-
-    if (activeCascadeCount > 1)
-    {
-        cascadeFarDistances[1] = fittedNearDistance + fittedDepthRange * (activeCascadeCount > 2 ? shadowSettings.cascadeSplit1 : 1.0f);
-    }
-
-    if (activeCascadeCount > 2)
-    {
-        cascadeFarDistances[2] = fittedNearDistance + fittedDepthRange * (activeCascadeCount > 3 ? shadowSettings.cascadeSplit2 : 1.0f);
-    }
-
-    if (activeCascadeCount > 3)
-    {
-        cascadeFarDistances[3] = fittedFarDistance;
-    }
+    const float fittedFarDistance = cascadeFarDistances[activeCascadeCount - 1];
+    if (fittedNearDistance <= 0.0f || fittedFarDistance <= fittedNearDistance) return;
 
     const float cascadeColors[MAX_SHADOW_CASCADES][3] =
     {
@@ -655,42 +669,32 @@ void ShadowFrustumComputePass::debugDraw()
         { 1.0f, 0.8f, 0.2f }
     };
 
-    Vector3 cameraFrustumCorners[8];
+    Vector3 cameraCorners[8];
 
-    if (buildCameraSubFrustumCorners(cameraView, cameraProjection, fittedNearDistance, fittedFarDistance, cameraFrustumCorners))
+    if (buildCameraSubFrustumCorners(m_debugCameraView, m_debugCameraProjection, fittedNearDistance, fittedFarDistance, cameraCorners))
     {
         const float cameraColor[3] = { 1.0f, 1.0f, 1.0f };
-        drawWireBox(cameraFrustumCorners, cameraColor);
+        drawAabbFromPoints(cameraCorners, cameraColor);
     }
 
     for (uint32_t cascadeIndex = 0; cascadeIndex < activeCascadeCount; ++cascadeIndex)
     {
         float cascadeNearDistance = fittedNearDistance;
 
-        if (shadowSettings.cascadeFitMode == ShadowCascadeFitMode::FIT_TO_CASCADE && cascadeIndex > 0)
-        {
+        if (m_debugShadowData.cascadeFitMode == static_cast<uint32_t>(ShadowCascadeFitMode::FIT_TO_CASCADE) && cascadeIndex > 0)
             cascadeNearDistance = cascadeFarDistances[cascadeIndex - 1];
-        }
 
         const float cascadeFarDistance = cascadeFarDistances[cascadeIndex];
 
         Vector3 cascadeCorners[8];
-
-        if (!buildCameraSubFrustumCorners(cameraView, cameraProjection, cascadeNearDistance, cascadeFarDistance, cascadeCorners))
-        {
-            continue;
-        }
-
-        drawWireBox(cascadeCorners, cascadeColors[cascadeIndex]);
+        if (buildCameraSubFrustumCorners(m_debugCameraView, m_debugCameraProjection, cascadeNearDistance, cascadeFarDistance, cascadeCorners))
+            drawAabbFromPoints(cascadeCorners, cascadeColors[cascadeIndex]);
     }
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS ShadowFrustumComputePass::getShadowDataBufferAddress() const
 {
-    if (m_shadowDataBuffer == nullptr)
-    {
-        return 0;
-    }
+    if (m_currentShadowView >= SHADOW_VIEW_COUNT || m_shadowDataBuffers[m_currentShadowView] == nullptr) return 0;
 
-    return m_shadowDataBuffer->GetGPUVirtualAddress();
+    return m_shadowDataBuffers[m_currentShadowView]->GetGPUVirtualAddress();
 }

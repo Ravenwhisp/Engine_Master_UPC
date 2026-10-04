@@ -24,7 +24,9 @@ public:
 		SCENE_HDR = 11,   // HDR scene colour (lit scene before post-processing)
 		OCCLUSION_OCCLUDER_DEPTH = 12,
 		DYNAMIC_TRANSPARENCY_MASK = 13,
-		NUM_ATTACHMENT_POINTS = 14
+		OUTLINE_DEPTH = 14,
+		OUTLINE_NORMAL = 15,
+		NUM_ATTACHMENT_POINTS = 16
 	};
 
 

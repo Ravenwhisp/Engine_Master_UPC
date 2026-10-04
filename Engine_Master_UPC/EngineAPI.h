@@ -38,6 +38,7 @@ struct AssetId;
 class DissolveComponent;
 class SpectralComponent;
 class ComponentVideo;
+class MeshRenderer;
 
 struct HapticEffectDefinition;
 
@@ -609,6 +610,8 @@ namespace PostProcessAPI
     ENGINE_API float   getOutlineNoiseScale();
     ENGINE_API void    setOutlineBreakup(float breakup);
     ENGINE_API float   getOutlineBreakup();
+    ENGINE_API void    setDrawOutline(MeshRenderer* renderer, bool value);
+    ENGINE_API bool    getDrawOutline(MeshRenderer* renderer);
 }
 
 namespace VideoAPI

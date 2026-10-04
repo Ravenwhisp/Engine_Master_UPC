@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <Filter Include="Resources">
@@ -863,13 +863,6 @@
     <ClCompile Include="NavMeshAsset.cpp" />
     <ClCompile Include="NavMeshBuildSettings.cpp" />
     <ClCompile Include="SoundBankAsset.cpp" />
-    <ClCompile Include="ScriptFieldHandler_AssetRef.cpp" />
-    <ClCompile Include="LineRendererPass.cpp">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClCompile>
-    <ClCompile Include="LineRendererComponent.cpp">
-      <Filter>GameEntity\Components</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerPass.cpp">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClCompile>
@@ -905,6 +898,12 @@
     </ClCompile>
     <ClCompile Include="ComponentVideo.cpp">
       <Filter>Source\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="LineRendererComponent.cpp" />
+    <ClCompile Include="LineRendererPass.cpp" />
+    <ClCompile Include="ShadowCasterCullingPass.cpp" />
+    <ClCompile Include="OutlinePass.cpp">
+      <Filter>Source\Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1889,17 +1888,10 @@
     <ClInclude Include="PostProcessCommon.h">
       <Filter>Source\Rendering\Post Processing</Filter>
     </ClInclude>
-    <ClInclude Include="AssetRef.h" />
     <ClInclude Include="ImporterSoundBank.h" />
     <ClInclude Include="SoundBankAsset.h" />
     <ClInclude Include="ImporterNavMesh.h" />
     <ClInclude Include="NavMeshAsset.h" />
-    <ClInclude Include="LineRendererPass.h">
-      <Filter>D3D12\Rendering\Pass</Filter>
-    </ClInclude>
-    <ClInclude Include="LineRendererComponent.h">
-      <Filter>GameEntity\Components</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerPass.h">
       <Filter>D3D12\Rendering\Pass</Filter>
     </ClInclude>
@@ -1938,6 +1930,22 @@
     </ClInclude>
     <ClInclude Include="ComponentVideo.h">
       <Filter>Source\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="LutAsset.h" />
+    <ClInclude Include="DynamicTransparencyRenderData.h" />
+    <ClInclude Include="ImporterLut.h" />
+    <ClInclude Include="LineRendererComponent.h" />
+    <ClInclude Include="LineRendererPass.h" />
+    <ClInclude Include="ShadowCascadeResolution.h" />
+    <ClInclude Include="ShadowCascadeMath.h" />
+    <ClInclude Include="ShadowData.hlsli" />
+    <ClInclude Include="ShadowSamplers.h" />
+    <ClInclude Include="CascadeShadowMaps.hlsli" />
+    <ClInclude Include="ShadowCasterTypes.h" />
+    <ClInclude Include="ShadowCasterCullingPass.h" />
+    <ClInclude Include="ShadowCasterHandle.h" />
+    <ClInclude Include="OutlinePass.h">
+      <Filter>Source\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2892,6 +2900,16 @@
     </FxCompile>
     <FxCompile Include="VideoPixelShader.hlsl">
       <Filter>Shaders\Video</Filter>
+    </FxCompile>
+    <FxCompile Include="LineRendererPixelShader.hlsl" />
+    <FxCompile Include="LineRendererVertexShader.hlsl" />
+    <FxCompile Include="ShadowMapPixelShader.hlsl" />
+    <FxCompile Include="ShadowCasterCullingComputeShader.hlsl" />
+    <FxCompile Include="OutlineVS.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="OutlinePS.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

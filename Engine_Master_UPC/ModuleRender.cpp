@@ -53,6 +53,7 @@
 #include "OcclusionOccluderDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
 #include "DynamicTransparencyFalloffPass.h"
+#include "OutlinePass.h"
 
 #include "ModuleVideo.h"
 #include "VideoPlayback.h"
@@ -106,8 +107,13 @@ bool ModuleRender::init()
     m_occlusionOccluderDepthPass = std::make_unique<OcclusionOccluderDepthPass>(device);
     m_dynamicTransparencyMaskPass = std::make_unique<DynamicTransparencyMaskPass>(device);
     m_lightCullingPass = std::make_unique<LightCullingPass>(device, m_meshRenderPass);
-    m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
-    m_debugDrawPass->registerStatic(m_shadowMapPass.get());
+
+    m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
+    m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
+    m_shadowCasterCullingPass = std::make_unique<ShadowCasterCullingPass>(device, m_shadowFrustumComputePass.get());
+    m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get(), m_shadowCasterCullingPass.get());
+
+    m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
     m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
     m_ssaoPass = std::make_unique<SSAOPass>(device);
@@ -124,6 +130,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::make_unique<LineRendererPass>(device));
 
     m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
+
+    m_renderPasses.push_back(std::make_unique<OutlinePass>(device));
 
 
 
@@ -267,6 +275,9 @@ bool ModuleRender::cleanUp()
     m_ssaoGeometryPass.reset();
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
+    m_shadowCasterCullingPass.reset();
+    m_shadowFrustumComputePass.reset();
+    m_depthReductionPass.reset();
     m_lightCullingPass.reset();
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionOccluderDepthPass.reset();
@@ -399,6 +410,18 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
     );
     ssaoBlurTexture->setName(L"RenderSurface_SSAO_Blur");
     surface.attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTexture);
+
+    auto outlineDepthTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createOutlineDepthBuffer(width, height)
+    );
+    outlineDepthTexture->setName(L"RenderSurface_Outline_Depth");
+    surface.attachTexture(RenderSurface::OUTLINE_DEPTH, outlineDepthTexture);
+
+    auto outlineNormalTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createOutlineTexture(width, height)
+    );
+    outlineNormalTexture->setName(L"RenderSurface_Outline_Normal");
+    surface.attachTexture(RenderSurface::OUTLINE_NORMAL, outlineNormalTexture);
 
     auto occlusionOccluderDepth = std::shared_ptr<Texture>(
         app->getModuleResources()->createDepthBuffer(width, height)
@@ -687,6 +710,9 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     Texture* ssaoRawTexture = outputSurface.getTexture(RenderSurface::SSAO_RAW).get();
     Texture* ssaoBlurTexture = outputSurface.getTexture(RenderSurface::SSAO_BLUR).get();
 
+    Texture* outlineDepthTexture = outputSurface.getTexture(RenderSurface::OUTLINE_DEPTH).get();
+    Texture* outlineNormalTexture = outputSurface.getTexture(RenderSurface::OUTLINE_NORMAL).get();
+
     const SSAOSettings* ssaoSettings = &app->getModuleScene()->getScene()->getSSAOSettings();
     const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
     const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
@@ -715,6 +741,8 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .ssaoBlurTexture = ssaoBlurTexture,
         .ssaoSettings = ssaoSettings,
         .ssaoData = nullptr,
+        .outlineDepthTexture = outlineDepthTexture,
+        .outlineNormalTexture = outlineNormalTexture,
         .lightingSettings = &app->getModuleScene()->getScene()->getLightingSettings(),
     };
 
@@ -786,6 +814,45 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     }
 
     {
+        PERF_RENDER("ModuleRender::renderScene::DepthReductionPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Depth reduction");
+
+        if (m_depthReductionPass != nullptr)
+        {
+            m_depthReductionPass->prepare(ctx);
+            m_depthReductionPass->apply(commandList);
+        }
+
+        endRenderPassProfile(commandList, profileIndex);
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::ShadowFrustumComputePass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadow frustum compute");
+
+        if (m_shadowFrustumComputePass != nullptr)
+        {
+            m_shadowFrustumComputePass->prepare(ctx);
+            m_shadowFrustumComputePass->apply(commandList);
+        }
+
+        endRenderPassProfile(commandList, profileIndex);
+    }
+
+    {
+        PERF_RENDER("ModuleRender::renderScene::ShadowCasterCullingPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadow caster culling");
+
+        if (m_shadowCasterCullingPass != nullptr)
+        {
+            m_shadowCasterCullingPass->prepare(ctx);
+            m_shadowCasterCullingPass->apply(commandList);
+        }
+
+        endRenderPassProfile(commandList, profileIndex);
+    }
+
+    {
         PERF_RENDER("ModuleRender::renderScene::LightCullingPass");
         const uint32_t profileIndex = beginRenderPassProfile(commandList, "Light culling");
 
@@ -803,16 +870,16 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     }
 
     {
-        PERF_RENDER("ModuleRender::renderScene::DepthFittedShadowMap");
-        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadows (fit + maps)");
+        PERF_RENDER("ModuleRender::renderScene::ShadowMapPass");
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Shadow maps");
 
         if (m_shadowMapPass != nullptr)
         {
             m_shadowMapPass->prepare(ctx);
             m_shadowMapPass->apply(commandList);
-
             ctx.shadowData = &m_shadowMapPass->getFrameData();
         }
+
         endRenderPassProfile(commandList, profileIndex);
     }
 

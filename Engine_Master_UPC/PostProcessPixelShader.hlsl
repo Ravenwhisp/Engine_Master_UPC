@@ -1,12 +1,14 @@
 #include "General.hlsli"    
 #include "PBRGeneral.hlsli" 
 
-Texture2D    sceneTexture  : register(t0);
-Texture2D    bloomTexture  : register(t1);
-Texture3D    lutTexture    : register(t2);
-Texture2D    depthTexture  : register(t3);
-Texture2D    normalTexture : register(t4);
-SamplerState bilinearClamp : register(s0);
+Texture2D    sceneTexture         : register(t0);
+Texture2D    bloomTexture         : register(t1);
+Texture3D    lutTexture           : register(t2);
+Texture2D    depthTexture         : register(t3);
+Texture2D    normalTexture        : register(t4);
+Texture2D    outlineDepthTexture  : register(t5);
+Texture2D    outlineNormalTexture : register(t6);
+SamplerState bilinearClamp        : register(s0);
 
 cbuffer PostProcessParams : register(b0)
 {
@@ -92,6 +94,16 @@ float3 decodeNormal(float3 enc)
 
 float3 applyOutline(float3 color, float2 uv)
 {
+    float sceneDepth = depthTexture.Sample(bilinearClamp, uv).r;
+    float outlineDepth = outlineDepthTexture.Sample(bilinearClamp, uv).r;
+    
+    if (sceneDepth < outlineDepth) return color;
+    
+    if (outlineDepth > 0.995) return color;
+    
+    float interpolation = 0;
+    if (outlineDepth > 0.99) interpolation = (outlineDepth - 0.99) / (0.995 - 0.99);;
+    
     float2 texSize;
     sceneTexture.GetDimensions(texSize.x, texSize.y);
     float2 texel = 1.0 / texSize;
@@ -101,21 +113,21 @@ float3 applyOutline(float3 color, float2 uv)
                          valueNoise(uv * outlineNoiseScale + 17.0)) - 0.5;
     float2 suv = uv + warp * texel * outlineThickness * outlineWobble * 2.0;
 
-    float dcRaw = depthTexture.Sample(bilinearClamp, suv).r;
+    float dcRaw = outlineDepthTexture.Sample(bilinearClamp, suv).r;
     float dc = linearizeDepth(dcRaw);
     
-    float d0 = linearizeDepth(depthTexture.Sample(bilinearClamp, suv - o).r);
-    float d1 = linearizeDepth(depthTexture.Sample(bilinearClamp, suv + o).r);
-    float d2 = linearizeDepth(depthTexture.Sample(bilinearClamp, suv + float2(o.x, -o.y)).r);
-    float d3 = linearizeDepth(depthTexture.Sample(bilinearClamp, suv + float2(-o.x, o.y)).r);
+    float d0 = linearizeDepth(outlineDepthTexture.Sample(bilinearClamp, suv - o).r);
+    float d1 = linearizeDepth(outlineDepthTexture.Sample(bilinearClamp, suv + o).r);
+    float d2 = linearizeDepth(outlineDepthTexture.Sample(bilinearClamp, suv + float2(o.x, -o.y)).r);
+    float d3 = linearizeDepth(outlineDepthTexture.Sample(bilinearClamp, suv + float2(-o.x, o.y)).r);
 
     float depthGrad = (abs(d0 - d1) + abs(d2 - d3)) / max(dc, 1e-4);
     float silhouette = smoothstep(outlineThreshold, outlineThreshold * 3.0 + 1e-4, depthGrad);
     
-    float3 n0 = decodeNormal(normalTexture.Sample(bilinearClamp, suv - o).rgb);
-    float3 n1 = decodeNormal(normalTexture.Sample(bilinearClamp, suv + o).rgb);
-    float3 n2 = decodeNormal(normalTexture.Sample(bilinearClamp, suv + float2(o.x, -o.y)).rgb);
-    float3 n3 = decodeNormal(normalTexture.Sample(bilinearClamp, suv + float2(-o.x, o.y)).rgb);
+    float3 n0 = decodeNormal(outlineNormalTexture.Sample(bilinearClamp, suv - o).rgb);
+    float3 n1 = decodeNormal(outlineNormalTexture.Sample(bilinearClamp, suv + o).rgb);
+    float3 n2 = decodeNormal(outlineNormalTexture.Sample(bilinearClamp, suv + float2(o.x, -o.y)).rgb);
+    float3 n3 = decodeNormal(outlineNormalTexture.Sample(bilinearClamp, suv + float2(-o.x, o.y)).rgb);
 
     float normalGrad = (1.0 - dot(n0, n1)) + (1.0 - dot(n2, n3));
     float crease = smoothstep(outlineNormalThreshold, outlineNormalThreshold * 2.0 + 1e-4, normalGrad);
@@ -126,7 +138,11 @@ float3 applyOutline(float3 color, float2 uv)
     edge *= breakup;
 
     float3 ink = float3(outlineColorR, outlineColorG, outlineColorB);
-    return lerp(color, ink, saturate(edge * outlineIntensity));
+    float3 finalColor = lerp(color, ink, saturate(edge * outlineIntensity));
+    
+    if (interpolation > 0) finalColor = lerp(finalColor, color, interpolation);
+
+    return finalColor;
 }
 
 float3 sampleScene(float2 uv)
