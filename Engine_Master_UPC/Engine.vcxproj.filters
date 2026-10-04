@@ -902,6 +902,9 @@
     <ClCompile Include="LineRendererComponent.cpp" />
     <ClCompile Include="LineRendererPass.cpp" />
     <ClCompile Include="ShadowCasterCullingPass.cpp" />
+    <ClCompile Include="OutlinePass.cpp">
+      <Filter>Source\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rdParty\FontAwesome\IconsFontAwesome5.h">
@@ -1941,6 +1944,9 @@
     <ClInclude Include="ShadowCasterTypes.h" />
     <ClInclude Include="ShadowCasterCullingPass.h" />
     <ClInclude Include="ShadowCasterHandle.h" />
+    <ClInclude Include="OutlinePass.h">
+      <Filter>Source\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3rdParty\imgui-docking\backends\imgui_impl_dx12.cpp">
@@ -2899,6 +2905,12 @@
     <FxCompile Include="LineRendererVertexShader.hlsl" />
     <FxCompile Include="ShadowMapPixelShader.hlsl" />
     <FxCompile Include="ShadowCasterCullingComputeShader.hlsl" />
+    <FxCompile Include="OutlineVS.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
+    <FxCompile Include="OutlinePS.hlsl">
+      <Filter>Shaders\Post Processing</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="3rdParty\imgui-node-editor-master\imgui_bezier_math.inl">

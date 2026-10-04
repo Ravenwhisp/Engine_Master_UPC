@@ -26,6 +26,17 @@ struct ModelData
     BasicMaterial::PbrMetallicRoughnessData material;
 };
 
+struct OutlineData
+{
+    Matrix model;
+    Matrix normalMat;
+
+    float		normalFactor;
+    BOOL		hasNormalTex;
+
+    Vector2 padding;
+};
+
 enum class RenderMode : UINT
 {
     DEFAULT = 0,
@@ -108,6 +119,9 @@ public:
     void clearShadowCasterHandle() { m_shadowCasterHandle.reset(); }
 
     uint64_t getShadowCandidateRevision() const { return m_shadowCandidateRevision; }
+    
+    bool getDrawOutline() const { return m_drawOutline; }
+    void setDrawOutline(bool draw) { m_drawOutline = draw; }
 
 private:
     void recompute();
@@ -139,4 +153,6 @@ private:
     ShadowCasterHandle m_shadowCasterHandle{};
 
     RenderMode m_renderMode = RenderMode::DEFAULT;
+    
+    bool m_drawOutline = true;
 };

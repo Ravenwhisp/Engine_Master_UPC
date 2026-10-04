@@ -84,6 +84,12 @@ Texture* BasicMaterial::getTexture() const noexcept
 	return m_textureColor.get();
 }
 
+D3D12_GPU_DESCRIPTOR_HANDLE BasicMaterial::getNormal() const
+{
+	return m_textureNormal->getSRV().gpu;
+}
+
+
 
 D3D12_GPU_DESCRIPTOR_HANDLE BasicMaterial::getTableGPUHandle() const
 {

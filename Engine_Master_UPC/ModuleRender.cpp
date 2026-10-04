@@ -53,6 +53,7 @@
 #include "OcclusionOccluderDepthPass.h"
 #include "DynamicTransparencyMaskPass.h"
 #include "DynamicTransparencyFalloffPass.h"
+#include "OutlinePass.h"
 
 #include "ModuleVideo.h"
 #include "VideoPlayback.h"
@@ -129,6 +130,8 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::make_unique<LineRendererPass>(device));
 
     m_renderPasses.push_back(std::make_unique<TransparentPass>(device));
+
+    m_renderPasses.push_back(std::make_unique<OutlinePass>(device));
 
 
 
@@ -407,6 +410,18 @@ void ModuleRender::initSceneRenderTargets(RenderSurface& surface, float width, f
     );
     ssaoBlurTexture->setName(L"RenderSurface_SSAO_Blur");
     surface.attachTexture(RenderSurface::SSAO_BLUR, ssaoBlurTexture);
+
+    auto outlineDepthTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createOutlineDepthBuffer(width, height)
+    );
+    outlineDepthTexture->setName(L"RenderSurface_Outline_Depth");
+    surface.attachTexture(RenderSurface::OUTLINE_DEPTH, outlineDepthTexture);
+
+    auto outlineNormalTexture = std::shared_ptr<Texture>(
+        app->getModuleResources()->createOutlineTexture(width, height)
+    );
+    outlineNormalTexture->setName(L"RenderSurface_Outline_Normal");
+    surface.attachTexture(RenderSurface::OUTLINE_NORMAL, outlineNormalTexture);
 
     auto occlusionOccluderDepth = std::shared_ptr<Texture>(
         app->getModuleResources()->createDepthBuffer(width, height)
@@ -695,6 +710,9 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
     Texture* ssaoRawTexture = outputSurface.getTexture(RenderSurface::SSAO_RAW).get();
     Texture* ssaoBlurTexture = outputSurface.getTexture(RenderSurface::SSAO_BLUR).get();
 
+    Texture* outlineDepthTexture = outputSurface.getTexture(RenderSurface::OUTLINE_DEPTH).get();
+    Texture* outlineNormalTexture = outputSurface.getTexture(RenderSurface::OUTLINE_NORMAL).get();
+
     const SSAOSettings* ssaoSettings = &app->getModuleScene()->getScene()->getSSAOSettings();
     const bool ssaoEnabled = ssaoSettings ? ssaoSettings->enabled : true;
     const bool ssaoBlurEnabled = ssaoSettings ? ssaoSettings->blurEnabled : true;
@@ -723,6 +741,8 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
         .ssaoBlurTexture = ssaoBlurTexture,
         .ssaoSettings = ssaoSettings,
         .ssaoData = nullptr,
+        .outlineDepthTexture = outlineDepthTexture,
+        .outlineNormalTexture = outlineNormalTexture,
         .lightingSettings = &app->getModuleScene()->getScene()->getLightingSettings(),
     };
 

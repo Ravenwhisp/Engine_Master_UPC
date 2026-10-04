@@ -100,6 +100,9 @@ private:
     std::shared_ptr<Texture> m_dummyTexture;
 
     Texture* m_normalTexture = nullptr;
+    Texture* m_ssaoDepthTexture = nullptr;
+
+    Texture* m_outlineNormalTexture = nullptr;
     Texture* m_outlineDepthTexture = nullptr;
 
     RenderSurface* m_surface = nullptr;

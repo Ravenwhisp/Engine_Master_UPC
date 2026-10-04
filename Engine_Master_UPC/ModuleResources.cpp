@@ -322,6 +322,49 @@ Texture* ModuleResources::createSSAOTexture(float width, float height)
 	return texture;
 }
 
+Texture* ModuleResources::createOutlineDepthBuffer(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R32_TYPELESS;
+	desc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::DSV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"Outline_Depth");
+
+	return texture;
+}
+
+Texture* ModuleResources::createOutlineTexture(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::RTV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		Color(0.5f, 0.5f, 1.0f, 1.0f)
+	);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"Outline_Texture");
+
+	return texture;
+}
+
 Texture* ModuleResources::createHDRRenderTexture(float width, float height)
 {
 	// Floating-point colour target so the lit scene can be stored in HDR
