@@ -1065,6 +1065,36 @@ namespace SceneAPI
 
         app->getModuleScene()->requestSceneChange(ref);
     }
+
+    bool beginAsyncSceneLoad(const char* sceneName)
+    {
+        if (!app || !app->getModuleScene() || !sceneName || sceneName[0] == '\0')
+        {
+            return false;
+        }
+
+        return app->getModuleScene()->requestAsyncSceneLoad(sceneName);
+    }
+
+    bool requestAsyncSceneChange()
+    {
+        if (!app || !app->getModuleScene())
+        {
+            return false;
+        }
+
+        return app->getModuleScene()->requestAsyncSceneChange();
+    }
+
+    bool isAsyncSceneLoadReady()
+    {
+        return app && app->getModuleScene() && app->getModuleScene()->isAsyncSceneReady();
+    }
+
+    bool isAsyncSceneLoading()
+    {
+        return app && app->getModuleScene() && app->getModuleScene()->isAsyncSceneLoading();
+    }
 }
 
 namespace Input

@@ -545,6 +545,26 @@ void MeshRenderer::serialize(IArchive& archive)
         {
             m_customBoundingBox = false;
         }
+
+        m_meshAsset.m_type = AssetType::MESH;
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        if (meshAsset)
+        {
+            addMesh(*meshAsset, !m_customBoundingBox);
+        }
+
+        for (auto& matRef : m_materialAssets)
+        {
+            if (matRef.isValid())
+            {
+                matRef.m_type = AssetType::MATERIAL;
+                auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+                if (matAsset)
+                {
+                    addMaterial(*matAsset);
+                }
+            }
+        }
     }
     else
     {
@@ -676,4 +696,14 @@ void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
     recompute();
 
     updateBoundingBoxWorld();
+}
+ 
+std::shared_ptr<BasicMesh>& MeshRenderer::getMesh()
+{
+    return m_mesh;
+}
+
+std::vector<std::shared_ptr<BasicMaterial>>& MeshRenderer::getMaterials()
+{
+    return m_materials;
 }

@@ -60,8 +60,8 @@ public:
     void addMesh(MeshAsset& model, bool recalculateBounds = true);
     void addMaterial(MaterialAsset& material);
 
-    std::shared_ptr<BasicMesh>& getMesh() { return m_mesh; }
-    std::vector<std::shared_ptr<BasicMaterial>>& getMaterials() { return m_materials; }
+    std::shared_ptr<BasicMesh>& getMesh();
+    std::vector<std::shared_ptr<BasicMaterial>>& getMaterials();
 
     bool hasMesh() const { return m_mesh != nullptr; }
 
@@ -82,7 +82,6 @@ public:
     void unregisterShadowCaster();
 
     void serialize(IArchive& archive) override;
-    void fixReferences(const SceneReferenceResolver& resolver) override;
 
     int getTriangles() const { return m_triangles; }
 

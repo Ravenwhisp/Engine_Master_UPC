@@ -189,6 +189,11 @@ namespace SceneAPI
 
     ENGINE_API void requestSceneChange(const char* sceneName);
     ENGINE_API void requestSceneChange(const AssetId& ref);
+
+    ENGINE_API bool beginAsyncSceneLoad(const char* sceneName);
+    ENGINE_API bool requestAsyncSceneChange();
+    ENGINE_API bool isAsyncSceneLoadReady();
+    ENGINE_API bool isAsyncSceneLoading();
 }
 
 namespace Time

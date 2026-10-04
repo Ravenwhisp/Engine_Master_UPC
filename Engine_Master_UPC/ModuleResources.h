@@ -5,6 +5,7 @@
 #include "UID.h"
 #include "MD5Fwd.h"
 #include "WeakCache.h"
+#include <mutex>
 
 class SkyBox;
 
@@ -82,6 +83,7 @@ public:
 	void  setEnvironmentBrdfTexture(std::shared_ptr<Texture> texture);
 
 	void deferResourceRelease(ComPtr<ID3D12Resource> resource);
+	void deferResourceRelease(ComPtr<ID3D12Resource> resource, uint64_t fenceValue);
 
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);
 
@@ -98,6 +100,7 @@ private:
 	ComPtr<ID3D12Device4>				m_device;
 	CommandQueue* m_queue{ nullptr };
 	std::vector<DeferredResource>		m_deferredResources;
+	std::mutex							m_deferredResourcesMutex;
 	WeakCache<MD5Hash, ICacheable>			m_resources;
 
 	std::shared_ptr<Texture>			m_enviromentBrdfTexture;

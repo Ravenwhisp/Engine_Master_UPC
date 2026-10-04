@@ -32,6 +32,7 @@ ElevatorManager::ElevatorManager(GameObject* owner)
 
 void ElevatorManager::Start()
 {
+    m_bossLevelLoadStarted = false;
     resolveCombatAreas();
     resolveCrystals();
 
@@ -148,6 +149,12 @@ void ElevatorManager::Update()
             {
                 m_wavesCompleted++;
                 m_wavesDoneInCycle++;
+
+                if (m_wavesCompleted == areaCount && !m_bossLevelLoadStarted)
+                {
+                    SceneAPI::beginAsyncSceneLoad("BossLevel");
+                    m_bossLevelLoadStarted = true;
+                }
 
                 if (m_wavesDoneInCycle <= m_wavesPerCycle && m_wavesCompleted < areaCount)
                 {

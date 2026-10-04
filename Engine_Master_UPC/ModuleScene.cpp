@@ -28,7 +28,19 @@
 #include "MD5.h"
 
 #include <chrono>
+#include <thread>
+#include <future>
 #include <unordered_set>
+
+namespace
+{
+    double elapsedMs(
+        const std::chrono::high_resolution_clock::time_point& begin,
+        const std::chrono::high_resolution_clock::time_point& end)
+    {
+        return std::chrono::duration<double, std::milli>(end - begin).count();
+    }
+}
 
 ModuleScene::ModuleScene()
 {
@@ -200,20 +212,76 @@ bool ModuleScene::init()
 
 void ModuleScene::update()
 {
+    for (auto it = m_discardedAsyncLoadFutures.begin(); it != m_discardedAsyncLoadFutures.end();)
+    {
+        if (it->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+        {
+            it->get();
+            it = m_discardedAsyncLoadFutures.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    if (m_asyncLoadFuture.valid() && !m_asyncSceneReady)
+    {
+        if (m_asyncLoadFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+        {
+            m_asyncLoadedScene = m_asyncLoadFuture.get();
+            if (m_asyncLoadedScene)
+            {
+                m_asyncSceneReady = true;
+            }
+            else
+            {
+                DEBUG_ERROR("[ModuleScene] Async scene load failed: %s", m_asyncSceneName.c_str());
+                if (m_pendingSceneLoad == m_asyncSceneName)
+                {
+                    m_pendingSceneLoad.clear();
+                }
+                m_asyncSceneName.clear();
+                m_asyncSceneReady = false;
+            }
+        }
+    }
+
     if (!m_pendingSceneLoad.empty())
     {
-        loadScene(m_pendingSceneLoad);
-        m_pendingSceneLoad.clear();
+        const bool isPendingAsyncScene =
+            !m_asyncSceneName.empty() && m_pendingSceneLoad == m_asyncSceneName;
+
+        if (isPendingAsyncScene)
+        {
+            if (m_asyncSceneReady)
+            {
+                applyLoadedScene(m_asyncSceneName, m_asyncLoadedScene);
+
+                m_asyncLoadedScene.reset();
+                m_asyncSceneName.clear();
+                m_asyncSceneReady = false;
+                m_pendingSceneLoad.clear();
+            }
+        }
+        else
+        {
+            discardAsyncSceneLoad();
+            loadScene(m_pendingSceneLoad);
+            m_pendingSceneLoad.clear();
+        }
     }
 
     if (m_pendingScene)
     {
+        discardAsyncSceneLoad();
         loadScene(m_pendingScene);
         m_pendingScene.reset();
     }
 
     if (m_pendingSceneAssetId.isValid())
     {
+        discardAsyncSceneLoad();
         loadScene(m_pendingSceneAssetId);
         m_pendingSceneAssetId = AssetId();
     }
@@ -721,67 +789,25 @@ bool ModuleScene::loadScene(const std::string& sceneName)
     DEBUG_ERROR("[ModuleScene] Scene '%s' has no name translation in build.cfg; falling back to Assets path.", sceneName.c_str());
 #endif
 
-    std::string path = "Assets/Scenes/" + sceneName + ".scene";
+    auto tTotal0 = std::chrono::high_resolution_clock::now();
 
-    clearRuntimeSceneSystems();
-    clearComponentCaches();
-    m_scene->unloadSoundBanks();
-
-    JsonArchive archive(ArchiveMode::Input);
-    if (!archive.loadFile(path))
+    std::shared_ptr<Scene> loadedScene = loadSceneData(sceneName);
+    if (!loadedScene)
     {
-        DEBUG_ERROR("[ModuleScene] Failed to load scene file: %s", path.c_str());
         return false;
     }
 
-    AssetId ref(GenerateUID());
-    auto newScene = std::make_unique<Scene>(ref);
-    newScene->serialize(archive);
-    newScene->setName(sceneName.c_str());
+    const bool result = applyLoadedScene(sceneName, loadedScene);
 
-    m_scene = std::move(newScene);
+    auto tTotal1 = std::chrono::high_resolution_clock::now();
 
-    m_scene->FixReferences();
-    m_scene->initLoadedObjects();
+    DEBUG_LOG(
+        "[ModuleScene][Sync LoadScene] total: %.3f ms | scene: %s",
+        elapsedMs(tTotal0, tTotal1),
+        sceneName.c_str()
+    );
 
-
-    m_scene->markDirty();
-
-    m_staticQuadtree = std::make_unique<Quadtree>();
-    m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
-    m_dynamicQuadtree = std::make_unique<Quadtree>();
-    m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
-    
-    app->getModuleParticleSystem()->resetFirstUsedSlot();
-
-    if (app->getModuleNavigation()->loadNavMeshForScene(sceneName.c_str()))
-    {
-        DEBUG_LOG("[ModuleScene] NavMesh loaded: %s", sceneName.c_str());
-    }
-    else
-    {
-        DEBUG_WARN("[ModuleScene] NavMesh not found for scene: %s", sceneName.c_str());
-    }
-
-    app->getModuleEditor()->setSelectedGameObject(nullptr);
-
-#ifdef GAME_RELEASE
-    app->getSettings()->frustumCulling.enabled = true;
-    DEBUG_LOG("[ModuleScene] GAME_RELEASE: frustum culling forced ON for scene '%s'.", sceneName.c_str());
-#endif
-
-    rebuildComponentCaches();
-
-    for (const auto& ref : m_scene->getLoadedBankRefs())
-    {
-        app->getModuleMusic()->loadBank(ref);
-    }
-
-    m_scene->resolveLoadedBankNames();
-
-    initializeRuntimeSceneSystems();
-
-    return true;
+    return result;
 }
 
 bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
@@ -852,6 +878,161 @@ bool ModuleScene::loadScene(const AssetId& ref)
     scene->initLoadedObjects();
 
     return loadScene(scene);
+}
+
+std::shared_ptr<Scene> ModuleScene::loadSceneData(const std::string& sceneName)
+{
+    auto t0 = std::chrono::high_resolution_clock::now();
+
+    std::string path = "Assets/Scenes/" + sceneName + ".scene";
+
+    JsonArchive archive(ArchiveMode::Input);
+    if (!archive.loadFile(path))
+    {
+        DEBUG_ERROR("[ModuleScene] Failed to load scene file: %s", path.c_str());
+        return nullptr;
+    }
+
+    AssetId ref(GenerateUID());
+    std::shared_ptr<Scene> newScene = std::make_shared<Scene>(ref);
+
+    newScene->serialize(archive);
+    newScene->setName(sceneName.c_str());
+    newScene->FixReferences();
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+    DEBUG_LOG(
+        "[ModuleScene][Async Load] prepared scene data in %.3f ms | scene: %s",
+        elapsedMs(t0, t1),
+        sceneName.c_str()
+    );
+
+    return newScene;
+}
+
+bool ModuleScene::applyLoadedScene(const std::string& sceneName, std::shared_ptr<Scene> loadedScene)
+{
+    auto tSwap0 = std::chrono::high_resolution_clock::now();
+
+    if (!loadedScene)
+    {
+        return false;
+    }
+
+    clearRuntimeSceneSystems();
+    clearComponentCaches();
+
+    std::shared_ptr<Scene> oldScene = m_scene;
+
+    m_scene = loadedScene;
+
+    m_scene->initLoadedObjects();
+    m_scene->markDirty();
+
+    m_staticQuadtree = std::make_unique<Quadtree>();
+    m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
+
+    m_dynamicQuadtree = std::make_unique<Quadtree>();
+    m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
+
+    app->getModuleParticleSystem()->resetFirstUsedSlot();
+
+    if (app->getModuleNavigation()->loadNavMeshForScene(sceneName.c_str()))
+    {
+        DEBUG_LOG("[ModuleScene] NavMesh loaded: %s", sceneName.c_str());
+    }
+    else
+    {
+        DEBUG_WARN("[ModuleScene] NavMesh not found for scene: %s", sceneName.c_str());
+    }
+
+    app->getModuleEditor()->setSelectedGameObject(nullptr);
+
+#ifdef GAME_RELEASE
+    app->getSettings()->frustumCulling.enabled = true;
+    DEBUG_LOG("[ModuleScene] GAME_RELEASE: frustum culling forced ON for scene '%s'.", sceneName.c_str());
+#endif
+
+    rebuildComponentCaches();
+
+    for (const auto& ref : m_scene->getLoadedBankRefs())
+    {
+        app->getModuleMusic()->loadBank(ref);
+    }
+
+    m_scene->resolveLoadedBankNames();
+
+    initializeRuntimeSceneSystems();
+
+    std::thread([oldScene]()
+        {
+            if (oldScene)
+            {
+                oldScene->unloadSoundBanks();
+            }
+        }).detach();
+
+    auto tSwap1 = std::chrono::high_resolution_clock::now();
+
+    DEBUG_LOG(
+        "[ModuleScene][Scene Swap] swap/apply: %.3f ms | scene: %s",
+        elapsedMs(tSwap0, tSwap1),
+        sceneName.c_str()
+    );
+
+    return true;
+}
+
+bool ModuleScene::requestAsyncSceneLoad(const std::string& sceneName)
+{
+    if (sceneName.empty())
+    {
+        return false;
+    }
+
+    if (!m_asyncSceneName.empty())
+    {
+        DEBUG_WARN("[ModuleScene] Async scene load already running: %s", m_asyncSceneName.c_str());
+        return false;
+    }
+
+    m_asyncSceneName = sceneName;
+    m_asyncSceneReady = false;
+    m_asyncLoadedScene = nullptr;
+
+    m_asyncLoadFuture = std::async(std::launch::async,
+        [this, sceneName]()
+        {
+            return loadSceneData(sceneName);
+        }
+    );
+
+    return true;
+}
+
+void ModuleScene::discardAsyncSceneLoad()
+{
+    if (m_asyncLoadFuture.valid())
+    {
+        m_discardedAsyncLoadFutures.push_back(std::move(m_asyncLoadFuture));
+    }
+
+    m_asyncLoadedScene.reset();
+    m_asyncSceneName.clear();
+    m_asyncSceneReady = false;
+}
+
+bool ModuleScene::requestAsyncSceneChange()
+{
+    if (m_asyncSceneName.empty())
+    {
+        DEBUG_WARN("[ModuleScene] Cannot activate async scene: no async load exists.");
+        return false;
+    }
+
+    m_pendingSceneLoad = m_asyncSceneName;
+    return true;
 }
 
 #pragma endregion

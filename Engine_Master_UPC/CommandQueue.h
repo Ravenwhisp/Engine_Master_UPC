@@ -5,6 +5,7 @@
 #include "Globals.h"
 
 #include <cstdint>
+#include <mutex>
 #include <queue>
 
 using Microsoft::WRL::ComPtr;
@@ -57,10 +58,14 @@ private:
     ComPtr<ID3D12Device4>                       m_d3d12Device;
     ComPtr<ID3D12CommandQueue>                  m_d3d12CommandQueue;
     ComPtr<ID3D12Fence>                         m_d3d12Fence;
-    HANDLE                                      m_FenceEvent;
     uint64_t                                    m_FenceValue;
 
     CommandAllocatorQueue                       m_CommandAllocatorQueue;
     CommandListQueue                            m_CommandListQueue;
+
+    // Command lists may be recorded by different CPU threads, but access to
+    // the recycling pools and submission to the D3D12 queue must be ordered.
+    std::mutex                                  m_PoolMutex;
+    std::mutex                                  m_SubmissionMutex;
 };
 

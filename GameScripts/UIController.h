@@ -36,4 +36,5 @@ private:
     float m_blackBgFadeTimer = 0.0f;
     bool m_isFading = false;
     std::string m_pendingSceneName;
+	std::string m_preloadedLevelName;
 };

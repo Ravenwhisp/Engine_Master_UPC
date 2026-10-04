@@ -12,8 +12,7 @@ IMPLEMENT_SCRIPT_FIELDS(VideoManager,
     SERIALIZED_STRING(m_sceneToLoad, "Next Scene")
 )
 
-VideoManager::VideoManager(GameObject* owner)
-    : Script(owner)
+VideoManager::VideoManager(GameObject* owner) : Script(owner)
 {
 }
 
@@ -27,8 +26,9 @@ void VideoManager::Start()
 
     if (Transform* skipContainerTransform = m_skipContainer.getReferencedComponent())
     {
-        GameObject* skipContainerOwner = ComponentAPI::getOwner(skipContainerTransform);
-        m_skipContainerTransform = static_cast<Transform2D*>(GameObjectAPI::getComponent(skipContainerOwner, ComponentType::TRANSFORM2D));
+        m_skipContainerOwner = ComponentAPI::getOwner(skipContainerTransform);
+        m_skipContainerTransform = static_cast<Transform2D*>(GameObjectAPI::getComponent(m_skipContainerOwner, ComponentType::TRANSFORM2D));
+        GameObjectAPI::setActive(m_skipContainerOwner, false);
     }
 
     if (Transform* sliderTransform = m_skipSlider.getReferencedComponent())
@@ -50,6 +50,9 @@ void VideoManager::Start()
         VideoAPI::play(m_videoComponent);
         m_started = true;
     }
+
+    SceneAPI::beginAsyncSceneLoad(m_sceneToLoad.c_str());
+
 }
 
 void VideoManager::Update()
@@ -59,7 +62,7 @@ void VideoManager::Update()
         return;
     }
 
-    if (Input::isFaceButtonBottomPressed(0))
+    if (Input::isFaceButtonBottomPressed(0) && SceneAPI::isAsyncSceneLoadReady())
     {
         m_gamepadSkipHoldTime += Time::getDeltaTime();
     }
@@ -74,7 +77,11 @@ void VideoManager::Update()
         SliderAPI::setFillAmount(m_skipSliderComponent, holdProgress);
     }
 
-    const bool skipRequested = Input::isKeyDown(KeyCode::Escape) || m_gamepadSkipHoldTime >= 3.0f;
+    if (SceneAPI::isAsyncSceneLoadReady()) {
+        GameObjectAPI::setActive(m_skipContainerOwner, true);
+    }
+
+    const bool skipRequested = SceneAPI::isAsyncSceneLoadReady() && (Input::isKeyDown(KeyCode::Escape) || m_gamepadSkipHoldTime >= 3.0f);
     const bool finished = m_started && !VideoAPI::isPlaying(m_videoComponent);
 
     if (skipRequested || finished)
@@ -93,7 +100,7 @@ void VideoManager::Update()
 
         if (!m_sceneToLoad.empty())
         {
-            SceneAPI::requestSceneChange(m_sceneToLoad.c_str());
+            SceneAPI::requestAsyncSceneChange();
         }
     }
 }
