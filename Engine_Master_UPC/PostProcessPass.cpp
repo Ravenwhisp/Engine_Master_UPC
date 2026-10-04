@@ -27,20 +27,24 @@
 
 PostProcessPass::PostProcessPass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
-    CD3DX12_DESCRIPTOR_RANGE sceneRange, bloomRange, lutRange, depthRange, normalRange;
+    CD3DX12_DESCRIPTOR_RANGE sceneRange, bloomRange, lutRange, depthRange, normalRange, outlineDepthRange, outlineNormalRange;
     sceneRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
     bloomRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
     lutRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0);
     depthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0);
     normalRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4, 0);
+    outlineDepthRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 5, 0);
+    outlineNormalRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 6, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[8] = {};
     rootParameters[0].InitAsConstants(sizeof(PostProcessParams) / sizeof(UINT32), 0, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[1].InitAsDescriptorTable(1, &sceneRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[2].InitAsDescriptorTable(1, &bloomRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[3].InitAsDescriptorTable(1, &lutRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[4].InitAsDescriptorTable(1, &depthRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[5].InitAsDescriptorTable(1, &normalRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[6].InitAsDescriptorTable(1, &outlineDepthRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[7].InitAsDescriptorTable(1, &outlineNormalRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     D3D12_STATIC_SAMPLER_DESC sampler = PostProcess::bilinearClampSampler();
 
@@ -135,9 +139,10 @@ void PostProcessPass::prepare(const RenderContext& ctx)
     m_params.depthLinearizeB = ctx.projection.m[3][2];
 
     // Reused from the SSAO geometry pass for distance-invariant crease detection.
-    /*m_normalTexture = ctx.ssaoNormalTexture;
-    m_outlineDepthTexture = ctx.ssaoDepthTexture;*/
-    m_normalTexture = ctx.outlineNormalTexture;
+    m_normalTexture = ctx.ssaoNormalTexture;
+    m_ssaoDepthTexture = ctx.ssaoDepthTexture;
+
+    m_outlineNormalTexture = ctx.outlineNormalTexture;
     m_outlineDepthTexture = ctx.outlineDepthTexture;
 
     m_runBloom = settings.bloomEnabled;
@@ -262,7 +267,7 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     auto sceneHDR = m_surface->getTexture(RenderSurface::SCENE_HDR);
     auto composite = m_surface->getTexture(RenderSurface::COMPOSITE);
     auto depthTex = m_surface->getTexture(RenderSurface::DEPTH_STENCIL);
-    if (!sceneHDR || !composite || !depthTex || !m_normalTexture || !m_outlineDepthTexture)
+    if (!sceneHDR || !composite || !depthTex || !m_normalTexture || !m_ssaoDepthTexture)
         return;
 
     // Outlines describe the original geometry, including transparent walls.
@@ -297,8 +302,10 @@ void PostProcessPass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetGraphicsRootDescriptorTable(1, sceneHDR->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(2, bloomHandle);
     commandList->SetGraphicsRootDescriptorTable(3, lut->getSRV().gpu);
-    commandList->SetGraphicsRootDescriptorTable(4, m_outlineDepthTexture->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(4, m_ssaoDepthTexture->getSRV().gpu);
     commandList->SetGraphicsRootDescriptorTable(5, m_normalTexture->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(6, m_outlineDepthTexture->getSRV().gpu);
+    commandList->SetGraphicsRootDescriptorTable(7, m_outlineNormalTexture->getSRV().gpu);
 
     PostProcess::drawFullscreenTriangle(commandList);
 
