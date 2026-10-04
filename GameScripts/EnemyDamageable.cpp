@@ -124,6 +124,7 @@ void EnemyDamageable::Update()
 	Damageable::Update();
 	updateDamageHighlight();
 	updateHitShake();
+	updateHealthBarVisibility();
 	updateHealthBarFade();
 	updateShadowExecutionPreviewAvailability();
 	updateShadowExecutionPreviewAnimation(Time::getDeltaTime());
@@ -231,10 +232,8 @@ void EnemyDamageable::onDamaged(float amount)
 {
 	Damageable::onDamaged(amount);
 
-	if (!m_healthBarFadeActive && m_healthBarFadeTimer < m_healthBarFadeTime)
-	{
-		m_healthBarFadeActive = true;
-	}
+	m_hasTakenDamage = true;
+	setHealthBarVisible(true);
 
 	if (m_enemySound)
 	{
@@ -266,6 +265,9 @@ void EnemyDamageable::onDamaged(float amount)
 void EnemyDamageable::onDeath()
 {
 	Damageable::onDeath();
+
+	m_healthBarVisible = false;
+	m_healthBarFadeActive = false;
 
 	// The health bar should not remain visible while the enemy death flow plays.
 	if (m_healthBarContainerTransform)
@@ -444,6 +446,51 @@ void EnemyDamageable::resolveHealthBarReferences()
 	}
 }
 
+void EnemyDamageable::updateHealthBarVisibility()
+{
+	if (m_isDead)
+	{
+		setHealthBarVisible(false);
+		return;
+	}
+
+	const bool reaperRevealActive = (m_reaperGauge && m_reaperGauge->isFull()) || (m_shadowExecution && m_shadowExecution->isActive());
+	bool shouldBeVisible = m_hasTakenDamage;
+
+	if (!shouldBeVisible && reaperRevealActive)
+	{
+		shouldBeVisible = !m_enemyDetectionAggro || m_enemyDetectionAggro->hasAnyTargetInDetectionRange();
+	}
+
+	setHealthBarVisible(shouldBeVisible);
+}
+
+void EnemyDamageable::setHealthBarVisible(bool visible)
+{
+	if (m_healthBarVisible == visible)
+	{
+		return;
+	}
+
+	m_healthBarVisible = visible;
+	m_healthBarFadeTimer = 0.0f;
+
+	if (!m_healthBarContainerTransform)
+	{
+		m_healthBarFadeActive = false;
+		return;
+	}
+
+	m_healthBarFadeStartAlpha = Transform2DAPI::getAlpha(m_healthBarContainerTransform);
+	m_healthBarFadeActive = true;
+
+	if (m_healthBarFadeTime <= 0.0f)
+	{
+		setHealthBarAlpha(m_healthBarVisible ? 1.0f : 0.0f);
+		m_healthBarFadeActive = false;
+	}
+}
+
 void EnemyDamageable::updateHealthBarFade()
 {
 	if (!m_healthBarFadeActive)
@@ -459,7 +506,7 @@ void EnemyDamageable::updateHealthBarFade()
 
 	if (m_healthBarFadeTime <= 0.0f)
 	{
-		setHealthBarAlpha(1.0f);
+		setHealthBarAlpha(m_healthBarVisible ? 1.0f : 0.0f);
 		m_healthBarFadeActive = false;
 		return;
 	}
@@ -469,13 +516,15 @@ void EnemyDamageable::updateHealthBarFade()
 	float t = m_healthBarFadeTimer / m_healthBarFadeTime;
 	t = std::clamp(t, 0.0f, 1.0f);
 
-	float alpha = MathAPI::evaluateEasing(MathAPI::EasingType::EaseOutCubic, t);
+	const float eased = MathAPI::evaluateEasing(MathAPI::EasingType::EaseOutCubic, t);
+	const float targetAlpha = m_healthBarVisible ? 1.0f : 0.0f;
+	const float alpha = MathAPI::lerp(m_healthBarFadeStartAlpha, targetAlpha, eased);
 
 	setHealthBarAlpha(alpha);
 
 	if (t >= 1.0f)
 	{
-		setHealthBarAlpha(1.0f);
+		setHealthBarAlpha(targetAlpha);
 		m_healthBarFadeActive = false;
 	}
 }
@@ -897,8 +946,10 @@ void EnemyDamageable::bindHealthBarUI(Transform2D* container, UISlider* slider1,
 	m_healthBar2Slider = slider2;
 	m_healthBarFadeTimer = 0.0f;
 	m_healthBarFadeActive = false;
+	m_healthBarFadeStartAlpha = m_healthBarVisible ? 1.0f : 0.0f;
 
 	setupUI();
+	setHealthBarAlpha(m_healthBarVisible ? 1.0f : 0.0f);
 }
 
 IMPLEMENT_SCRIPT(EnemyDamageable)

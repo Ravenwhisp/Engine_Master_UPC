@@ -2,8 +2,6 @@
 #include "ReaperGauge.h"
 #include "CooperativeSound.h"
 
-#include "PersistingCheckpointState.h"
-
 #include <cmath>
 
 namespace
@@ -83,15 +81,6 @@ void ReaperGauge::Start()
     if (m_fullFrameEchoTransform) m_fullFrameEchoBaseScale = Transform2DAPI::getScale(m_fullFrameEchoTransform);
 
     m_sound = GameObjectAPI::findScript<CooperativeSound>(getOwner());
-
-    PersistingCheckpointState* PersistingCheckpointState = &PersistingCheckpointState::Get();
-    if (PersistingCheckpointState && PersistingCheckpointState->m_lastCheckpointId > CheckpointId::NONE)
-    {
-        m_gauge = PersistingCheckpointState->m_savedReaperGaugeAmount;
-        m_everExploited = true;
-        m_decayTimer = 0.0f;
-        m_decaying = false;
-    }
 
     resetFullVisualComponents();
     m_wasFull = isFull();

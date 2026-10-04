@@ -65,6 +65,8 @@ protected:
 
 private: 
 	void resolveHealthBarReferences();
+	void updateHealthBarVisibility();
+	void setHealthBarVisible(bool visible);
 	void updateHealthBarFade();
 	void updateDissolveEffect();
 	void setupDamageHighlight();
@@ -102,7 +104,10 @@ private:
 
 	float m_healthBarFadeTime = 0.25f;
 	float m_healthBarFadeTimer = 0.0f;
+	float m_healthBarFadeStartAlpha = 0.0f;
 	bool m_healthBarFadeActive = false;
+	bool m_healthBarVisible = false;
+	bool m_hasTakenDamage = false;
 
 	ComponentRef<Transform> m_renderer;
 	DamageHighlightComponent* m_damageHighlight = nullptr;

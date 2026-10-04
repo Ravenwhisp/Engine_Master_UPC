@@ -188,9 +188,46 @@ void FontPass::drawTextInternal(ID3D12GraphicsCommandList4* commandList, const U
 	m_vertices.clear();
 
 	const float lineSpacing = app->getModuleFont()->getLineSpacing(fontId);
+	const float scaledLineSpacing = lineSpacing * command.scale;
 
-	float cursorX = command.x;
-	float cursorY = command.y + lineSpacing * command.scale;
+	std::vector<float> lineWidths(1, 0.0f);
+	for (const wchar_t* c = command.text.c_str(); *c != L'\0'; ++c)
+	{
+		if (*c == L'\r')
+			continue;
+		if (*c == L'\n')
+		{
+			lineWidths.push_back(0.0f);
+			continue;
+		}
+
+		const SpriteFont::Glyph* glyph = app->getModuleFont()->getGlyph(fontId, *c);
+		if (glyph)
+		{
+			const float glyphW = static_cast<float>(glyph->Subrect.right - glyph->Subrect.left);
+			lineWidths.back() += (glyphW + glyph->XAdvance + glyph->XOffset) * command.scale;
+		}
+	}
+
+	const float textHeight = scaledLineSpacing * static_cast<float>(lineWidths.size());
+	float verticalOffset = 0.0f;
+	if (command.verticalAlignment == UITextVerticalAlignment::Center)
+		verticalOffset = (command.height - textHeight) * 0.5f;
+	else if (command.verticalAlignment == UITextVerticalAlignment::Bottom)
+		verticalOffset = command.height - textHeight;
+
+	auto getLineStartX = [&command, &lineWidths](size_t lineIndex)
+	{
+		if (command.horizontalAlignment == UITextHorizontalAlignment::Center)
+			return command.x + (command.width - lineWidths[lineIndex]) * 0.5f;
+		if (command.horizontalAlignment == UITextHorizontalAlignment::Right)
+			return command.x + command.width - lineWidths[lineIndex];
+		return command.x;
+	};
+
+	size_t lineIndex = 0;
+	float cursorX = getLineStartX(lineIndex);
+	float cursorY = command.y + verticalOffset + scaledLineSpacing;
 
 	const float invAtlasW = 1.0f / static_cast<float>(atlasSize.x);
 	const float invAtlasH = 1.0f / static_cast<float>(atlasSize.y);
@@ -210,8 +247,9 @@ void FontPass::drawTextInternal(ID3D12GraphicsCommandList4* commandList, const U
 
 		if (*c == L'\n')
 		{
-			cursorX = command.x;
-			cursorY += lineSpacing * command.scale;
+			++lineIndex;
+			cursorX = getLineStartX(lineIndex);
+			cursorY += scaledLineSpacing;
 			continue;
 		}
 

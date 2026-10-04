@@ -17,6 +17,7 @@ public:
 
     void Start() override;
     void Update() override;
+	void updateUI() override;
     void drawGizmo() override;
 
 protected:
@@ -28,6 +29,7 @@ protected:
     float getCooldown() const override;
 
 private:
+    void cancelAbility() override;
     void beginCharge();
     void updateCharge();
     void releaseChargeAndShoot();

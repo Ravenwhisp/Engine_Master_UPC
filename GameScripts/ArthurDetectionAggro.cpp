@@ -11,6 +11,7 @@ ArthurDetectionAggro::ArthurDetectionAggro(GameObject* owner)
 
 void ArthurDetectionAggro::Start()
 {
+	EnemyDetectionAggro::Start();
 	m_arthurBossController = GameObjectAPI::findScript<ArthurBossController>(getOwner());
 
 	if (!m_arthurBossController)
@@ -22,6 +23,9 @@ void ArthurDetectionAggro::Start()
 
 void ArthurDetectionAggro::updateAggroState()
 {
+	// The controller checks detection range before it starts the encounter.
+	updateAggroEntries();
+
 	if (!m_encounterStarted)
 	{
 		resetAggro();
@@ -32,8 +36,6 @@ void ArthurDetectionAggro::updateAggroState()
 	{
 		return;
 	}
-
-	updateAggroEntries();
 
 	if (isTaunted())
 	{

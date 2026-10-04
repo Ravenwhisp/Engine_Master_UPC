@@ -16,6 +16,7 @@ public:
 
     void Start()  override;
     void Update() override;
+	void updateUI() override;
 
     void drawGizmo() override;
 
@@ -24,8 +25,10 @@ protected:
 
 	bool canStartSpecificAbility() const override;
     void onAttackWindowFinished() override;
+    void cancelAbility() override;
 
     float getCooldown() const override;
+
 
 private:
     void beginAim();
@@ -33,6 +36,7 @@ private:
     void releaseAimAndCast();
 
     void updateImpactDelay();
+    void updateTauntChains();
     void resolveImpact();
 
     std::vector<GameObject*> collectEnemiesInCone(const Vector3& origin, const Vector3& direction) const;
@@ -65,5 +69,6 @@ private:
     Vector3 m_castDirection = Vector3::Zero;
 
     float m_impactDelayTimer = 0.0f;
+    bool m_tauntChainsLaunched = false;
     float m_debugConeTimer = 0.0f;
 };

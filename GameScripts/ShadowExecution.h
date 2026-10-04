@@ -49,6 +49,7 @@ public:
     PrefabRef m_particlePrefab;
 
 private:
+    void setupUI();
     void cachePlayers();
     void tryTrigger();
     void beginExecution();
@@ -82,11 +83,21 @@ private:
 
 public:
     ComponentRef<UISlider> m_reaperGaugeBar;
+    ComponentRef<Transform2D> m_executionGlowUI;
+    ComponentRef<Transform2D> m_glowUIplayer0;
+    ComponentRef<Transform2D> m_glowUIplayer1;
+    ComponentRef<Transform2D> m_controlsUIplayer0;
+	ComponentRef<Transform2D> m_controlsUIplayer1;
     ComponentRef<Transform> m_executionCanvas;
     ComponentRef<Transform2D> m_executionSprite;
 
 private:
     UISlider* m_reaperGaugeSlider = nullptr;
+    Transform2D* m_executionGlowTransform = nullptr;
+    Transform2D* m_glowTransformPlayer0 = nullptr;
+    Transform2D* m_glowTransformPlayer1 = nullptr;
+	Transform2D* m_controlsTransformPlayer0 = nullptr;
+	Transform2D* m_controlsTransformPlayer1 = nullptr;
     Transform* m_executionTransform = nullptr;
     Transform2D* m_executionTransform2D = nullptr;
 

@@ -453,4 +453,21 @@
     <ClCompile Include="SpectralPathEntranceVFX.cpp" />
     <ClCompile Include="VideoManager.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DeathTauntChains.h" />
+    <ClInclude Include="DustParticleEvent.h" />
+    <ClInclude Include="MovingThingController.h" />
+    <ClInclude Include="ThingFleeState.h" />
+    <ClInclude Include="ThingIdleState.h" />
+    <ClInclude Include="TriggerFire.h" />
+    <ClInclude Include="UIMultiplayerSwitcher.h" />
+    <ClInclude Include="resource.h" />
+    <ClCompile Include="DeathTauntChains.cpp" />
+    <ClCompile Include="DustParticleEvent.cpp" />
+    <ClCompile Include="MovingThingController.cpp" />
+    <ClCompile Include="ThingFleeState.cpp" />
+    <ClCompile Include="ThingIdleState.cpp" />
+    <ClCompile Include="TriggerFire.cpp" />
+    <ClCompile Include="UIMultiplayerSwitcher.cpp" />
+  </ItemGroup>
 </Project>

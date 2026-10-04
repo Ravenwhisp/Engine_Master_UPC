@@ -63,10 +63,19 @@ void CombatAreaEvent::closeArea()
 
 void CombatAreaEvent::openArea()
 {
-    setBlockerState(m_entranceBlocker, false);
+    if (!m_keepEntranceBlockedOnCompletion)
+    {
+        setBlockerState(m_entranceBlocker, false);
+    }
+
     setBlockerState(m_exitBlocker, false);
     setVisualsState(m_entranceVisuals, false);
     setVisualsState(m_exitVisuals, false);
+}
+
+void CombatAreaEvent::setEntranceBlocked(bool blocked)
+{
+    setBlockerState(m_entranceBlocker, blocked);
 }
 
 void CombatAreaEvent::setBlockerState(const ComponentRef<Transform>& blockerTransformRef, bool blocked)

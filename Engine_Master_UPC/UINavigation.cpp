@@ -17,9 +17,43 @@ void UINavigation::update()
     processNavigation();
 }
 
+GameObject* UINavigation::getSelected() const
+{
+    if (!isValidUID(m_selectedUid))
+    {
+        return nullptr;
+    }
+
+    ModuleScene* moduleScene = app->getModuleScene();
+    if (!moduleScene)
+    {
+        return nullptr;
+    }
+
+    Scene* scene = moduleScene->getScene();
+    if (!scene)
+    {
+        return nullptr;
+    }
+
+    return scene->findGameObjectByUID(m_selectedUid);
+}
+
 bool UINavigation::isSelectable(GameObject* go) const
 {
     if (!go)
+    {
+        return false;
+    }
+
+    ModuleScene* moduleScene = app->getModuleScene();
+    if (!moduleScene || moduleScene->isPendingSceneLoad())
+    {
+        return false;
+    }
+
+    Scene* scene = moduleScene->getScene();
+    if (!scene || !scene->containsGameObject(go))
     {
         return false;
     }
@@ -36,24 +70,28 @@ bool UINavigation::isSelectable(GameObject* go) const
 
 void UINavigation::clearSelection()
 {
-    if (!m_selected)
+    GameObject* selected = getSelected();
+
+    // Clear the handle before invoking component callbacks. This keeps the
+    // navigation state valid even if the callback changes or unloads a scene.
+    m_selectedUid = INVALID_UID;
+
+    if (!selected)
     {
         return;
     }
 
-    UIButton* btn = m_selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
+    UIButton* btn = selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
 
     if (btn)
     {
         btn->onDeselect();
     }
-
-    m_selected = nullptr;
 }
 
 void UINavigation::setSelected(GameObject* go)
 {
-    if (go == m_selected)
+    if (go && go == getSelected())
     {
         return;
     }
@@ -65,9 +103,9 @@ void UINavigation::setSelected(GameObject* go)
         return;
     }
 
-    m_selected = go;
+    m_selectedUid = go->GetID();
 
-    UIButton* btn = m_selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
+    UIButton* btn = go->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
 
     if (btn)
     {
@@ -143,23 +181,29 @@ void UINavigation::processNavigation()
         return;
     }
 
-    if (!m_selected || !isSelectable(m_selected))
+    GameObject* selected = getSelected();
+
+    if (!isSelectable(selected))
     {
+        clearSelection();
+
         GameObject* first = findFirstSelectableButton();
 
         if (first)
         {
             setSelected(first);
         }
+
+        selected = getSelected();
     }
 
-    if (!m_selected)
+    if (!selected)
     {
         return;
     }
 
     UIButton* btn =
-        m_selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
+        selected->GetComponentAs<UIButton>(ComponentType::UIBUTTON);
 
     if (!btn)
     {
@@ -185,13 +229,20 @@ void UINavigation::processNavigation()
 
     if (submit)
     {
+        GameObject* submitTarget = getSelected();
+        if (!isSelectable(submitTarget))
+        {
+            clearSelection();
+            return;
+        }
+
         PointerEventData data;
-        data.pointerPress = m_selected;
+        data.pointerPress = submitTarget;
 
         ModuleEventSystem* eventSystem = app->getModuleEventSystem();
         if (eventSystem)
         {
-            eventSystem->onSubmit(m_selected, data);
+            eventSystem->onSubmit(submitTarget, data);
         }
     }
 }

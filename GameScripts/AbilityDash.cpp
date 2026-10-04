@@ -72,6 +72,7 @@ void AbilityDash::onDashStarted()
 void AbilityDash::startDash()
 {
     m_dashTimer = 0.0f;
+    m_hasDashTarget = false;
 
     Vector3 moveDirection = m_playerController->getMoveDirection();
 
@@ -144,6 +145,7 @@ void AbilityDash::stopDash()
     }
 
     onDashEnded();
+    m_hasDashTarget = false;
     m_dashTimer = 0.0f;
     m_dashDirection = Vector3::Zero;
 
@@ -162,6 +164,17 @@ void AbilityDash::calculateDashMovement(float dt)
 
     float t = m_dashTimer / dashDuration;
     t = (t < 0.0f) ? 0.0f : (t > 1.0f ? 1.0f : t);
+
+    if (m_hasDashTarget && m_playerMovement != nullptr)
+    {
+        // Follow the integrated speed curve so the validated landing is reached
+        // at dash end, even when a frame runs past the dash duration.
+        const float progress = (t >= 1.0f) ? 1.0f : sin(t * PI * 0.5f);
+        const Vector3 desiredPosition = m_dashStartPosition + (m_dashTargetPosition - m_dashStartPosition) * progress;
+        const Vector3 currentPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
+        m_playerMovement->playerDashMovement(getOwner(), desiredPosition - currentPosition);
+        return;
+    }
 
     const float curveSpeed = 0.5f * PI * cos(t * PI * 0.5f);
     const float currentSpeed = (dashDistance / dashDuration) * curveSpeed;

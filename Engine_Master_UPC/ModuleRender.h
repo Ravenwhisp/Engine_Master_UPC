@@ -36,6 +36,8 @@ class SkyBoxPass;
 class ForwardPrepass;
 class DeferredShadingPass;
 class GeometryPass;
+class UIImagePass;
+class FontPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
@@ -100,6 +102,8 @@ private:
     ForwardPrepass* m_forwardPrepass = nullptr;
     GeometryPass* m_geometryPass = nullptr;
     DeferredShadingPass* m_meshRenderPass = nullptr;
+    UIImagePass* m_uiImagePass = nullptr;
+    FontPass* m_fontPass = nullptr;
 
     SkyBoxPass* m_skyBoxPass;
 
@@ -193,6 +197,7 @@ private:
     void transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState,  D3D12_RESOURCE_STATES afterState);
 
     bool renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface);
+    void renderVideoUIOverlay(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface);
 
     void initRenderProfiler(ID3D12Device4* device);
     void releaseRenderProfiler();

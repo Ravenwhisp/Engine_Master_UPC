@@ -2,6 +2,7 @@
 #include "UIPause.h"
 
 #include "PlayerController.h"
+#include "PersistingCheckpointState.h"
 
 IMPLEMENT_SCRIPT_FIELDS(UIPause,
     SERIALIZED_COMPONENT_REF(m_pausePanel, "Pause Panel", ComponentType::TRANSFORM),
@@ -11,6 +12,7 @@ IMPLEMENT_SCRIPT_FIELDS(UIPause,
 static const ScriptMethodInfo UIPauseMethods[] =
 {
     { "Resume", [](Script* s) { static_cast<UIPause*>(s)->Resume(); } },
+    { "Restart", [](Script* s) { static_cast<UIPause*>(s)->Restart(); } },
     { "ChangeScene", nullptr, ScriptMethodParamType::String, "sceneName", [](Script* s, const void* param) { static_cast<UIPause*>(s)->ChangeScene(*static_cast<const std::string*>(param)); } },
     { "ToggleControls", nullptr, ScriptMethodParamType::Bool, "isOpen", [](Script* s, const void* param) { static_cast<UIPause*>(s)->ToggleControls(*static_cast<const bool*>(param)); } }
 };
@@ -47,7 +49,7 @@ void UIPause::Start()
 
 void UIPause::Update()
 {
-    if (Input::isPauseJustPressed(0))
+    if (Input::isPauseJustPressed(0) || Input::isPauseJustPressed(1))
     {
         if (m_isPause)
         {
@@ -117,6 +119,30 @@ void UIPause::setPlayersGameplayInputLocked(bool locked)
 void UIPause::Resume()
 {
     SetPauseState(false);
+}
+
+void UIPause::Restart()
+{
+    const char* sceneName = nullptr;
+    switch (PersistingCheckpointState::Get().m_lastSceneId)
+    {
+    case SceneId::LEVEL1:
+        sceneName = "Level1";
+        break;
+    case SceneId::LEVEL2:
+        sceneName = "Level2";
+        break;
+    case SceneId::LEVEL3:
+        sceneName = "BossLevel";
+        break;
+    default:
+        Debug::warn("UIPause cannot restart: current level is unknown.");
+        return;
+    }
+
+    ToggleControls(false);
+    Resume();
+    ChangeScene(sceneName);
 }
 
 void UIPause::ChangeScene(const std::string& sceneName)

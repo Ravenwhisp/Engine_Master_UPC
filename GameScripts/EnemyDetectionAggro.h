@@ -2,6 +2,8 @@
 
 #include "ScriptAPI.h"
 
+class PlayerState;
+
 class EnemyDetectionAggro : public Script
 {
 	DECLARE_SCRIPT(EnemyDetectionAggro)
@@ -11,7 +13,7 @@ protected:
 	{
 		Transform* targetTransform = nullptr;
 		bool isInDetectionRange = false;
-		float distanceToEnemy = 0.0f;
+		float distanceSqToEnemy = 0.0f;
 		float lastAttackTime = -9999.9f;
 	};
 
@@ -44,7 +46,7 @@ public:
 	Vector3 getLastKnownTargetPosition() const { return m_lastKnownTargetPosition; }
 
 	bool isDowned(Transform* target) const;
-	bool hasAnyTargetInDetectionRange();
+	bool hasAnyTargetInDetectionRange() const;
 
 	Transform* getLyrielTransform() const;
 	Transform* getDeathTransform() const;
@@ -84,15 +86,6 @@ private:
 
 	Transform* getOwnerTransform() const;
 	Vector3 getOwnerPosition() const;
-	Vector3 getLyrielPosition() const;
-	Vector3 getDeathPosition() const;
-
-	float getDistanceToLyriel() const;
-	float getDistanceToDeath() const;
-
-	bool isLyrielInDetectionRange() const;
-	bool isDeathInDetectionRange() const;
-
 	bool isLyrielAggroing() const;
 	bool isDeathAggroing() const;
 
@@ -101,4 +94,6 @@ private:
 
 	Transform* m_lyrielCachedTransform = nullptr;
 	Transform* m_deathCachedTransform = nullptr;
+	PlayerState* m_lyrielPlayerState = nullptr;
+	PlayerState* m_deathPlayerState = nullptr;
 };
