@@ -2,6 +2,7 @@
 #include "EditorWindow.h"
 
 #include <array>
+#include <string>
 
 class Settings;
 struct AssetId;
@@ -41,4 +42,5 @@ private:
     bool m_scriptBuildSettingsSynced = false;
 
     AssetId* m_sceneBuildSceneId = nullptr;
+    std::string m_assetReferenceFixStatus;
 };

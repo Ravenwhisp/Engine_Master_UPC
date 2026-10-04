@@ -15,14 +15,6 @@ std::shared_ptr<T> ModuleAssets::load(AssetId& ref)
         return nullptr;
     }
 
-    if (auto cached = m_cache.get(ref.m_uid))
-    {
-        if (auto typed = std::dynamic_pointer_cast<T>(cached))
-        {
-            return typed;
-        }
-    }
-
     {
         const AssetIndexEntry* entry = m_index.findEntry(ref.m_uid);
         if (entry)
@@ -35,6 +27,18 @@ std::shared_ptr<T> ModuleAssets::load(AssetId& ref)
             {
                 ref.m_libId = entry->contentHash;
             }
+        }
+    }
+
+    if (auto cached = m_cache.get(ref.m_uid))
+    {
+        if (!isValidAsset(ref.m_libId) || cached->getLibId() == ref.m_libId)
+        {
+            if (auto typed = std::dynamic_pointer_cast<T>(cached)) return typed;
+        }
+        else
+        {
+            m_cache.unload(ref.m_uid);
         }
     }
 
@@ -53,8 +57,9 @@ std::shared_ptr<T> ModuleAssets::load(AssetId& ref)
         return nullptr;
     }
 
-    importAsset(entry->sourcePath, ref);
-    if (!isValidAsset(ref.m_libId))
+    // Import can mutate/re-hash the index, so do not retain a pointer into it.
+    const std::filesystem::path sourcePath = entry->sourcePath;
+    if (!importAsset(sourcePath, ref) || !isValidAsset(ref.m_libId))
     {
         return nullptr;
     }

@@ -516,6 +516,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="AssetIndex.h" />
     <ClInclude Include="ImporterRegistry.h" />
     <ClInclude Include="ModuleAssets.h" />
+    <ClInclude Include="AssetReferenceRepair.h" />
     <ClInclude Include="ModuleAssets.inl" />
     <ClInclude Include="BinaryReader.h" />
     <ClInclude Include="BinaryWriter.h" />

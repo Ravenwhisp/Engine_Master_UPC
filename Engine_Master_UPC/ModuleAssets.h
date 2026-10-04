@@ -7,6 +7,7 @@
 #include "AssetFileDialog.h"
 #endif
 #include <filesystem>
+#include <unordered_set>
 
 struct AssetId;
 class AssetScanner;
@@ -17,6 +18,16 @@ struct ScanFileResult;
 
 struct Metadata;
 class DataContainer;
+
+struct AssetReferenceFixResult
+{
+    size_t repairedReferences = 0;
+    size_t changedSourceFiles = 0;
+    size_t successfulImports = 0;
+    size_t unresolvedReferences = 0;
+    size_t failedAssets = 0;
+    size_t cycleSkippedAssets = 0;
+};
 
 class ModuleAssets : public Module
 {
@@ -41,14 +52,13 @@ public:
 #pragma endregion
 
 #pragma region Import
-    void importAsset(const std::filesystem::path& sourcePath, AssetId& reference);
+    bool importAsset(const std::filesystem::path& sourcePath, AssetId& reference);
     bool canImport(const std::filesystem::path& sourcePath) const;
     void registerSubAsset(const Metadata& meta, const UID& parentUID, uint8_t* binaryData, size_t binarySize);
 
-    // Reimports every asset of the Assets folder in dependency order
-    // (sources -> data containers -> prefabs -> scenes) so that every
-    // serialized AssetId is re-baked against the current library hashes.
-    void fixAllAssetReferences();
+    // Repairs native source JSON by UID, then rebuilds the library in dependency
+    // order. Does not replace instances or unsaved data in the open scene.
+    AssetReferenceFixResult fixAllAssetReferences();
 #pragma endregion
 
 #pragma region Delete
@@ -69,6 +79,9 @@ public:
     void refresh();
 
 private:
+    bool importAssetInternal(const std::filesystem::path& sourcePath, AssetId& reference,
+                             std::unique_ptr<Asset>* retainedAsset = nullptr);
+    void refreshIndex(bool importChangedSources);
     bool persistAsset(Asset* asset, Importer* importer, AssetId& reference, const std::filesystem::path& sourcePath);
 
     AssetIndex                           m_index;
@@ -83,6 +96,7 @@ private:
     std::unique_ptr<PrefabManager>       m_prefabManager;
 
     std::unordered_map<UID, std::vector<DependencyRecord>> m_pendingDependencies;
+    std::unordered_set<UID> m_failedSubAssetImports;
 };
 
 #include "ModuleAssets.inl"

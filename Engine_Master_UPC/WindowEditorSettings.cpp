@@ -266,14 +266,27 @@ void WindowEditorSettings::drawBuildSettings()
 
     if (ImGui::Button("Fix All Asset References"))
     {
-        app->getModuleAssets()->fixAllAssetReferences();
+        const auto result = app->getModuleAssets()->fixAllAssetReferences();
+        m_assetReferenceFixStatus = std::to_string(result.repairedReferences) + " references repaired in " +
+            std::to_string(result.changedSourceFiles) + " source files; " +
+            std::to_string(result.successfulImports) + " assets rebuilt.\n" +
+            std::to_string(result.unresolvedReferences) + " unresolved references; " +
+            std::to_string(result.failedAssets) + " failed assets; " +
+            std::to_string(result.cycleSkippedAssets) + " assets skipped due to dependency cycles.";
+        // The selected scene's hash may have changed during source repair.
+        if (m_sceneBuildSceneId)
+        {
+            if (const auto* entry = app->getModuleAssets()->getIndex().findEntry(m_sceneBuildSceneId->m_uid))
+                m_sceneBuildSceneId->m_libId = entry->contentHash;
+        }
     }
     ImGui::SetItemTooltip(
-        "Re-bakes every asset of the Assets folder in dependency order:\n"
-        "glTFs/textures/animations -> data containers -> prefabs -> scenes.\n"
-        "Each re-bake stores the current library hash of the assets it\n"
-        "references, healing stale libIds inside the saved assets themselves.\n"
+        "Reimports textures and glTFs first, then repairs references by UID\n"
+        "in native source files and rebuilds their library data in dependency order.\n"
+        "Missing references and dependency cycles are reported in the log.\n"
+        "Open scene instances and unsaved edits are preserved.\n"
         "Run this before exporting the build config for GAME_RELEASE.");
+    if (!m_assetReferenceFixStatus.empty()) ImGui::TextWrapped("%s", m_assetReferenceFixStatus.c_str());
 }
 
 void WindowEditorSettings::drawScriptReloadModal()

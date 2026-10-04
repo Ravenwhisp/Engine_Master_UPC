@@ -21,6 +21,8 @@ public:
         return TType;
     }
 
+    bool isNative() const override { return true; }
+
     bool canImport(const std::filesystem::path& path) const override
     {
         for (const auto& ext : m_extensions)

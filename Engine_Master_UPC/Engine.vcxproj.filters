@@ -1544,6 +1544,9 @@
     <ClInclude Include="ModuleAssets.h">
       <Filter>Source\Modules</Filter>
     </ClInclude>
+    <ClInclude Include="AssetReferenceRepair.h">
+      <Filter>Source\Assets</Filter>
+    </ClInclude>
     <ClInclude Include="ModuleAssets.inl">
       <Filter>Source\Modules</Filter>
     </ClInclude>

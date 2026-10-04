@@ -26,11 +26,32 @@
 #include "UID.h"
 #include "DataContainer.h"
 #include "GenericTypeFactory.h"
+#include "AssetReferenceRepair.h"
 
 #include <filesystem>
 #include <FileIO.h>
+#include <algorithm>
+#include <map>
+#include <set>
+#include <exception>
 
 namespace fs = std::filesystem;
+
+namespace
+{
+    bool writeLibraryData(const fs::path& path, const uint8_t* data, size_t size)
+    {
+        std::error_code ec;
+        fs::create_directories(path.parent_path(), ec);
+        std::string error = ec.message();
+        if (ec || !AssetReferenceRepair::writeAtomically(path, reinterpret_cast<const char*>(data), size, error))
+        {
+            DEBUG_ERROR("[ModuleAssets] Library write failed for '%s': %s.", path.string().c_str(), error.c_str());
+            return false;
+        }
+        return true;
+    }
+}
 
 constexpr bool ASSETS_MY_DEBUG = false;
 #define DEBUG_ASSETS(...) do { if constexpr (ASSETS_MY_DEBUG) { DEBUG_LOG(__VA_ARGS__); } } while (0)
@@ -78,14 +99,23 @@ bool ModuleAssets::canImport(const std::filesystem::path& sourcePath) const
     return m_importers.canImport(sourcePath);
 }
 
-void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId& reference)
+bool ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId& reference)
 {
-    Importer* importer = m_importers.findByPath(sourcePath);
+    return importAssetInternal(sourcePath, reference);
+}
+
+bool ModuleAssets::importAssetInternal(const std::filesystem::path& sourcePath, AssetId& reference,
+                                     std::unique_ptr<Asset>* retainedAsset)
+try
+{
+    // Callers can pass a path from the index; importing may re-hash that map.
+    const std::filesystem::path importPath = sourcePath;
+    Importer* importer = m_importers.findByPath(importPath);
     if (!importer)
     {
         DEBUG_WARN("[ModuleAssets] No importer found for '%s'.", sourcePath.string().c_str());
         reference = AssetId();
-        return;
+        return false;
     }
 
     const bool isReimport = isValidUID(reference.m_uid);
@@ -94,13 +124,15 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId&
     reference.m_uid = uid;
     reference.m_type = importer->getAssetType();
     reference.m_libId = INVALID_ASSET_ID;
+    m_pendingDependencies.erase(uid);
+    m_failedSubAssetImports.erase(uid);
 
     std::unique_ptr<Asset> asset;
 
     if (reference.m_type == AssetType::DATA_CONTAINER)
     {
         JsonArchive archive(ArchiveMode::Input);
-        if (archive.loadFile(sourcePath))
+        if (archive.loadFile(importPath))
         {
             std::string typeName;
             if (archive.read("_typeName", typeName) && DataContainerFactory::isRegistered(typeName))
@@ -114,6 +146,11 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId&
     {
         asset.reset(importer->createAssetInstance(reference));
     }
+    if (!asset)
+    {
+        DEBUG_ERROR("[ModuleAssets] Could not create asset for '%s'.", importPath.string().c_str());
+        return false;
+    }
 
     if (auto cached = m_cache.get(reference.m_uid))
     {
@@ -124,7 +161,7 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId&
     }
     if (!asset->getImportSettings())
     {
-        std::filesystem::path metaPath = sourcePath;
+        std::filesystem::path metaPath = importPath;
         Metadata::getMetadataPath(metaPath);
         if (fs::exists(metaPath))
         {
@@ -145,17 +182,32 @@ void ModuleAssets::importAsset(const std::filesystem::path& sourcePath, AssetId&
         asset->setImportSettings(asset->createDefaultImportSettings());
     }
 
-    if (!importer->import(sourcePath, asset.get()))
+    if (!importer->import(importPath, asset.get()) || m_failedSubAssetImports.count(uid) != 0)
     {
-        DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", sourcePath.string().c_str());
+        DEBUG_ERROR("[ModuleAssets] Import failed for '%s'.", importPath.string().c_str());
         if (!isReimport) reference = AssetId();
-        return;
+        m_pendingDependencies.erase(uid);
+        m_failedSubAssetImports.erase(uid);
+        return false;
     }
 
-    if (!persistAsset(asset.get(), importer, reference, sourcePath))
+    if (!persistAsset(asset.get(), importer, reference, importPath))
     {
         if (!isReimport) reference = AssetId();
+        m_pendingDependencies.erase(uid);
+        return false;
     }
+    if (retainedAsset) *retainedAsset = std::move(asset);
+    return true;
+}
+catch (const std::exception& exception)
+{
+    DEBUG_ERROR("[ModuleAssets] Import failed for UID %llu: %s.",
+        static_cast<unsigned long long>(reference.m_uid), exception.what());
+    m_pendingDependencies.erase(reference.m_uid);
+    m_failedSubAssetImports.erase(reference.m_uid);
+    reference.m_libId = INVALID_ASSET_ID;
+    return false;
 }
 
 bool ModuleAssets::save(Asset& asset, const std::filesystem::path& path)
@@ -208,6 +260,11 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetId& refer
 {
     const MD5Hash sourceHash = computeMD5(sourcePath);
     const MD5Hash contentHash = isValidAsset(sourceHash) ? sourceHash : reference.m_libId;
+    if (!isValidAsset(contentHash))
+    {
+        DEBUG_ERROR("[ModuleAssets] Cannot hash '%s'.", sourcePath.string().c_str());
+        return false;
+    }
 
     Metadata meta;
     meta.uid = reference.m_uid;
@@ -224,15 +281,20 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetId& refer
     auto deps = m_pendingDependencies.find(reference.m_uid);
     if (deps != m_pendingDependencies.end())
     {
-        meta.m_dependencies = std::move(deps->second);
-        m_pendingDependencies.erase(deps);
+        meta.m_dependencies = deps->second;
     }
 
+    // Write the binary before publishing its metadata/hash. Keep old versions:
+    // they may still be referenced by unsaved scenes or share another UID.
     {
-        AssetIndexEntry* prevEntry = m_index.findEntryMutable(meta.uid);
-        if (prevEntry && isValidAsset(prevEntry->contentHash) && prevEntry->contentHash != meta.contentHash)
+        uint8_t* binaryBuffer = nullptr;
+        const uint64_t binarySize = importer->save(asset, &binaryBuffer);
+        std::unique_ptr<uint8_t[]> bufferGuard(binaryBuffer);
+        if (!binaryBuffer || binarySize == 0 ||
+            !writeLibraryData(meta.getBinaryPath(), binaryBuffer, static_cast<size_t>(binarySize)))
         {
-            FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevEntry->contentHash += ASSET_EXTENSION);
+            DEBUG_ERROR("[ModuleAssets] Failed to serialize/write library data for '%s'.", sourcePath.string().c_str());
+            return false;
         }
     }
 
@@ -248,17 +310,11 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetId& refer
     }
 
     m_index.registerEntry(meta.uid, meta.type, sourcePath, meta.contentHash);
-
-    uint8_t* binaryBuffer = nullptr;
-    const uint64_t binarySize = importer->save(asset, &binaryBuffer);
-    if (binaryBuffer && binarySize > 0)
-    {
-        const std::filesystem::path binaryPath = meta.getBinaryPath();
-        FileIO::write(binaryPath, binaryBuffer, binarySize);
-        delete[] binaryBuffer;
-    }
-
+    m_pendingDependencies.erase(reference.m_uid);
     reference.m_libId = meta.contentHash;
+    asset->setUID(reference.m_uid);
+    asset->setLibId(reference.m_libId);
+    m_cache.unload(reference.m_uid);
 
 #ifndef GAME_RELEASE
     m_contentRegistry->registerAsset(sourcePath, &m_index);
@@ -268,6 +324,11 @@ bool ModuleAssets::persistAsset(Asset* asset, Importer* importer, AssetId& refer
 }
 
 void ModuleAssets::refresh()
+{
+    refreshIndex(true);
+}
+
+void ModuleAssets::refreshIndex(bool importChangedSources)
 {
 #ifndef GAME_RELEASE
     std::string rootStr = ASSETS_FOLDER;
@@ -304,8 +365,20 @@ void ModuleAssets::refresh()
     tCollect0 = std::chrono::high_resolution_clock::now();
     for (ImportRequest& req : scanResult.imports)
     {
-        AssetId ref(req.existingUID);
-        importAsset(req.sourcePath, ref);
+        if (importChangedSources)
+        {
+            AssetId ref(req.existingUID);
+            importAsset(req.sourcePath, ref);
+        }
+        else if (!isValidUID(m_index.findUID(req.sourcePath)))
+        {
+            // Include newly discovered sources in the ordered fix pass without
+            // letting the scanner import prefabs ahead of their dependencies.
+            Importer* importer = m_importers.findByPath(req.sourcePath);
+            if (importer)
+                m_index.registerEntry(isValidUID(req.existingUID) ? req.existingUID : GenerateUID(),
+                    importer->getAssetType(), req.sourcePath);
+        }
     }
     tCollect1 = std::chrono::high_resolution_clock::now();
     DEBUG_ASSETS("[ModuleAssets] Metadata reimport loop took %.3f ms", elapsedMs(tCollect0, tCollect1));
@@ -342,42 +415,27 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID,
     Metadata subMeta = meta;
     subMeta.m_isSubAsset = true;
 
-    if (binaryData && binarySize > 0)
-    {
-        const std::vector<int8_t> hashInput(reinterpret_cast<const int8_t*>(binaryData),
-            reinterpret_cast<const int8_t*>(binaryData) + binarySize);
-        subMeta.contentHash = to_hex_string(computeMD5(hashInput));
-    }
-
-    if (!isValidAsset(subMeta.contentHash))
+    if (!binaryData || binarySize == 0)
     {
         DEBUG_ERROR("[ModuleAssets] Cannot register sub-asset (UID '%s'): binary data is null or empty.",
             std::to_string(subMeta.uid).c_str());
+        if (isValidUID(parentUID)) m_failedSubAssetImports.insert(parentUID);
         return;
     }
 
-    if (binaryData && binarySize > 0)
+    const std::vector<int8_t> hashInput(reinterpret_cast<const int8_t*>(binaryData),
+        reinterpret_cast<const int8_t*>(binaryData) + binarySize);
+    subMeta.contentHash = to_hex_string(computeMD5(hashInput));
+    if (!writeLibraryData(subMeta.getBinaryPath(), binaryData, binarySize))
     {
-        if (!FileIO::write(subMeta.getBinaryPath(), binaryData, binarySize))
-        {
-            DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary (UID '%s').",
-                std::to_string(subMeta.uid).c_str());
-            return;
-        }
+        DEBUG_ERROR("[ModuleAssets] Failed to write sub-asset binary (UID '%s').",
+            std::to_string(subMeta.uid).c_str());
+        if (isValidUID(parentUID)) m_failedSubAssetImports.insert(parentUID);
+        return;
     }
 
-    {
-        AssetIndexEntry* prevEntry = m_index.findEntryMutable(subMeta.uid);
-        if (prevEntry)
-        {
-            const MD5Hash& prevHash = prevEntry->contentHash;
-            if (isValidAsset(prevHash) && prevHash != subMeta.contentHash)
-            {
-                FileIO::remove(std::filesystem::path(LIBRARY_FOLDER) / prevHash += ASSET_EXTENSION);
-            }
-        }
-    }
     m_index.registerEntry(subMeta.uid, subMeta.type, {}, subMeta.contentHash);
+    m_cache.unload(subMeta.uid);
 
     if (isValidUID(parentUID))
     {
@@ -390,69 +448,176 @@ void ModuleAssets::registerSubAsset(const Metadata& meta, const UID& parentUID,
     }
 }
 
-void ModuleAssets::fixAllAssetReferences()
+AssetReferenceFixResult ModuleAssets::fixAllAssetReferences()
 {
-    DEBUG_LOG("[ModuleAssets] Fix pass started: refreshing index from metadata...");
-    refresh();
+    AssetReferenceFixResult result;
+    DEBUG_LOG("[ModuleAssets] Fix pass: indexing sources without unordered reimports...");
+    refreshIndex(false);
 
-    // Dependency order matters: reimporting a source can change its content
-    // hash (and the hashes of its sub-assets), which invalidates the libIds
-    // stored inside its dependents. Re-baking in this order guarantees each
-    // asset sees the final hashes of everything it references. The heal in
-    // AssetId::serialize fixes the references while each asset is re-baked,
-    // and unchanged sources keep their hash, so the pass is idempotent.
-    const AssetType kOrder[] = {
-        AssetType::TEXTURE,
-        AssetType::LUT,
-        AssetType::MODEL,
-        AssetType::FONT,
-        AssetType::ANIMATION,
-        AssetType::ANIMATION_STATE_MACHINE,
-        AssetType::DATA_CONTAINER,
-        AssetType::PREFAB,
-        AssetType::SCENE
-    };
-
-    size_t totalRebaked = 0;
-
-    for (const AssetType type : kOrder)
+    struct Source
     {
-        std::vector<std::pair<UID, std::filesystem::path>> targets;
-        for (const auto& [uid, entry] : m_index.allEntries())
-        {
-            if (entry.type != type || entry.sourcePath.empty())
-            {
-                continue;
-            }
-            targets.emplace_back(uid, entry.sourcePath);
-        }
-
-        if (targets.empty())
-        {
-            continue;
-        }
-
-        DEBUG_LOG("[ModuleAssets] Fix pass: re-baking %zu %s asset(s)...",
-                  targets.size(), AssetTypeToString(static_cast<uint32_t>(type)));
-
-        for (const auto& [uid, sourcePath] : targets)
-        {
-            AssetId ref(uid, INVALID_ASSET_ID, type);
-            importAsset(sourcePath, ref);
-
-            // Drop cached instances so the next load reads the re-baked data.
-            if (type == AssetType::PREFAB || type == AssetType::SCENE)
-            {
-                unload(ref);
-            }
-        }
-
-        totalRebaked += targets.size();
+        UID uid;
+        std::filesystem::path path;
+        Importer* importer;
+    };
+    std::vector<Source> external;
+    std::map<UID, std::filesystem::path> sourcePaths;
+    std::set<UID> failed;
+    auto fail = [&](UID uid, const std::filesystem::path& path, const char* reason)
+    {
+        if (failed.insert(uid).second) ++result.failedAssets;
+        DEBUG_ERROR("[ModuleAssets] Fix pass: '%s': %s.", path.string().c_str(), reason);
+    };
+    for (const auto& [uid, entry] : m_index.allEntries())
+    {
+        if (entry.sourcePath.empty()) continue;
+        sourcePaths[uid] = entry.sourcePath;
+        Importer* importer = m_importers.findByPath(entry.sourcePath);
+        if (!importer) fail(uid, entry.sourcePath, "No source importer");
+        else if (!importer->isNative()) external.push_back({uid, entry.sourcePath, importer});
     }
 
-    DEBUG_LOG("[ModuleAssets] Fix pass done: %zu asset(s) re-baked in dependency order. "
-              "Watch for [AssetId] healed warnings above to see which references were repaired.",
-              totalRebaked);
+    // glTFs produce PREFABs too: sort by source importer, not output type.
+    Importer* gltfImporter = m_importers.getGltfImporter();
+    std::sort(external.begin(), external.end(), [&](const Source& a, const Source& b)
+    {
+        if ((a.importer == gltfImporter) != (b.importer == gltfImporter))
+            return b.importer == gltfImporter;
+        return a.path < b.path;
+    });
+    std::map<UID, std::unique_ptr<Asset>> retainedGltfs;
+    for (const Source& source : external)
+    {
+        AssetId ref(source.uid);
+        std::unique_ptr<Asset> retained;
+        if (!importAssetInternal(source.path, ref, source.importer == gltfImporter ? &retained : nullptr))
+            fail(source.uid, source.path, "External import failed");
+        else
+        {
+            ++result.successfulImports;
+            if (retained) retainedGltfs.emplace(source.uid, std::move(retained));
+        }
+    }
+
+    // Re-snapshot after external importers create native assets (state machines).
+    std::map<UID, std::filesystem::path> native;
+    for (const auto& [uid, entry] : m_index.allEntries())
+    {
+        if (entry.sourcePath.empty()) continue;
+        sourcePaths[uid] = entry.sourcePath;
+        Importer* importer = m_importers.findByPath(entry.sourcePath);
+        if (importer && importer->isNative()) native.emplace(uid, entry.sourcePath);
+    }
+
+    std::map<UID, std::unique_ptr<rapidjson::Document>> documents;
+    std::map<UID, std::set<UID>> graph;
+    for (const auto& [uid, path] : native)
+    {
+        graph[uid];
+        JsonArchive archive(ArchiveMode::Input);
+        if (!archive.loadFile(path) || !archive.currentInput()->IsObject())
+        {
+            fail(uid, path, "Invalid native JSON");
+            continue;
+        }
+        auto document = std::make_unique<rapidjson::Document>();
+        document->CopyFrom(*archive.currentInput(), document->GetAllocator());
+        AssetReferenceRepair::visitReferences(*document, [&](const rapidjson::Value&, UID dependency, const std::string&)
+        {
+            graph[uid].insert(dependency);
+        });
+        documents.emplace(uid, std::move(document));
+    }
+
+    // A failed glTF must also block consumers of its mesh/material sub-assets.
+    std::set<UID> unavailable = failed;
+    for (UID uid : failed)
+    {
+        auto path = sourcePaths.find(uid);
+        if (path == sourcePaths.end()) continue;
+        auto metaPath = path->second;
+        Metadata::getMetadataPath(metaPath);
+        JsonArchive archive(ArchiveMode::Input);
+        Metadata meta;
+        if (archive.loadFile(metaPath))
+        {
+            meta.serialize(archive);
+            for (const auto& dependency : meta.m_dependencies) unavailable.insert(dependency.uid);
+        }
+    }
+
+    const auto order = AssetReferenceRepair::orderDependencies(graph);
+    for (UID uid : order.blocked)
+    {
+        ++result.cycleSkippedAssets;
+        unavailable.insert(uid);
+        DEBUG_WARN("[ModuleAssets] Fix pass: '%s' skipped: cyclic dependency or depends on a cycle.",
+            native.at(uid).string().c_str());
+    }
+    for (UID uid : order.ordered)
+    {
+        const auto& path = native.at(uid);
+        if (failed.count(uid)) continue;
+        if (std::any_of(graph.at(uid).begin(), graph.at(uid).end(),
+            [&](UID dependency) { return unavailable.count(dependency) != 0; }))
+        {
+            fail(uid, path, "Dependency import/repair failed");
+            unavailable.insert(uid);
+            continue;
+        }
+        auto& document = *documents.at(uid);
+        const auto counts = AssetReferenceRepair::repairReferences(document, [&](UID dependency) -> const std::string*
+        {
+            const AssetIndexEntry* entry = m_index.findEntry(dependency);
+            return entry ? &entry->contentHash : nullptr;
+        }, [&](UID dependency, const std::string& location)
+        {
+            DEBUG_WARN("[ModuleAssets] Fix pass: '%s' at %s: UID %llu has no indexed hash; preserved.",
+                path.string().c_str(), location.c_str(), static_cast<unsigned long long>(dependency));
+        });
+        result.unresolvedReferences += counts.unresolved;
+        if (counts.repaired != 0)
+        {
+            std::string error;
+            if (!AssetReferenceRepair::saveAtomically(document, path, error))
+            {
+                fail(uid, path, error.c_str());
+                unavailable.insert(uid);
+                continue;
+            }
+            result.repairedReferences += counts.repaired;
+            ++result.changedSourceFiles;
+        }
+        AssetId ref(uid);
+        if (!importAsset(path, ref))
+        {
+            fail(uid, path, "Native import failed");
+            unavailable.insert(uid);
+        }
+        else ++result.successfulImports;
+    }
+
+    // Only reserialize retained prefab data: reimporting the glTF here would
+    // regenerate sub-assets after their consumers have already been repaired.
+    for (const auto& [uid, asset] : retainedGltfs)
+    {
+        uint8_t* binaryBuffer = nullptr;
+        const uint64_t binarySize = gltfImporter->save(asset.get(), &binaryBuffer);
+        std::unique_ptr<uint8_t[]> bufferGuard(binaryBuffer);
+        const auto binaryPath = (fs::path(LIBRARY_FOLDER) / asset->getLibId()) += ASSET_EXTENSION;
+        if (!binaryBuffer || binarySize == 0 ||
+            !writeLibraryData(binaryPath, binaryBuffer, static_cast<size_t>(binarySize)))
+        {
+            fail(uid, sourcePaths.at(uid), "Final glTF library serialization failed");
+            --result.successfulImports;
+        }
+        else m_cache.unload(uid);
+    }
+    DEBUG_LOG("[ModuleAssets] Fix pass: %zu reference(s), %zu source(s), %zu import(s), "
+              "%zu unresolved, %zu failed, %zu cycle skips.", result.repairedReferences,
+              result.changedSourceFiles, result.successfulImports, result.unresolvedReferences,
+              result.failedAssets, result.cycleSkippedAssets);
+    return result;
 }
 
 AssetId* ModuleAssets::findReference(const UID& uid)

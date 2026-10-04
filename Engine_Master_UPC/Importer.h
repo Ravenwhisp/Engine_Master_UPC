@@ -14,6 +14,7 @@ public:
     virtual bool canImport(const std::filesystem::path& path) const = 0;
     virtual Asset* createAssetInstance(AssetId& uid) const = 0;
     virtual AssetType getAssetType() const = 0;
+    virtual bool isNative() const { return false; }
 
     virtual bool saveNative(const Asset* asset, const std::filesystem::path& path) = 0;
     virtual bool import(const std::filesystem::path& sourcePath, Asset* outAsset) = 0;
