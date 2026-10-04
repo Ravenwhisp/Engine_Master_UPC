@@ -42,6 +42,7 @@ namespace
 }
 
 ModuleScene::ModuleScene()
+    : m_sceneThreadId(std::this_thread::get_id())
 {
     AssetId defaultSceneRef;
     m_scene = std::make_unique<Scene>(defaultSceneRef);
@@ -897,12 +898,11 @@ std::shared_ptr<Scene> ModuleScene::loadSceneData(const std::string& sceneName)
 
     newScene->serialize(archive);
     newScene->setName(sceneName.c_str());
-    newScene->FixReferences();
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
     DEBUG_LOG(
-        "[ModuleScene][Async Load] prepared scene data in %.3f ms | scene: %s",
+        "[ModuleScene][Async Load] deserialized scene data in %.3f ms | scene: %s",
         elapsedMs(t0, t1),
         sceneName.c_str()
     );
@@ -924,14 +924,20 @@ bool ModuleScene::applyLoadedScene(const std::string& sceneName, std::shared_ptr
 
     m_scene = loadedScene;
 
-    m_scene->initLoadedObjects();
-    m_scene->markDirty();
-
+    // Install quadtrees for the new active scene before resolving references.
+    // MeshRenderer::fixReferences() recalculates world bounds, which can call
+    // GameObject::onTransformChange() and attempt a quadtree update.
     m_staticQuadtree = std::make_unique<Quadtree>();
     m_staticQuadtree->init(m_scene.get(), dd::colors::Red, dd::colors::Green);
 
     m_dynamicQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree->init(m_scene.get(), dd::colors::Cyan, dd::colors::Yellow);
+
+    // Reference resolution touches resources and runtime-facing component
+    // state, so it must run on the scene thread rather than in loadSceneData().
+    m_scene->FixReferences();
+    m_scene->initLoadedObjects();
+    m_scene->markDirty();
 
     app->getModuleParticleSystem()->resetFirstUsedSlot();
 
@@ -1096,6 +1102,14 @@ void ModuleScene::syncQuadtreeWithSettings()
 
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
+    // Component deserialization can evaluate transforms while an async scene
+    // is being prepared. Quadtree containers are not thread-safe and belong
+    // exclusively to the active scene thread.
+    if (std::this_thread::get_id() != m_sceneThreadId)
+    {
+        return;
+    }
+
     if (gameObject.IsSnapshotClone())
     {
         return;

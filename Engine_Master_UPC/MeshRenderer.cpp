@@ -522,11 +522,15 @@ void MeshRenderer::serialize(IArchive& archive)
         archive.serialize(renderMode, "Render Mode");
         m_renderMode = static_cast<RenderMode>(renderMode);
 
-        archive.serialize(m_drawOutline, "Draw Outline");
+        JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
+
+        m_drawOutline = false;
+        if (!jsonArchive || jsonArchive->hasKey("Draw Outline"))
+        {
+            archive.serialize(m_drawOutline, "Draw Outline");
+        }
 
         archive.serialize(m_castShadows, "Cast Shadows");
-
-        JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
 
         if (!jsonArchive || jsonArchive->hasKey("BoundingBox"))
         {
@@ -597,6 +601,8 @@ void MeshRenderer::serialize(IArchive& archive)
 
         UINT renderMode = static_cast<UINT>(m_renderMode);
         archive.serialize(renderMode, "Render Mode");
+
+        archive.serialize(m_drawOutline, "Draw Outline");
 
         archive.serialize(m_castShadows, "Cast Shadows");
 

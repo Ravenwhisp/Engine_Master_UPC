@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <filesystem> 
 #include <future>
+#include <thread>
 
 class Scene;
 class Quadtree;
@@ -105,6 +106,10 @@ public:
 
 private:
     friend class Scene;
+
+    // Quadtrees and the active scene are owned by the thread that creates the
+    // scene module. Async scene preparation must never mutate these objects.
+    std::thread::id m_sceneThreadId;
     friend class GameObject;
     friend class Quadtree;
 
