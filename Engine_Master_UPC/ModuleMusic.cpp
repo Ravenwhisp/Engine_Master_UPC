@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <cstring>
 #include <string>
+#include <unordered_set>
 
 #include "Application.h"
 #include "ModuleAssets.h"
@@ -374,6 +375,101 @@ bool ModuleMusic::unloadBank(const std::string& bankName)
 
 	WWISE_BANK_ERROR("[Module Music] Bank not found: %s", bankName.c_str());
 	return false;
+}
+
+bool ModuleMusic::applySceneBanks(const std::vector<AssetId>& bankRefs)
+{
+	struct DesiredBank
+	{
+		AssetId ref;
+		std::string name;
+	};
+
+	std::vector<DesiredBank> desiredBanks;
+	desiredBanks.reserve(bankRefs.size());
+
+	std::unordered_set<std::string> desiredBankNames;
+	desiredBankNames.reserve(bankRefs.size());
+
+	// Resolve the complete target set before changing Wwise state. If a saved
+	// reference is invalid, keep the currently loaded scene banks intact.
+	for (const AssetId& ref : bankRefs)
+	{
+		AssetId mutableRef = ref;
+		auto asset = app->getModuleAssets()->load<SoundBankAsset>(mutableRef);
+		if (!asset || !asset->isValid())
+		{
+			DEBUG_ERROR(
+				"[Module Music] Cannot apply scene banks: invalid SoundBankAsset uid=%llu libId='%s'.",
+				static_cast<unsigned long long>(ref.m_uid), ref.m_libId.c_str());
+			return false;
+		}
+
+		const std::string& bankName = asset->getBankName();
+		if (bankName == "Init.bnk")
+		{
+			// Init.bnk belongs to the application lifetime, not to an individual scene.
+			if (!m_initBnk.isLoaded() && !loadBank(mutableRef))
+			{
+				DEBUG_ERROR("[Module Music] Failed to restore application bank '%s'.", bankName.c_str());
+				return false;
+			}
+			continue;
+		}
+
+		if (desiredBankNames.insert(bankName).second)
+		{
+			desiredBanks.push_back({ mutableRef, bankName });
+		}
+	}
+
+	std::vector<std::string> newlyLoadedBanks;
+	newlyLoadedBanks.reserve(desiredBanks.size());
+
+	// Load the incoming set first. Shared banks remain loaded, preserving
+	// long-lived music events and avoiding unnecessary reloads between scenes.
+	for (const DesiredBank& desired : desiredBanks)
+	{
+		bool wasLoaded = false;
+		for (const WwiseBank& bank : m_banks)
+		{
+			if (bank.getName() == desired.name)
+			{
+				wasLoaded = bank.isLoaded();
+				break;
+			}
+		}
+
+		if (!loadBank(desired.ref))
+		{
+			DEBUG_ERROR("[Module Music] Failed applying scene bank '%s'.", desired.name.c_str());
+
+			// Roll back only the banks introduced by this transition. Banks from
+			// the previous scene remain available if the new set is incomplete.
+			for (const std::string& loadedName : newlyLoadedBanks)
+			{
+				unloadBank(loadedName);
+			}
+			return false;
+		}
+
+		if (!wasLoaded)
+		{
+			newlyLoadedBanks.push_back(desired.name);
+		}
+	}
+
+	// The target set is fully available. It is now safe to release banks that
+	// belong only to the previous scene.
+	for (WwiseBank& bank : m_banks)
+	{
+		if (bank.isLoaded() && desiredBankNames.find(bank.getName()) == desiredBankNames.end())
+		{
+			bank.unload();
+		}
+	}
+
+	return true;
 }
 
 bool ModuleMusic::loadBanksFromLibrary()

@@ -18,7 +18,7 @@ private:
 
 	std::vector<WwiseEvent> m_events;
 
-	bool m_loaded;
+	bool m_loaded = false;
 	AssetId m_assetRef;
 
 	std::vector<uint8_t> m_bankData;

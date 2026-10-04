@@ -184,6 +184,5 @@ public:
     void removeLoadedBank(const std::string& bankName);
     std::vector<std::string> getLoadedBankNames() const;
     void resolveLoadedBankNames() const;
-    void unloadSoundBanks();
 #pragma endregion
 };
