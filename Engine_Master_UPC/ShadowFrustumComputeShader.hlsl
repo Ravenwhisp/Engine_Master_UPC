@@ -93,7 +93,7 @@ void GetVisibleShadowDepthRange(out float nearDistance, out float farDistance)
 }
 
 // Camera-space depth limit for shadow receivers.
-// Initial quality setting for this level, in world units.
+// Initial quality setting for this level, in world units. It will be added to the inspector
 static const float SHADOW_RECEIVER_MAX_DEPTH = 50.0f;
 
 void GetShadowReceiverDepthRange(out float nearDistance, out float farDistance)
@@ -110,7 +110,6 @@ void GetShadowReceiverDepthRange(out float nearDistance, out float farDistance)
     float receiverLimit = max(SHADOW_RECEIVER_MAX_DEPTH, cameraNear + 0.01f);
 
     nearDistance = clamp(visibleNear, cameraNear, receiverLimit - 0.01f);
-
     farDistance = clamp(visibleFar, nearDistance + 0.01f, receiverLimit);
 }
 
@@ -257,8 +256,7 @@ float4x4 BuildLightViewProjection(float nearDistance, float farDistance, uint ca
 
     float4x4 lightProjection = BuildOrthographicRH(orthoSize, orthoSize, 0.0f, depthRange);
 
-    float4x4 lightViewProjection =
-        mul(lightView, lightProjection);
+    float4x4 lightViewProjection = mul(lightView, lightProjection);
 
     if (resolution > 1u)
     {
@@ -449,8 +447,7 @@ void main()
         1u,
         baseResolution / (uint) SHADOW_CASCADE_DIVISOR(i));
 
-        output.cascadeWorldTexelSize[i] =
-        widthWorld / float(resolution);
+        output.cascadeWorldTexelSize[i] = widthWorld / float(resolution);
 
         output.cascadeDepthRanges[i] = depthRangeWorld;
     }
