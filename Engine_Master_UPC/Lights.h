@@ -76,6 +76,10 @@ struct LightShadowSettings
     float cascadeSplit1 = LightDefaults::DEFAULT_SHADOW_CASCADE_SPLIT_1;
     float cascadeSplit2 = LightDefaults::DEFAULT_SHADOW_CASCADE_SPLIT_2;
     ShadowCascadeFitMode cascadeFitMode = LightDefaults::DEFAULT_SHADOW_CASCADE_FIT_MODE;
+    float shadowDistance = 100.0f;
+    float cascadeBlendFraction = 0.1f;
+    float normalBiasTexels = 0.5f;
+    float slopeBiasTexels = 1.0f;
     bool cascadeDebugEnabled = LightDefaults::DEFAULT_SHADOW_CASCADE_DEBUG_ENABLED;
 };
 

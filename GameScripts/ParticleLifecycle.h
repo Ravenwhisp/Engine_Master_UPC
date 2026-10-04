@@ -15,6 +15,7 @@ namespace ParticleLifecycle
         GameObject* instance = nullptr;
         float remainingSeconds = 0.0f;
         bool deactivateOnExpire = false;
+        bool pendingSceneRegistration = true;
     };
 
     inline void visitParticleSystems(GameObject* gameObject, void (*fn)(ParticleSystemComponent*))
@@ -136,9 +137,17 @@ namespace ParticleLifecycle
                 // its parent). Drop the entry instead of touching a stale pointer.
                 if (entry.instance != nullptr && !SceneAPI::containsGameObject(entry.instance))
                 {
+                    if (entry.pendingSceneRegistration)
+                    {
+                        entry.pendingSceneRegistration = false;
+                        continue;
+                    }
+
                     entries.erase(entries.begin() + static_cast<std::ptrdiff_t>(i));
                     continue;
                 }
+
+                entry.pendingSceneRegistration = false;
 
                 entry.remainingSeconds -= deltaTime;
 

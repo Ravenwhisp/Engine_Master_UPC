@@ -12,10 +12,12 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(DeathUI, CharacterUI,
 
 	FIELD_GROUP_LABEL("Taunt"),
 	SERIALIZED_COMPONENT_REF(m_tauntUI, "Taunt UI", ComponentType::TRANSFORM),
+	SERIALIZED_COMPONENT_REF(m_tauntHUDControl, "Taunt HUD Control", ComponentType::TRANSFORM2D),
 
 	FIELD_GROUP_LABEL("Charged Attack"),
 	SERIALIZED_COMPONENT_REF(m_chargedAttackUI, "Charged Attack UI", ComponentType::TRANSFORM),
 	SERIALIZED_COMPONENT_REF(m_chargedAttackChargeSlider, "Charge Ring Slider", ComponentType::UISLIDER),
+	SERIALIZED_COMPONENT_REF(m_chargedHUDControl, "Charged Attack HUD Control", ComponentType::TRANSFORM2D),
 
 	FIELD_GROUP_LABEL("Slash Combo"),
 	SERIALIZED_COMPONENT_REF(m_basicSlashUI, "Basic Slash UI", ComponentType::TRANSFORM),
@@ -37,6 +39,9 @@ void DeathUI::Start()
 	m_tauntUITransform = m_tauntUI.getReferencedComponent();
 	m_chargedAttackUITransform = m_chargedAttackUI.getReferencedComponent();
 	m_chargedAttackChargeUISlider = m_chargedAttackChargeSlider.getReferencedComponent();
+
+	m_tauntHUDControlTransform2D = m_tauntHUDControl.getReferencedComponent();
+	m_chargedHUDControlTransform2D = m_chargedHUDControl.getReferencedComponent();
 
 	m_basicSlashUITransform = m_basicSlashUI.getReferencedComponent();
 	m_basicSlashUISlider = m_basicSlashSlider.getReferencedComponent();

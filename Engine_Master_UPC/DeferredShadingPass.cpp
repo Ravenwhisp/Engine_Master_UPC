@@ -1,4 +1,5 @@
 ﻿#include "Globals.h"
+#include "ShadowSamplers.h"
 #include "DeferredShadingPass.h"
 
 #include "RenderContext.h"
@@ -42,16 +43,18 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     m_lighting->ambientColor = LightDefaults::DEFAULT_AMBIENT_COLOR;
     m_lighting->ambientIntensity = LightDefaults::DEFAULT_AMBIENT_INTENSITY;
 
+    const auto shadowSamplers = makeShadowSamplers(D3D12_SHADER_VISIBILITY_PIXEL);
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    CD3DX12_ROOT_PARAMETER rootParameters[12] = {};
-    CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange, ssaoRange;
+    CD3DX12_ROOT_PARAMETER rootParameters[15] = {};
+    CD3DX12_DESCRIPTOR_RANGE gBufferRange, irradianceRange, brdfRange, sampRange, prefilteredRange, shadowMapRange[MAX_SHADOW_CASCADES], ssaoRange;
 
     gBufferRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GeometryPass::GBUFFER_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
     prefilteredRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
     brdfRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 10, 0);
     sampRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
-    shadowMapRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11, 0);
+    for (uint32_t i = 0; i < MAX_SHADOW_CASCADES; ++i)
+        shadowMapRange[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 20 + i, 0);
     ssaoRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12, 0);
 
     rootParameters[0].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL); // camera pos
@@ -63,13 +66,15 @@ DeferredShadingPass::DeferredShadingPass(ComPtr<ID3D12Device4> device): m_device
     rootParameters[6].InitAsDescriptorTable(1, &sampRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     rootParameters[7].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParameters[8].InitAsDescriptorTable(1, &shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[8].InitAsDescriptorTable(1, &shadowMapRange[0], D3D12_SHADER_VISIBILITY_PIXEL);
+    for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
+        rootParameters[12 + i - 1].InitAsDescriptorTable(1, &shadowMapRange[i], D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[9].InitAsDescriptorTable(1, &ssaoRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
     rootParameters[10].InitAsShaderResourceView(5, 0, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParameters[11].InitAsShaderResourceView(6, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
+    rootSignatureDesc.Init(_countof(rootParameters), rootParameters, static_cast<UINT>(shadowSamplers.size()), shadowSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -152,12 +157,12 @@ void DeferredShadingPass::prepare(const RenderContext& ctx)
     if (m_hasShadowData)
     {
         m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
-        m_cascadeShadowMapSRV = ctx.shadowData->cascadeShadowMapSRV;
+        m_cascadeShadowMapSRVs = ctx.shadowData->cascadeShadowMapSRVs;
     }
     else
     {
         m_shadowCBAddress = 0;
-        m_cascadeShadowMapSRV = {};
+        m_cascadeShadowMapSRVs = {};
     }
 
     m_renderSurface = &ctx.renderSurface;
@@ -243,10 +248,12 @@ void DeferredShadingPass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetGraphicsRootDescriptorTable(6, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_WRAP));
 
-    if (m_hasShadowData && m_shadowCBAddress != 0 && m_cascadeShadowMapSRV.ptr != 0)
+    if (m_hasShadowData && m_shadowCBAddress != 0 && m_cascadeShadowMapSRVs[0].ptr != 0)
     {
         commandList->SetGraphicsRootConstantBufferView(7, m_shadowCBAddress);
-        commandList->SetGraphicsRootDescriptorTable(8, m_cascadeShadowMapSRV);
+        commandList->SetGraphicsRootDescriptorTable(8, m_cascadeShadowMapSRVs[0]);
+        for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
+            commandList->SetGraphicsRootDescriptorTable(12 + i - 1, m_cascadeShadowMapSRVs[i]);
     }
 
     if (m_hasSSAOData && m_ssaoSRV.ptr != 0)

@@ -105,11 +105,9 @@ bool ModuleRender::init()
     m_skinningComputePass = std::make_unique<SkinningComputePass>(device);
     m_occlusionOccluderDepthPass = std::make_unique<OcclusionOccluderDepthPass>(device);
     m_dynamicTransparencyMaskPass = std::make_unique<DynamicTransparencyMaskPass>(device);
-    m_depthReductionPass = std::make_unique<DepthReductionPass>(device);
-    m_shadowFrustumComputePass = std::make_unique<ShadowFrustumComputePass>(device, m_depthReductionPass.get());
     m_lightCullingPass = std::make_unique<LightCullingPass>(device, m_meshRenderPass);
-    m_debugDrawPass->registerStatic(m_shadowFrustumComputePass.get());
-    m_shadowMapPass = std::make_unique<ShadowMapPass>(device, m_shadowFrustumComputePass.get());
+    m_shadowMapPass = std::make_unique<ShadowMapPass>(device);
+    m_debugDrawPass->registerStatic(m_shadowMapPass.get());
     m_volumetricFogComputePass = std::make_unique<VolumetricFogComputePass>(device);
     m_ssaoGeometryPass = std::make_unique<SSAOGeometryPass>(device);
     m_ssaoPass = std::make_unique<SSAOPass>(device);
@@ -134,8 +132,12 @@ bool ModuleRender::init()
     m_renderPasses.push_back(std::make_unique<PostProcessPass>(device));
 
     m_renderPasses.push_back(std::move(debugDrawPass));
-    m_renderPasses.push_back(std::make_unique<UIImagePass>(device));
-    m_renderPasses.push_back(std::make_unique<FontPass>(device));
+    auto uiImagePass = std::make_unique<UIImagePass>(device);
+    m_uiImagePass = uiImagePass.get();
+    m_renderPasses.push_back(std::move(uiImagePass));
+    auto fontPass = std::make_unique<FontPass>(device);
+    m_fontPass = fontPass.get();
+    m_renderPasses.push_back(std::move(fontPass));
 
     // ImGui lives outside the pass list because startFrame() / apply() must
     // bracket the entire editor render, not just the scene render.
@@ -265,9 +267,7 @@ bool ModuleRender::cleanUp()
     m_ssaoGeometryPass.reset();
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
-    m_shadowFrustumComputePass.reset();
     m_lightCullingPass.reset();
-    m_depthReductionPass.reset();
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionOccluderDepthPass.reset();
     m_skinningComputePass.reset();
@@ -286,9 +286,7 @@ bool ModuleRender::cleanUp()
     m_ssaoGeometryPass.reset();
     m_volumetricFogComputePass.reset();
     m_shadowMapPass.reset();
-    m_shadowFrustumComputePass.reset();
     m_lightCullingPass.reset();
-    m_depthReductionPass.reset();
     m_dynamicTransparencyMaskPass.reset();
     m_occlusionOccluderDepthPass.reset();
     m_skinningComputePass.reset();
@@ -810,21 +808,6 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
         if (m_shadowMapPass != nullptr)
         {
-            if (m_shadowFrustumComputePass != nullptr)
-            {
-                m_shadowFrustumComputePass->prepare(ctx);
-            }
-
-            if (m_shadowFrustumComputePass != nullptr &&
-                m_shadowFrustumComputePass->isEnabled() &&
-                m_depthReductionPass != nullptr)
-            {
-                m_depthReductionPass->prepare(ctx);
-                m_depthReductionPass->apply(commandList);
-
-                m_shadowFrustumComputePass->apply(commandList);
-            }
-
             m_shadowMapPass->prepare(ctx);
             m_shadowMapPass->apply(commandList);
 
@@ -997,6 +980,46 @@ bool ModuleRender::renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSu
     return m_videoPass->render(commandList);
 }
 
+void ModuleRender::renderVideoUIOverlay(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface)
+{
+    if (!commandList || (!m_uiImagePass && !m_fontPass))
+        return;
+
+    const float width = static_cast<float>(outputSurface.getWidth());
+    const float height = static_cast<float>(outputSurface.getHeight());
+    app->getModuleUI()->buildCommandsForViewport(width, height);
+
+    const D3D12_VIEWPORT viewport = { 0.0f, 0.0f, width, height, 0.0f, 1.0f };
+    const D3D12_RECT scissorRect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+    const RenderCamera camera = getGameCamera();
+    const Matrix view = camera.valid ? camera.view : Matrix::Identity;
+    const Matrix projection = camera.valid ? camera.projection : Matrix::Identity;
+
+    RenderContext ctx{
+        .view = view,
+        .projection = projection,
+        .cameraPosition = camera.position,
+        .viewport = viewport,
+        .scissorRect = scissorRect,
+        .ringBuffer = m_ringBuffer,
+        .viewType = RenderViewType::Game,
+        .uiTextCommands = &app->getModuleUI()->getTextCommands(),
+        .uiImageCommands = &app->getModuleUI()->getImageCommands(),
+        .renderSurface = outputSurface,
+    };
+
+    if (m_uiImagePass)
+    {
+        m_uiImagePass->prepare(ctx);
+        m_uiImagePass->apply(commandList);
+    }
+    if (m_fontPass)
+    {
+        m_fontPass->prepare(ctx);
+        m_fontPass->apply(commandList);
+    }
+}
+
 #pragma region Wrappers
 
 void ModuleRender::renderEditorScene(ID3D12GraphicsCommandList4* commandList,
@@ -1009,6 +1032,7 @@ void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, Rend
 {
     if (renderVideo(commandList, outputSurface))
     {
+        renderVideoUIOverlay(commandList, outputSurface);
         return;
     }
 
@@ -1025,7 +1049,10 @@ void ModuleRender::renderPlayScene(ID3D12GraphicsCommandList4* commandList, Rend
 void ModuleRender::renderGameToBackbuffer(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface)
 {
     if (renderVideo(commandList, outputSurface))
+    {
+        renderVideoUIOverlay(commandList, outputSurface);
         return;
+    }
 
     const RenderCamera camera = getGameCamera();
 

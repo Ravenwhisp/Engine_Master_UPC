@@ -3,6 +3,7 @@
 #include "ScriptAPI.h"
 
 class ComponentVideo;
+class UISlider;
 
 class VideoManager : public Script
 {
@@ -18,9 +19,16 @@ public:
 
 public:
     ComponentRef<Transform> m_videoObject;
+    ComponentRef<Transform> m_skipSlider;
+    ComponentRef<Transform> m_loadingImage;
+    ComponentRef<Transform> m_skipContainer;
     std::string m_sceneToLoad;
 
 private:
     ComponentVideo* m_videoComponent = nullptr;
+    UISlider* m_skipSliderComponent = nullptr;
+    Transform2D* m_loadingImageTransform = nullptr;
+    Transform2D* m_skipContainerTransform = nullptr;
     bool m_started = false;
+    float m_gamepadSkipHoldTime = 0.0f;
 };

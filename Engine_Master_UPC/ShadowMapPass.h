@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IRenderPass.h"
+#include "IDebugDrawable.h"
 #include "ShadowTypes.h"
 #include "Texture.h"
 
@@ -14,9 +15,9 @@ using Microsoft::WRL::ComPtr;
 
 class LightComponent;
 class MeshRenderer;
-class ShadowFrustumComputePass;
 
-class ShadowMapPass : public IRenderPass
+
+class ShadowMapPass : public IRenderPass, public IDebugDrawable
 {
 public:
 
@@ -26,17 +27,15 @@ public:
     };
 
 public:
-    explicit ShadowMapPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass);
+    explicit ShadowMapPass(ComPtr<ID3D12Device4> device);
     ~ShadowMapPass() override = default;
 
     void prepare(const RenderContext& ctx) override;
     void apply(ID3D12GraphicsCommandList4* commandList) override;
+    void debugDraw() override;
 
-    const Texture* getShadowMap() const { return m_shadowMap.get(); }
-    Texture* getShadowMap() { return m_shadowMap.get(); }
-
-    const Texture* getCascadeShadowMap() const { return m_cascadeShadowMap.get(); }
-    Texture* getCascadeShadowMap() { return m_cascadeShadowMap.get(); }
+    const Texture* getCascadeShadowMap(uint32_t index = 0) const { return m_cascadeShadowMaps.at(index).get(); }
+    Texture* getCascadeShadowMap(uint32_t index = 0) { return m_cascadeShadowMaps.at(index).get(); }
 
     const ShadowFrameData& getFrameData() const { return m_frameData; }
 
@@ -48,14 +47,10 @@ private:
     void prepareDisabledShadowData(const RenderContext& ctx);
     void prepareDirectionalShadowData(const RenderContext& ctx, const LightComponent& light);
 
-    void renderCasters(ID3D12GraphicsCommandList4* commandList);
+    void renderCasters(ID3D12GraphicsCommandList4* commandList, uint32_t cascadeIndex);
     void renderMeshRenderer(ID3D12GraphicsCommandList4* commandList, MeshRenderer& renderer);
-    void transitionShadowMap(ID3D12GraphicsCommandList4* commandList, D3D12_RESOURCE_STATES newState);
 
-    void createShadowMap(uint32_t size);
-    void resizeShadowMapIfNeeded(uint32_t size);
     void updateShadowViewportAndScissor(uint32_t size);
-    uint32_t getCurrentShadowMapSize() const { return m_currentShadowMapSize; }
 
     void createCascadeShadowMap( uint32_t size, uint32_t cascadeCount);
     void resizeCascadeShadowMapIfNeeded( uint32_t size, uint32_t cascadeCount);
@@ -70,18 +65,12 @@ private:
 private:
     ComPtr<ID3D12Device4> m_device;
 
-    ShadowFrustumComputePass* m_shadowFrustumComputePass = nullptr;
+    std::array<std::unique_ptr<Texture>, MAX_SHADOW_CASCADES> m_cascadeShadowMaps;
 
-    std::unique_ptr<Texture> m_shadowMap;
-    D3D12_RESOURCE_STATES m_shadowMapState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    uint32_t m_currentShadowMapSize = DEFAULT_SHADOW_MAP_SIZE;
-
-    std::unique_ptr<Texture> m_cascadeShadowMap;
-
-    D3D12_RESOURCE_STATES m_cascadeShadowMapState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+    std::array<D3D12_RESOURCE_STATES, MAX_SHADOW_CASCADES> m_cascadeShadowMapStates{};
 
     uint32_t m_currentCascadeShadowMapSize = 0;
-    uint32_t m_currentCascadeArraySize = 0;
+    uint32_t m_currentCascadeCount = 0;
     uint32_t m_activeCascadeCount = 0;
 
     ComPtr<ID3D12RootSignature> m_rootSignature;
@@ -91,5 +80,9 @@ private:
     D3D12_RECT m_scissorRect{};
 
     ShadowFrameData m_frameData{};
-    std::vector<MeshRenderer*> m_meshRenderers;
+    std::array<std::vector<MeshRenderer*>, MAX_SHADOW_CASCADES> m_cascadeCasters;
+    std::array<Matrix, MAX_SHADOW_CASCADES> m_debugMatrices{};
+    uint32_t m_debugCascadeCount = 0;
+    bool m_drawDebug = false;
+    ComPtr<ID3D12PipelineState> m_alphaPipelineState;
 };

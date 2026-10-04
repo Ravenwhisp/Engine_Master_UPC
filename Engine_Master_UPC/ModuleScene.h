@@ -194,7 +194,12 @@ public:
 
     void setBuildSceneLibIds(std::unordered_map<std::string, std::string> map);
 
-    bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
+    bool isPendingSceneLoad() const
+    {
+        return !m_pendingSceneLoad.empty() ||
+            static_cast<bool>(m_pendingScene) ||
+            m_pendingSceneAssetId.isValid();
+    }
 
     void onGameStop();
 #pragma endregion

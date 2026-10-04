@@ -25,7 +25,11 @@ void EnemyDetectionAggro::findPlayerTransforms()
 	m_deathCachedTransform = m_deathTransform.getReferencedComponent();
 
 	if (m_lyrielCachedTransform && m_deathCachedTransform)
+	{
+		m_lyrielPlayerState = GameObjectAPI::findScript<PlayerState>(ComponentAPI::getOwner(m_lyrielCachedTransform));
+		m_deathPlayerState = GameObjectAPI::findScript<PlayerState>(ComponentAPI::getOwner(m_deathCachedTransform));
 		return;
+	}
 
 	const std::vector<GameObject*> players = SceneAPI::findAllGameObjectsByTag(Tag::PLAYER);
 	for (GameObject* player : players)
@@ -43,6 +47,16 @@ void EnemyDetectionAggro::findPlayerTransforms()
 		if (m_lyrielCachedTransform && m_deathCachedTransform)
 			break;
 	}
+
+	if (m_lyrielCachedTransform)
+	{
+		m_lyrielPlayerState = GameObjectAPI::findScript<PlayerState>(ComponentAPI::getOwner(m_lyrielCachedTransform));
+	}
+
+	if (m_deathCachedTransform)
+	{
+		m_deathPlayerState = GameObjectAPI::findScript<PlayerState>(ComponentAPI::getOwner(m_deathCachedTransform));
+	}
 }
 
 void EnemyDetectionAggro::Update()
@@ -51,7 +65,10 @@ void EnemyDetectionAggro::Update()
 
 	updateTargetLockTimer();
 	updateTauntTimer();
-	updateAggroState();
+	{
+		SCRIPT_PROFILE_SCOPE("Aggro state evaluation");
+		updateAggroState();
+	}
 }
 
 void EnemyDetectionAggro::drawGizmo()
@@ -187,15 +204,37 @@ void EnemyDetectionAggro::updateAggroEntries()
 {
 	Transform* lyriel = getLyrielTransform();
 	Transform* death = getDeathTransform();
+	Transform* owner = getOwnerTransform();
 
 	m_lyrielAggro.targetTransform = lyriel;
 	m_deathAggro.targetTransform = death;
 
-	m_lyrielAggro.isInDetectionRange = isLyrielInDetectionRange();
-	m_deathAggro.isInDetectionRange = isDeathInDetectionRange();
+	if (owner == nullptr)
+	{
+		m_lyrielAggro.isInDetectionRange = false;
+		m_deathAggro.isInDetectionRange = false;
+		return;
+	}
 
-	m_lyrielAggro.distanceToEnemy = getDistanceToLyriel();
-	m_deathAggro.distanceToEnemy = getDistanceToDeath();
+	const Vector3 ownerPosition = TransformAPI::getGlobalPosition(owner);
+	const float detectionRadiusSq = m_detectionRadius * m_detectionRadius;
+
+	auto updateEntry = [&](AggroEntry& entry)
+	{
+		if (entry.targetTransform == nullptr)
+		{
+			entry.distanceSqToEnemy = FLT_MAX;
+			entry.isInDetectionRange = false;
+			return;
+		}
+
+		const Vector3 difference = TransformAPI::getGlobalPosition(entry.targetTransform) - ownerPosition;
+		entry.distanceSqToEnemy = difference.LengthSquared();
+		entry.isInDetectionRange = entry.distanceSqToEnemy <= detectionRadiusSq;
+	};
+
+	updateEntry(m_lyrielAggro);
+	updateEntry(m_deathAggro);
 }
 
 void EnemyDetectionAggro::resetAggro()
@@ -268,7 +307,7 @@ Transform* EnemyDetectionAggro::selectClosestDetectedPlayer() const
 
 	if (lyrielInRange && deathInRange)
 	{
-		if (m_lyrielAggro.distanceToEnemy < m_deathAggro.distanceToEnemy)
+		if (m_lyrielAggro.distanceSqToEnemy < m_deathAggro.distanceSqToEnemy)
 		{
 			return m_lyrielAggro.targetTransform;
 		}
@@ -298,7 +337,7 @@ Transform* EnemyDetectionAggro::selectReevaluatedTarget() const
 
 	if (lyrielAggroing && deathAggroing)
 	{
-		if (m_lyrielAggro.distanceToEnemy < m_deathAggro.distanceToEnemy)
+		if (m_lyrielAggro.distanceSqToEnemy < m_deathAggro.distanceSqToEnemy)
 		{
 			return m_lyrielAggro.targetTransform;
 		}
@@ -419,60 +458,6 @@ Vector3 EnemyDetectionAggro::getOwnerPosition() const
 	return TransformAPI::getGlobalPosition(ownerTransform);
 }
 
-Vector3 EnemyDetectionAggro::getLyrielPosition() const
-{
-	Transform* lyrielTransform = getLyrielTransform();
-	if (!lyrielTransform)
-	{
-		return Vector3(0.0f, 0.0f, 0.0f);
-	}
-
-	return TransformAPI::getGlobalPosition(lyrielTransform);
-}
-
-Vector3 EnemyDetectionAggro::getDeathPosition() const
-{
-	Transform* deathTransform = getDeathTransform();
-	if (!deathTransform)
-	{
-		return Vector3(0.0f, 0.0f, 0.0f);
-	}
-
-	return TransformAPI::getGlobalPosition(deathTransform);
-}
-
-float EnemyDetectionAggro::getDistanceToLyriel() const
-{
-	Vector3 difference = getLyrielPosition() - getOwnerPosition();
-	return difference.Length();
-}
-
-float EnemyDetectionAggro::getDistanceToDeath() const
-{
-	Vector3 difference = getDeathPosition() - getOwnerPosition();
-	return difference.Length();
-}
-
-bool EnemyDetectionAggro::isLyrielInDetectionRange() const
-{
-	if (!getLyrielTransform())
-	{
-		return false;
-	}
-
-	return getDistanceToLyriel() <= m_detectionRadius;
-}
-
-bool EnemyDetectionAggro::isDeathInDetectionRange() const
-{
-	if (!getDeathTransform())
-	{
-		return false;
-	}
-
-	return getDistanceToDeath() <= m_detectionRadius;
-}
-
 bool EnemyDetectionAggro::isLyrielAggroing() const
 {
 	if (!m_lyrielAggro.targetTransform)
@@ -506,7 +491,19 @@ bool EnemyDetectionAggro::isDowned(Transform* target) const
 		return false;
 	}
 
-	PlayerState* state = GameObjectAPI::findScript<PlayerState>(targetOwner);
+	PlayerState* state = nullptr;
+	if (target == getLyrielTransform())
+	{
+		state = m_lyrielPlayerState;
+	}
+	else if (target == getDeathTransform())
+	{
+		state = m_deathPlayerState;
+	}
+	else
+	{
+		state = GameObjectAPI::findScript<PlayerState>(targetOwner);
+	}
 	if (!state)
 	{
 		return false;
@@ -515,10 +512,8 @@ bool EnemyDetectionAggro::isDowned(Transform* target) const
 	return state->isDowned();
 }
 
-bool EnemyDetectionAggro::hasAnyTargetInDetectionRange()
+bool EnemyDetectionAggro::hasAnyTargetInDetectionRange() const
 {
-	updateAggroEntries();
-
 	return
 		(m_lyrielAggro.isInDetectionRange && !isDowned(m_lyrielAggro.targetTransform)) ||
 		(m_deathAggro.isInDetectionRange && !isDowned(m_deathAggro.targetTransform));

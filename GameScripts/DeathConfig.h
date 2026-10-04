@@ -31,7 +31,7 @@ public:
 	float m_chargedAttackDamage = 40.0f;
 	float m_chargedMaxChargeDamage = 80.0f;
 	float m_chargedCircleRadius = 3.0f;
-	float m_chargedMaxChargeTime = 2.0f;
+	float m_chargedMaxChargeTime = 1.3f;
 	float m_chargedMinChargeTime = 0.5f;
 	float m_chargedAttackLockDuration = 0.4f;
 	float m_chargedCooldown = 0.0f;

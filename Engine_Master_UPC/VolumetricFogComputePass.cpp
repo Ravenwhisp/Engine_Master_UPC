@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "ShadowSamplers.h"
 #include "VolumetricFogComputePass.h"
 
 #include "Application.h"
@@ -54,7 +55,7 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_mediumConstants = {};
     m_lightingConstants = {};
     m_shadowCBAddress = 0;
-    m_cascadeShadowMapSRV = {};
+    m_cascadeShadowMapSRVs = {};
     m_integrationConstants = {};
     m_hasShadowData = false;
 
@@ -64,10 +65,10 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     const VolumetricFogSettings& settings = scene->getVolumetricFogSettings();
     if (!settings.enabled) return;
 
-    if (ctx.shadowData != nullptr && ctx.shadowData->shadowCBAddress != 0 && ctx.shadowData->cascadeShadowMapSRV.ptr != 0)
+    if (ctx.shadowData != nullptr && ctx.shadowData->shadowCBAddress != 0 && ctx.shadowData->cascadeShadowMapSRVs[0].ptr != 0)
     {
         m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
-        m_cascadeShadowMapSRV = ctx.shadowData->cascadeShadowMapSRV;
+        m_cascadeShadowMapSRVs = ctx.shadowData->cascadeShadowMapSRVs;
         m_hasShadowData = true;
     }
 
@@ -201,7 +202,9 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetComputeRootDescriptorTable(2, m_lightingVolume->getUAV().gpu);
 
     commandList->SetComputeRootConstantBufferView(3, m_shadowCBAddress);
-    commandList->SetComputeRootDescriptorTable(4, m_cascadeShadowMapSRV);
+    commandList->SetComputeRootDescriptorTable(4, m_cascadeShadowMapSRVs[0]);
+    for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
+        commandList->SetComputeRootDescriptorTable(6 + i - 1, m_cascadeShadowMapSRVs[i]);
     commandList->SetComputeRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     const uint32_t lightingGroupsX = (VolumetricFog::GRID_WIDTH + VolumetricFog::LIGHTING_GROUP_SIZE_X - 1) / VolumetricFog::LIGHTING_GROUP_SIZE_X;
@@ -270,22 +273,26 @@ void VolumetricFogComputePass::createMediumPipelineState()
 
 void VolumetricFogComputePass::createLightingRootSignature()
 {
-    CD3DX12_DESCRIPTOR_RANGE mediumRange, lightingRange, shadowRange, samplerRange;
+    CD3DX12_DESCRIPTOR_RANGE mediumRange, lightingRange, shadowRange[MAX_SHADOW_CASCADES], samplerRange;
     mediumRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0);
     lightingRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
-    shadowRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0);
+    for (uint32_t i = 0; i < MAX_SHADOW_CASCADES; ++i)
+        shadowRange[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 20 + i, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[6] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
     rootParameters[0].InitAsConstants(sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[1].InitAsDescriptorTable(1, &mediumRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[2].InitAsDescriptorTable(1, &lightingRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
-    rootParameters[4].InitAsDescriptorTable(1, &shadowRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[4].InitAsDescriptorTable(1, &shadowRange[0], D3D12_SHADER_VISIBILITY_ALL);
+    for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
+        rootParameters[6 + i - 1].InitAsDescriptorTable(1, &shadowRange[i], D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[5].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_ALL);
 
+    const auto shadowSamplers = makeShadowSamplers(D3D12_SHADER_VISIBILITY_ALL);
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
+    rootSignatureDesc.Init(_countof(rootParameters), rootParameters, static_cast<UINT>(shadowSamplers.size()), shadowSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_NONE);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;

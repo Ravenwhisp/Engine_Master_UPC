@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 #include <d3d12.h>
 #include "SimpleMath.h"
 
@@ -18,9 +19,7 @@ enum class ShadowCascadeFitMode : uint32_t
 
 struct ShadowDataCB
 {
-    // Legacy/full fitted frustum.
-    // Kept first so the current single-shadow-map pipeline
-    // continues working until CSM rendering is enabled.
+    // Reserved prefix, retained for binary layout compatibility.
     Matrix lightViewProjection = Matrix::Identity;
 
     float shadowBias = 0.0005f;
@@ -49,9 +48,17 @@ struct ShadowDataCB
         Matrix::Identity,
         Matrix::Identity
     };
+    Matrix shadowCameraView = Matrix::Identity;
+    Vector4 cascadeWorldTexelSize = Vector4::Zero;
+    Vector4 cascadeDepthRanges = Vector4::One;
+    Vector4 shadowLightDirection = Vector4::Zero;
+    uint32_t shadowLightIndex = 0;
+    float cascadeBlendFraction = 0.1f;
+    float normalBiasTexels = 0.5f;
+    float slopeBiasTexels = 1.0f;
 };
 
-static_assert(sizeof(ShadowDataCB) == 384, "ShadowDataCB layout must match the HLSL ShadowDataOutput layout.");
+static_assert(sizeof(ShadowDataCB) == 512, "ShadowDataCB layout must match ShadowData.hlsli.");
 
 struct ShadowFrameData
 {
@@ -59,9 +66,6 @@ struct ShadowFrameData
 
     D3D12_GPU_VIRTUAL_ADDRESS shadowCBAddress = 0;
 
-    // Temporary legacy map, still consumed by Deferred
-    D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV{};
-
-    // Cascaded Texture2DArray, consumed starting 
-    D3D12_GPU_DESCRIPTOR_HANDLE cascadeShadowMapSRV{};
+    // Independently sized cascade textures; inactive entries alias cascade zero.
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, MAX_SHADOW_CASCADES> cascadeShadowMapSRVs{};
 };

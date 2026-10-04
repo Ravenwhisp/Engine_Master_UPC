@@ -28,6 +28,8 @@ private:
 protected:
     void onAttackWindowUpdate() override;
     void onAttackWindowFinished() override;
+    void onHitFrame() override;
+    void cancelAbility() override;
 
     float getCooldown() const override;
 
@@ -49,4 +51,7 @@ private:
     Vector3 m_currentAimDirection = Vector3::Zero;
 
     GameObject* m_attackFacingTarget = nullptr;
+
+    Vector3 m_pendingDirection = Vector3::Zero;
+    bool m_pendingIsAimed = false;
 };

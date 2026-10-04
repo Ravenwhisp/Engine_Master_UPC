@@ -44,6 +44,14 @@ void ElevatorManager::Start()
         snapPlatformToTarget();
     }
 
+    for (int i = 0; i < m_wavesCompleted && i < static_cast<int>(m_combatAreas.size()); ++i)
+    {
+        if (m_combatAreas[i] != nullptr)
+        {
+            m_combatAreas[i]->setEntranceBlocked(true);
+        }
+    }
+
     const int areaCount = static_cast<int>(m_combatAreas.size());
     for (int i = 0; i < areaCount; i++)
         disableArea(i);
@@ -143,7 +151,8 @@ void ElevatorManager::Update()
 
                 if (m_wavesDoneInCycle <= m_wavesPerCycle && m_wavesCompleted < areaCount)
                 {
-                    beginWave(m_wavesCompleted);
+                    m_waveDelayTimer = 0.0f;
+                    m_state = State::WaitingBetweenWaves;
                 }
 
                 if (m_wavesDoneInCycle > m_wavesPerCycle)
@@ -156,6 +165,18 @@ void ElevatorManager::Update()
                     m_state = State::PlatformMoving;
                 }
             }
+        }
+        break;
+    }
+
+    case State::WaitingBetweenWaves:
+    {
+        updateWallScroll();
+        m_waveDelayTimer += Time::getDeltaTime();
+        if (m_waveDelayTimer >= 3.0f)
+        {
+            beginWave(m_wavesCompleted);
+            m_state = State::CycleActive;
         }
         break;
     }
@@ -186,6 +207,11 @@ void ElevatorManager::resolveCombatAreas()
         }
 
         CombatAreaEvent* area = GameObjectAPI::findScript<CombatAreaEvent>(rootObject);
+        if (area != nullptr)
+        {
+            area->setKeepEntranceBlockedOnCompletion(true);
+        }
+
         m_combatAreas.push_back(area);
     }
 }

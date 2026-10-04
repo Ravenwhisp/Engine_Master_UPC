@@ -30,6 +30,7 @@ protected:
     float getCooldown() const override;
 
 private:
+    void cancelAbility() override;
     void startCharging();
     void fireAttack();
     void dealDamageInCircle(float damage, float radius, bool isChargedShot, bool isMaxCharge) const;

@@ -19,8 +19,6 @@
 #include "SSAOGeometryPass.h"
 #include "SSAOPass.h"
 #include "SSAOBlurPass.h"
-#include "DepthReductionPass.h"
-#include "ShadowFrustumComputePass.h"
 #include "LightCullingPass.h"
 #include "VolumetricFogComputePass.h"
 #include "OcclusionOccluderDepthPass.h"
@@ -38,6 +36,8 @@ class SkyBoxPass;
 class ForwardPrepass;
 class DeferredShadingPass;
 class GeometryPass;
+class UIImagePass;
+class FontPass;
 
 struct ViewportEntry;
 struct SkyBoxSettings;
@@ -102,14 +102,14 @@ private:
     ForwardPrepass* m_forwardPrepass = nullptr;
     GeometryPass* m_geometryPass = nullptr;
     DeferredShadingPass* m_meshRenderPass = nullptr;
+    UIImagePass* m_uiImagePass = nullptr;
+    FontPass* m_fontPass = nullptr;
 
     SkyBoxPass* m_skyBoxPass;
 
     std::unique_ptr<SkinningComputePass> m_skinningComputePass;
     std::unique_ptr<OcclusionOccluderDepthPass> m_occlusionOccluderDepthPass;
     std::unique_ptr<DynamicTransparencyMaskPass> m_dynamicTransparencyMaskPass;
-    std::unique_ptr<DepthReductionPass> m_depthReductionPass;
-    std::unique_ptr<ShadowFrustumComputePass> m_shadowFrustumComputePass;
     std::unique_ptr<LightCullingPass> m_lightCullingPass;
     std::unique_ptr<ShadowMapPass> m_shadowMapPass;
     std::unique_ptr<VolumetricFogComputePass> m_volumetricFogComputePass;
@@ -197,6 +197,7 @@ private:
     void transitionResource( ComPtr<ID3D12GraphicsCommandList> commandList, ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState,  D3D12_RESOURCE_STATES afterState);
 
     bool renderVideo(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface);
+    void renderVideoUIOverlay(ID3D12GraphicsCommandList4* commandList, RenderSurface& outputSurface);
 
     void initRenderProfiler(ID3D12Device4* device);
     void releaseRenderProfiler();

@@ -11,9 +11,11 @@ IMPLEMENT_SCRIPT_FIELDS_INHERITED(LyrielUI, CharacterUI,
 
 	FIELD_GROUP_LABEL("Charged Attack"),
 	SERIALIZED_COMPONENT_REF(m_chargedAttackUI, "Charged Attack UI", ComponentType::TRANSFORM),
+	SERIALIZED_COMPONENT_REF(m_chargedHUDControl, "Charged Attack HUD Control", ComponentType::TRANSFORM2D),
 
 	FIELD_GROUP_LABEL("Arrow Volley"),
 	SERIALIZED_COMPONENT_REF(m_arrowVolleyUI, "Arrow Volley UI", ComponentType::TRANSFORM),
+	SERIALIZED_COMPONENT_REF(m_arrowVolleyHUDControl, "Arrow Volley HUD Control", ComponentType::TRANSFORM2D),
 
 	FIELD_GROUP_LABEL("Dash"),
 	SERIALIZED_COMPONENT_REF(m_charge1UI, "Charge 1 UI", ComponentType::TRANSFORM2D),
@@ -36,6 +38,9 @@ void LyrielUI::Start()
 	m_basicAttackUITransform = m_basicAttackUI.getReferencedComponent();
 	m_chargedAttackUITransform = m_chargedAttackUI.getReferencedComponent();
 	m_arrowVolleyUITransform = m_arrowVolleyUI.getReferencedComponent();
+
+	m_chargedHUDControlTransform2D = m_chargedHUDControl.getReferencedComponent();
+	m_arrowVolleyHUDControlTransform2D = m_arrowVolleyHUDControl.getReferencedComponent();
 
 	m_charge1Transform2D = m_charge1UI.getReferencedComponent();
 	m_charge2Transform2D = m_charge2UI.getReferencedComponent();
@@ -234,31 +239,6 @@ void LyrielUI::hideArrowVolleyUI()
 	GameObjectAPI::setActive(owner, false);
 }
 
-void LyrielUI::setupDashCharges(int maxCharges)
-{
-	m_charge1Scale = maxCharges >= 1 ? m_chargedScale : m_emptyScale;
-	m_charge2Scale = maxCharges >= 2 ? m_chargedScale : m_emptyScale;
-	m_charge3Scale = maxCharges >= 3 ? m_chargedScale : m_emptyScale;
-
-	if (m_charge1Transform2D)
-	{
-		Transform2DAPI::setScale(m_charge1Transform2D, Vector2(m_charge1Scale, m_charge1Scale));
-		Transform2DAPI::setAlpha(m_charge1Transform2D, maxCharges >= 1 ? 1.0f : 0.0f);
-	}
-
-	if (m_charge2Transform2D)
-	{
-		Transform2DAPI::setScale(m_charge2Transform2D, Vector2(m_charge2Scale, m_charge2Scale));
-		Transform2DAPI::setAlpha(m_charge2Transform2D, maxCharges >= 2 ? 1.0f : 0.0f);
-	}
-
-	if (m_charge3Transform2D)
-	{
-		Transform2DAPI::setScale(m_charge3Transform2D, Vector2(m_charge3Scale, m_charge3Scale));
-		Transform2DAPI::setAlpha(m_charge3Transform2D, maxCharges >= 3 ? 1.0f : 0.0f);
-	}
-}
-
 void LyrielUI::updateDashChargesUI(int currentCharges, int maxCharges, float dt)
 {
 	updateChargeVisual(m_charge1Transform2D, m_charge1Scale, currentCharges >= 1 && maxCharges >= 1, dt);
@@ -274,15 +254,9 @@ void LyrielUI::updateChargeVisual(Transform2D* transform, float& currentScale, b
 	}
 
 	const float targetScale = visible ? m_chargedScale : m_emptyScale;
-	const float targetAlpha = visible ? 1.0f : 0.0f;
-
 	currentScale = MathAPI::moveTowards(currentScale, targetScale, m_uiScaleSpeed * dt);
 
-	const float currentAlpha = transform->getAlpha();
-	const float newAlpha = MathAPI::moveTowards(currentAlpha, targetAlpha, m_uiScaleSpeed * dt);
-
 	Transform2DAPI::setScale(transform, Vector2(currentScale, currentScale));
-	Transform2DAPI::setAlpha(transform, newAlpha);
 }
 
 IMPLEMENT_SCRIPT(LyrielUI)

@@ -3,6 +3,8 @@
 #include "ScriptAPI.h"
 #include "EnemyDamageable.h"
 
+#include <functional>
+
 class EnemyBaseController;
 class Transform;
 
@@ -22,11 +24,17 @@ public:
 
 	bool isBeingPulled() const { return m_isBeingPulled; }
 
+	// Called once when the current pull ends (finished or cancelled), then cleared.
+	// Set it after a successful startPull().
+	using PullFinishedCallback = std::function<void(GameObject* enemy)>;
+	void setPullFinishedCallback(PullFinishedCallback callback) { m_onPullFinished = std::move(callback); }
+
 private:
 	void updatePull();
 	void finishPull();
 	void applyCompletionDamage();
 	void clearPullData();
+	void notifyPullFinished();
 
 private:
 	Transform* m_transform = nullptr;
@@ -45,4 +53,6 @@ private:
 	PlayerAttackType m_attackType = PlayerAttackType::None;
 
 	bool m_isBeingPulled = false;
+
+	PullFinishedCallback m_onPullFinished;
 };

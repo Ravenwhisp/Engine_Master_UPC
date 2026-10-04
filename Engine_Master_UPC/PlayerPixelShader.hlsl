@@ -45,7 +45,7 @@ Texture2D emissiveTex : register(t4);
 TextureCube irradianceTexture : register(t8);
 TextureCube environmentTexture : register(t9);
 Texture2D brdfTexture : register(t10);
-Texture2D shadowMap : register(t11);
+#include "CascadeShadowMaps.hlsli"
 Texture2D ssaoTexture : register(t12);
 
 SamplerState linearWrapSample : register(s0);
@@ -182,77 +182,7 @@ float3 computeIndirectLighting(in float3 R, in float NdotV, in float3 N, in floa
 
 
 //----------SHADOW MAPPING----------//
-float EvaluateShadowSample(float2 shadowUV, float currentDepth)
-{
-    float closestDepth = shadowMap.Sample(linearClampSample, shadowUV).r;
 
-    return currentDepth - shadowBias > closestDepth
-        ? 1.0f - shadowStrength
-        : 1.0f;
-}
-
-float ComputeShadow(float3 worldPos)
-{
-    if (shadowsEnabled == 0)
-    {
-        return 1.0f;
-    }
-
-    float4 shadowPos = mul(float4(worldPos, 1.0f), lightViewProjection);
-
-    if (shadowPos.w == 0.0f)
-    {
-        return 1.0f;
-    }
-
-    shadowPos.xyz /= shadowPos.w;
-
-    float2 shadowUV;
-    shadowUV.x = shadowPos.x * 0.5f + 0.5f;
-    shadowUV.y = -shadowPos.y * 0.5f + 0.5f;
-
-    float currentDepth = shadowPos.z;
-
-    if (shadowUV.x < 0.0f || shadowUV.x > 1.0f ||
-        shadowUV.y < 0.0f || shadowUV.y > 1.0f ||
-        currentDepth < 0.0f || currentDepth > 1.0f)
-    {
-        return 1.0f;
-    }
-
-    if (pcfEnabled == 0 || pcfRadius == 0)
-    {
-        return EvaluateShadowSample(shadowUV, currentDepth);
-    }
-
-    float shadowSum = 0.0f;
-    float sampleCount = 0.0f;
-
-    int radius = int(pcfRadius);
-
-    for (int y = -radius; y <= radius; ++y)
-    {
-        for (int x = -radius; x <= radius; ++x)
-        {
-            float2 offset = float2(x, y) * shadowMapTexelSize;
-            float2 sampleUV = shadowUV + offset;
-
-            if (sampleUV.x < 0.0f || sampleUV.x > 1.0f ||
-                sampleUV.y < 0.0f || sampleUV.y > 1.0f)
-            {
-                shadowSum += 1.0f;
-            }
-            else
-            {
-                shadowSum += EvaluateShadowSample(sampleUV, currentDepth);
-            }
-
-            sampleCount += 1.0f;
-        }
-    }
-
-    return shadowSum / sampleCount;
-}
 //--------------------//
 
 
@@ -368,10 +298,13 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     float3 directionalMetallic = 0.0f;
     float3 directionalNonMetallic = 0.0f;
 
+    uint selectedCascadeIndex;
+    float shadow = ComputeShadow(worldPos, finalWorldNormal, selectedCascadeIndex);
     for (uint i = 0; i < directionalCount; ++i)
     {
-        directionalMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
-        directionalNonMetallic += ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
+        float visibility = i == shadowLightIndex ? shadow : 1.0f;
+        directionalMetallic += visibility * ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0Metallic, diffuseColorMetallic);
+        directionalNonMetallic += visibility * ComputeDirectionalLight(i, viewDirection, finalWorldNormal, NdotV, alphaRoughness, F0NonMetallic, diffuseColorNonMetallic);
     }
 
     
@@ -395,12 +328,11 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     
     
     //Apply shadow only to directional direct lighting
-    float shadow = ComputeShadow(worldPos);
 
     float3 directionalLighting = lerp(directionalNonMetallic, directionalMetallic, metallic);
     float3 otherLighting = lerp(otherNonMetallic, otherMetallic, metallic);
 
-    float3 directLighting = directionalLighting * shadow + otherLighting;
+    float3 directLighting = directionalLighting + otherLighting;
 
 
     
@@ -426,5 +358,7 @@ float4 main(float3 worldPos : POSITION, float3 normal : NORMAL, float3 tangent :
     float3 finalColor = LinearToSRGB(colorMapped);
 
     
+    if (cascadePadding.x > 0.5f && selectedCascadeIndex < MAX_SHADOW_CASCADES)
+        finalColor = lerp(finalColor, GetCascadeDebugColor(selectedCascadeIndex), 0.35f);
     return float4(finalColor, 1.0f);
 }

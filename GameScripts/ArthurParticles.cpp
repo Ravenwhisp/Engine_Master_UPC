@@ -18,7 +18,8 @@ IMPLEMENT_SCRIPT_FIELDS(ArthurParticles,
     SERIALIZED_FLOAT(m_chargingSlamExtraDelay, "Charging Slam Extra Delay", 0.0f, 10.0f, 0.05f),
     SERIALIZED_FLOAT(m_earthHammerGroundDustDelay, "Earth Hammer Ground Dust Delay", 0.0f, 10.0f, 0.05f),
     SERIALIZED_FLOAT(m_earthHammerShockwaveDelay, "Earth Hammer Shockwave Delay", 0.0f, 10.0f, 0.05f),
-    SERIALIZED_FLOAT(m_heavySwipeHitDelay, "Heavy Swipe Hit Delay", 0.0f, 10.0f, 0.05f)
+    SERIALIZED_FLOAT(m_heavySwipeHitDelay, "Heavy Swipe Hit Delay", 0.0f, 10.0f, 0.05f),
+    SERIALIZED_ASSET_REF(m_ambientColumnBurstPrefab, "Ambient Column Burst Prefab", AssetType::PREFAB)
 )
 
 ArthurParticles::ArthurParticles(GameObject* owner)
@@ -95,6 +96,9 @@ void ArthurParticles::processTimedEffects(float deltaTime)
         case TimedEffect::Type::DeactivateShockwave:
             deactivateEarthHammerShockwave();
             break;
+        case TimedEffect::Type::AmbientColumnBurst:
+            spawnAmbientColumnBurst(effect.position);
+            break;
         }
 
         m_timedEffects.erase(m_timedEffects.begin() + static_cast<std::ptrdiff_t>(i));
@@ -134,6 +138,22 @@ void ArthurParticles::spawnHeavySwipeHit(const Vector3& position)
     );
 }
 
+void ArthurParticles::spawnAmbientColumnBurst(const Vector3& position)
+{
+    if (!m_ambientColumnBurstPrefab.m_id.isValid())
+    {
+        return;
+    }
+
+    ParticleLifecycle::spawnOneShotTimed(
+        m_timedOneShots,
+        m_ambientColumnBurstPrefab.m_id,
+        position,
+        Vector3::Zero,
+        ParticleLifecycle::kDefaultOneShotLifetime
+    );
+}
+
 void ArthurParticles::activateEarthHammerShockwave()
 {
     if (m_ownerTransform == nullptr)
@@ -141,11 +161,27 @@ void ArthurParticles::activateEarthHammerShockwave()
         m_ownerTransform = GameObjectAPI::getTransform(getOwner());
     }
 
-    const Vector3 position = m_ownerTransform != nullptr ? TransformAPI::getGlobalPosition(m_ownerTransform) : Vector3::Zero;
-    const Vector3 rotation = m_ownerTransform != nullptr ? TransformAPI::getGlobalEulerDegrees(m_ownerTransform) : Vector3::Zero;
+    const Vector3 position = m_ownerTransform != nullptr
+        ? TransformAPI::getGlobalPosition(m_ownerTransform)
+        : Vector3::Zero;
 
-    ParticleLifecycle::ensurePersistent(m_earthHammerShockwaveInstance, m_earthHammerShockwavePrefab.m_id, position, rotation, getOwner());
-    ParticleLifecycle::syncToTransform(m_earthHammerShockwaveInstance, m_ownerTransform);
+    const Vector3 rotation = m_ownerTransform != nullptr
+        ? TransformAPI::getGlobalEulerDegrees(m_ownerTransform)
+        : Vector3::Zero;
+
+    ParticleLifecycle::ensurePersistent(
+        m_earthHammerShockwaveInstance,
+        m_earthHammerShockwavePrefab.m_id,
+        position,
+        rotation,
+        getOwner()
+    );
+
+    ParticleLifecycle::syncToTransform(
+        m_earthHammerShockwaveInstance,
+        m_ownerTransform
+    );
+
     ParticleLifecycle::activate(m_earthHammerShockwaveInstance);
     m_earthHammerShockwaveActive = m_earthHammerShockwaveInstance != nullptr;
 }
@@ -158,13 +194,32 @@ void ArthurParticles::deactivateEarthHammerShockwave()
 
 void ArthurParticles::playChargingSlamImpact(const Vector3& position)
 {
-    scheduleEffect(TimedEffect::Type::GroundDust, position, m_chargingSlamGroundDustDelay);
-    scheduleEffect(TimedEffect::Type::ChargingSlam, position, m_chargingSlamExtraDelay);
+    scheduleEffect(
+        TimedEffect::Type::GroundDust,
+        position,
+        m_chargingSlamGroundDustDelay
+    );
+
+    scheduleEffect(
+        TimedEffect::Type::AmbientColumnBurst,
+        position,
+        m_chargingSlamGroundDustDelay
+    );
+
+    scheduleEffect(
+        TimedEffect::Type::ChargingSlam,
+        position,
+        m_chargingSlamExtraDelay
+    );
 }
 
 void ArthurParticles::startEarthHammerShockwave()
 {
-    scheduleEffect(TimedEffect::Type::ActivateShockwave, Vector3::Zero, m_earthHammerShockwaveDelay);
+    scheduleEffect(
+        TimedEffect::Type::ActivateShockwave,
+        Vector3::Zero,
+        m_earthHammerShockwaveDelay
+    );
 }
 
 void ArthurParticles::stopEarthHammerShockwave()
@@ -174,10 +229,20 @@ void ArthurParticles::stopEarthHammerShockwave()
 
 void ArthurParticles::playEarthHammerImpact(const Vector3& position)
 {
-    scheduleEffect(TimedEffect::Type::GroundDust, position, m_earthHammerGroundDustDelay);
+    scheduleEffect(
+        TimedEffect::Type::GroundDust,
+        position,
+        m_earthHammerGroundDustDelay
+    );
 }
 
-bool ArthurParticles::isTargetInCone(Transform* targetTransform, const Vector3& center, const Vector3& forward, float range, float halfAngleDegrees) const
+bool ArthurParticles::isTargetInCone(
+    Transform* targetTransform,
+    const Vector3& center,
+    const Vector3& forward,
+    float range,
+    float halfAngleDegrees
+) const
 {
     if (targetTransform == nullptr)
     {
@@ -195,6 +260,7 @@ bool ArthurParticles::isTargetInCone(Transform* targetTransform, const Vector3& 
 
     Vector3 flatForward = forward;
     flatForward.y = 0.0f;
+
     if (flatForward.LengthSquared() <= 0.0001f)
     {
         return false;
@@ -203,31 +269,64 @@ bool ArthurParticles::isTargetInCone(Transform* targetTransform, const Vector3& 
     flatForward.Normalize();
     toTarget.Normalize();
 
-    const float dot = flatForward.x * toTarget.x + flatForward.z * toTarget.z;
-    const float angleRadians = std::acos(std::clamp(dot, -1.0f, 1.0f));
-    const float halfAngleRadians = halfAngleDegrees * (3.14159265f / 180.0f);
+    const float dot =
+        flatForward.x * toTarget.x +
+        flatForward.z * toTarget.z;
+
+    const float angleRadians =
+        std::acos(std::clamp(dot, -1.0f, 1.0f));
+
+    const float halfAngleRadians =
+        halfAngleDegrees * (3.14159265f / 180.0f);
 
     return angleRadians <= halfAngleRadians;
 }
 
-void ArthurParticles::playHeavySwipeHitsInCone(const Vector3& center, const Vector3& forward, float range, float halfAngleDegrees, int hitCount)
+void ArthurParticles::playHeavySwipeHitsInCone(
+    const Vector3& center,
+    const Vector3& forward,
+    float range,
+    float halfAngleDegrees,
+    int hitCount
+)
 {
     if (hitCount <= 0 || m_detectionAggro == nullptr)
     {
         return;
     }
 
-    Transform* lyrielTransform = m_detectionAggro->getLyrielTransform();
-    Transform* deathTransform = m_detectionAggro->getDeathTransform();
+    Transform* lyrielTransform =
+        m_detectionAggro->getLyrielTransform();
 
-    if (isTargetInCone(lyrielTransform, center, forward, range, halfAngleDegrees))
+    Transform* deathTransform =
+        m_detectionAggro->getDeathTransform();
+
+    if (isTargetInCone(
+        lyrielTransform,
+        center,
+        forward,
+        range,
+        halfAngleDegrees))
     {
-        scheduleEffect(TimedEffect::Type::HeavySwipeHit, TransformAPI::getGlobalPosition(lyrielTransform), m_heavySwipeHitDelay);
+        scheduleEffect(
+            TimedEffect::Type::HeavySwipeHit,
+            TransformAPI::getGlobalPosition(lyrielTransform),
+            m_heavySwipeHitDelay
+        );
     }
 
-    if (isTargetInCone(deathTransform, center, forward, range, halfAngleDegrees))
+    if (isTargetInCone(
+        deathTransform,
+        center,
+        forward,
+        range,
+        halfAngleDegrees))
     {
-        scheduleEffect(TimedEffect::Type::HeavySwipeHit, TransformAPI::getGlobalPosition(deathTransform), m_heavySwipeHitDelay);
+        scheduleEffect(
+            TimedEffect::Type::HeavySwipeHit,
+            TransformAPI::getGlobalPosition(deathTransform),
+            m_heavySwipeHitDelay
+        );
     }
 }
 

@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "ShadowSamplers.h"
 #include "DynamicTransparencyFalloffPass.h"
 
 #include "Application.h"
@@ -45,15 +46,16 @@ DynamicTransparencyFalloffPass::DynamicTransparencyFalloffPass(ComPtr<ID3D12Devi
 
 void DynamicTransparencyFalloffPass::createRootSignature()
 {
-    CD3DX12_ROOT_PARAMETER rootParams[15] = {};
+    CD3DX12_ROOT_PARAMETER rootParams[18] = {};
 
-    CD3DX12_DESCRIPTOR_RANGE materialRange, irradianceRange, environmentRange, brdfRange, shadowRange, maskRange, dissolveRange, samplerRange, integratedFogRange;
+    CD3DX12_DESCRIPTOR_RANGE materialRange, irradianceRange, environmentRange, brdfRange, shadowRange[MAX_SHADOW_CASCADES], maskRange, dissolveRange, samplerRange, integratedFogRange;
 
     materialRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, BasicMaterial::SLOT_COUNT, 0, 0);
     irradianceRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 8, 0);
     environmentRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 9, 0);
     brdfRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 10, 0);
-    shadowRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 11, 0);
+    for (uint32_t i = 0; i < MAX_SHADOW_CASCADES; ++i)
+        shadowRange[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 20 + i, 0);
     maskRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 12, 0);
     dissolveRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 13, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, ModuleDescriptors::SampleType::COUNT, 0);
@@ -69,15 +71,18 @@ void DynamicTransparencyFalloffPass::createRootSignature()
     rootParams[7].InitAsDescriptorTable(1, &irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[8].InitAsDescriptorTable(1, &environmentRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[9].InitAsDescriptorTable(1, &brdfRange, D3D12_SHADER_VISIBILITY_PIXEL);
-    rootParams[10].InitAsDescriptorTable(1, &shadowRange, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParams[10].InitAsDescriptorTable(1, &shadowRange[0], D3D12_SHADER_VISIBILITY_PIXEL);
+    for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
+        rootParams[15 + i - 1].InitAsDescriptorTable(1, &shadowRange[i], D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[11].InitAsDescriptorTable(1, &maskRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[12].InitAsDescriptorTable(1, &dissolveRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[13].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
     rootParams[14].InitAsDescriptorTable(1, &integratedFogRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
 
+    const auto shadowSamplers = makeShadowSamplers(D3D12_SHADER_VISIBILITY_PIXEL);
     CD3DX12_ROOT_SIGNATURE_DESC rsDesc;
-    rsDesc.Init(_countof(rootParams), rootParams, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rsDesc.Init(_countof(rootParams), rootParams, static_cast<UINT>(shadowSamplers.size()), shadowSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
@@ -155,12 +160,12 @@ void DynamicTransparencyFalloffPass::prepare(const RenderContext& ctx)
     if (m_hasShadowData)
     {
         m_shadowCBAddress = ctx.shadowData->shadowCBAddress;
-        m_cascadeShadowMapSRV = ctx.shadowData->cascadeShadowMapSRV;
+        m_cascadeShadowMapSRVs = ctx.shadowData->cascadeShadowMapSRVs;
     }
     else
     {
         m_shadowCBAddress = 0;
-        m_cascadeShadowMapSRV = {};
+        m_cascadeShadowMapSRVs = {};
     }
 
     m_integratedFogVolume = nullptr;
@@ -263,10 +268,12 @@ void DynamicTransparencyFalloffPass::apply(ID3D12GraphicsCommandList4* commandLi
     commandList->SetGraphicsRootConstantBufferView(1, m_sceneDataCBAddress);
     commandList->SetGraphicsRootConstantBufferView(2, m_lightsCBAddress);
 
-    if (m_hasShadowData && m_shadowCBAddress != 0 && m_cascadeShadowMapSRV.ptr != 0)
+    if (m_hasShadowData && m_shadowCBAddress != 0 && m_cascadeShadowMapSRVs[0].ptr != 0)
     {
         commandList->SetGraphicsRootConstantBufferView(3, m_shadowCBAddress);
-        commandList->SetGraphicsRootDescriptorTable(10, m_cascadeShadowMapSRV);
+        commandList->SetGraphicsRootDescriptorTable(10, m_cascadeShadowMapSRVs[0]);
+        for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
+            commandList->SetGraphicsRootDescriptorTable(15 + i - 1, m_cascadeShadowMapSRVs[i]);
     }
 
     commandList->SetGraphicsRootDescriptorTable(7, app->getModuleRender()->getSkyBoxPass()->getSkyBox()->getIrradiance()->getSRV().gpu);

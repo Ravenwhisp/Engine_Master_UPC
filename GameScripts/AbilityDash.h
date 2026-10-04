@@ -19,6 +19,9 @@ protected:
 	void startAbility() override;
 	bool canStartSpecificAbility() const override;
 
+    // The dash substitutes whatever action is playing.
+    bool canCancelOthers() const override { return true; }
+
     virtual bool canDash() const;
     virtual void onDashStarted();
     virtual void onDashUpdate(float dt) {}
@@ -45,4 +48,5 @@ protected:
 
     Vector3 m_dashTargetPosition = Vector3::Zero;
     Vector3 m_dashStartPosition = Vector3::Zero;
+    bool m_hasDashTarget = false;
 };

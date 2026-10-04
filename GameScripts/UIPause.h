@@ -17,6 +17,7 @@ public:
     void Update() override;
 
     void Resume();
+    void Restart();
     void ChangeScene(const std::string& sceneName);
     void ToggleControls(bool isOpen);
 

@@ -56,6 +56,7 @@ void ArcherArrowBarrageState::OnStateEnter()
     m_archerController->resetRepathTimer();
 
     m_archerController->updateCurrentTarget();
+    m_archerController->faceCurrentTarget();
 
     m_archerUI->setupArrowBarrageUI(m_archerController->m_attackConfig.get()->m_arrowBarrageRadius);
 
@@ -77,6 +78,15 @@ void ArcherArrowBarrageState::OnStateUpdate()
     if (m_archerController->trySendStunTrigger(m_animation))
     {
         return;
+    }
+
+    if (m_hasLockedImpactPosition)
+    {
+        m_archerController->facePosition(m_impactPosition);
+    }
+    else
+    {
+        m_archerController->faceCurrentTarget();
     }
 
     m_stateTimer += Time::getDeltaTime();

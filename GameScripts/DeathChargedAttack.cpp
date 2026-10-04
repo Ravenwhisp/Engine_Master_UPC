@@ -101,6 +101,40 @@ bool DeathChargedAttack::canStartSpecificAbility() const
     return m_deathCharacter != nullptr;
 }
 
+void DeathChargedAttack::cancelAbility()
+{
+    if (m_isCharging)
+    {
+        m_isCharging = false;
+        m_chargeTime = 0.0f;
+        m_maxHoldTimer = 0.0f;
+
+        resetChargingMovementSlowdown();
+
+        if (m_deathUI)
+        {
+            m_deathUI->hideChargedAttackUI();
+        }
+
+        DeathSound* sound = m_deathCharacter != nullptr ? m_deathCharacter->getSound() : nullptr;
+        if (sound != nullptr)
+        {
+            sound->stopChargeLoop();
+        }
+    }
+
+    if (m_character != nullptr)
+    {
+        PlayerAnimationController* anim = m_character->getAnimationController();
+        if (anim != nullptr)
+        {
+            anim->abortChargeHold();
+        }
+    }
+
+    AbilityBase::cancelAbility();
+}
+
 void DeathChargedAttack::startCharging()
 {
     m_chargeTime   = 0.0f;
@@ -344,7 +378,17 @@ void DeathChargedAttack::updateUI()
     AbilityBase::updateUI();
 
     if (m_deathUI)
+    {
         m_deathUI->updateChargedSlashUI(m_attackStateTimer, m_deathCharacter->getConfig()->m_chargedAttackLockDuration);
+
+        if (m_deathUI->m_chargedHUDControlTransform2D)
+        {
+            const float dt = Time::getDeltaTime();
+            const bool isPressed = Input::isRightTriggerPressed(getPlayerIndex());
+
+            updateHUDControlScale(m_deathUI->m_chargedHUDControlTransform2D, isPressed, dt);
+        }
+    }
 }
 
 IMPLEMENT_SCRIPT(DeathChargedAttack)

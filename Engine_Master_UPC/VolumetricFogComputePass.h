@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IRenderPass.h"
+#include "ShadowTypes.h"
 #include "VolumetricFogTypes.h"
 
 #include <d3d12.h>
@@ -70,7 +71,7 @@ private:
     D3D12_RESOURCE_STATES m_integratedVolumeState = D3D12_RESOURCE_STATE_COMMON;
 
     D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
-    D3D12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowMapSRV{};
+    std::array<D3D12_GPU_DESCRIPTOR_HANDLE, MAX_SHADOW_CASCADES> m_cascadeShadowMapSRVs{};
 
     float m_animationTime = 0.0f;
     uint32_t m_lastAnimationFrame = 0xFFFFFFFFu;

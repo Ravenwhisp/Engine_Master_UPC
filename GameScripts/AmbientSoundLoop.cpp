@@ -31,7 +31,38 @@ void AmbientSoundLoop::Start()
 
     if (m_playOnStart && !m_playEvent.empty())
     {
-        m_playingID = AudioAPI::postEvent(m_source, k_bank, m_playEvent.c_str());
+        tryPlay();
+    }
+}
+
+void AmbientSoundLoop::Update()
+{
+    // The bank may still be loading when Start runs, in which case Wwise silently drops
+    // the event. Keep retrying for a few seconds instead of staying quiet forever.
+    if (m_playingID != 0 || m_retriesLeft <= 0) return;
+    if (m_source == nullptr || !m_playOnStart || m_playEvent.empty()) return;
+
+    m_retryTimer -= Time::getDeltaTime();
+    if (m_retryTimer > 0.0f) return;
+
+    tryPlay();
+}
+
+void AmbientSoundLoop::tryPlay()
+{
+    m_playingID  = AudioAPI::postEvent(m_source, k_bank, m_playEvent.c_str());
+    m_retryTimer = 0.5f;
+    --m_retriesLeft;
+
+    if (m_playingID != 0)
+    {
+        Debug::log("[AmbientSoundLoop] '%s' posted on '%s' (playingID=%u)",
+                   m_playEvent.c_str(), GameObjectAPI::getName(getOwner()), m_playingID);
+    }
+    else if (m_retriesLeft <= 0)
+    {
+        Debug::warn("[AmbientSoundLoop] '%s' on '%s' never posted. Bank '%s' loaded?",
+                    m_playEvent.c_str(), GameObjectAPI::getName(getOwner()), k_bank);
     }
 }
 

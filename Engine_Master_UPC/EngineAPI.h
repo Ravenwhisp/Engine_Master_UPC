@@ -453,6 +453,7 @@ namespace TrailAPI
 
     ENGINE_API bool isTrailGenerating(TrailComponent* trailComponent);
     ENGINE_API void generateTrail(TrailComponent* trailComponent, bool value);
+    ENGINE_API void clearTrail(TrailComponent* trailComponent);
 
 }
 
