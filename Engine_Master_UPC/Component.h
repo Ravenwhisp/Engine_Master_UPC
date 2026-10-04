@@ -24,8 +24,15 @@ public:
     void setUID(UID id) { m_uuid = id; }
     ComponentType getType() const { return m_type; }
     GameObject* getOwner() const { return m_owner; }
-	void setActive(bool active) { m_active = active; }
-	bool isActive() const { return m_active; }
+    void setActive(bool active)
+    {
+        if (m_active == active) return;
+
+        m_active = active;
+        onActiveChange();
+    }
+
+    bool isActive() const { return m_active; }
 
     #pragma region Loop functions
     virtual bool init() { return true; }
@@ -38,6 +45,10 @@ public:
     void debugDraw() override {}
 
     virtual void onTransformChange() {};
+    virtual void onTransformDirty() {}
+    virtual void onActiveChange() {}
+    virtual void onHierarchyActiveChange() {}
+
     Transform* getTransform();
 
     virtual void fixReferences(const SceneReferenceResolver& resolver) {};

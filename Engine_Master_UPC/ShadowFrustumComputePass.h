@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <d3d12.h>
 #include <vector>
+#include <array>
+
 #include <wrl/client.h>
 
 using Microsoft::WRL::ComPtr;
@@ -21,32 +23,32 @@ public:
     struct FrustumConstants
     {
         Matrix inverseView = Matrix::Identity;
+        Matrix view = Matrix::Identity;
         Matrix projection = Matrix::Identity;
 
         Vector3 lightDirection = Vector3::Zero;
         float sunDistance = 20.0f;
 
-        float minOrthoSize = 10.0f;
-        Vector3 padding = Vector3::Zero;
-
         float shadowBias = 0.0005f;
         float shadowStrength = 1.0f;
-        uint32_t shadowsEnabled = 0;
         uint32_t pcfEnabled = 0;
-
         uint32_t pcfRadius = 0;
-        float shadowMapTexelSizeX = 0.0f;
-        float shadowMapTexelSizeY = 0.0f;
-        float paddingSettings = 0.0f;
 
+        float shadowMapTexelSize = 0.0f;
         uint32_t cascadeCount = 1;
         uint32_t cascadeFitMode = static_cast<uint32_t>(ShadowCascadeFitMode::FIT_TO_CASCADE);
+        uint32_t shadowLightIndex = 0;
+
         float cascadeSplit0 = 0.10f;
         float cascadeSplit1 = 0.30f;
-
         float cascadeSplit2 = 0.60f;
         uint32_t cascadeDebugEnabled = 0;
-        Vector2 cascadePadding = Vector2::Zero;
+
+        uint32_t cascadeUpdateMask = 0xFu;
+        uint32_t cascadeUpdatePadding0 = 0;
+        uint32_t cascadeUpdatePadding1 = 0;
+        uint32_t cascadeUpdatePadding2 = 0;
+
     };
 
 private:
@@ -67,6 +69,8 @@ public:
 
     void debugDraw() override;
 
+    uint32_t getCascadeUpdateMask() const { return m_cascadeUpdateMask; }
+
     D3D12_GPU_VIRTUAL_ADDRESS getShadowDataBufferAddress() const;
 
     bool isEnabled() const
@@ -82,6 +86,7 @@ public:
 private:
     static constexpr float SHADOW_MIN_ORTHO_SIZE = 10.0f;
     static constexpr float SHADOW_LIGHT_DISTANCE_PADDING = 20.0f;
+    static constexpr uint32_t SHADOW_VIEW_COUNT = 2;
 
 private:
     void createRootSignature();
@@ -104,11 +109,11 @@ private:
     ComPtr<ID3D12RootSignature> m_rootSignature;
     ComPtr<ID3D12PipelineState> m_pipelineState;
 
-    ComPtr<ID3D12Resource> m_shadowDataBuffer;
-
-    D3D12_RESOURCE_STATES m_outputBufferState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    std::array<ComPtr<ID3D12Resource>, SHADOW_VIEW_COUNT> m_shadowDataBuffers;
+    std::array<D3D12_RESOURCE_STATES, SHADOW_VIEW_COUNT> m_outputBufferStates{};
 
     FrustumConstants m_constants{};
+    D3D12_GPU_VIRTUAL_ADDRESS m_constantsAddress = 0;
 
     bool m_enabled = false;
     bool m_hasValidResult = false;
@@ -129,4 +134,21 @@ private:
     uint32_t m_observedDebugFrameIndex = 0;
     uint64_t m_observedDebugFrameFenceValue = 0;
     bool m_hasObservedDebugFrame = false;
+
+    struct CascadeUpdateHistory
+    {
+        bool valid = false;
+        uint32_t shadowMapSize = 0;
+        uint32_t cascadeCount = 0;
+        uint32_t cascadeFitMode = UINT32_MAX;
+        float cascadeSplit0 = -1.0f;
+        float cascadeSplit1 = -1.0f;
+        float cascadeSplit2 = -1.0f;
+    };
+
+    std::array<CascadeUpdateHistory, SHADOW_VIEW_COUNT> m_cascadeUpdateHistory{};
+    uint32_t m_cascadeUpdateMask = 0xFu;
+    uint32_t m_currentShadowView = 0;
+
+
 };

@@ -31,6 +31,7 @@ public:
 	IDXGIAdapter4*					getAdapter() const { return m_adapter.Get(); }
 
 	uint64_t						getCurrentFrame() const { return m_fenceValues[m_frameIndex]; }
+	uint64_t						getFrameNumber() const { return m_frameNumber; }
 	uint32_t						getCurrentFrameIndex() const { return static_cast<uint32_t>(m_frameIndex); }
 	uint64_t						getLastCompletedFrame() const { return m_lastCompletedFenceValue; }
 
@@ -54,6 +55,7 @@ private:
 
 	//Synchronization values
 	uint64_t m_frameIndex = 0;
+	uint64_t m_frameNumber = 0;
 	uint64_t m_fenceValues[FRAMES_IN_FLIGHT] = {};
 	uint64_t m_lastCompletedFenceValue = 0;
 
