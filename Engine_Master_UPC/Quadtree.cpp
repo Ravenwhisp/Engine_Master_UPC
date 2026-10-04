@@ -142,6 +142,12 @@ void Quadtree::clear()
 
     isBuilded = false;
     m_warnedNoRoot = false;
+    m_warnedForeignObject = false;
+}
+
+bool Quadtree::ownsObject(const GameObject* object) const
+{
+    return object && m_scene && m_scene->containsGameObject(object);
 }
 
 bool Quadtree::insert(GameObject& object)
