@@ -82,6 +82,7 @@ public:
     void unregisterShadowCaster();
 
     void serialize(IArchive& archive) override;
+    void fixReferences(const SceneReferenceResolver& resolver) override;
 
     int getTriangles() const { return m_triangles; }
 
