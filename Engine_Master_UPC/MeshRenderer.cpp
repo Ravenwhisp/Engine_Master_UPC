@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "MeshRenderer.h"
 #include "JsonArchive.h"
+#include "MeshRenderFlags.h"
 
 #include "Transform.h"
 #include "GameObject.h"
@@ -18,7 +19,13 @@
 #include "MaterialAsset.h"
 #include "SceneReferenceResolver.h"
 
-MeshRenderer::~MeshRenderer() = default;
+static_assert(static_cast<uint32_t>(RenderMode::COUNT) < MeshRenderFlags::OutlineDisabled);
+
+MeshRenderer::~MeshRenderer()
+{
+    // Imported prefabs and cached assets can be destroyed without cleanUp().
+    unregisterShadowCaster();
+}
 
 bool MeshRenderer::init()
 {
@@ -520,13 +527,20 @@ void MeshRenderer::serialize(IArchive& archive)
 
         UINT renderMode = static_cast<UINT>(m_renderMode);
         archive.serialize(renderMode, "Render Mode");
-        m_renderMode = static_cast<RenderMode>(renderMode);
-
-        //archive.serialize(m_drawOutline, "Draw Outline");
+        JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
+        if (jsonArchive)
+        {
+            m_renderMode = static_cast<RenderMode>(renderMode);
+            m_drawOutline = true; // Older JSON assets have no outline field.
+            archive.serialize(m_drawOutline, "Draw Outline");
+        }
+        else
+        {
+            m_renderMode = static_cast<RenderMode>(MeshRenderFlags::mode(renderMode));
+            m_drawOutline = MeshRenderFlags::drawOutline(renderMode);
+        }
 
         archive.serialize(m_castShadows, "Cast Shadows");
-
-        JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
 
         if (!jsonArchive || jsonArchive->hasKey("BoundingBox"))
         {
@@ -596,7 +610,16 @@ void MeshRenderer::serialize(IArchive& archive)
         archive.endArray();
 
         UINT renderMode = static_cast<UINT>(m_renderMode);
+        const bool isJson = dynamic_cast<JsonArchive*>(&archive) != nullptr;
+        if (!isJson)
+        {
+            renderMode = MeshRenderFlags::encode(renderMode, m_drawOutline);
+        }
         archive.serialize(renderMode, "Render Mode");
+        if (isJson)
+        {
+            archive.serialize(m_drawOutline, "Draw Outline");
+        }
 
         archive.serialize(m_castShadows, "Cast Shadows");
 

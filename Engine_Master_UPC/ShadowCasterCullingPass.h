@@ -165,7 +165,7 @@ public:
 
     // Lifecycle
     ShadowCasterCullingPass(ComPtr<ID3D12Device4> device, ShadowFrustumComputePass* shadowFrustumComputePass);
-    ~ShadowCasterCullingPass() override = default;
+    ~ShadowCasterCullingPass() override;
 
     // Render pass
     void prepare(const RenderContext& ctx) override;

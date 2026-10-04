@@ -83,6 +83,7 @@ public:
 	void  setEnvironmentBrdfTexture(std::shared_ptr<Texture> texture);
 
 	void deferResourceRelease(ComPtr<ID3D12Resource> resource);
+	void collectCompletedResources();
 	void deferResourceRelease(ComPtr<ID3D12Resource> resource, uint64_t fenceValue);
 
 	void uploadTextureAndTransition(ID3D12Resource* dstTexture, const std::vector<D3D12_SUBRESOURCE_DATA>& subData);

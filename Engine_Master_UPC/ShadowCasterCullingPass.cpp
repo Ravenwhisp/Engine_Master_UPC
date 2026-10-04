@@ -59,6 +59,11 @@ ShadowCasterCullingPass::ShadowCasterCullingPass(ComPtr<ID3D12Device4> device, S
     createCounterResources();
 }
 
+ShadowCasterCullingPass::~ShadowCasterCullingPass()
+{
+    resetRegistry();
+}
+
 void ShadowCasterCullingPass::prepare(const RenderContext& ctx)
 {
     ModuleD3D12* d3d12 = app->getModuleD3D12();
@@ -299,6 +304,16 @@ void ShadowCasterCullingPass::ensureRegistryBootstrap()
 
 void ShadowCasterCullingPass::resetRegistry()
 {
+    // Renderers in cached assets can outlive this pass. Detach their handles
+    // before dropping the registry, including when switching scenes.
+    for (const auto& [renderer, handle] : m_rendererHandles)
+    {
+        if (renderer != nullptr && renderer->getShadowCasterHandle() == handle)
+        {
+            renderer->clearShadowCasterHandle();
+        }
+    }
+
     m_registryEntries.clear();
     m_candidateSlots.clear();
     m_rendererHandles.clear();
