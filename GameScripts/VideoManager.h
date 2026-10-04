@@ -25,6 +25,7 @@ public:
     std::string m_sceneToLoad;
 
 private:
+    GameObject* m_skipContainerOwner;
     ComponentVideo* m_videoComponent = nullptr;
     UISlider* m_skipSliderComponent = nullptr;
     Transform2D* m_loadingImageTransform = nullptr;
