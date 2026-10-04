@@ -1,3 +1,5 @@
+#include "ShadowCascadeResolution.h"
+
 Texture2D<float2> inputMinMax : register(t0);
 
 #define MAX_SHADOW_CASCADES 4
@@ -80,6 +82,36 @@ float LinearizeDepth(float depth)
     }
 
     return -cameraProjection._43 / denominator;
+}
+
+void GetVisibleShadowDepthRange(out float nearDistance, out float farDistance)
+{
+    float2 minMaxDepth = inputMinMax.Load(int3(0, 0, 0));
+
+    nearDistance = max(-LinearizeDepth(minMaxDepth.x), 0.0001f);
+    farDistance = max(-LinearizeDepth(minMaxDepth.y), nearDistance + 0.0001f);
+}
+
+// Camera-space depth limit for shadow receivers.
+// Initial quality setting for this level, in world units.
+static const float SHADOW_RECEIVER_MAX_DEPTH = 50.0f;
+
+void GetShadowReceiverDepthRange(out float nearDistance, out float farDistance)
+{
+    float visibleNear;
+    float visibleFar;
+
+    GetVisibleShadowDepthRange(visibleNear, visibleFar);
+
+    float cameraNear = max(-LinearizeDepth(0.0f), 0.0001f);
+
+    // Keep a valid interval even when all visible geometry
+    // lies beyond the configured shadow distance.
+    float receiverLimit = max(SHADOW_RECEIVER_MAX_DEPTH, cameraNear + 0.01f);
+
+    nearDistance = clamp(visibleNear, cameraNear, receiverLimit - 0.01f);
+
+    farDistance = clamp(visibleFar, nearDistance + 0.01f, receiverLimit);
 }
 
 void BuildFrustumCorners(float nearDistance, float farDistance, out float3 corners[8])
@@ -179,18 +211,16 @@ float4x4 BuildIdentityMatrix()
     );
 }
 
-float4x4 BuildLightViewProjection(float nearDistance, float farDistance)
+float4x4 BuildLightViewProjection(float nearDistance, float farDistance, uint cascadeIndex)
 {
     float3 cascadeCorners[8];
     BuildFrustumCorners(nearDistance, farDistance, cascadeCorners);
 
     float4 cascadeSphere = ComputeBoundingSphere(cascadeCorners);
 
-    float2 minMaxDepth = inputMinMax.Load(int3(0, 0, 0));
-
-    float fullNearDistance = -LinearizeDepth(minMaxDepth.x);
-    float fullFarDistance = -LinearizeDepth(minMaxDepth.y);
-    fullFarDistance = max(fullFarDistance, fullNearDistance + 0.0001f);
+    float fullNearDistance;
+    float fullFarDistance;
+    GetVisibleShadowDepthRange(fullNearDistance, fullFarDistance);
 
     float3 fullCorners[8];
     BuildFrustumCorners(fullNearDistance, fullFarDistance, fullCorners);
@@ -205,29 +235,46 @@ float4x4 BuildLightViewProjection(float nearDistance, float farDistance)
         up = float3(0.0f, 0.0f, 1.0f);
     }
 
-    float centerOffsetAlongLight =
-        dot(cascadeSphere.xyz - fullSphere.xyz, direction);
+    float centerOffsetAlongLight = dot(cascadeSphere.xyz - fullSphere.xyz, direction);
 
-    float eyeDistance =
-        centerOffsetAlongLight + fullSphere.w + sunDistance;
+    float eyeDistance = centerOffsetAlongLight + fullSphere.w + sunDistance;
 
     float3 eye = cascadeSphere.xyz - direction * eyeDistance;
 
-    float4x4 lightView = BuildLookAtRH(
-        eye,
-        eye + direction,
-        up);
+    float4x4 lightView = BuildLookAtRH(eye, eye + direction, up);
+
+    uint baseResolution = (uint) round(1.0f / shadowMapTexelSize);
+    uint resolution = max(1u, baseResolution / (uint) SHADOW_CASCADE_DIVISOR(cascadeIndex));
 
     float orthoSize = cascadeSphere.w * 2.0f;
+
+    if (resolution > 1u)
+    {
+        orthoSize *= float(resolution) / float(resolution - 1u);
+    }
+
     float depthRange = fullSphere.w * 2.0f + sunDistance;
 
-    float4x4 lightProjection = BuildOrthographicRH(
-        orthoSize,
-        orthoSize,
-        0.0f,
-        depthRange);
+    float4x4 lightProjection = BuildOrthographicRH(orthoSize, orthoSize, 0.0f, depthRange);
 
-    return mul(lightView, lightProjection);
+    float4x4 lightViewProjection =
+        mul(lightView, lightProjection);
+
+    if (resolution > 1u)
+    {
+        float4 projectedOrigin = mul(float4(0.0f, 0.0f, 0.0f, 1.0f), lightViewProjection);
+
+        float2 originInTexels = (projectedOrigin.xy / projectedOrigin.w) * (0.5f * float(resolution));
+
+        float2 snappedOrigin = round(originInTexels);
+
+        float2 offsetNDC = (snappedOrigin - originInTexels) * (2.0f / float(resolution));
+
+        lightViewProjection._41 += offsetNDC.x;
+        lightViewProjection._42 += offsetNDC.y;
+    }
+
+    return lightViewProjection;
 }
 
 ShadowDataOutput BuildShadowOutput(float4x4 lightViewProjection, uint enabled)
@@ -281,23 +328,22 @@ ShadowDataOutput BuildShadowOutput(float4x4 lightViewProjection, uint enabled)
 [numthreads(1, 1, 1)]
 void main()
 {
-    ShadowDataOutput previousOutput = outputShadowData[0];
-    
     float2 minMaxDepth = inputMinMax.Load(int3(0, 0, 0));
 
     if (minMaxDepth.x > minMaxDepth.y)
     {
-        float4x4 identityMatrix = BuildIdentityMatrix();
-        outputShadowData[0] = BuildShadowOutput(identityMatrix, 0u);
+        outputShadowData[0] = BuildShadowOutput(BuildIdentityMatrix(), 0u);
         return;
     }
 
-    float nearDistance = -LinearizeDepth(minMaxDepth.x);
-    float farDistance = -LinearizeDepth(minMaxDepth.y);
+    ShadowDataOutput previousOutput = outputShadowData[0];
 
-    farDistance = max(farDistance, nearDistance + 0.0001f);
+    float nearDistance;
+    float farDistance;
 
-    float4x4 fullLightViewProjection = BuildLightViewProjection(nearDistance, farDistance);
+    GetShadowReceiverDepthRange(nearDistance, farDistance);
+
+    float4x4 fullLightViewProjection = BuildLightViewProjection(nearDistance, farDistance, 0u);
 
     ShadowDataOutput output = BuildShadowOutput(fullLightViewProjection, 1u);
     
@@ -316,7 +362,7 @@ void main()
     cascade0FarDistance = max(cascade0FarDistance, cascade0NearDistance + 0.0001f);
 
     output.cascadeFarDistances.x = cascade0FarDistance;
-    output.cascadeLightViewProjection[0] = BuildLightViewProjection(cascade0NearDistance, cascade0FarDistance);
+    output.cascadeLightViewProjection[0] = BuildLightViewProjection(cascade0NearDistance, cascade0FarDistance, 0u);
 
     // Cascade 1
     if (activeCascadeCount > 1)
@@ -328,7 +374,7 @@ void main()
         cascade1FarDistance = max(cascade1FarDistance, cascade1NearDistance + 0.0001f);
 
         output.cascadeFarDistances.y = cascade1FarDistance;
-        output.cascadeLightViewProjection[1] = BuildLightViewProjection(cascade1NearDistance, cascade1FarDistance);
+        output.cascadeLightViewProjection[1] = BuildLightViewProjection(cascade1NearDistance, cascade1FarDistance, 1u);
 
         // Cascade 2
         if (activeCascadeCount > 2)
@@ -340,7 +386,7 @@ void main()
             cascade2FarDistance = max(cascade2FarDistance, cascade2NearDistance + 0.0001f);
 
             output.cascadeFarDistances.z = cascade2FarDistance;
-            output.cascadeLightViewProjection[2] = BuildLightViewProjection(cascade2NearDistance, cascade2FarDistance);
+            output.cascadeLightViewProjection[2] = BuildLightViewProjection(cascade2NearDistance, cascade2FarDistance, 2u);
 
             // Cascade 3
             if (activeCascadeCount > 3)
@@ -351,7 +397,7 @@ void main()
                 cascade3FarDistance = max(cascade3FarDistance, cascade3NearDistance + 0.0001f);
 
                 output.cascadeFarDistances.w = cascade3FarDistance;
-                output.cascadeLightViewProjection[3] = BuildLightViewProjection(cascade3NearDistance, cascade3FarDistance);
+                output.cascadeLightViewProjection[3] = BuildLightViewProjection(cascade3NearDistance, cascade3FarDistance, 3u);
             }
         }
     }
@@ -380,7 +426,35 @@ void main()
         output.cascadeLightViewProjection[3] = previousOutput.cascadeLightViewProjection[3];
     }
 
+    // Diagnostic metadata derived from the final orthographic matrices.
+    output.cascadeWorldTexelSize = float4(0, 0, 0, 0);
+    output.cascadeDepthRanges = float4(0, 0, 0, 0);
+
+    uint baseResolution =
+    (uint) round(1.0f / shadowMapTexelSize);
+
+    for (uint i = 0u; i < output.cascadeCount; ++i)
+    {
+        float4x4 vp = output.cascadeLightViewProjection[i];
+
+    // Row-vector convention: these columns describe the
+    // world-space gradients of projected X and Z.
+        float scaleX = length(float3(vp._11, vp._21, vp._31));
+        float scaleZ = length(float3(vp._13, vp._23, vp._33));
+
+        float widthWorld = 2.0f / max(scaleX, 0.00000001f);
+        float depthRangeWorld = 1.0f / max(scaleZ, 0.00000001f);
+
+        uint resolution = max(
+        1u,
+        baseResolution / (uint) SHADOW_CASCADE_DIVISOR(i));
+
+        output.cascadeWorldTexelSize[i] =
+        widthWorld / float(resolution);
+
+        output.cascadeDepthRanges[i] = depthRangeWorld;
+    }
+
     outputShadowData[0] = output;
     
-    outputShadowData[0] = output;
 }

@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <cstdio>
 
 namespace
 {
@@ -345,6 +346,76 @@ void ShadowFrustumComputePass::refreshDebugReadbackForCurrentFrame()
         m_hasDebugShadowData = false;
     }
 
+    if (metadata.valid && m_debugShadowData.shadowsEnabled != 0)
+    {
+        const auto& data = m_debugShadowData;
+
+        const uint32_t count =
+            std::clamp(data.cascadeCount, 1u, MAX_SHADOW_CASCADES);
+
+        const float farDistances[4] = {
+            data.cascadeFarDistances.x,
+            data.cascadeFarDistances.y,
+            data.cascadeFarDistances.z,
+            data.cascadeFarDistances.w
+        };
+
+        const float worldTexels[4] = {
+            data.cascadeWorldTexelSize.x,
+            data.cascadeWorldTexelSize.y,
+            data.cascadeWorldTexelSize.z,
+            data.cascadeWorldTexelSize.w
+        };
+
+        const float depthRanges[4] = {
+            data.cascadeDepthRanges.x,
+            data.cascadeDepthRanges.y,
+            data.cascadeDepthRanges.z,
+            data.cascadeDepthRanges.w
+        };
+
+        const uint32_t baseResolution = std::max(
+            1u,
+            static_cast<uint32_t>(
+                std::lround(1.0f / data.shadowMapTexelSize.x)));
+
+        char message[512];
+
+        std::snprintf(
+            message, sizeof(message),
+            "[ShadowDiag] count=%u near=%.5f far=%.5f "
+            "bias=%.6f pcf=%u radius=%u\n",
+            count,
+            data.cascadePadding.y,
+            farDistances[count - 1],
+            data.shadowBias,
+            data.pcfEnabled,
+            data.pcfRadius);
+
+        OutputDebugStringA(message);
+
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            // Current allocation scheme: N, N/2, N/4, N/8.
+            const uint32_t resolution =
+                std::max(1u, baseResolution / (1u << i));
+
+            std::snprintf(
+                message, sizeof(message),
+                "[ShadowDiag] C%u res=%u width=%.5f "
+                "worldTexel=%.7f depthRange=%.5f "
+                "biasWorld=%.7f\n",
+                i,
+                resolution,
+                worldTexels[i] * float(resolution),
+                worldTexels[i],
+                depthRanges[i],
+                data.shadowBias * depthRanges[i]);
+
+            OutputDebugStringA(message);
+        }
+    }
+
     m_debugReadbackPending[frameIndex] = false;
     m_debugCaptureMetadata[frameIndex] = {};
 }
@@ -374,12 +445,7 @@ void ShadowFrustumComputePass::recordDebugReadback(ID3D12GraphicsCommandList4* c
 
     transitionOutputBuffer(commandList, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-    commandList->CopyBufferRegion(
-        m_debugReadbackBuffers[frameIndex].Get(),
-        0,
-        m_shadowDataBuffers[m_currentShadowView].Get(),
-        0,
-        sizeof(ShadowDataCB));
+    commandList->CopyBufferRegion(m_debugReadbackBuffers[frameIndex].Get(), 0, m_shadowDataBuffers[m_currentShadowView].Get(), 0, sizeof(ShadowDataCB));
 
     m_debugReadbackPending[frameIndex] = true;
 }
@@ -482,7 +548,10 @@ void ShadowFrustumComputePass::prepare(const RenderContext& ctx)
 
     m_drawDebugForCurrentView = ctx.renderDebug && ctx.viewType == RenderViewType::Editor && shadowSettings.cascadeDebugEnabled;
 
-    m_captureDebugReadback = ctx.viewType == RenderViewType::Game && shadowSettings.cascadeDebugEnabled;
+    //m_captureDebugReadback = ctx.viewType == RenderViewType::Game && shadowSettings.cascadeDebugEnabled;
+
+    // Temporary diagnostics: capture Game shadow data without requiring tint.
+    m_captureDebugReadback = ctx.viewType == RenderViewType::Game;
 
     if (m_captureDebugReadback)
     {

@@ -166,6 +166,13 @@ void ShadowMapPass::createPipelineState()
     psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
     psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
 
+    // Offset shadow-map depth according to the triangle's
+    // depth slope in shadow-map coordinates.
+    psoDesc.RasterizerState.DepthBias = 0;
+    psoDesc.RasterizerState.SlopeScaledDepthBias = 2.0f;
+    psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
+    psoDesc.RasterizerState.FrontCounterClockwise = TRUE;
+
     psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
     psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
