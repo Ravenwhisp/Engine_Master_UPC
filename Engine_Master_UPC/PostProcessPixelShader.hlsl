@@ -99,6 +99,11 @@ float3 applyOutline(float3 color, float2 uv)
     
     if (sceneDepth < outlineDepth) return color;
     
+    if (outlineDepth > 0.995) return color;
+    
+    float interpolation = 0;
+    if (outlineDepth > 0.99) interpolation = (outlineDepth - 0.99) / (0.995 - 0.99);;
+    
     float2 texSize;
     sceneTexture.GetDimensions(texSize.x, texSize.y);
     float2 texel = 1.0 / texSize;
@@ -133,7 +138,11 @@ float3 applyOutline(float3 color, float2 uv)
     edge *= breakup;
 
     float3 ink = float3(outlineColorR, outlineColorG, outlineColorB);
-    return lerp(color, ink, saturate(edge * outlineIntensity));
+    float3 finalColor = lerp(color, ink, saturate(edge * outlineIntensity));
+    
+    if (interpolation > 0) finalColor = lerp(finalColor, color, interpolation);
+
+    return finalColor;
 }
 
 float3 sampleScene(float2 uv)
