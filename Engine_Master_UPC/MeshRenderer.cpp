@@ -50,7 +50,7 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     }
 
     newMeshRenderer->m_renderMode = m_renderMode;
-    newMeshRenderer->m_drawOutline = m_drawOutline;
+    //newMeshRenderer->m_drawOutline = m_drawOutline;
     newMeshRenderer->m_castShadows = m_castShadows;
 
     newMeshRenderer->m_boundingBox.setBounds(
@@ -522,7 +522,7 @@ void MeshRenderer::serialize(IArchive& archive)
         archive.serialize(renderMode, "Render Mode");
         m_renderMode = static_cast<RenderMode>(renderMode);
 
-        archive.serialize(m_drawOutline, "Draw Outline");
+        //archive.serialize(m_drawOutline, "Draw Outline");
 
         archive.serialize(m_castShadows, "Cast Shadows");
 
