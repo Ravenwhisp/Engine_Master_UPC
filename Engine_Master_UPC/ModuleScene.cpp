@@ -28,7 +28,6 @@
 #include "MD5.h"
 
 #include <chrono>
-#include <thread>
 #include <future>
 #include <unordered_set>
 
@@ -852,9 +851,9 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
 
     rebuildComponentCaches();
 
-    for (const auto& ref : m_scene->getLoadedBankRefs())
+    if (!app->getModuleMusic()->applySceneBanks(m_scene->getLoadedBankRefs()))
     {
-        app->getModuleMusic()->loadBank(ref);
+        DEBUG_ERROR("[ModuleScene] Scene '%s' activated with incomplete audio banks.", sceneName);
     }
 
     m_scene->resolveLoadedBankNames();
@@ -923,8 +922,6 @@ bool ModuleScene::applyLoadedScene(const std::string& sceneName, std::shared_ptr
     clearRuntimeSceneSystems();
     clearComponentCaches();
 
-    std::shared_ptr<Scene> oldScene = m_scene;
-
     m_scene = loadedScene;
 
     m_scene->initLoadedObjects();
@@ -956,22 +953,14 @@ bool ModuleScene::applyLoadedScene(const std::string& sceneName, std::shared_ptr
 
     rebuildComponentCaches();
 
-    for (const auto& ref : m_scene->getLoadedBankRefs())
+    if (!app->getModuleMusic()->applySceneBanks(m_scene->getLoadedBankRefs()))
     {
-        app->getModuleMusic()->loadBank(ref);
+        DEBUG_ERROR("[ModuleScene] Scene '%s' activated with incomplete audio banks.", sceneName.c_str());
     }
 
     m_scene->resolveLoadedBankNames();
 
     initializeRuntimeSceneSystems();
-
-    std::thread([oldScene]()
-        {
-            if (oldScene)
-            {
-                oldScene->unloadSoundBanks();
-            }
-        }).detach();
 
     auto tSwap1 = std::chrono::high_resolution_clock::now();
 

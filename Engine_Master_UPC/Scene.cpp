@@ -1023,10 +1023,6 @@ void Scene::resolveLoadedBankNames() const
     }
 }
 
-void Scene::unloadSoundBanks()
-{
-    app->getModuleMusic()->unloadAllBanks();
-}
 #pragma endregion
 
 void Scene::serialize(IArchive& archive)
