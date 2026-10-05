@@ -319,7 +319,7 @@ void ModuleEventSystem::processMouse()
 
             if (m_navigation)
             {
-				m_navigation->setSelected(hovered);
+                m_navigation->setSelected(hovered);
             }
         }
 
@@ -359,6 +359,17 @@ void ModuleEventSystem::processMouse()
             sendPointerDown(hovered, data);
         }
 
+        if (state.pointerPress && btn == PointerButton::Left)
+        {
+            PointerEventData dragData;
+            dragData.button = btn;
+            dragData.position = mousePos;
+            dragData.pointerPress = state.pointerPress;
+            dragData.pressPosition = state.pressPosition;
+
+            sendPointerDrag(state.pointerPress, dragData);
+        }
+
         if (IsMouseButtonReleased(btn) && state.pointerPress)
         {
             data.pointerPress = state.pointerPress;
@@ -382,6 +393,8 @@ void ModuleEventSystem::processMouse()
         }
     }
 }
+
+
 void ModuleEventSystem::sendPointerEnter(GameObject* go, PointerEventData& data)
 {
     if (!isValidEventTarget(go))
@@ -426,6 +439,22 @@ void ModuleEventSystem::sendPointerDown(GameObject* go, PointerEventData& data)
         if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
         {
             h->onPointerDown(data);
+        }
+    }
+}
+
+void ModuleEventSystem::sendPointerDrag(GameObject* go, PointerEventData& data)
+{
+    if (!isValidEventTarget(go))
+    {
+        return;
+    }
+
+    for (Component* c : go->GetAllComponents())
+    {
+        if (auto* h = dynamic_cast<IPointerEventHandler*>(c))
+        {
+            h->onPointerDrag(data);
         }
     }
 }

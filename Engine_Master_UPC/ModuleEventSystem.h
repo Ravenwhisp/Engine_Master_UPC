@@ -32,6 +32,7 @@ private:
     void sendPointerEnter(GameObject* go, PointerEventData& data);
     void sendPointerExit(GameObject* go, PointerEventData& data);
     void sendPointerDown(GameObject* go, PointerEventData& data);
+    void sendPointerDrag(GameObject* go, PointerEventData& data);
     void sendPointerUp(GameObject* go, PointerEventData& data);
     void sendPointerClick(GameObject* go, PointerEventData& data);
 
