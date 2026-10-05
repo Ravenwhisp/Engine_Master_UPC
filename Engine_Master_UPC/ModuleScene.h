@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <filesystem> 
 #include <future>
+#include <thread>
+#include <atomic>
 
 class Scene;
 class Quadtree;
@@ -109,6 +111,8 @@ private:
     friend class Quadtree;
 
     std::shared_ptr<Scene> m_scene;
+	std::atomic<Scene*> m_activeScene { nullptr };
+	const std::thread::id m_sceneThreadId = std::this_thread::get_id();
 
     std::unique_ptr<Quadtree> m_staticQuadtree;
     std::unique_ptr<Quadtree> m_dynamicQuadtree;

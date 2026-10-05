@@ -53,6 +53,7 @@ bool Scene::init()
 
     auto gameCamera = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = gameCamera.get();
+    rawPtr->SetOwningScene(this);
 
     gameCamera->GetTransform()->setPosition(Vector3(5.0f, 10.0f, 5.0f));
     gameCamera->GetTransform()->setRotation(Quaternion::CreateFromYawPitchRoll(-IM_PI / 4, -IM_PI / 4, 0.0f));
@@ -196,6 +197,7 @@ GameObject* Scene::createGameObject()
 {
     std::unique_ptr<GameObject> newGameObject = std::make_unique<GameObject>(GenerateUID());
     GameObject* rawPtr = newGameObject.get();
+    rawPtr->SetOwningScene(this);
     rawPtr->init();
     rawPtr->GetTransform()->setPosition(Vector3(0.0f, 0.0f, 0.0f));
 
@@ -223,6 +225,7 @@ GameObject* Scene::createGameObjectWithUID(UID id, UID transformUID)
 {
     auto newGameObject = std::make_unique<GameObject>(id, transformUID);
     GameObject* raw = newGameObject.get();
+    raw->SetOwningScene(this);
 
     raw->onTransformChange();
 
@@ -426,6 +429,7 @@ void Scene::adoptGameObject(std::unique_ptr<GameObject> gameObject, const SceneR
     for (auto& go : all)
     {
         GameObject* raw = go.get();
+        raw->SetOwningScene(this);
         newGOs.push_back(raw);
         // Clones (prefab instances, snapshot restores) carry this flag from
         // GameObject::clone(); it must not survive adoption into a live scene,
@@ -534,6 +538,7 @@ void Scene::destroyGameObject(GameObject* gameObject)
     const size_t lastIdx = m_allObjects.size() - 1;
 
     app->getModuleScene()->removeGameObjectFromQuadtree(*m_allObjects[idx].get());
+    m_allObjects[idx]->SetOwningScene(nullptr);
 
     m_pendingDestroyedObjects.push_back(
         PendingDestroyedGameObject{
@@ -638,6 +643,7 @@ GameObject* Scene::createDirectionalLightOnInit()
 {
     auto go = std::make_unique<GameObject>(GenerateUID());
     GameObject* raw = go.get();
+    raw->SetOwningScene(this);
 
     raw->SetName("Directional Light");
     raw->AddComponent(ComponentType::LIGHT);
@@ -784,6 +790,7 @@ void Scene::clearScene()
     {
         if (pending.gameObject)
         {
+            pending.gameObject->SetOwningScene(nullptr);
             pending.gameObject->cleanUp();
         }
     }
@@ -794,6 +801,7 @@ void Scene::clearScene()
     {
         if (go)
         {
+            go->SetOwningScene(nullptr);
             go->cleanUp();
         }
     }
@@ -802,6 +810,7 @@ void Scene::clearScene()
     {
         if (go)
         {
+            go->SetOwningScene(nullptr);
             go->cleanUp();
         }
     }
@@ -810,6 +819,7 @@ void Scene::clearScene()
     {
         if (pending.gameObject)
         {
+            pending.gameObject->SetOwningScene(nullptr);
             pending.gameObject->cleanUp();
         }
     }

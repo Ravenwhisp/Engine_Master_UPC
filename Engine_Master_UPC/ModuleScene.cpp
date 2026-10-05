@@ -45,6 +45,7 @@ ModuleScene::ModuleScene()
 {
     AssetId defaultSceneRef;
     m_scene = std::make_unique<Scene>(defaultSceneRef);
+    m_activeScene.store(m_scene.get(), std::memory_order_release);
     m_staticQuadtree = std::make_unique<Quadtree>();
     m_dynamicQuadtree = std::make_unique<Quadtree>();
 }
@@ -316,6 +317,7 @@ bool ModuleScene::cleanUp()
 {
     clearComponentCaches();
 
+    m_activeScene.store(nullptr, std::memory_order_release);
     m_scene.reset();
     m_staticQuadtree.reset();
     m_dynamicQuadtree.reset();
@@ -823,6 +825,7 @@ bool ModuleScene::loadScene(std::shared_ptr<Scene> scene)
     }
 
     m_scene = std::move(scene);
+    m_activeScene.store(m_scene.get(), std::memory_order_release);
     m_scene->setName(sceneName);
     m_scene->markDirty();
 
@@ -923,6 +926,7 @@ bool ModuleScene::applyLoadedScene(const std::string& sceneName, std::shared_ptr
     clearComponentCaches();
 
     m_scene = loadedScene;
+    m_activeScene.store(m_scene.get(), std::memory_order_release);
 
     m_scene->initLoadedObjects();
     m_scene->markDirty();
@@ -1096,6 +1100,21 @@ void ModuleScene::syncQuadtreeWithSettings()
 
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
+    // Scene loading may deserialize and resolve objects on a worker thread.
+    // Those objects belong to the scene being prepared, not to the active
+    // scene whose quadtrees are queried by the renderer.
+    if (gameObject.GetOwningScene() != m_activeScene.load(std::memory_order_acquire))
+    {
+        return;
+    }
+
+    if (std::this_thread::get_id() != m_sceneThreadId)
+    {
+        DEBUG_ERROR("[Quadtree] Refusing to move an active-scene object from a non-scene thread.");
+        assert(false && "Quadtree mutations must run on the scene thread.");
+        return;
+    }
+
     if (gameObject.IsSnapshotClone())
     {
         return;
@@ -1148,6 +1167,18 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 
 void ModuleScene::removeGameObjectFromQuadtree(GameObject& gameObject)
 {
+    if (gameObject.GetOwningScene() != m_activeScene.load(std::memory_order_acquire))
+    {
+        return;
+    }
+
+    if (std::this_thread::get_id() != m_sceneThreadId)
+    {
+        DEBUG_ERROR("[Quadtree] Refusing to remove an active-scene object from a non-scene thread.");
+        assert(false && "Quadtree mutations must run on the scene thread.");
+        return;
+    }
+
     const Layer layer = gameObject.GetLayer();
 
     if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())

@@ -123,6 +123,7 @@ void SceneSnapshot::applyTo(Scene& scene)
 
     for (size_t i = 0; i < scene.m_allObjects.size(); ++i)
     {
+        scene.m_allObjects[i]->SetOwningScene(&scene);
         scene.m_objectIndexMap[scene.m_allObjects[i].get()] = i;
         scene.m_objectUidMap[scene.m_allObjects[i]->GetID()] = scene.m_allObjects[i].get();
     }
