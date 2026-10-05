@@ -27,6 +27,8 @@
 #include "MD5Fwd.h"
 
 #include <algorithm>
+#include <stdexcept>
+#include <cstdio>
 
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
@@ -47,6 +49,11 @@ bool ModuleResources::init()
 
 
 void ModuleResources::preRender()
+{
+	collectCompletedResources();
+}
+
+void ModuleResources::collectCompletedResources()
 {
 	const uint64_t lastCompletedFrame = m_queue->getCompletedFenceValue();
 	std::lock_guard lock(m_deferredResourcesMutex);
@@ -79,10 +86,22 @@ bool ModuleResources::cleanUp()
 
 ComPtr<ID3D12Resource> ModuleResources::createUploadBuffer(size_t size)
 {
+	// Bulk imports can submit many uploads without returning to preRender().
+	collectCompletedResources();
 	ComPtr<ID3D12Resource> buffer;
 	CD3DX12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size);
-	DXCall(m_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer)));
+	const HRESULT hr = m_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
+	if (FAILED(hr))
+	{
+		char message[256];
+		std::snprintf(message, sizeof(message),
+			"CreateUploadBuffer failed: bytes=%llu, HRESULT=0x%08X, deviceReason=0x%08X",
+			static_cast<unsigned long long>(size), static_cast<unsigned>(hr),
+			static_cast<unsigned>(m_device->GetDeviceRemovedReason()));
+		DEBUG_ERROR("%s", message);
+		throw std::runtime_error(message);
+	}
 	return buffer;
 }
 
@@ -441,7 +460,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	desc.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 	desc.shaderVisibleSRV = shaderVisible;
 
-	auto texture = new Texture(textureAsset.getUID(), *m_device.Get(), desc);
+	auto texture = std::make_unique<Texture>(textureAsset.getUID(), *m_device.Get(), desc);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -459,7 +478,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	}
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
-	return texture;
+	return texture.release();
 }
 
 Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox)
