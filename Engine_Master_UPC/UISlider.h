@@ -1,5 +1,7 @@
 #pragma once
 #include "Component.h"
+#include "IPointerEventHandler.h"
+
 #include "SimpleMath.h"
 using DirectX::SimpleMath::Vector2;
 
@@ -7,7 +9,7 @@ using DirectX::SimpleMath::Vector2;
 
 class UIImage;
 
-class UISlider : public Component
+class UISlider : public Component, public IPointerEventHandler
 {
 public:
     UISlider(UID id, GameObject* owner);
@@ -20,6 +22,17 @@ public:
     float getFillEnd() const { return m_fillAmount.y; }
     void setFillStart(float start);
     void setFillEnd(float end);
+
+#pragma region Events
+    void onPointerEnter(PointerEventData& data) override;
+    void onPointerExit(PointerEventData& data) override;
+    void onPointerDown(PointerEventData& data) override;
+    void onPointerDrag(PointerEventData& data) override;
+    void onPointerUp(PointerEventData& data) override;
+    void onPointerClick(PointerEventData& data) override;
+
+	void updateFillAmountFromPointerPosition(const Vector2& mousePos);
+#pragma endregion
 
     FillMethod getFillMethod() const { return m_fillMethod; }
     void setFillMethod(FillMethod method);
