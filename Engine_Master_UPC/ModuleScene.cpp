@@ -1096,7 +1096,11 @@ void ModuleScene::syncQuadtreeWithSettings()
 
 void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 {
-    if (gameObject.IsSnapshotClone())
+    // Transform notifications also come from imported prefabs, background
+    // scenes and objects awaiting destruction. Only track this scene's owners.
+    if (gameObject.IsSnapshotClone() || !m_scene ||
+        !m_scene->containsGameObject(&gameObject) ||
+        !m_staticQuadtree || !m_dynamicQuadtree)
     {
         return;
     }
@@ -1108,6 +1112,7 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 
     if (!dynamic && !isStatic)
     {
+        removeGameObjectFromQuadtree(gameObject);
         static std::unordered_set<const GameObject*> s_warnedLayers;
         if (s_warnedLayers.insert(&gameObject).second)
         {
@@ -1120,6 +1125,7 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 
     if (dynamic)
     {
+        m_staticQuadtree->remove(gameObject);
         const auto start = m_detailedProfilingEnabled
             ? std::chrono::high_resolution_clock::now()
             : std::chrono::high_resolution_clock::time_point{};
@@ -1133,6 +1139,7 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
     }
     else
     {
+        m_dynamicQuadtree->remove(gameObject);
         const auto start = m_detailedProfilingEnabled
             ? std::chrono::high_resolution_clock::now()
             : std::chrono::high_resolution_clock::time_point{};
@@ -1148,13 +1155,13 @@ void ModuleScene::moveGameObjectInQuadtrees(GameObject& gameObject)
 
 void ModuleScene::removeGameObjectFromQuadtree(GameObject& gameObject)
 {
-    const Layer layer = gameObject.GetLayer();
-
-    if (std::find(m_dynamicLayers.begin(), m_dynamicLayers.end(), layer) != m_dynamicLayers.end())
+    // The layer may have changed since insertion. Removal must not depend
+    // on the current layer or leave an old entry pointing at a deleted object.
+    if (m_dynamicQuadtree)
     {
         m_dynamicQuadtree->remove(gameObject);
     }
-    else if (std::find(m_staticLayers.begin(), m_staticLayers.end(), layer) != m_staticLayers.end())
+    if (m_staticQuadtree)
     {
         m_staticQuadtree->remove(gameObject);
     }
