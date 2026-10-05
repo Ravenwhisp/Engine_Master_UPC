@@ -886,6 +886,30 @@ std::shared_ptr<Scene> ModuleScene::loadSceneData(const std::string& sceneName)
 {
     auto t0 = std::chrono::high_resolution_clock::now();
 
+#ifdef GAME_RELEASE
+    // A release build contains only the baked Library assets.  The source
+    // Assets/Scenes JSON files are deliberately not copied next to the game,
+    // so the asynchronous path must resolve the same build.cfg mapping used
+    // by the synchronous scene loader.
+    const auto it = m_buildSceneLibIds.find(sceneName);
+    if (it == m_buildSceneLibIds.end())
+    {
+        DEBUG_ERROR("[ModuleScene] Async scene '%s' has no name translation in build.cfg.",
+                    sceneName.c_str());
+        return nullptr;
+    }
+
+    AssetId ref(hashToUID(it->second), it->second, AssetType::SCENE);
+    std::shared_ptr<Scene> newScene = app->getModuleAssets()->load<Scene>(ref);
+    if (!newScene)
+    {
+        DEBUG_ERROR("[ModuleScene] Failed to load async scene '%s' from Library.",
+                    sceneName.c_str());
+        return nullptr;
+    }
+
+    newScene->FixReferences();
+#else
     std::string path = "Assets/Scenes/" + sceneName + ".scene";
 
     JsonArchive archive(ArchiveMode::Input);
@@ -901,6 +925,7 @@ std::shared_ptr<Scene> ModuleScene::loadSceneData(const std::string& sceneName)
     newScene->serialize(archive);
     newScene->setName(sceneName.c_str());
     newScene->FixReferences();
+#endif
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
