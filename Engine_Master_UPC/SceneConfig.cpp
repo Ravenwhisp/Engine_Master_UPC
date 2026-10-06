@@ -67,22 +67,36 @@ void SceneConfig::drawLoadSceneSettings()
             m_moduleScene->requestSceneChange(m_loadSceneName);
         }
 
+        ImGui::SameLine();
 
-        /*ImGui::Button("Load");
-        if (ImGui::BeginDragDropTarget())
+        if (ImGui::Button("Async Load"))
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
-            {
-                UID* ref = static_cast<UID*>(payload->Data);
-                AssetId assetRef(*ref, INVALID_ASSET_ID, AssetType::SCENE);
-                auto scene = app->getModuleAssets()->load<Scene>(assetRef);
-                if (scene)
-                {
-                    m_moduleScene->requestSceneChange(scene);
-                }
-            }
-            ImGui::EndDragDropTarget();
-        }*/
+            m_moduleScene->requestAsyncSceneLoad(m_loadSceneName);
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Apply Async"))
+        {
+            m_moduleScene->requestSceneChange(m_loadSceneName);
+        }
+
+        if (m_moduleScene->isPendingSceneLoad())
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Scene change pending...");
+        }
+        else if (m_moduleScene->isAsyncSceneReady())
+        {
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Async scene ready.");
+        }
+        else if (m_moduleScene->isAsyncSceneLoading())
+        {
+            ImGui::TextColored(ImVec4(0.2f, 0.7f, 1.0f, 1.0f), "Async scene loading...");
+        }
+        else
+        {
+            ImGui::TextDisabled("No scene load pending.");
+        }
     }
 }
 
@@ -391,7 +405,7 @@ void SceneConfig::drawMusicBanksSettings()
         return;
     }
 
-    ImGui::Text("Scene loaded banks");
+    ImGui::Text("Scene assigned banks");
     ImGui::SameLine();
     ImGui::TextDisabled("(%zu / %zu)", loadedBanks.size(), existingBanks.size());
 
@@ -413,7 +427,8 @@ void SceneConfig::drawMusicBanksSettings()
         for (WwiseBank& bank : existingBanks)
         {
             const std::string bankName = bank.getName();
-            const bool isLoaded = std::find(loadedBanks.begin(), loadedBanks.end(), bankName) != loadedBanks.end();
+            const bool isAssigned = std::find(loadedBanks.begin(), loadedBanks.end(), bankName) != loadedBanks.end();
+            const bool isRuntimeLoaded = bank.isLoaded();
 
             ImGui::PushID(bankName.c_str());
 
@@ -423,11 +438,18 @@ void SceneConfig::drawMusicBanksSettings()
             ImGui::TextUnformatted(bankName.c_str());
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::TextDisabled(isLoaded ? "Loaded" : "Unloaded");
+            if (isRuntimeLoaded)
+            {
+                ImGui::TextDisabled(isAssigned ? "Loaded" : "Loaded (unassigned)");
+            }
+            else
+            {
+                ImGui::TextDisabled(isAssigned ? "Load failed" : "Unloaded");
+            }
 
             ImGui::TableSetColumnIndex(2);
 
-            if (isLoaded)
+            if (isAssigned && isRuntimeLoaded)
             {
                 if (ImGui::Button("Unload", ImVec2(-1.0f, 0.0f)))
                 {
@@ -435,6 +457,13 @@ void SceneConfig::drawMusicBanksSettings()
                     {
                         m_moduleScene->getScene()->removeLoadedBank(bankName);
                     }
+                }
+            }
+            else if (isAssigned)
+            {
+                if (ImGui::Button("Retry", ImVec2(-1.0f, 0.0f)))
+                {
+                    m_moduleMusic->loadBank(bankName);
                 }
             }
             else

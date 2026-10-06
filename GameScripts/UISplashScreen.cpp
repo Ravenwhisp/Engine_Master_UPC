@@ -32,40 +32,25 @@ void UISplashScreen::Update()
         Input::isFaceButtonRightJustPressed() ||
         Input::isFaceButtonTopJustPressed() ||
         Input::isFaceButtonBottomJustPressed() ||
+		Input::isPauseJustPressed() ||
         Input::isLeftShoulderJustPressed() ||
-        Input::isRightShoulderJustPressed() ||
+        //Input::isRightShoulderJustPressed() || (Mouse Click)
         Input::isLeftTriggerJustPressed() ||
-        Input::isRightTriggerJustPressed() ||
-        Input::isLeftStickJustPressed() ||
-        Input::isRightStickJustPressed() ||
-        Input::getMoveAxis() != Vector2::Zero ||
-        Input::getLookAxis() != Vector2::Zero)
-    {
-        PlayerGamepadBinding::setKeyboard(0);
-        PlayerGamepadBinding::setGamepad(1, 0);
-        if (!nextSceneName.empty())
-        {
-            SceneAPI::requestSceneChange(nextSceneName.c_str());
-        }
-    }
-    if (Input::isFaceButtonLeftJustPressed(1) ||
+        //Input::isRightTriggerJustPressed() || (Mouse Right Click)
+        Input::isFaceButtonLeftJustPressed(1) ||
         Input::isFaceButtonRightJustPressed(1) ||
         Input::isFaceButtonTopJustPressed(1) ||
         Input::isFaceButtonBottomJustPressed(1) ||
+        Input::isPauseJustPressed(1) ||
         Input::isLeftShoulderJustPressed(1) ||
         Input::isRightShoulderJustPressed(1) ||
         Input::isLeftTriggerJustPressed(1) ||
-        Input::isRightTriggerJustPressed(1) ||
-        Input::isLeftStickJustPressed(1) ||
-        Input::isRightStickJustPressed(1) ||
-        Input::getMoveAxis(1) != Vector2::Zero ||
-        Input::getLookAxis(1) != Vector2::Zero)
+        Input::isRightTriggerJustPressed(1)
+        )
     {
-        PlayerGamepadBinding::setGamepad(0, 0);
-        PlayerGamepadBinding::setGamepad(1, 1);
         if (!nextSceneName.empty())
         {
-			SceneAPI::requestSceneChange(nextSceneName.c_str());
+            SceneAPI::requestSceneChange(nextSceneName.c_str());
         }
     }
 

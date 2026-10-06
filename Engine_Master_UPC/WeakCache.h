@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <memory>
+#include <mutex>
 
 
 template<typename Key, typename T>
@@ -9,6 +10,7 @@ class WeakCache
 public:
     std::shared_ptr<T> get(Key key)
     {
+		std::lock_guard lock(m_mutex);
         auto it = m_map.find(key);
         if (it == m_map.end())
         {
@@ -27,6 +29,7 @@ public:
 
     void insert(Key key, std::shared_ptr<T> resource)
     {
+		std::lock_guard lock(m_mutex);
         m_map[key] = resource;
     }
 
@@ -39,6 +42,7 @@ public:
 
     void remove(Key uid)
     {
+		std::lock_guard lock(m_mutex);
         m_map.erase(uid);
     }
 
@@ -49,19 +53,26 @@ public:
 
     void clear()
     {
+		std::lock_guard lock(m_mutex);
         m_map.clear();
     }
 
     void purgeExpired()
     {
+		std::lock_guard lock(m_mutex);
         for (auto it = m_map.begin(); it != m_map.end(); )
         {
             it = it->second.expired() ? m_map.erase(it) : ++it;
         }
     }
 
-    std::size_t size() const { return m_map.size(); }
+    std::size_t size() const
+    {
+		std::lock_guard lock(m_mutex);
+		return m_map.size();
+	}
 
 private:
     std::unordered_map<Key, std::weak_ptr<T>> m_map;
+	mutable std::mutex m_mutex;
 };

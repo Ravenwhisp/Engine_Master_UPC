@@ -1,6 +1,7 @@
 #include "Globals.h"
 #include "MeshRenderer.h"
 #include "JsonArchive.h"
+#include "MeshRenderFlags.h"
 
 #include "Transform.h"
 #include "GameObject.h"
@@ -10,12 +11,33 @@
 #include "Application.h"
 #include "ModuleAssets.h"
 #include "ModuleResources.h"
+#include "ModuleRender.h"
+
+#include "ShadowCasterCullingPass.h"
 
 #include "BasicMesh.h"
 #include "MaterialAsset.h"
 #include "SceneReferenceResolver.h"
 
-MeshRenderer::~MeshRenderer() = default;
+static_assert(static_cast<uint32_t>(RenderMode::COUNT) < MeshRenderFlags::OutlineDisabled);
+
+MeshRenderer::~MeshRenderer()
+{
+    // Imported prefabs and cached assets can be destroyed without cleanUp().
+    unregisterShadowCaster();
+}
+
+bool MeshRenderer::init()
+{
+    registerShadowCaster();
+    return true;
+}
+
+bool MeshRenderer::cleanUp()
+{
+    unregisterShadowCaster();
+    return true;
+}
 
 std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
 {
@@ -35,6 +57,8 @@ std::unique_ptr<Component> MeshRenderer::clone(GameObject* newOwner) const
     }
 
     newMeshRenderer->m_renderMode = m_renderMode;
+    //newMeshRenderer->m_drawOutline = m_drawOutline;
+    newMeshRenderer->m_castShadows = m_castShadows;
 
     newMeshRenderer->m_boundingBox.setBounds(
         m_boundingBox.getMin(),
@@ -73,6 +97,14 @@ void MeshRenderer::addMesh(MeshAsset& meshAsset, bool recalculateBounds)
 
         updateBoundingBoxWorld();
     }
+}
+
+void MeshRenderer::setCastShadows(bool castShadows)
+{
+    if (m_castShadows == castShadows) return;
+
+    m_castShadows = castShadows;
+    markShadowCandidateDirty();
 }
 
 void MeshRenderer::recompute()
@@ -132,6 +164,7 @@ void MeshRenderer::updateBoundingBoxWorld()
     }
 
     m_boundingBox.update(transform->getGlobalMatrix());
+    markShadowCandidateDirty();
 }
 
 void MeshRenderer::addMaterial(MaterialAsset& materialAsset)
@@ -180,7 +213,16 @@ void MeshRenderer::drawUi()
             static_cast<RenderMode>(typeIndex);
     }
 
+    bool castShadows = m_castShadows;
+
+    if (ImGui::Checkbox("Cast Shadows", &castShadows))
+    {
+        setCastShadows(castShadows);
+    }
+
     ImGui::Button("Drop Mesh Here");
+
+    ImGui::Checkbox("Draw Outline", &m_drawOutline);
 
     if (ImGui::BeginDragDropTarget())
     {
@@ -363,6 +405,21 @@ void MeshRenderer::onTransformChange()
     updateBoundingBoxWorld();
 }
 
+void MeshRenderer::onTransformDirty()
+{
+    markShadowCandidateDirty();
+}
+
+void MeshRenderer::onActiveChange()
+{
+    markShadowCandidateDirty();
+}
+
+void MeshRenderer::onHierarchyActiveChange()
+{
+    markShadowCandidateDirty();
+}
+
 void MeshRenderer::update()
 {
     if (!m_owner || !m_owner->GetTransform())
@@ -377,6 +434,58 @@ void MeshRenderer::update()
             *this
         );
     }
+}
+
+void MeshRenderer::markShadowCandidateDirty()
+{
+    ++m_shadowCandidateRevision;
+
+    if (!m_shadowCasterHandle.isFormed() || app == nullptr || app->getModuleRender() == nullptr)
+    {
+        return;
+    }
+
+    ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
+
+    if (shadowCasterCullingPass != nullptr)
+    {
+        shadowCasterCullingPass->markRendererDirty(m_shadowCasterHandle);
+    }
+}
+
+void MeshRenderer::registerShadowCaster()
+{
+    if (m_shadowCasterHandle.isFormed() || app == nullptr || app->getModuleRender() == nullptr)
+    {
+        return;
+    }
+
+    ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
+
+    if (shadowCasterCullingPass != nullptr)
+    {
+        m_shadowCasterHandle = shadowCasterCullingPass->registerRenderer(this);
+    }
+}
+
+void MeshRenderer::unregisterShadowCaster()
+{
+    if (!m_shadowCasterHandle.isFormed())
+    {
+        return;
+    }
+
+    if (app != nullptr && app->getModuleRender() != nullptr)
+    {
+        ShadowCasterCullingPass* shadowCasterCullingPass = app->getModuleRender()->getShadowCasterCullingPass();
+
+        if (shadowCasterCullingPass != nullptr)
+        {
+            shadowCasterCullingPass->unregisterRenderer(this, m_shadowCasterHandle);
+        }
+    }
+
+    m_shadowCasterHandle.reset();
 }
 
 void MeshRenderer::serialize(IArchive& archive)
@@ -418,9 +527,20 @@ void MeshRenderer::serialize(IArchive& archive)
 
         UINT renderMode = static_cast<UINT>(m_renderMode);
         archive.serialize(renderMode, "Render Mode");
-        m_renderMode = static_cast<RenderMode>(renderMode);
-
         JsonArchive* jsonArchive = dynamic_cast<JsonArchive*>(&archive);
+        if (jsonArchive)
+        {
+            m_renderMode = static_cast<RenderMode>(renderMode);
+            m_drawOutline = true; // Older JSON assets have no outline field.
+            archive.serialize(m_drawOutline, "Draw Outline");
+        }
+        else
+        {
+            m_renderMode = static_cast<RenderMode>(MeshRenderFlags::mode(renderMode));
+            m_drawOutline = MeshRenderFlags::drawOutline(renderMode);
+        }
+
+        archive.serialize(m_castShadows, "Cast Shadows");
 
         if (!jsonArchive || jsonArchive->hasKey("BoundingBox"))
         {
@@ -441,6 +561,26 @@ void MeshRenderer::serialize(IArchive& archive)
         else
         {
             m_customBoundingBox = false;
+        }
+
+        m_meshAsset.m_type = AssetType::MESH;
+        auto meshAsset = app->getModuleAssets()->load<MeshAsset>(m_meshAsset);
+        if (meshAsset)
+        {
+            addMesh(*meshAsset, !m_customBoundingBox);
+        }
+
+        for (auto& matRef : m_materialAssets)
+        {
+            if (matRef.isValid())
+            {
+                matRef.m_type = AssetType::MATERIAL;
+                auto matAsset = app->getModuleAssets()->load<MaterialAsset>(matRef);
+                if (matAsset)
+                {
+                    addMaterial(*matAsset);
+                }
+            }
         }
     }
     else
@@ -470,7 +610,18 @@ void MeshRenderer::serialize(IArchive& archive)
         archive.endArray();
 
         UINT renderMode = static_cast<UINT>(m_renderMode);
+        const bool isJson = dynamic_cast<JsonArchive*>(&archive) != nullptr;
+        if (!isJson)
+        {
+            renderMode = MeshRenderFlags::encode(renderMode, m_drawOutline);
+        }
         archive.serialize(renderMode, "Render Mode");
+        if (isJson)
+        {
+            archive.serialize(m_drawOutline, "Draw Outline");
+        }
+
+        archive.serialize(m_castShadows, "Cast Shadows");
 
         archive.beginObject("BoundingBox");
 
@@ -489,6 +640,7 @@ void MeshRenderer::serialize(IArchive& archive)
 void MeshRenderer::setMeshReference(AssetId& meshRef)
 {
     m_meshAsset = meshRef;
+    markShadowCandidateDirty();
 }
 
 void MeshRenderer::addMaterialReference(AssetId& materialRef)
@@ -496,11 +648,18 @@ void MeshRenderer::addMaterialReference(AssetId& materialRef)
     m_materialAssets.push_back(materialRef);
 }
 
+void MeshRenderer::setSkinReference(AssetId& skinUID)
+{
+    m_skinAsset = skinUID;
+    markShadowCandidateDirty();
+}
+
 Skin& MeshRenderer::ensureSkin()
 {
     if (!m_skin)
     {
         m_skin = std::make_unique<Skin>();
+        markShadowCandidateDirty();
     }
 
     return *m_skin;
@@ -508,19 +667,19 @@ Skin& MeshRenderer::ensureSkin()
 
 void MeshRenderer::clearSkin()
 {
-    if (m_skin)
-    {
-        m_skin->cleanUp();
-    }
+    if (!m_skin) return;
 
+    m_skin->cleanUp();
     m_skin.reset();
+
+    markShadowCandidateDirty();
 }
 
-void MeshRenderer::fixReferences(
-    const SceneReferenceResolver& resolver)
+void MeshRenderer::fixReferences(const SceneReferenceResolver& resolver)
 {
     m_mesh = nullptr;
     m_materials.clear();
+    markShadowCandidateDirty();
 
     if (m_meshAsset.isValid())
     {
@@ -563,4 +722,14 @@ void MeshRenderer::fixReferences(
     recompute();
 
     updateBoundingBoxWorld();
+}
+ 
+std::shared_ptr<BasicMesh>& MeshRenderer::getMesh()
+{
+    return m_mesh;
+}
+
+std::vector<std::shared_ptr<BasicMaterial>>& MeshRenderer::getMaterials()
+{
+    return m_materials;
 }

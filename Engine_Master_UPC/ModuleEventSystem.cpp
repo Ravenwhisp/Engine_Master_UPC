@@ -67,8 +67,17 @@ bool ModuleEventSystem::init()
 
 void ModuleEventSystem::update()
 {
-    if (app->getCurrentEngineState() != ENGINE_STATE::PLAYING)
+    const ENGINE_STATE engineState = app->getCurrentEngineState();
+
+    if (engineState != ENGINE_STATE::PLAYING)
     {
+        if (engineState == ENGINE_STATE::EDITOR)
+        {
+            // The editor restores the pre-play scene snapshot after this update.
+            // Release every cached runtime UI reference before that can happen.
+            clearHoverState();
+        }
+
         return;
     }
 
@@ -271,6 +280,15 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
 void ModuleEventSystem::process()
 {
     processController();
+
+    // Controller submission can queue a scene change. Clear every cached UI
+    // handle in the same frame, before ModuleScene replaces the current scene.
+    if (app->getModuleScene()->isPendingSceneLoad())
+    {
+        clearHoverState();
+        return;
+    }
+
     processMouse();
 }
 

@@ -12,6 +12,9 @@
 #include <string>
 #include <unordered_map>
 #include <filesystem> 
+#include <future>
+#include <thread>
+#include <atomic>
 
 class Scene;
 class Quadtree;
@@ -108,6 +111,8 @@ private:
     friend class Quadtree;
 
     std::shared_ptr<Scene> m_scene;
+	std::atomic<Scene*> m_activeScene { nullptr };
+	const std::thread::id m_sceneThreadId = std::this_thread::get_id();
 
     std::unique_ptr<Quadtree> m_staticQuadtree;
     std::unique_ptr<Quadtree> m_dynamicQuadtree;
@@ -193,7 +198,12 @@ public:
 
     void setBuildSceneLibIds(std::unordered_map<std::string, std::string> map);
 
-    bool isPendingSceneLoad() const { return !m_pendingSceneLoad.empty(); }
+    bool isPendingSceneLoad() const
+    {
+        return !m_pendingSceneLoad.empty() ||
+            static_cast<bool>(m_pendingScene) ||
+            m_pendingSceneAssetId.isValid();
+    }
 
     void onGameStop();
 #pragma endregion
@@ -231,11 +241,13 @@ public:
     const std::vector<MeshRenderer*> getDeferredMeshRenderers();
     const std::vector<MeshRenderer*> getForwardMeshRenderers();
     const std::vector<MeshRenderer*> getForwardMeshRenderers(RenderMode mode);
+    const std::vector<MeshRenderer*> getOutlineMeshRenderers();
     const std::vector<MeshRenderer*> getVisibleMeshRenderers();
     const std::vector<MeshRenderer*> getMeshRenderersInFrustum(const Engine::Frustum& frustum);
     const std::vector<MeshRenderer*> getVisibleDeferredMeshRenderers();
     const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers();
     const std::vector<MeshRenderer*> getVisibleForwardMeshRenderers(RenderMode mode);
+    const std::vector<MeshRenderer*> getVisibleOutlineMeshRenderers();
     const std::vector<LightComponent*>& getLightComponents();
     const std::vector<ScriptComponent*>& getScriptComponents();
     const std::vector<ParticleSystemComponent*>& getParticleSystemComponents();
@@ -243,4 +255,24 @@ public:
     const std::vector<LineRendererComponent*>& getLineRendererComponents();
     const std::vector<OcclusionTargetComponent*>& getOcclusionTargetComponents();
     const std::vector<OcclusionOccluderComponent*>& getOcclusionOccluderComponents();
+
+#pragma region SceneAsyncLoad
+private:
+    std::shared_ptr<Scene> m_asyncLoadedScene;
+    std::future<std::shared_ptr<Scene>> m_asyncLoadFuture;
+    std::vector<std::future<std::shared_ptr<Scene>>> m_discardedAsyncLoadFutures;
+    std::string m_asyncSceneName;
+    bool m_asyncSceneReady = false;
+
+private:
+    std::shared_ptr<Scene> loadSceneData(const std::string& sceneName);
+    bool applyLoadedScene(const std::string& sceneName, std::shared_ptr<Scene> loadedScene);
+    void discardAsyncSceneLoad();
+
+public:
+    bool requestAsyncSceneLoad(const std::string& sceneName);
+    bool requestAsyncSceneChange();
+    bool isAsyncSceneReady() const { return m_asyncSceneReady && m_asyncLoadedScene != nullptr; }
+    bool isAsyncSceneLoading() const { return !m_asyncSceneName.empty() && !m_asyncSceneReady; }
+#pragma endregion
 };

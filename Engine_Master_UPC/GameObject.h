@@ -15,6 +15,7 @@
 class Component;
 class ModelComponent;
 class Transform;
+class Scene;
 class SceneSnapshot;
 class IArchive;
 
@@ -36,6 +37,7 @@ public:
 	Layer GetLayer() const { return m_layer; }
 	Tag GetTag() const { return m_tag; }
 	bool IsSnapshotClone() const { return m_isSnapshotClone; }
+	Scene* GetOwningScene() const { return m_owningScene; }
 	void ClearSnapshotClone() { m_isSnapshotClone = false; }
 
 	void SetName(std::string newName) { m_name = newName; }
@@ -85,11 +87,18 @@ public:
 	bool isRaycastTarget() const { return m_isRaycastTarget; }
 
 	void onTransformChange();
+	void onTransformDirty();
+	void onHierarchyActiveChange();
 
 protected:
 	std::vector<std::unique_ptr<GameObject>> m_ownedChildren;
 
 private:
+	friend class Scene;
+	friend class SceneSnapshot;
+
+	void SetOwningScene(Scene* scene) { m_owningScene = scene; }
+
 	UID m_uuid;
 
 	std::string m_name;
@@ -102,4 +111,5 @@ private:
 
 	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform;
+	Scene* m_owningScene = nullptr;
 };

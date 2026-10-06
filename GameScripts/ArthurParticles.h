@@ -39,7 +39,8 @@ private:
             ChargingSlam,
             HeavySwipeHit,
             ActivateShockwave,
-            DeactivateShockwave
+            DeactivateShockwave,
+            AmbientColumnBurst
         };
 
         Type type = Type::GroundDust;
@@ -52,20 +53,35 @@ private:
     void spawnGroundDust(const Vector3& position);
     void spawnChargingSlam(const Vector3& position);
     void spawnHeavySwipeHit(const Vector3& position);
+    void spawnAmbientColumnBurst(const Vector3& position);
     void activateEarthHammerShockwave();
     void deactivateEarthHammerShockwave();
 
-    bool isTargetInCone(Transform* targetTransform, const Vector3& center, const Vector3& forward, float range, float halfAngleDegrees) const;
+    bool isTargetInCone(
+        Transform* targetTransform,
+        const Vector3& center,
+        const Vector3& forward,
+        float range,
+        float halfAngleDegrees
+    ) const;
 
     PrefabRef m_groundDustPrefab;
     PrefabRef m_chargingSlamPrefab;
     PrefabRef m_earthHammerShockwavePrefab;
     PrefabRef m_heavySwipePrefab;
+    PrefabRef m_ambientColumnBurstPrefab;
 
-    std::string m_groundDustPath = "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level1/Arthur/PS_BroundDustArthur.prefab";
-    std::string m_chargingSlamPath = "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level1/Arthur/PS_ChargingSlam.prefab";
-    std::string m_earthHammerShockwavePath = "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level1/Arthur/PS_EarthHammerShockwave.prefab";
-    std::string m_heavySwipePath = "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level1/Arthur/PS_HeavySwipe.prefab";
+    std::string m_groundDustPath =
+        "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level1/Arthur/PS_BroundDustArthur.prefab";
+
+    std::string m_chargingSlamPath =
+        "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level1/Arthur/PS_ChargingSlam.prefab";
+
+    std::string m_earthHammerShockwavePath =
+        "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level1/Arthur/PS_EarthHammerShockwave.prefab";
+
+    std::string m_heavySwipePath =
+        "Assets/Prefabs/Particles/VFXRemake/Enemies/Enemies_Level1/Arthur/PS_HeavySwipe.prefab";
 
     float m_chargingSlamGroundDustDelay = 0.0f;
     float m_chargingSlamExtraDelay = 0.0f;

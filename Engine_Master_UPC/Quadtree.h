@@ -26,6 +26,7 @@ private:
     bool isBuilded = false;
     bool m_rebuilding = false;
     mutable bool m_warnedNoRoot = false;
+    mutable bool m_warnedForeignObject = false;
 
     std::vector<Layer> m_layers;
 
@@ -67,4 +68,5 @@ public:
 private:
     bool insert(GameObject& object);
     void rebuild();
+    bool ownsObject(const GameObject* object) const;
 };

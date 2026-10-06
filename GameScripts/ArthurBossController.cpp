@@ -53,6 +53,7 @@ void ArthurBossController::Start()
 
 	m_currentTarget = nullptr;
 	m_deathTriggerSent = false;
+	m_level2LoadStarted = false;
 
 	resetRepathTimer();
 	clearPath();
@@ -148,6 +149,12 @@ void ArthurBossController::Update()
 				music->SetState_Level1Chapel();
 			}
 		}
+	}
+
+	if (m_bossDefeated && !m_level2LoadStarted && !isCinematicRunning())
+	{
+		SceneAPI::beginAsyncSceneLoad("Level2");
+		m_level2LoadStarted = true;
 	}
 
 	updateAttackCooldowns(dt);

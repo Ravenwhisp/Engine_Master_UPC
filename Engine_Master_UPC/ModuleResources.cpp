@@ -27,6 +27,8 @@
 #include "MD5Fwd.h"
 
 #include <algorithm>
+#include <stdexcept>
+#include <cstdio>
 
 
 ModuleResources::ModuleResources(ComPtr<ID3D12Device4> device, CommandQueue* queue)
@@ -48,7 +50,13 @@ bool ModuleResources::init()
 
 void ModuleResources::preRender()
 {
+	collectCompletedResources();
+}
+
+void ModuleResources::collectCompletedResources()
+{
 	const uint64_t lastCompletedFrame = m_queue->getCompletedFenceValue();
+	std::lock_guard lock(m_deferredResourcesMutex);
 
 	int i = 0;
 	while (i < static_cast<int>(m_deferredResources.size()))
@@ -69,16 +77,31 @@ bool ModuleResources::cleanUp()
 {
 	m_resources.clear();
 	m_enviromentBrdfTexture.reset();
-	m_deferredResources.clear();
+	{
+		std::lock_guard lock(m_deferredResourcesMutex);
+		m_deferredResources.clear();
+	}
 	return true;
 }
 
 ComPtr<ID3D12Resource> ModuleResources::createUploadBuffer(size_t size)
 {
+	// Bulk imports can submit many uploads without returning to preRender().
+	collectCompletedResources();
 	ComPtr<ID3D12Resource> buffer;
 	CD3DX12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	CD3DX12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size);
-	DXCall(m_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer)));
+	const HRESULT hr = m_device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
+	if (FAILED(hr))
+	{
+		char message[256];
+		std::snprintf(message, sizeof(message),
+			"CreateUploadBuffer failed: bytes=%llu, HRESULT=0x%08X, deviceReason=0x%08X",
+			static_cast<unsigned long long>(size), static_cast<unsigned>(hr),
+			static_cast<unsigned>(m_device->GetDeviceRemovedReason()));
+		DEBUG_ERROR("%s", message);
+		throw std::runtime_error(message);
+	}
 	return buffer;
 }
 
@@ -99,8 +122,8 @@ ComPtr<ID3D12Resource> ModuleResources::createDefaultBuffer(const void* data, si
 
 	ComPtr<ID3D12GraphicsCommandList4> commandList = m_queue->getCommandList();
 	commandList->CopyResource(buffer.Get(), uploadBuffer.Get());
-	m_queue->executeCommandList(commandList);
-	m_queue->flush();
+	const uint64_t uploadFence = m_queue->executeCommandList(commandList);
+	deferResourceRelease(std::move(uploadBuffer), uploadFence);
 
 	if (name && name[0] != '\0')
 	{
@@ -322,6 +345,49 @@ Texture* ModuleResources::createSSAOTexture(float width, float height)
 	return texture;
 }
 
+Texture* ModuleResources::createOutlineDepthBuffer(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R32_TYPELESS;
+	desc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R32_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::DSV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"Outline_Depth");
+
+	return texture;
+}
+
+Texture* ModuleResources::createOutlineTexture(float width, float height)
+{
+	TextureDesc desc{};
+	desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.srvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	desc.width = static_cast<uint32_t>(width);
+	desc.height = static_cast<uint32_t>(height);
+	desc.views = TextureView::RTV | TextureView::SRV;
+	desc.initialState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.hasClearValue = true;
+	desc.clearValue = CD3DX12_CLEAR_VALUE(
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		Color(0.5f, 0.5f, 1.0f, 1.0f)
+	);
+	desc.shaderVisibleSRV = true;
+
+	Texture* texture = new Texture(GenerateUID(), *m_device.Get(), desc);
+	texture->setName(L"Outline_Texture");
+
+	return texture;
+}
+
 Texture* ModuleResources::createHDRRenderTexture(float width, float height)
 {
 	// Floating-point colour target so the lit scene can be stored in HDR
@@ -394,7 +460,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	desc.initialState = D3D12_RESOURCE_STATE_COPY_DEST;
 	desc.shaderVisibleSRV = shaderVisible;
 
-	auto texture = new Texture(textureAsset.getUID(), *m_device.Get(), desc);
+	auto texture = std::make_unique<Texture>(textureAsset.getUID(), *m_device.Get(), desc);
 
 	std::vector<D3D12_SUBRESOURCE_DATA> subData;
 	subData.reserve(textureAsset.getImageCount());
@@ -412,7 +478,7 @@ Texture* ModuleResources::createTextureInternal(const TextureAsset& textureAsset
 	}
 
 	uploadTextureAndTransition(texture->getD3D12Resource().Get(), subData);
-	return texture;
+	return texture.release();
 }
 
 Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffer, SkyBox* skybox)
@@ -834,9 +900,15 @@ void ModuleResources::setEnvironmentBrdfTexture(std::shared_ptr<Texture> texture
 
 void ModuleResources::deferResourceRelease(ComPtr<ID3D12Resource> resource)
 {
+	deferResourceRelease(std::move(resource), m_queue->signal());
+}
+
+void ModuleResources::deferResourceRelease(ComPtr<ID3D12Resource> resource, uint64_t fenceValue)
+{
 	DeferredResource deferred{};
-	deferred.frame = m_queue->signal();
+	deferred.frame = fenceValue;
 	deferred.resource = std::move(resource);
+	std::lock_guard lock(m_deferredResourcesMutex);
 	m_deferredResources.push_back(std::move(deferred));
 }
 
@@ -852,8 +924,8 @@ void ModuleResources::uploadTextureAndTransition(ID3D12Resource* dstTexture, con
 	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(dstTexture, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	commandList->ResourceBarrier(1, &barrier);
 
-	m_queue->executeCommandList(commandList);
-	m_queue->flush();
+	const uint64_t uploadFence = m_queue->executeCommandList(commandList);
+	deferResourceRelease(std::move(stagingBuffer), uploadFence);
 }
 
 std::shared_ptr<Texture> ModuleResources::createTexture(const TextureAsset& textureAsset, bool shaderVisible)

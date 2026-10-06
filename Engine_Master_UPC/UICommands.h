@@ -19,6 +19,20 @@ enum UITextEffectFlags
     UITextEffect_Wave = 1 << 3
 };
 
+enum class UITextHorizontalAlignment : uint32_t
+{
+    Left = 0,
+    Center,
+    Right
+};
+
+enum class UITextVerticalAlignment : uint32_t
+{
+    Top = 0,
+    Center,
+    Bottom
+};
+
 struct UITextCommand
 {
     std::wstring text;
@@ -27,6 +41,10 @@ struct UITextCommand
     DirectX::XMFLOAT4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
     float scale = 1.0f;
     int fontId = INVALID_FONT_ID;
+    float width = 0.0f;
+    float height = 0.0f;
+    UITextHorizontalAlignment horizontalAlignment = UITextHorizontalAlignment::Left;
+    UITextVerticalAlignment verticalAlignment = UITextVerticalAlignment::Top;
 
     uint32_t effectFlags = UITextEffect_None;
 

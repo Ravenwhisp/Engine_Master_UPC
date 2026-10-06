@@ -23,7 +23,7 @@ public:
 	// Charged Attack
 	float m_chargedMinDamage = 5.0f;
 	float m_chargedMaxDamage = 30.0f;
-	float m_chargedMaxChargeTime = 2.0f;
+	float m_chargedMaxChargeTime = 1.3f;
 	float m_chargedMinAttackRange = 4.0f;
 	float m_chargedMaxAttackRange = 10.0f;
 	float m_chargedLineHalfWidth = 0.75f;
@@ -46,6 +46,7 @@ public:
 	// Dash
 	float m_dashDuration = 0.15f;
 	float m_dashDistance = 3.0f;
+	float m_dashLandingTolerance = 0.6f;
 	float m_dashRechargeTime = 3.0f;
 	int m_dashMaxCharges = 3;
 	float m_dashCooldown = 0.0f;
@@ -91,6 +92,7 @@ public:
 		FIELD_GROUP_COLLAPSE("Dash",
 			SERIALIZED_FLOAT(m_dashDuration, "Dash Duration", 0.0f, 1.0f, 0.01f),
 			SERIALIZED_FLOAT(m_dashDistance, "Dash Distance", 0.0f, 10.0f, 0.1f),
+			SERIALIZED_FLOAT(m_dashLandingTolerance, "Dash Landing Tolerance", 0.0f, 2.0f, 0.05f),
 			SERIALIZED_FLOAT(m_dashRechargeTime, "Dash Recharge Time", 0.1f, 10.0f, 0.1f),
 			SERIALIZED_INT(m_dashMaxCharges, "Dash Max Charges"),
 			SERIALIZED_FLOAT(m_dashCooldown, "Dash Cooldown", 0.0f, 10.0f, 0.01f)

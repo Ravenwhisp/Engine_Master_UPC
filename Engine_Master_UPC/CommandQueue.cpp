@@ -16,8 +16,6 @@ CommandQueue::CommandQueue(ComPtr<ID3D12Device4> device, D3D12_COMMAND_LIST_TYPE
 
     DXCall(m_d3d12Device->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_d3d12Fence)));
     m_d3d12Fence->SetName(L"CommandQueue Fence");
-    m_FenceEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
-    assert(m_FenceEvent && "Failed to create fence event handle.");
 }
 
 CommandQueue::~CommandQueue()
@@ -25,39 +23,36 @@ CommandQueue::~CommandQueue()
     // 1. Wait for GPU to finish all work
     flush();
 
-    // 2. Close fence event handle
-    if (m_FenceEvent)
-    {
-        CloseHandle(m_FenceEvent);
-        m_FenceEvent = nullptr;
-    }
-
-    // 3. Reset command allocators
+    // 2. Reset command allocators
     while (!m_CommandAllocatorQueue.empty())
     {
         m_CommandAllocatorQueue.front().commandAllocator.Reset();
         m_CommandAllocatorQueue.pop();
     }
 
-    // 4. Reset command lists
+    // 3. Reset command lists
     while (!m_CommandListQueue.empty())
     {
         m_CommandListQueue.front().Reset();
         m_CommandListQueue.pop();
     }
 
-    // 5. Reset fence
+    // 4. Reset fence
     m_d3d12Fence.Reset();
 
-    // 6. Reset command queue
+    // 5. Reset command queue
     m_d3d12CommandQueue.Reset();
 
-    // 7. Reset device
+    // 6. Reset device
     m_d3d12Device.Reset();
 }
 
 ComPtr<GraphicsCommandList> CommandQueue::getCommandList()
 {
+    // Only pool management is serialized. Once returned, each command list is
+    // owned by its calling thread and can be recorded in parallel.
+    std::unique_lock poolLock(m_PoolMutex);
+
     ComPtr<ID3D12CommandAllocator> commandAllocator;
     ComPtr<GraphicsCommandList> commandList;
 
@@ -102,7 +97,7 @@ ComPtr<GraphicsCommandList> CommandQueue::getCommandList()
 
 uint64_t CommandQueue::executeCommandList(ComPtr<GraphicsCommandList> commandList)
 {
-    commandList->Close();
+    DXCall(commandList->Close());
 
     ID3D12CommandAllocator* commandAllocator;
     UINT dataSize = sizeof(commandAllocator);
@@ -112,11 +107,21 @@ uint64_t CommandQueue::executeCommandList(ComPtr<GraphicsCommandList> commandLis
         commandList.Get()
     };
 
-    m_d3d12CommandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
-    uint64_t fenceValue = signal();
+    uint64_t fenceValue = 0;
+    {
+        // A D3D12 queue is a single ordered stream. Serialize Execute + Signal
+        // so fence values always describe the work immediately before them.
+        std::lock_guard submissionLock(m_SubmissionMutex);
+        m_d3d12CommandQueue->ExecuteCommandLists(std::size(ppCommandLists), ppCommandLists);
+        fenceValue = ++m_FenceValue;
+        DXCall(m_d3d12CommandQueue->Signal(m_d3d12Fence.Get(), fenceValue));
+    }
 
-    m_CommandAllocatorQueue.emplace(CommandAllocatorEntry{ fenceValue, commandAllocator });
-    m_CommandListQueue.push(commandList);
+    {
+        std::lock_guard poolLock(m_PoolMutex);
+        m_CommandAllocatorQueue.emplace(CommandAllocatorEntry{ fenceValue, commandAllocator });
+        m_CommandListQueue.push(commandList);
+    }
 
     // The ownership of the command allocator has been transferred to the ComPtr
     // in the command allocator queue. It is safe to release the reference 
@@ -128,8 +133,9 @@ uint64_t CommandQueue::executeCommandList(ComPtr<GraphicsCommandList> commandLis
 
 uint64_t CommandQueue::signal()
 {
+    std::lock_guard submissionLock(m_SubmissionMutex);
     const uint64_t fenceToSignal = ++m_FenceValue;
-    m_d3d12CommandQueue->Signal(m_d3d12Fence.Get(), fenceToSignal);
+    DXCall(m_d3d12CommandQueue->Signal(m_d3d12Fence.Get(), fenceToSignal));
     return fenceToSignal;
 }
 
@@ -142,8 +148,18 @@ void CommandQueue::waitForFenceValue(uint64_t fenceValue)
 {
     if (!isFenceComplete(fenceValue))
     {
-        m_d3d12Fence->SetEventOnCompletion(fenceValue, m_FenceEvent);
-        WaitForSingleObject(m_FenceEvent, INFINITE);
+        // A per-wait event permits the render and loading threads to wait for
+        // different fence values without racing on one auto-reset event.
+        HANDLE fenceEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        assert(fenceEvent && "Failed to create fence event handle.");
+        if (!fenceEvent)
+        {
+            return;
+        }
+
+        DXCall(m_d3d12Fence->SetEventOnCompletion(fenceValue, fenceEvent));
+        WaitForSingleObject(fenceEvent, INFINITE);
+        CloseHandle(fenceEvent);
     }
 }
 
@@ -154,13 +170,7 @@ uint64_t CommandQueue::getCompletedFenceValue() const
 
 void CommandQueue::flush()
 {
-    // Signal a new fence value
-    const UINT64 fenceToSignal = ++m_FenceValue;
-    m_d3d12CommandQueue->Signal(m_d3d12Fence.Get(), fenceToSignal);
-
-    // Wait until GPU reaches it
-    m_d3d12Fence->SetEventOnCompletion(fenceToSignal, m_FenceEvent);
-    WaitForSingleObject(m_FenceEvent, INFINITE);
+    waitForFenceValue(signal());
 }
 
 ComPtr<ID3D12CommandQueue> CommandQueue::getD3D12CommandQueue() const
@@ -172,7 +182,8 @@ ComPtr<ID3D12CommandAllocator> CommandQueue::createCommandAllocator()
 {
     ComPtr<ID3D12CommandAllocator> commandAllocator;
     DXCall(m_d3d12Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&commandAllocator)));
-    commandAllocator->SetName(L"CommandAllocator" + m_CommandAllocatorQueue.size());
+    const std::wstring name = L"CommandAllocator " + std::to_wstring(m_CommandAllocatorQueue.size());
+    commandAllocator->SetName(name.c_str());
     return commandAllocator;
 }
 
@@ -180,6 +191,7 @@ ComPtr<GraphicsCommandList> CommandQueue::createCommandList(ComPtr<ID3D12Command
 {
     ComPtr<GraphicsCommandList> commandList;
     DXCall(m_d3d12Device->CreateCommandList(0, m_CommandListType, allocator.Get(), nullptr, IID_PPV_ARGS(&commandList)));
-    commandList->SetName(L"GraphicsCommandList" + +m_CommandListQueue.size());
+    const std::wstring name = L"GraphicsCommandList " + std::to_wstring(m_CommandListQueue.size());
+    commandList->SetName(name.c_str());
     return commandList;
 }

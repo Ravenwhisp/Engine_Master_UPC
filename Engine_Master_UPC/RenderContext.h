@@ -41,6 +41,9 @@ struct RenderContext
 
     const SSAOSettings* ssaoSettings = nullptr;
     const SSAOFrameData* ssaoData = nullptr;
+    
+    Texture* outlineDepthTexture = nullptr;
+    Texture* outlineNormalTexture = nullptr;
 
     D3D12_GPU_VIRTUAL_ADDRESS lightCullingPointListAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS lightCullingSpotListAddress = 0;

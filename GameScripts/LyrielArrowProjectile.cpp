@@ -9,7 +9,10 @@
 
 IMPLEMENT_SCRIPT_FIELDS(LyrielArrowProjectile,
     SERIALIZED_STRING(m_legacyParticlePath, "Particle Prefab Path"),
-    SERIALIZED_ASSET_REF(m_particlePrefab, "Particle Prefab", AssetType::PREFAB)
+    SERIALIZED_ASSET_REF(m_particlePrefab, "Particle Prefab", AssetType::PREFAB),
+    SERIALIZED_ASSET_REF(m_visualBasicPrefab, "Visual Basic Prefab", AssetType::PREFAB),
+    SERIALIZED_ASSET_REF(m_visualChargedPrefab, "Visual Charged Prefab", AssetType::PREFAB),
+    SERIALIZED_ASSET_REF(m_visualVolleyPrefab, "Visual Volley Prefab", AssetType::PREFAB)
 )
 
 LyrielArrowProjectile::LyrielArrowProjectile(GameObject* owner)
@@ -41,7 +44,7 @@ void LyrielArrowProjectile::Update()
     }
 }
 
-void LyrielArrowProjectile::launch(const Vector3& startPosition, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage)
+void LyrielArrowProjectile::launch(const Vector3& startPosition, const Vector3& direction, float speed, float lifetime, GameObject* target, float damage, VisualModel visual)
 {
     m_direction = direction;
     m_speed = speed;
@@ -59,9 +62,60 @@ void LyrielArrowProjectile::launch(const Vector3& startPosition, const Vector3& 
         TransformAPI::lookAt(transform, startPosition + m_direction);
     }
 
+    // Orient projectile to face the travel direction. Use lookAt then rotate 180 degrees
+    // if models are authored facing the opposite direction.
+    if (transform != nullptr)
+    {
+        // Use a target point in the direction the arrow will travel
+        TransformAPI::lookAt(transform, startPosition + direction);
+
+        // Many arrow visuals are modeled pointing towards -Z; flip 180 degrees around Y so
+        // the visual faces along the movement direction.
+        Vector3 euler = TransformAPI::getGlobalEulerDegrees(transform);
+        euler.y += 180.0f;
+        // Normalize angle into [-180,180] range is optional but harmless
+        if (euler.y > 180.0f) euler.y -= 360.0f;
+        TransformAPI::setGlobalRotationEuler(transform, euler);
+    }
+
     m_inUse = true;
 
     GameObjectAPI::setActive(getOwner(), true);
+
+	//Instace model based on the visual model selected
+    PrefabRef* chosenPrefab = nullptr;
+    switch (visual)
+    {
+    case VisualModel::Basic:
+        chosenPrefab = &m_visualBasicPrefab;
+        break;
+    case VisualModel::Charged:
+        chosenPrefab = &m_visualChargedPrefab;
+        break;
+    case VisualModel::Volley:
+        chosenPrefab = &m_visualVolleyPrefab;
+        break;
+    }
+
+    if (chosenPrefab != nullptr && chosenPrefab->m_id.isValid())
+    {
+		// instance as child of GameObject Projectile, so it moves with it and we can destroy it when the projectile is returned to the pool
+        m_visualGO = GameObjectAPI::instantiatePrefab(chosenPrefab->m_id, Vector3::Zero, Vector3::Zero, getOwner());
+        if (m_visualGO != nullptr)
+        {
+			// making sure the visual model is at the same position and rotation as the projectile, so it doesn't appear offset
+            Transform* visTrans = GameObjectAPI::getTransform(m_visualGO);
+            Transform* projTrans = GameObjectAPI::getTransform(getOwner());
+                if (visTrans != nullptr && projTrans != nullptr)
+                {
+                    // Ensure visual model matches projectile world transform. Use global setters to avoid
+                    // incorrect local rotations when parent transforms have non-identity rotation/scale.
+                    TransformAPI::setGlobalPosition(visTrans, TransformAPI::getGlobalPosition(projTrans));
+                    TransformAPI::setGlobalRotationEuler(visTrans, TransformAPI::getGlobalEulerDegrees(projTrans));
+                    ParticleLifecycle::restart(m_visualGO); // if the prefab has particle systems, restart them to ensure they play from the beginning
+                }
+        }
+    }
 
     activateEmbeddedParticles();
 
@@ -83,6 +137,13 @@ void LyrielArrowProjectile::resetProjectile()
     }
 
     stopEmbeddedParticles();
+
+    // destruir visual si existe
+    if (m_visualGO != nullptr)
+    {
+        GameObjectAPI::removeGameObject(m_visualGO);
+        m_visualGO = nullptr;
+    }
 
     GameObjectAPI::setActive(getOwner(), false);
 

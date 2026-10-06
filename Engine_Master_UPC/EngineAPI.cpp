@@ -1065,6 +1065,36 @@ namespace SceneAPI
 
         app->getModuleScene()->requestSceneChange(ref);
     }
+
+    bool beginAsyncSceneLoad(const char* sceneName)
+    {
+        if (!app || !app->getModuleScene() || !sceneName || sceneName[0] == '\0')
+        {
+            return false;
+        }
+
+        return app->getModuleScene()->requestAsyncSceneLoad(sceneName);
+    }
+
+    bool requestAsyncSceneChange()
+    {
+        if (!app || !app->getModuleScene())
+        {
+            return false;
+        }
+
+        return app->getModuleScene()->requestAsyncSceneChange();
+    }
+
+    bool isAsyncSceneLoadReady()
+    {
+        return app && app->getModuleScene() && app->getModuleScene()->isAsyncSceneReady();
+    }
+
+    bool isAsyncSceneLoading()
+    {
+        return app && app->getModuleScene() && app->getModuleScene()->isAsyncSceneLoading();
+    }
 }
 
 namespace Input
@@ -3733,6 +3763,8 @@ namespace PostProcessAPI
     float getOutlineNoiseScale()        { auto* pp = getSettings(); return pp ? pp->outlineNoiseScale : 0.0f; }
     void  setOutlineBreakup(float b)    { if (auto* pp = getSettings()) pp->outlineBreakup = b; }
     float getOutlineBreakup()           { auto* pp = getSettings(); return pp ? pp->outlineBreakup : 0.0f; }
+    void  setDrawOutline(MeshRenderer* renderer, bool value) { renderer->setDrawOutline(value); }
+    bool  getDrawOutline(MeshRenderer* renderer) { return renderer->getDrawOutline(); }
 }
 
 namespace VideoAPI

@@ -38,6 +38,7 @@ struct AssetId;
 class DissolveComponent;
 class SpectralComponent;
 class ComponentVideo;
+class MeshRenderer;
 
 struct HapticEffectDefinition;
 
@@ -188,6 +189,11 @@ namespace SceneAPI
 
     ENGINE_API void requestSceneChange(const char* sceneName);
     ENGINE_API void requestSceneChange(const AssetId& ref);
+
+    ENGINE_API bool beginAsyncSceneLoad(const char* sceneName);
+    ENGINE_API bool requestAsyncSceneChange();
+    ENGINE_API bool isAsyncSceneLoadReady();
+    ENGINE_API bool isAsyncSceneLoading();
 }
 
 namespace Time
@@ -604,6 +610,8 @@ namespace PostProcessAPI
     ENGINE_API float   getOutlineNoiseScale();
     ENGINE_API void    setOutlineBreakup(float breakup);
     ENGINE_API float   getOutlineBreakup();
+    ENGINE_API void    setDrawOutline(MeshRenderer* renderer, bool value);
+    ENGINE_API bool    getDrawOutline(MeshRenderer* renderer);
 }
 
 namespace VideoAPI

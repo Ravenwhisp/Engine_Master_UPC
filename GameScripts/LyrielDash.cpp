@@ -29,15 +29,6 @@ void LyrielDash::Start()
 
     m_lyrielUI = GameObjectAPI::findScript<LyrielUI>(getOwner());
 
-    if (!m_lyrielUI)
-    {
-        Debug::warn("[LyrielDash] LyrielUI not found.");
-    }
-    else
-    {
-        m_lyrielUI->setupDashCharges(m_lyrielCharacter->getConfig()->m_dashMaxCharges);
-    }
-
     m_sound = GameObjectAPI::findScript<LyrielSound>(getOwner());
 
     m_particles = GameObjectAPI::findScript<LyrielParticles>(getOwner());
@@ -139,44 +130,35 @@ void LyrielDash::onDashEnded()
 
 bool LyrielDash::validateDashTarget()
 {
-    //Vector3 currentPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
-    //m_debugDashStart = currentPosition; // Debugging
+    const Vector3 currentPosition = TransformAPI::getGlobalPosition(getOwner()->GetTransform());
+    const Vector3 idealEnd = currentPosition + m_dashDirection * getDashDistance();
+    m_hasDashTarget = false;
+    m_debugDashStart = currentPosition;
+    m_debugDashCandidateEnd = idealEnd;
+    m_debugDashSampleEnd = idealEnd;
+    m_debugLastDashValid = false;
 
-    //Vector3 candidateEnd = currentPosition + m_dashDirection * getDashDistance();
-    //m_debugDashCandidateEnd = candidateEnd; // Debugging
-
-    //Vector3 sampledPosition;
-    //Vector3 searchExtents = Vector3(1.0f, 2.0f, 1.0f);
-
-    //if (NavigationAPI::samplePosition(candidateEnd, sampledPosition, searchExtents, NavAgentProfile::PlayerNormal))
-    //{
-    //    m_dashTargetPosition = sampledPosition;
-    //    m_hasDashTarget = true;
-    //    m_debugDashSampleEnd = sampledPosition; // Debugging
-    //    m_debugLastDashValid = true; // Debugging
-
-    //    return true;
-    //}
-
-    //m_debugLastDashValid = false; // Debugging
-    //return false;
-
-    Vector3 currentPosition = TransformAPI::getPosition(getOwner()->GetTransform());
-
-    Vector3 idealEnd = currentPosition + m_dashDirection * getDashDistance();
-
+    const Vector3 dashSearchExtents(0.2f, 2.0f, 0.2f);
     Vector3 candidateEnd;
-    Vector3 searchExtents = Vector3(0.2f, 2.0f, 0.2f);
-
-    if (NavigationAPI::moveAlongSurface(currentPosition, idealEnd, candidateEnd, searchExtents, NavAgentProfile::PlayerDash))
+    if (NavigationAPI::moveAlongSurface(currentPosition, idealEnd, candidateEnd, dashSearchExtents, NavAgentProfile::PlayerDash))
     {
+        const float landingTolerance = m_lyrielCharacter->getConfig()->m_dashLandingTolerance;
+        const Vector3 landingSearchExtents(landingTolerance, 2.0f, landingTolerance);
         Vector3 checkEnd;
-        searchExtents = Vector3(0.2f, 2.0f, 0.2f);
-        if (NavigationAPI::samplePosition(candidateEnd, checkEnd, searchExtents, NavAgentProfile::PlayerNormal))
+        if (NavigationAPI::samplePosition(candidateEnd, checkEnd, landingSearchExtents, NavAgentProfile::PlayerNormal))
         {
-            m_dashTargetPosition = candidateEnd;
+            // A nearby landing must still be reachable along the dash navmesh.
+            Vector3 reachableEnd;
+            if (!NavigationAPI::moveAlongSurface(currentPosition, checkEnd, reachableEnd, dashSearchExtents, NavAgentProfile::PlayerDash)
+                || (reachableEnd - checkEnd).LengthSquared() > 0.05f * 0.05f)
+            {
+                return false;
+            }
 
-            m_debugDashSampleEnd = candidateEnd; // Debugging
+            m_dashTargetPosition = checkEnd;
+            m_hasDashTarget = true;
+
+            m_debugDashSampleEnd = checkEnd;      // Debugging
             m_debugLastDashValid = true;         // Debugging
             return true;
         }

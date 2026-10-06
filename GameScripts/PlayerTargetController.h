@@ -7,6 +7,7 @@ class PlayerController;
 class CharacterBase;
 class DeathSound;
 class LyrielSound;
+class EnemyBaseController;
 
 class PlayerTargetController : public Script
 {
@@ -26,6 +27,13 @@ public:
     GameObject* findNearbyTargetInRange(float range) const;
 
 private:
+    struct TargetCandidate
+    {
+        GameObject* gameObject = nullptr;
+        EnemyBaseController* enemyController = nullptr;
+        float distanceSq = 0.0f;
+    };
+
     void updateTargetsInRange();
     void clearInvalidCurrentTarget();
     void setDefaultEnemyTargetIfNeeded();
@@ -64,7 +72,8 @@ private:
     CharacterBase* m_character = nullptr;
 
     GameObject* m_currentTarget = nullptr;
-    std::vector<GameObject*> m_targetsInRange;
+    GameObject* m_defaultEnemyTarget = nullptr;
+    std::vector<TargetCandidate> m_targetsInRange;
 
     DeathSound*  m_deathSound  = nullptr;
     LyrielSound* m_lyrielSound = nullptr;

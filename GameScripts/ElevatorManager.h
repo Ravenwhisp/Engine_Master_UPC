@@ -38,7 +38,7 @@ private:
 
     void killWaveEnemies(int waveIndex);
 
-    enum class State { Idle, CycleActive, PlatformMoving, Done };
+    enum class State { Idle, CycleActive, WaitingBetweenWaves, PlatformMoving, Done };
 
 public:
     std::vector<ComponentRef<Transform>> m_crystals;
@@ -66,7 +66,9 @@ private:
     State m_state = State::Idle;
     int m_currentCycle = 0;
     int m_wavesCompleted = 0;
+    bool m_bossLevelLoadStarted = false;
     int m_wavesDoneInCycle = 0;
+    float m_waveDelayTimer = 0.0f;
 
     bool m_wallsActive = false;
 

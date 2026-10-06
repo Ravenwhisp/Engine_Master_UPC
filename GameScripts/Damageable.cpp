@@ -37,6 +37,7 @@ void Damageable::Start()
 
 void Damageable::Update()
 {
+    SCRIPT_PROFILE_SCOPE("Health UI");
     updateUI();
 }
 
@@ -188,11 +189,6 @@ void Damageable::setupUI()
 
 void Damageable::updateUI()
 {
-    if (m_healthBarSlider)
-    {
-        SliderAPI::setFillAmount(m_healthBarSlider, getHpPercent());
-    }
-
     if (m_previousHp != m_currentHp)
     {
         float previousHpPercent = 0.0;
@@ -202,12 +198,19 @@ void Damageable::updateUI()
             previousHpPercent = m_previousHp / m_maxHp;
         }
 
-        onHealthUIChanged(previousHpPercent, getHpPercent());
+        const float currentHpPercent = getHpPercent();
+
+        if (m_healthBarSlider)
+        {
+            SliderAPI::setFillAmount(m_healthBarSlider, currentHpPercent);
+        }
+
+        onHealthUIChanged(previousHpPercent, currentHpPercent);
 
         if (m_healthBar2Slider)
         {
             m_uiStartPercent = SliderAPI::getFillAmount(m_healthBar2Slider);
-            m_uiTargetPercent = getHpPercent();
+            m_uiTargetPercent = currentHpPercent;
             m_uiTimer = m_uiUpdateTime + m_uiWaitTime;
         }
 

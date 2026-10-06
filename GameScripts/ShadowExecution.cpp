@@ -18,6 +18,11 @@ IMPLEMENT_SCRIPT_FIELDS(ShadowExecution,
     SERIALIZED_ASSET_REF(m_config, "Shadow Execution Config", AssetType::DATA_CONTAINER),
     SERIALIZED_ASSET_REF(m_particlePrefab, "Particle Prefab", AssetType::PREFAB),
     SERIALIZED_COMPONENT_REF(m_reaperGaugeBar, "Reaper Gauge UI", ComponentType::UISLIDER),
+    SERIALIZED_COMPONENT_REF(m_executionGlowUI, "Execution Glow UI", ComponentType::TRANSFORM2D),
+    SERIALIZED_COMPONENT_REF(m_glowUIplayer0, "Glow UI Player 0", ComponentType::TRANSFORM2D),
+    SERIALIZED_COMPONENT_REF(m_glowUIplayer1, "Glow UI Player 1", ComponentType::TRANSFORM2D),
+	SERIALIZED_COMPONENT_REF(m_controlsUIplayer0, "Controls UI Player 0", ComponentType::TRANSFORM2D),
+	SERIALIZED_COMPONENT_REF(m_controlsUIplayer1, "Controls UI Player 1", ComponentType::TRANSFORM2D),
     SERIALIZED_COMPONENT_REF(m_executionCanvas, "Execution Canvas", ComponentType::TRANSFORM),
     SERIALIZED_COMPONENT_REF(m_executionSprite, "Execution Sprite", ComponentType::TRANSFORM2D),
     )
@@ -29,7 +34,7 @@ IMPLEMENT_SCRIPT_FIELDS(ShadowExecution,
 
 void ShadowExecution::Start()
 {
-    m_reaperGaugeSlider = m_reaperGaugeBar.getReferencedComponent();
+    setupUI();
     m_executionTransform = m_executionCanvas.getReferencedComponent();
     m_executionTransform2D = m_executionSprite.getReferencedComponent();
     if (m_executionTransform)
@@ -102,6 +107,8 @@ void ShadowExecution::Update()
         }
     }
 
+    updateUI();
+
     if (m_isActive)
     {
         updateExecution(dt);
@@ -173,6 +180,38 @@ void ShadowExecution::Update()
     }
     if (m_p0WindowTimer > 0.0f && m_p1WindowTimer > 0.0f && m_reaperGauge->isFull())
         tryTrigger();
+}
+
+void ShadowExecution::setupUI()
+{
+    m_reaperGaugeSlider = m_reaperGaugeBar.getReferencedComponent();
+
+    m_executionGlowTransform = m_executionGlowUI.getReferencedComponent();
+    m_glowTransformPlayer0 = m_glowUIplayer0.getReferencedComponent();
+    m_glowTransformPlayer1 = m_glowUIplayer1.getReferencedComponent();
+    m_controlsTransformPlayer0 = m_controlsUIplayer0.getReferencedComponent();
+    m_controlsTransformPlayer1 = m_controlsUIplayer1.getReferencedComponent();
+
+    if (m_executionGlowTransform)
+    {
+        Transform2DAPI::setAlpha(m_executionGlowTransform, 0.0f);
+	}
+    if (m_glowTransformPlayer0)
+    {
+        Transform2DAPI::setAlpha(m_glowTransformPlayer0, 0.0f);
+	}
+    if (m_glowTransformPlayer1)
+    {
+        Transform2DAPI::setAlpha(m_glowTransformPlayer1, 0.0f);
+    }
+    if (m_controlsTransformPlayer0)
+    {
+        Transform2DAPI::setAlpha(m_controlsTransformPlayer0, 0.0f);
+    }
+    if (m_controlsTransformPlayer1)
+    {
+        Transform2DAPI::setAlpha(m_controlsTransformPlayer1, 0.0f);
+	}
 }
 
 void ShadowExecution::cachePlayers()
@@ -274,10 +313,6 @@ void ShadowExecution::updateExecution(float dt)
     if (m_executionTimer >= m_shadowExecutionConfig->m_executionDuration)
     {
         endExecution();
-    }
-    else
-    {
-        updateUI();
     }
 }
 
@@ -421,10 +456,58 @@ void ShadowExecution::updateUI()
         return;
     }
 
-    const float t = m_executionTimer / m_shadowExecutionConfig->m_executionDuration;
-    SliderAPI::setFillAmount(m_reaperGaugeSlider, 1.0f - t);
-    Transform2DAPI::setAlpha(m_executionTransform2D, t);
-    Transform2DAPI::setScale(m_executionTransform2D, Vector2(m_currentRadius, m_currentRadius));
+    const float timeWindow = Time::getDeltaTime();
+	const bool p0Pressed = Input::isFaceButtonTopPressed(0) && m_reaperGauge->isFull();
+	const bool p1Pressed = Input::isFaceButtonTopPressed(1) && m_reaperGauge->isFull();
+	const bool reaperFull = m_reaperGauge->isFull();
+
+    if (m_controlsTransformPlayer0)
+    {
+        const float alphaTarget = (reaperFull) ? 1.0f : 0.0f;
+        const float alpha = MathAPI::moveTowards(Transform2DAPI::getAlpha(m_controlsTransformPlayer0), alphaTarget, timeWindow * 5.0f);
+		Transform2DAPI::setAlpha(m_controlsTransformPlayer0, alpha);
+        const float scaleTarget = (p0Pressed || m_isActive) ? 0.8f : 1.0f;
+        const float scale = MathAPI::moveTowards(Transform2DAPI::getScale(m_controlsTransformPlayer0).x, scaleTarget, timeWindow);
+        Transform2DAPI::setScale(m_controlsTransformPlayer0, Vector2(scale, scale));
+    }
+    if (m_controlsTransformPlayer1)
+    {
+		const float alphaTarget = (reaperFull) ? 1.0f : 0.0f;
+		const float alpha = MathAPI::moveTowards(Transform2DAPI::getAlpha(m_controlsTransformPlayer1), alphaTarget, timeWindow * 5.0f);
+        Transform2DAPI::setAlpha(m_controlsTransformPlayer1, alpha);
+        const float scaleTarget = (p1Pressed || m_isActive)  ? 0.8f : 1.0f;
+        const float scale = MathAPI::moveTowards(Transform2DAPI::getScale(m_controlsTransformPlayer1).x, scaleTarget, timeWindow);
+        Transform2DAPI::setScale(m_controlsTransformPlayer1, Vector2(scale, scale));
+    }
+    if (m_glowTransformPlayer0)
+    {
+		const float alphaTarget = p0Pressed ? 1.0f : 0.0f;
+		const float alpha = MathAPI::moveTowards(Transform2DAPI::getAlpha(m_glowTransformPlayer0), alphaTarget, timeWindow * 5.0f);
+		Transform2DAPI::setAlpha(m_glowTransformPlayer0, alpha);
+    }
+    if (m_glowTransformPlayer1)
+    {
+		const float alphaTarget = p1Pressed ? 1.0f : 0.0f;
+		const float alpha = MathAPI::moveTowards(Transform2DAPI::getAlpha(m_glowTransformPlayer1), alphaTarget, timeWindow * 5.0f);
+		Transform2DAPI::setAlpha(m_glowTransformPlayer1, alpha);
+    }
+
+    if (isActive())
+    {
+        const float t = m_executionTimer / m_shadowExecutionConfig->m_executionDuration;
+        SliderAPI::setFillAmount(m_reaperGaugeSlider, 1.0f - t);
+        Transform2DAPI::setAlpha(m_executionTransform2D, t);
+        Transform2DAPI::setScale(m_executionTransform2D, Vector2(m_currentRadius, m_currentRadius));
+        if (m_executionGlowTransform)
+        {
+			Transform2DAPI::setAlpha(m_executionGlowTransform, t);
+        }
+    }
+    else
+    {
+		const float newAlpha = MathAPI::moveTowards(Transform2DAPI::getAlpha(m_executionGlowTransform), 0.0f, 0.05f);
+        Transform2DAPI::setAlpha(m_executionGlowTransform, newAlpha);
+    }
 }
 
 ShadowExecutionPreview ShadowExecution::calculatePreview(const EnemyDamageable* damageable) const

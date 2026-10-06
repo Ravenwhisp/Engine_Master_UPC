@@ -84,6 +84,7 @@ public:
 	bool loadBank(const std::string& bankName);
 	bool loadBank(const AssetId& ref);
 	bool unloadBank(const std::string& bankName);
+	bool applySceneBanks(const std::vector<AssetId>& bankRefs);
 	AssetId findBankRef(const std::string& bankName) const;
 #pragma endregion
 

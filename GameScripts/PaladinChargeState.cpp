@@ -39,6 +39,8 @@ void PaladinChargeState::OnStateEnter()
 	m_paladinController->clearPath();
 	m_paladinController->resetRepathTimer();
 
+	m_paladinController->updateCurrentTarget();
+	m_paladinController->faceCurrentTarget();
 	m_chargeDirection = m_paladinController->getChargeDirection();
 
 	m_paladinSound = GameObjectAPI::findScript<PaladinSound>(getOwner());
@@ -85,6 +87,13 @@ void PaladinChargeState::OnStateUpdate()
 	}
 
 	m_stateTimer += Time::getDeltaTime();
+
+	m_paladinController->updateCurrentTarget();
+	if (m_paladinController->hasValidTarget())
+	{
+		m_paladinController->faceCurrentTarget();
+		m_chargeDirection = m_paladinController->getChargeDirection();
+	}
 
 	moveCharge();
 

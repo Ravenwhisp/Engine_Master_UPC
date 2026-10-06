@@ -5,6 +5,7 @@
 
 #include "GameObject.h"
 #include "MeshRenderer.h"
+#include "Scene.h"
 
 #include "Transform.h"
 
@@ -233,6 +234,16 @@ void QuadNode::gatherObjects(const Engine::Frustum& frustum, std::vector<GameObj
 
     for (GameObject* obj : m_objects)
     {
+        if (!m_tree.ownsObject(obj))
+        {
+            if (!m_tree.m_warnedForeignObject)
+            {
+                DEBUG_ERROR("[Quadtree] Ignoring an object that is not owned by the quadtree scene.");
+                m_tree.m_warnedForeignObject = true;
+            }
+            continue;
+        }
+
         auto* model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
         if (!model || !obj->GetActive())
@@ -265,6 +276,16 @@ void QuadNode::gatherObjectsInArea(const BoundingRect& area, std::vector<GameObj
 
     for(GameObject* obj : m_objects)
     {
+        if (!m_tree.ownsObject(obj))
+        {
+            if (!m_tree.m_warnedForeignObject)
+            {
+                DEBUG_ERROR("[Quadtree] Ignoring an object that is not owned by the quadtree scene.");
+                m_tree.m_warnedForeignObject = true;
+            }
+            continue;
+        }
+
         auto* model = obj->GetComponentAs<MeshRenderer>(ComponentType::MODEL);
 
         if (!model || !obj->GetActive())

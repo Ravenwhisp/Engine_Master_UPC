@@ -18,7 +18,8 @@ enum class PopUpTransitionType
 enum class PopUpCloseMode
 {
     BothPlayersConfirm = 0,
-    ObjectiveCompleted
+    ObjectiveCompleted,
+    CloseOnTimeout
 };
 
 class PopUpEvent : public GameplayEventAction
