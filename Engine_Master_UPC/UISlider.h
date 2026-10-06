@@ -45,6 +45,8 @@ public:
 
     void serialize(IArchive& archive) override;
 
+    void fixReferences(const SceneReferenceResolver& resolver) override;
+
 private:
     void applyToImage();
 

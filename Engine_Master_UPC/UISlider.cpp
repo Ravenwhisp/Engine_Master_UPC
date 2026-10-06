@@ -8,6 +8,7 @@
 #include "Application.h"
 #include "ModuleEditor.h"
 #include "UILayoutUtils.h"
+#include "SceneReferenceResolver.h"
 
 #define M_PI 3.14159265358979323846f
 
@@ -25,6 +26,10 @@ std::unique_ptr<Component> UISlider::clone(GameObject* newOwner) const
     clonedSlider->m_fillAmount = this->m_fillAmount;
     clonedSlider->m_fillMethod = this->m_fillMethod;
     clonedSlider->m_fillOrigin = this->m_fillOrigin;
+
+	clonedSlider->m_thumbTransform = this->m_thumbTransform;
+
+    clonedSlider->m_thumbComponentUid = this->m_thumbComponentUid;
 
     return clonedSlider;
 }
@@ -445,4 +450,19 @@ void UISlider::serialize(IArchive& archive)
 
 	archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
 	archive.serialize(m_fillOrigin, "FillOrigin");
+
+    archive.serialize(m_thumbComponentUid, "ThumbComponentUID");
+    
+}
+
+void UISlider::fixReferences(const SceneReferenceResolver& resolver)
+{
+    m_thumbTransform = nullptr;
+
+    if (m_thumbComponentUid != 0)
+    {
+        m_thumbTransform = static_cast<Transform2D*>(resolver.getClonedComponent(m_thumbComponentUid));
+    }
+
+    applyToImage();
 }
