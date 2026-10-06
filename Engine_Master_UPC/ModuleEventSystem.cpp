@@ -239,6 +239,8 @@ void ModuleEventSystem::raycastAll(GameObject* go, const Vector2& screenPos, con
 {
     if (!go || !go->GetActive()) return;
 
+    if (!go->isRaycastTarget()) return;
+
     Rect2D myRect = parentRect;
     Vector2 childScale = inheritedScale;
 
