@@ -7,7 +7,6 @@ using DirectX::SimpleMath::Vector2;
 
 #include "UIFill.h"
 
-class UIImage;
 class Transform2D;
 
 class UISlider : public Component, public IPointerEventHandler
