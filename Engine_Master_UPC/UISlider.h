@@ -8,6 +8,7 @@ using DirectX::SimpleMath::Vector2;
 #include "UIFill.h"
 
 class UIImage;
+class Transform2D;
 
 class UISlider : public Component, public IPointerEventHandler
 {
@@ -51,4 +52,7 @@ private:
     Vector2 m_fillAmount = Vector2(0.0f, 1.0f);
     FillMethod m_fillMethod = FillMethod::Horizontal;
     FillOrigin m_fillOrigin = FillOrigin::HorizontalLeft;
+
+    Transform2D* m_thumbTransform = nullptr;
+    UID m_thumbComponentUid = 0;
 };

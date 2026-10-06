@@ -392,6 +392,32 @@ void UISlider::drawUi()
         }
     }
 
+    ImGui::Separator();
+
+    if(m_thumbTransform)
+    {
+		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Assigned (UID %llu)", m_thumbComponentUid);
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
+	}
+
+    ImGui::Button("Drop Thumb GameObject Here");
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+        {
+            GameObject* droppedGameObject = *(GameObject**)payload->Data;
+            if (droppedGameObject)
+            {
+                m_thumbTransform = droppedGameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
+                m_thumbComponentUid = m_thumbTransform->getID();
+            }
+        }
+        ImGui::EndDragDropTarget();
+	}
+
     if (changed)
     {
         applyToImage();
