@@ -50,6 +50,8 @@ public:
 private:
     void applyToImage();
 
+	void updateThumbPosition();
+
 private:
     Vector2 m_fillAmount = Vector2(0.0f, 1.0f);
     FillMethod m_fillMethod = FillMethod::Horizontal;

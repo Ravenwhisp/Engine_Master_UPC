@@ -51,7 +51,137 @@ void UISlider::applyToImage()
     img->setFillAmount(m_fillAmount);
     img->setFillMethod(m_fillMethod);
     img->setFillOrigin(m_fillOrigin);
+
+    if (m_thumbTransform)
+    {
+        updateThumbPosition();
+    }
 }
+
+void UISlider::updateThumbPosition()
+{
+    Transform2D* rootTransform = getOwner()->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
+    if (!rootTransform) return;
+
+    if (getOwner())
+    {
+#ifdef GAME_RELEASE
+        auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+        Vector2 size(viewport.Width, viewport.Height);
+#else
+        auto size = app->getModuleEditor()->getEventViewportSize();
+#endif
+        Vector2 uiScale = UILayoutUtils::CalculateScreenSpaceScale(size.x, size.y);
+        Vector2 virtualCanvas = Vector2(size.x, size.y) / uiScale;
+
+        Vector2 position = rootTransform->getPosition();
+        Vector2 baseSize = rootTransform->getBaseSize();
+        Vector2 scale = rootTransform->getScale();
+        Vector2 pivot = rootTransform->getPivot();
+
+        Vector2 anchorMin = rootTransform->getAnchorMin();
+        Vector2 anchorMax = rootTransform->getAnchorMax();
+        StretchMode stretchMode = rootTransform->getStretchMode();
+
+        float anchorMinPixelX = virtualCanvas.x * std::max(0.0f, std::min(1.0f, anchorMin.x));
+        float anchorMinPixelY = virtualCanvas.y * std::max(0.0f, std::min(1.0f, anchorMin.y));
+        float anchorMaxPixelX = virtualCanvas.x * std::max(0.0f, std::min(1.0f, anchorMax.x));
+        float anchorMaxPixelY = virtualCanvas.y * std::max(0.0f, std::min(1.0f, anchorMax.y));
+
+        float stretchW = std::max(0.0f, anchorMaxPixelX - anchorMinPixelX);
+        float stretchH = std::max(0.0f, anchorMaxPixelY - anchorMinPixelY);
+
+        float width = baseSize.x * scale.x;
+        float height = baseSize.y * scale.y;
+        float referenceX = anchorMinPixelX + position.x;
+        float referenceY = anchorMinPixelY + position.y;
+
+        if (stretchMode == StretchMode::BOTH)
+        {
+            width = stretchW * scale.x;
+            height = stretchH * scale.y;
+            referenceX = ((anchorMinPixelX + anchorMaxPixelX) * 0.5f) + position.x;
+            referenceY = ((anchorMinPixelY + anchorMaxPixelY) * 0.5f) + position.y;
+        }
+        else if (stretchMode == StretchMode::HORIZONTAL)
+        {
+            width = stretchW;
+            float baseAspectRatio = (baseSize.y > 0.0f) ? (baseSize.x / baseSize.y) : 1.0f;
+            height = width / baseAspectRatio;
+            referenceX = ((anchorMinPixelX + anchorMaxPixelX) * 0.5f) + position.x;
+        }
+        else if (stretchMode == StretchMode::VERTICAL)
+        {
+            height = stretchH;
+            float baseAspectRatio = (baseSize.y > 0.0f) ? (baseSize.x / baseSize.y) : 1.0f;
+            width = height * baseAspectRatio;
+            referenceY = ((anchorMinPixelY + anchorMaxPixelY) * 0.5f) + position.y;
+        }
+
+        // Top-left bounds of the background track
+        float trackMinX = referenceX - (pivot.x * width);
+        float trackMinY = referenceY - (pivot.y * height);
+
+        float pct = m_fillAmount.y; // Slider progress percentage (0.0f to 1.0f)
+
+        // Pull thumb data to compute constraints and offsets
+        Vector2 thumbAnchor = m_thumbTransform->getAnchorMin();
+        Vector2 thumbPivot = m_thumbTransform->getPivot();
+        Vector2 thumbSize = m_thumbTransform->getBaseSize() * m_thumbTransform->getScale();
+
+        if (m_fillMethod == FillMethod::Horizontal)
+        {
+            // Calculate radius to prevent the thumb from spilling outside the track bounds
+            float thumbRadius = thumbSize.x / 2.0f;
+            float minRangeX = thumbRadius;
+            float maxRangeX = width - thumbRadius;
+
+            // Map the percentage into the safe inner range
+            float localX = minRangeX + (pct * (maxRangeX - minRangeX));
+
+            if (m_fillOrigin == FillOrigin::HorizontalRight)
+            {
+                localX = width - localX;
+            }
+
+            // Convert back to absolute screen canvas coordinates
+            float targetVirtualX = trackMinX + localX;
+
+            // Offset by thumb's own anchor position
+            float thumbAnchorPixelX = virtualCanvas.x * thumbAnchor.x;
+            float thumbLocalX = targetVirtualX - thumbAnchorPixelX;
+
+            // Pivot correction if thumb isn't centered at 0.5
+            thumbLocalX += (thumbPivot.x - 0.5f) * thumbSize.x;
+
+            m_thumbTransform->setPosition(Vector2(thumbLocalX, m_thumbTransform->getPosition().y));
+        }
+        else if (m_fillMethod == FillMethod::Vertical)
+        {
+            float thumbRadius = thumbSize.y / 2.0f;
+            float minRangeY = thumbRadius;
+            float maxRangeY = height - thumbRadius;
+
+            float localY = minRangeY + (pct * (maxRangeY - minRangeY));
+
+            // Viewport Y grows downward: 0% is at the bottom (maxRangeY), 100% is at the top (minRangeY)
+            float targetVirtualY = trackMinY + (height - localY);
+
+            if (m_fillOrigin == FillOrigin::VerticalTop)
+            {
+                targetVirtualY = trackMinY + localY;
+            }
+
+            float thumbAnchorPixelY = virtualCanvas.y * thumbAnchor.y;
+            float thumbLocalY = targetVirtualY - thumbAnchorPixelY;
+
+            thumbLocalY += (thumbPivot.y - 0.5f) * thumbSize.y;
+
+            m_thumbTransform->setPosition(Vector2(m_thumbTransform->getPosition().x, thumbLocalY));
+        }
+    }
+}
+
 
 void UISlider::setFillAmount(const Vector2& amount)
 {
@@ -462,6 +592,15 @@ void UISlider::fixReferences(const SceneReferenceResolver& resolver)
     if (m_thumbComponentUid != 0)
     {
         m_thumbTransform = static_cast<Transform2D*>(resolver.getClonedComponent(m_thumbComponentUid));
+    }
+
+    if (m_thumbTransform)
+    {
+        GameObject* thumbGo = m_thumbTransform->getOwner();
+        if (thumbGo)
+        {
+            thumbGo->setRaycastTarget(false);
+        }
     }
 
     applyToImage();
