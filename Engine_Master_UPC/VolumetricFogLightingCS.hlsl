@@ -46,6 +46,32 @@ cbuffer PointLightsCB : register(b2)
     PointLight pointLights[MAX_POINT_LIGHTS];
 };
 
+#define MAX_SPOT_LIGHTS 64
+
+struct SpotLight
+{
+    float3 position;
+    float radius;
+
+    float3 direction;
+    float padding0;
+
+    float3 color;
+    float intensity;
+
+    float cosineInnerAngle;
+    float cosineOuterAngle;
+    float2 padding1;
+};
+
+cbuffer SpotLightsCB : register(b3)
+{
+    uint spotLightCount;
+    uint3 spotLightPadding;
+
+    SpotLight spotLights[MAX_SPOT_LIGHTS];
+};
+
 Texture3D<float4> mediumVolume : register(t0);
 RWTexture3D<float4> lightingVolume : register(u0);
 
@@ -75,6 +101,12 @@ float EpicAttenuation(float distanceValue, float radiusValue)
     return numerator / denominator;
 }
 
+float SpotConeAttenuation(float cosineAngle, float cosineInner, float cosineOuter)
+{
+    float denominator = max(cosineInner - cosineOuter, 0.000001f);
+    return saturate((cosineAngle - cosineOuter) / denominator);
+}
+
 float3 ComputePointVolumetricScattering(PointLight light, float3 worldPosition, float3 viewDirection, float3 mediumScattering)
 {
     if (light.radius <= 0.000001f)
@@ -96,6 +128,47 @@ float3 ComputePointVolumetricScattering(PointLight light, float3 worldPosition, 
 
     return mediumScattering * light.color * light.intensity * attenuation * phase;
 }
+
+float3 ComputeSpotVolumetricScattering(SpotLight light, float3 worldPosition, float3 viewDirection, float3 mediumScattering)
+{
+    if (light.radius <= 0.000001f)
+        return 0.0f;
+
+    float3 spotDirection = normalize(light.direction);
+    float3 toFroxel = worldPosition - light.position;
+
+    float distanceProjected = dot(toFroxel, spotDirection);
+
+    if (distanceProjected <= 0.0f || distanceProjected >= light.radius)
+        return 0.0f;
+
+    float distanceToFroxel = length(toFroxel);
+
+    if (distanceToFroxel <= 0.000001f)
+        return 0.0f;
+
+    float3 incomingDirection = toFroxel / distanceToFroxel;
+
+    float cosineAngle = dot(incomingDirection, spotDirection);
+
+    if (cosineAngle <= light.cosineOuterAngle)
+        return 0.0f;
+
+    float attenuation = EpicAttenuation(distanceProjected, light.radius);
+
+    if (attenuation <= 0.0f)
+        return 0.0f;
+
+    float coneAttenuation = SpotConeAttenuation(cosineAngle, light.cosineInnerAngle, light.cosineOuterAngle);
+
+    if (coneAttenuation <= 0.0f)
+        return 0.0f;
+
+    float phase = HenyeyGreenstein(dot(incomingDirection, viewDirection), anisotropy);
+
+    return mediumScattering * light.color * light.intensity * attenuation * coneAttenuation * phase;
+}
+
 
 [numthreads(8, 8, 4)]
 void main(uint3 dispatchThreadID : SV_DispatchThreadID)
@@ -133,6 +206,14 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
     for (uint pointIndex = 0; pointIndex < activePointLightCount; ++pointIndex)
     {
         inScattering += ComputePointVolumetricScattering(pointLights[pointIndex], worldPosition, viewDirection, medium.rgb);
+    }
+    
+    uint activeSpotLightCount = min(spotLightCount, (uint) MAX_SPOT_LIGHTS);
+
+    [loop]
+    for (uint spotIndex = 0; spotIndex < activeSpotLightCount; ++spotIndex)
+    {
+        inScattering += ComputeSpotVolumetricScattering(spotLights[spotIndex], worldPosition, viewDirection, medium.rgb);
     }
 
     lightingVolume[dispatchThreadID] = float4(inScattering, 0.0f);
