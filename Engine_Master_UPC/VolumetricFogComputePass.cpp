@@ -148,6 +148,11 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_mediumConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_mediumConstants.gridDepth = VolumetricFog::GRID_DEPTH;
 
+    m_mediumConstants.heightFogDensity = settings.heightFogDensity;
+    m_mediumConstants.heightFogBaseHeight = settings.heightFogBaseHeight;
+    m_mediumConstants.heightFogFalloff = settings.heightFogFalloff;
+    m_mediumConstants.heightFogEnabled = settings.heightFogEnabled ? 1u : 0u;
+
     m_lightingConstants.inverseView = m_gridConstants.inverseView;
     m_lightingConstants.projectionScale = m_gridConstants.projectionScale;
     m_lightingConstants.nearDistance = m_gridConstants.nearDistance;
