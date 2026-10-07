@@ -35,6 +35,12 @@ struct VolumetricFogSettings
     // Maximum world-space distance covered by the volumetric volume.
     float maxDistance = 100.0f;
 
+    // Additional world-space density that decreases exponentially with height.
+    bool heightFogEnabled = false;
+    float heightFogDensity = 1.0f;
+    float heightFogBaseHeight = 0.0f;
+    float heightFogFalloff = 0.1f;
+
     bool animateDensity = false;
     float noiseScale = 0.05f;
     float noiseStrength = 0.5f;
@@ -63,6 +69,9 @@ struct VolumetricFogSettings
         anisotropy = std::clamp(anisotropy, -0.99f, 0.99f);
         maxDistance = (std::max)(0.1f, maxDistance);
 
+        heightFogDensity = std::max(heightFogDensity, 0.0f);
+        heightFogFalloff = std::max(heightFogFalloff, 0.0f);
+
         debugSlice = std::clamp(debugSlice, 0.0f, 1.0f);
 
         noiseScale = std::max(noiseScale, 0.0001f);
@@ -77,8 +86,7 @@ struct VolumetricFogSettings
         distanceFogColorG = std::max(distanceFogColorG, 0.0f);
         distanceFogColorB = std::max(distanceFogColorB, 0.0f);
 
-        if (static_cast<uint32_t>(debugView) >
-            static_cast<uint32_t>(VolumetricFogDebugView::Transmittance))
+        if (static_cast<uint32_t>(debugView) > static_cast<uint32_t>(VolumetricFogDebugView::Transmittance))
         {
             debugView = VolumetricFogDebugView::Final;
         }
@@ -93,6 +101,11 @@ struct VolumetricFogSettings
         archive.serialize(extinctionCoefficient, "ExtinctionCoefficient");
         archive.serialize(anisotropy, "Anisotropy");
         archive.serialize(maxDistance, "MaxDistance");
+
+        archive.serialize(heightFogEnabled, "HeightFogEnabled");
+        archive.serialize(heightFogDensity, "HeightFogDensity");
+        archive.serialize(heightFogBaseHeight, "HeightFogBaseHeight");
+        archive.serialize(heightFogFalloff, "HeightFogFalloff");
 
         archive.serialize(animateDensity, "AnimateDensity");
         archive.serialize(noiseScale, "NoiseScale");

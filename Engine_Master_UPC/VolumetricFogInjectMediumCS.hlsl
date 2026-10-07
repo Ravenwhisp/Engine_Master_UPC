@@ -25,6 +25,11 @@ cbuffer MediumConstants : register(b0)
     uint gridDepth;
     uint padding0;
     uint padding1;
+
+    float heightFogDensity;
+    float heightFogBaseHeight;
+    float heightFogFalloff;
+    uint heightFogEnabled;
 };
 
 RWTexture3D<float4> mediumVolume : register(u0);
@@ -94,11 +99,25 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     float effectiveDensity = density;
 
-    if (animateDensity != 0)
+    float3 worldPosition = float3(0.0f, 0.0f, 0.0f);
+    bool needsWorldPosition = heightFogEnabled != 0 || animateDensity != 0;
+
+    if (needsWorldPosition)
     {
         uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
-        float3 worldPosition = GetFroxelWorldPosition(dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView);
+        worldPosition = GetFroxelWorldPosition(dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView);
+    }
 
+    if (heightFogEnabled != 0)
+    {
+        float heightAboveBase = max(worldPosition.y - heightFogBaseHeight, 0.0f);
+        float exponentialDensity = heightFogDensity * exp(-heightFogFalloff * heightAboveBase);
+
+        effectiveDensity += exponentialDensity;
+    }
+
+    if (animateDensity != 0)
+    {
         float3 wind = windDirection;
         float windLength = length(wind);
 
