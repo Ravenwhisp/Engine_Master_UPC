@@ -54,6 +54,11 @@ namespace VolumetricFog
         uint32_t gridDepth = GRID_DEPTH;
         uint32_t padding0 = 0;
         uint32_t padding1 = 0;
+
+        float heightFogDensity = 1.0f;
+        float heightFogBaseHeight = 0.0f;
+        float heightFogFalloff = 0.1f;
+        uint32_t heightFogEnabled = 0;
     };
 
     static constexpr uint32_t LIGHTING_GROUP_SIZE_X = 8;

@@ -286,6 +286,30 @@ void SceneConfig::drawVolumetricFogSettings()
         fog.sanitize();
 
         // -----------------------------------------------------------------
+        // Exponential Height Fog
+        // -----------------------------------------------------------------
+
+        ImGui::Separator();
+        ImGui::Text("Exponential Height Fog");
+
+        ImGui::Checkbox("Enabled###VolumetricFogHeightEnabled", &fog.heightFogEnabled);
+        drawTooltip("Adds extra volumetric fog density based on world-space height. The fog is densest at and below Base Height and decreases exponentially above it.");
+
+        if (fog.heightFogEnabled)
+        {
+            ImGui::DragFloat("Density###VolumetricFogHeightDensity", &fog.heightFogDensity, 0.01f, 0.0f, 10.0f, "%.3f");
+            drawTooltip("Additional fog density contributed by the height fog at and below Base Height. This is added to the global volumetric fog density.");
+
+            ImGui::DragFloat("Base Height###VolumetricFogHeightBase", &fog.heightFogBaseHeight, 0.1f, -10000.0f, 10000.0f, "%.2f");
+            drawTooltip("World-space Y position where the height fog reaches its configured Density. Below this height the density remains constant; above it the fog decreases exponentially.");
+
+            ImGui::DragFloat("Height Falloff###VolumetricFogHeightFalloff", &fog.heightFogFalloff, 0.001f, 0.0f, 10.0f, "%.4f");
+            drawTooltip("Controls how quickly the height fog disappears above Base Height. Higher values keep the fog concentrated near the ground, while lower values allow it to extend higher.");
+        }
+
+        fog.sanitize();
+
+        // -----------------------------------------------------------------
         // Distance Fog
         // -----------------------------------------------------------------
 
