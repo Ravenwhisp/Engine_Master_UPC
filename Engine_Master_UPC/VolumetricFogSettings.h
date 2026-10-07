@@ -41,6 +41,10 @@ struct VolumetricFogSettings
     float heightFogBaseHeight = 0.0f;
     float heightFogFalloff = 0.1f;
 
+    // Static IGN sampling jitter.
+    bool samplingJitterEnabled = false;
+    float samplingJitterStrength = 1.0f;
+
     bool animateDensity = false;
     float noiseScale = 0.05f;
     float noiseStrength = 0.5f;
@@ -71,6 +75,8 @@ struct VolumetricFogSettings
 
         heightFogDensity = std::max(heightFogDensity, 0.0f);
         heightFogFalloff = std::max(heightFogFalloff, 0.0f);
+
+        samplingJitterStrength = std::clamp(samplingJitterStrength, 0.0f, 1.0f);
 
         debugSlice = std::clamp(debugSlice, 0.0f, 1.0f);
 
@@ -106,6 +112,9 @@ struct VolumetricFogSettings
         archive.serialize(heightFogDensity, "HeightFogDensity");
         archive.serialize(heightFogBaseHeight, "HeightFogBaseHeight");
         archive.serialize(heightFogFalloff, "HeightFogFalloff");
+
+        archive.serialize(samplingJitterEnabled, "SamplingJitterEnabled");
+        archive.serialize(samplingJitterStrength, "SamplingJitterStrength");
 
         archive.serialize(animateDensity, "AnimateDensity");
         archive.serialize(noiseScale, "NoiseScale");

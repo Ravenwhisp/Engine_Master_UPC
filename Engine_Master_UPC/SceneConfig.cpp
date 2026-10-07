@@ -380,6 +380,24 @@ void SceneConfig::drawVolumetricFogSettings()
         fog.sanitize();
 
         // -----------------------------------------------------------------
+        // Sampling
+        // -----------------------------------------------------------------
+
+        ImGui::Separator();
+        ImGui::Text("Sampling");
+
+        ImGui::Checkbox("Sampling Jitter###VolumetricFogSamplingJitter", &fog.samplingJitterEnabled);
+        drawTooltip("Offsets the volumetric sample position inside each depth slice using a stable Interleaved Gradient Noise pattern. This helps break up visible banding and regular froxel patterns.");
+
+        if (fog.samplingJitterEnabled)
+        {
+            ImGui::SliderFloat("Jitter Strength###VolumetricFogSamplingJitterStrength", &fog.samplingJitterStrength, 0.0f, 1.0f, "%.2f");
+            drawTooltip("Controls how far samples can move away from the center of each depth slice. 0 samples every froxel at its center, while 1 applies the full jitter pattern.");
+        }
+
+        fog.sanitize();
+
+        // -----------------------------------------------------------------
         // Debug
         // -----------------------------------------------------------------
 

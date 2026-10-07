@@ -7,18 +7,28 @@ float GetVolumetricDepth(float normalizedZ, float nearDistance, float maxDistanc
 {
     float safeNear = max(nearDistance, VOLUMETRIC_FOG_MIN_DEPTH_RANGE);
     float safeFar = max(maxDistance, safeNear + VOLUMETRIC_FOG_MIN_DEPTH_RANGE);
+
     return safeNear * pow(safeFar / safeNear, saturate(normalizedZ));
 }
 
 float GetFroxelCenterDepth(uint z, uint gridDepth, float nearDistance, float maxDistance)
 {
     float normalizedZ = (float(z) + 0.5f) / float(gridDepth);
+
+    return GetVolumetricDepth(normalizedZ, nearDistance, maxDistance);
+}
+
+float GetFroxelSampleDepth(uint z, uint gridDepth, float nearDistance, float maxDistance, float sampleOffset)
+{
+    float normalizedZ = (float(z) + saturate(sampleOffset)) / float(gridDepth);
+
     return GetVolumetricDepth(normalizedZ, nearDistance, maxDistance);
 }
 
 float GetFroxelBoundaryDepth(uint boundary, uint gridDepth, float nearDistance, float maxDistance)
 {
     float normalizedZ = float(boundary) / float(gridDepth);
+
     return GetVolumetricDepth(normalizedZ, nearDistance, maxDistance);
 }
 
@@ -30,13 +40,40 @@ float2 GetFroxelUV(uint2 froxelXY, uint2 gridSizeXY)
 float2 GetFroxelNDC(uint2 froxelXY, uint2 gridSizeXY)
 {
     float2 uv = GetFroxelUV(froxelXY, gridSizeXY);
+
     return float2(uv.x * 2.0f - 1.0f, 1.0f - uv.y * 2.0f);
+}
+
+float InterleavedGradientNoise(uint2 pixel)
+{
+    float2 position = float2(pixel);
+
+    return frac(52.9829189f * frac(dot(position, float2(0.06711056f, 0.00583715f))));
+}
+
+float GetFroxelSampleOffset(uint2 froxelXY, uint samplingJitterEnabled, float samplingJitterStrength)
+{
+    if (samplingJitterEnabled == 0)
+        return 0.5f;
+
+    float jitter = InterleavedGradientNoise(froxelXY);
+
+    return lerp(0.5f, jitter, saturate(samplingJitterStrength));
 }
 
 float3 GetFroxelViewPosition(uint3 froxel, uint3 gridSize, float2 projectionScale, float nearDistance, float maxDistance)
 {
     float2 ndc = GetFroxelNDC(froxel.xy, gridSize.xy);
     float depth = GetFroxelCenterDepth(froxel.z, gridSize.z, nearDistance, maxDistance);
+
+    return float3(ndc.x * depth / projectionScale.x, ndc.y * depth / projectionScale.y, -depth);
+}
+
+float3 GetFroxelViewPositionJittered(uint3 froxel, uint3 gridSize, float2 projectionScale, float nearDistance, float maxDistance, float sampleOffset)
+{
+    float2 ndc = GetFroxelNDC(froxel.xy, gridSize.xy);
+    float depth = GetFroxelSampleDepth(froxel.z, gridSize.z, nearDistance, maxDistance, sampleOffset);
+
     return float3(ndc.x * depth / projectionScale.x, ndc.y * depth / projectionScale.y, -depth);
 }
 
@@ -44,6 +81,15 @@ float3 GetFroxelWorldPosition(uint3 froxel, uint3 gridSize, float2 projectionSca
 {
     float3 viewPosition = GetFroxelViewPosition(froxel, gridSize, projectionScale, nearDistance, maxDistance);
     float4 worldPosition = mul(float4(viewPosition, 1.0f), inverseView);
+
+    return worldPosition.xyz / worldPosition.w;
+}
+
+float3 GetFroxelWorldPositionJittered(uint3 froxel, uint3 gridSize, float2 projectionScale, float nearDistance, float maxDistance, float4x4 inverseView, float sampleOffset)
+{
+    float3 viewPosition = GetFroxelViewPositionJittered(froxel, gridSize, projectionScale, nearDistance, maxDistance, sampleOffset);
+    float4 worldPosition = mul(float4(viewPosition, 1.0f), inverseView);
+
     return worldPosition.xyz / worldPosition.w;
 }
 
@@ -55,6 +101,7 @@ float LinearizeVolumetricViewDepth(float deviceDepth, float projectionA, float p
         denominator = denominator < 0.0f ? -0.000001f : 0.000001f;
 
     float viewZ = -projectionB / denominator;
+
     return max(-viewZ, 0.0f);
 }
 
