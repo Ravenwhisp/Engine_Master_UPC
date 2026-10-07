@@ -153,16 +153,23 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_mediumConstants.heightFogFalloff = settings.heightFogFalloff;
     m_mediumConstants.heightFogEnabled = settings.heightFogEnabled ? 1u : 0u;
 
+    m_mediumConstants.samplingJitterStrength = settings.samplingJitterStrength;
+    m_mediumConstants.samplingJitterEnabled = settings.samplingJitterEnabled ? 1u : 0u;
+
     m_lightingConstants.inverseView = m_gridConstants.inverseView;
     m_lightingConstants.projectionScale = m_gridConstants.projectionScale;
     m_lightingConstants.nearDistance = m_gridConstants.nearDistance;
     m_lightingConstants.maxDistance = m_gridConstants.maxDistance;
     m_lightingConstants.cameraPosition = ctx.cameraPosition;
     m_lightingConstants.anisotropy = settings.anisotropy;
+
     m_lightingConstants.gridWidth = VolumetricFog::GRID_WIDTH;
     m_lightingConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_lightingConstants.gridDepth = VolumetricFog::GRID_DEPTH;
     m_lightingConstants.debugDisableShadows = !m_hasShadowData || settings.debugView == VolumetricFogDebugView::LightingNoShadows ? 1u : 0u;
+
+    m_lightingConstants.samplingJitterStrength = settings.samplingJitterStrength;
+    m_lightingConstants.samplingJitterEnabled = settings.samplingJitterEnabled ? 1u : 0u;
 
     const LightComponent* directionalLight = findVolumetricDirectionalLight();
 

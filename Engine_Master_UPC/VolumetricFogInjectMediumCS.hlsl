@@ -30,6 +30,11 @@ cbuffer MediumConstants : register(b0)
     float heightFogBaseHeight;
     float heightFogFalloff;
     uint heightFogEnabled;
+
+    float samplingJitterStrength;
+    uint samplingJitterEnabled;
+    uint samplingPadding0;
+    uint samplingPadding1;
 };
 
 RWTexture3D<float4> mediumVolume : register(u0);
@@ -99,14 +104,18 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     float effectiveDensity = density;
 
-    float3 worldPosition = float3(0.0f, 0.0f, 0.0f);
-    bool needsWorldPosition = heightFogEnabled != 0 || animateDensity != 0;
+    uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
 
-    if (needsWorldPosition)
-    {
-        uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
-        worldPosition = GetFroxelWorldPosition(dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView);
-    }
+    float sampleOffset = GetFroxelSampleOffset(dispatchThreadID.xy, samplingJitterEnabled, samplingJitterStrength);
+
+    float3 worldPosition = GetFroxelWorldPositionJittered(
+        dispatchThreadID,
+        gridSize,
+        projectionScale,
+        nearDistance,
+        maxDistance,
+        inverseView,
+        sampleOffset);
 
     if (heightFogEnabled != 0)
     {
