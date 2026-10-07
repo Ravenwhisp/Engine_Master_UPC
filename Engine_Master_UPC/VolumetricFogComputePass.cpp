@@ -44,6 +44,13 @@ namespace
 
         GPUPointLight pointLights[LightDefaults::MAX_POINT_LIGHTS]{};
     };
+
+    struct VolumetricSpotLightsConstantBuffer
+    {
+        uint32_t spotLightCount = 0;
+        uint32_t padding[3] = {};
+        GPUSpotLight spotLights[LightDefaults::MAX_SPOT_LIGHTS]{};
+    };
 }
 
 VolumetricFogComputePass::VolumetricFogComputePass(ComPtr<ID3D12Device4> device) : m_device(device)
@@ -62,6 +69,7 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 {
     m_enabled = false;
     m_pointLightsCBAddress = 0;
+    m_spotLightsCBAddress = 0;
     m_gridConstants = {};
     m_mediumConstants = {};
     m_lightingConstants = {};
@@ -149,7 +157,6 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_lightingConstants.gridWidth = VolumetricFog::GRID_WIDTH;
     m_lightingConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_lightingConstants.gridDepth = VolumetricFog::GRID_DEPTH;
-
     m_lightingConstants.debugDisableShadows = !m_hasShadowData || settings.debugView == VolumetricFogDebugView::LightingNoShadows ? 1u : 0u;
 
     const LightComponent* directionalLight = findVolumetricDirectionalLight();
@@ -168,9 +175,10 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
         m_lightingConstants.hasDirectionalLight = 1;
     }
 
-    m_enabled = m_mediumVolume != nullptr && m_lightingVolume != nullptr && m_integratedVolume != nullptr;
+    if (ctx.ringBuffer == nullptr) return;
 
     VolumetricPointLightsConstantBuffer pointLightsCB{};
+    VolumetricSpotLightsConstantBuffer spotLightsCB{};
 
     const std::vector<LightComponent*>& lights = app->getModuleScene()->getLightComponents();
 
@@ -183,31 +191,57 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 
         const LightData& data = light->getData();
 
-        if (data.type != LightType::POINT) continue;
+        if (data.type != LightType::POINT && data.type != LightType::SPOT) continue;
         if (!data.common.affectVolumetricFog) continue;
         if (data.common.intensity <= 0.0f || data.common.volumetricIntensity <= 0.0f) continue;
-        if (data.parameters.point.radius <= 0.0f) continue;
-        if (pointLightsCB.pointLightCount >= LightDefaults::MAX_POINT_LIGHTS) break;
 
         const Transform* transform = owner->GetTransform();
         if (transform == nullptr) continue;
 
         const Matrix& world = transform->getGlobalMatrix();
+        const Vector3 position(world._41, world._42, world._43);
 
-        GPUPointLight& gpuLight = pointLightsCB.pointLights[pointLightsCB.pointLightCount++];
+        if (data.type == LightType::POINT)
+        {
+            if (data.parameters.point.radius <= 0.0f) continue;
+            if (pointLightsCB.pointLightCount >= LightDefaults::MAX_POINT_LIGHTS) continue;
 
-        gpuLight.position = Vector3(world._41, world._42, world._43);
-        gpuLight.radius = data.parameters.point.radius;
+            GPUPointLight& gpuLight = pointLightsCB.pointLights[pointLightsCB.pointLightCount++];
+
+            gpuLight.position = position;
+            gpuLight.radius = data.parameters.point.radius;
+            gpuLight.color = data.common.color;
+            gpuLight.intensity = data.common.intensity * data.common.volumetricIntensity;
+
+            continue;
+        }
+
+        if (data.parameters.spot.radius <= 0.0f) continue;
+        if (spotLightsCB.spotLightCount >= LightDefaults::MAX_SPOT_LIGHTS) continue;
+
+        Vector3 direction = transform->getForward();
+        if (direction.LengthSquared() <= 0.000001f) continue;
+        direction.Normalize();
+
+        const SpotLightParameters& spot = data.parameters.spot;
+        GPUSpotLight& gpuLight = spotLightsCB.spotLights[spotLightsCB.spotLightCount++];
+
+        gpuLight.position = position;
+        gpuLight.radius = spot.radius;
+        gpuLight.direction = direction;
         gpuLight.color = data.common.color;
         gpuLight.intensity = data.common.intensity * data.common.volumetricIntensity;
+        gpuLight.cosineInnerAngle = std::cos(XMConvertToRadians(spot.innerAngleDegrees));
+        gpuLight.cosineOuterAngle = std::cos(XMConvertToRadians(spot.outerAngleDegrees));
     }
 
-    if (ctx.ringBuffer == nullptr) return;
-
-    m_pointLightsCBAddress = ctx.ringBuffer->allocate(&pointLightsCB, sizeof(VolumetricPointLightsConstantBuffer), app->getModuleD3D12()->getCurrentFrame());
-
+    m_pointLightsCBAddress = ctx.ringBuffer->allocate(&pointLightsCB, sizeof(VolumetricPointLightsConstantBuffer));
     if (m_pointLightsCBAddress == 0) return;
 
+    m_spotLightsCBAddress = ctx.ringBuffer->allocate(&spotLightsCB, sizeof(VolumetricSpotLightsConstantBuffer));
+    if (m_spotLightsCBAddress == 0) return;
+
+    m_enabled = m_mediumVolume != nullptr && m_lightingVolume != nullptr && m_integratedVolume != nullptr;
 }
 
 void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
@@ -259,6 +293,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     }
 
     commandList->SetComputeRootConstantBufferView(9, m_pointLightsCBAddress);
+    commandList->SetComputeRootConstantBufferView(10, m_spotLightsCBAddress);
 
     commandList->SetComputeRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
@@ -335,7 +370,7 @@ void VolumetricFogComputePass::createLightingRootSignature()
         shadowRange[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 20 + i, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[10] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[11] = {};
     rootParameters[0].InitAsConstants(sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[1].InitAsDescriptorTable(1, &mediumRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[2].InitAsDescriptorTable(1, &lightingRange, D3D12_SHADER_VISIBILITY_ALL);
@@ -345,6 +380,7 @@ void VolumetricFogComputePass::createLightingRootSignature()
         rootParameters[6 + i - 1].InitAsDescriptorTable(1, &shadowRange[i], D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[5].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[9].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[10].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     const auto shadowSamplers = makeShadowSamplers(D3D12_SHADER_VISIBILITY_ALL);
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
