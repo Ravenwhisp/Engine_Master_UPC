@@ -27,6 +27,25 @@ cbuffer LightingConstants : register(b0)
     uint debugDisableShadows;
 };
 
+#define MAX_POINT_LIGHTS 256
+
+struct PointLight
+{
+    float3 position;
+    float radius;
+
+    float3 color;
+    float intensity;
+};
+
+cbuffer PointLightsCB : register(b2)
+{
+    uint pointLightCount;
+    uint3 pointLightPadding;
+
+    PointLight pointLights[MAX_POINT_LIGHTS];
+};
+
 Texture3D<float4> mediumVolume : register(t0);
 RWTexture3D<float4> lightingVolume : register(u0);
 
@@ -39,27 +58,82 @@ float HenyeyGreenstein(float cosTheta, float g)
     return (1.0f - g2) / (4.0f * PI * pow(denominator, 1.5f));
 }
 
+float EpicAttenuation(float distanceValue, float radiusValue)
+{
+    if (radiusValue <= 0.000001f)
+        return 0.0f;
+
+    float normalizedDistance = distanceValue / radiusValue;
+    float normalizedDistance2 = normalizedDistance * normalizedDistance;
+    float normalizedDistance4 = normalizedDistance2 * normalizedDistance2;
+
+    float numerator = max(1.0f - normalizedDistance4, 0.0f);
+    numerator *= numerator;
+
+    float denominator = distanceValue * distanceValue + 1.0f;
+
+    return numerator / denominator;
+}
+
+float3 ComputePointVolumetricScattering(PointLight light, float3 worldPosition, float3 viewDirection, float3 mediumScattering)
+{
+    if (light.radius <= 0.000001f)
+        return 0.0f;
+
+    float3 toFroxel = worldPosition - light.position;
+    float distanceToFroxel = length(toFroxel);
+
+    if (distanceToFroxel <= 0.000001f || distanceToFroxel >= light.radius)
+        return 0.0f;
+
+    float attenuation = EpicAttenuation(distanceToFroxel, light.radius);
+
+    if (attenuation <= 0.0f)
+        return 0.0f;
+
+    float3 incomingDirection = toFroxel / distanceToFroxel;
+    float phase = HenyeyGreenstein(dot(incomingDirection, viewDirection), anisotropy);
+
+    return mediumScattering * light.color * light.intensity * attenuation * phase;
+}
+
 [numthreads(8, 8, 4)]
 void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 {
     if (dispatchThreadID.x >= gridWidth || dispatchThreadID.y >= gridHeight || dispatchThreadID.z >= gridDepth)
         return;
 
-    if (hasDirectionalLight == 0)
-    {
-        lightingVolume[dispatchThreadID] = 0.0f;
-        return;
-    }
-
     uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
+
     float4 medium = mediumVolume.Load(int4(dispatchThreadID, 0));
     float3 worldPosition = GetFroxelWorldPosition(dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView);
     float3 viewDirection = normalize(cameraPosition - worldPosition);
-    float3 incomingDirection = normalize(lightDirection);
-    float phase = HenyeyGreenstein(dot(incomingDirection, viewDirection), anisotropy);
-    uint selectedCascadeIndex;
-    float shadow = debugDisableShadows != 0 ? 1.0f : ComputeShadow(worldPosition, float3(0, 0, 0), selectedCascadeIndex);
-    float3 inScattering = medium.rgb * lightColor * lightIntensity * phase * shadow;
+
+    float3 inScattering = 0.0f;
+
+    if (hasDirectionalLight != 0)
+    {
+        float3 incomingDirection = normalize(lightDirection);
+        float phase = HenyeyGreenstein(dot(incomingDirection, viewDirection), anisotropy);
+
+        float shadow = 1.0f;
+
+        if (debugDisableShadows == 0)
+        {
+            uint selectedCascadeIndex;
+            shadow = ComputeShadow(worldPosition, float3(0.0f, 0.0f, 0.0f), selectedCascadeIndex);
+        }
+
+        inScattering += medium.rgb * lightColor * lightIntensity * phase * shadow;
+    }
+
+    uint activePointLightCount = min(pointLightCount, (uint) MAX_POINT_LIGHTS);
+
+    [loop]
+    for (uint pointIndex = 0; pointIndex < activePointLightCount; ++pointIndex)
+    {
+        inScattering += ComputePointVolumetricScattering(pointLights[pointIndex], worldPosition, viewDirection, medium.rgb);
+    }
 
     lightingVolume[dispatchThreadID] = float4(inScattering, 0.0f);
 }
