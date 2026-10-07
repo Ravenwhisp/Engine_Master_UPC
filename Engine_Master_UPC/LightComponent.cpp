@@ -110,6 +110,7 @@ void LightComponent::setTypeSpot(float radius, float innerAngleDegrees, float ou
 void LightComponent::sanitize()
 {
     m_data.common.intensity = std::max(0.0f, m_data.common.intensity);
+    m_data.common.volumetricIntensity = std::max(0.0f, m_data.common.volumetricIntensity);
     sanitizeShadowSettings(m_data.shadow);
 
     if (m_data.type == LightType::POINT)
@@ -121,9 +122,8 @@ void LightComponent::sanitize()
     if (m_data.type == LightType::SPOT)
     {
         m_data.parameters.spot.radius = std::max(0.0f, m_data.parameters.spot.radius);
-        sanitizeSpotAngles(
-            m_data.parameters.spot.innerAngleDegrees,
-            m_data.parameters.spot.outerAngleDegrees);
+        sanitizeSpotAngles(m_data.parameters.spot.innerAngleDegrees, m_data.parameters.spot.outerAngleDegrees);
+
         return;
     }
 }
@@ -170,6 +170,24 @@ void LightComponent::drawUi()
     if (ImGui::DragFloat("Intensity", &m_data.common.intensity, 0.1f, 0.0f, 500.0f))
     {
         lightChanged = true;
+    }
+
+    ImGui::Separator();
+
+    if (ImGui::CollapsingHeader("Volumetric Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        if (ImGui::Checkbox("Affect Volumetric Fog", &m_data.common.affectVolumetricFog))
+        {
+            lightChanged = true;
+        }
+
+        if (m_data.common.affectVolumetricFog)
+        {
+            if (ImGui::DragFloat("Volumetric Intensity", &m_data.common.volumetricIntensity, 0.05f, 0.0f, 10.0f))
+            {
+                lightChanged = true;
+            }
+        }
     }
 
     ImGui::Separator();
@@ -377,6 +395,8 @@ void LightComponent::serialize(IArchive& archive)
 
     archive.serialize(m_data.common.color, "Color");
     archive.serialize(m_data.common.intensity, "Intensity");
+    archive.serialize(m_data.common.affectVolumetricFog, "AffectVolumetricFog");
+    archive.serialize(m_data.common.volumetricIntensity, "VolumetricIntensity");
 
     archive.serialize(m_data.shadow.castShadows, "CastShadows");
 
