@@ -59,6 +59,11 @@ namespace VolumetricFog
         float heightFogBaseHeight = 0.0f;
         float heightFogFalloff = 0.1f;
         uint32_t heightFogEnabled = 0;
+
+        float samplingJitterStrength = 1.0f;
+        uint32_t samplingJitterEnabled = 0;
+        uint32_t samplingPadding0 = 0;
+        uint32_t samplingPadding1 = 0;
     };
 
     static constexpr uint32_t LIGHTING_GROUP_SIZE_X = 8;
@@ -86,6 +91,11 @@ namespace VolumetricFog
         uint32_t gridHeight = GRID_HEIGHT;
         uint32_t gridDepth = GRID_DEPTH;
         uint32_t debugDisableShadows = 0;
+
+        float samplingJitterStrength = 1.0f;
+        uint32_t samplingJitterEnabled = 0;
+        uint32_t samplingPadding0 = 0;
+        uint32_t samplingPadding1 = 0;
     };
 
     static constexpr uint32_t INTEGRATION_GROUP_SIZE_X = 8;

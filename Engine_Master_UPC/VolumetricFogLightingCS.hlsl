@@ -25,6 +25,11 @@ cbuffer LightingConstants : register(b0)
     uint gridHeight;
     uint gridDepth;
     uint debugDisableShadows;
+
+    float samplingJitterStrength;
+    uint samplingJitterEnabled;
+    uint samplingPadding0;
+    uint samplingPadding1;
 };
 
 #define MAX_POINT_LIGHTS 256
@@ -178,8 +183,19 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
 
+    float sampleOffset = GetFroxelSampleOffset(dispatchThreadID.xy, samplingJitterEnabled, samplingJitterStrength);
+
     float4 medium = mediumVolume.Load(int4(dispatchThreadID, 0));
-    float3 worldPosition = GetFroxelWorldPosition(dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView);
+
+    float3 worldPosition = GetFroxelWorldPositionJittered(
+    dispatchThreadID,
+    gridSize,
+    projectionScale,
+    nearDistance,
+    maxDistance,
+    inverseView,
+    sampleOffset);
+
     float3 viewDirection = normalize(cameraPosition - worldPosition);
 
     float3 inScattering = 0.0f;
