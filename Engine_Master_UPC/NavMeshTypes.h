@@ -3,6 +3,7 @@
 #include "SimpleMath.h"
 
 using DirectX::SimpleMath::Vector3;
+using DirectX::SimpleMath::Matrix;
 
 enum class NavAreaType
 {
@@ -60,6 +61,8 @@ struct NavModifierVolumeData
 {
 	Vector3 position = Vector3::Zero;
 	Vector3 halfExtents = Vector3::One;
+	Matrix inverseWorldMatrix = Matrix::Identity;
+
 	NavAreaType areaType = NavAreaType::Default;
 	bool enabled = true;
 	int priority = 0;
