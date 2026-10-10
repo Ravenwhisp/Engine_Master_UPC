@@ -4,6 +4,13 @@
 #include <imgui.h>
 #include "UIImage.h"
 #include "GameObject.h"
+#include "Transform2D.h"
+#include "Application.h"
+#include "ModuleEditor.h"
+#include "UILayoutUtils.h"
+#include "SceneReferenceResolver.h"
+
+#define M_PI 3.14159265358979323846f
 
 UISlider::UISlider(UID id, GameObject* owner)
     : Component(id, ComponentType::UISLIDER, owner)
@@ -19,6 +26,10 @@ std::unique_ptr<Component> UISlider::clone(GameObject* newOwner) const
     clonedSlider->m_fillAmount = this->m_fillAmount;
     clonedSlider->m_fillMethod = this->m_fillMethod;
     clonedSlider->m_fillOrigin = this->m_fillOrigin;
+
+	clonedSlider->m_thumbTransform = this->m_thumbTransform;
+
+    clonedSlider->m_thumbComponentUid = this->m_thumbComponentUid;
 
     return clonedSlider;
 }
@@ -40,7 +51,137 @@ void UISlider::applyToImage()
     img->setFillAmount(m_fillAmount);
     img->setFillMethod(m_fillMethod);
     img->setFillOrigin(m_fillOrigin);
+
+    if (m_thumbTransform)
+    {
+        updateThumbPosition();
+    }
 }
+
+void UISlider::updateThumbPosition()
+{
+    Transform2D* rootTransform = getOwner()->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
+    if (!rootTransform) return;
+
+    if (getOwner())
+    {
+#ifdef GAME_RELEASE
+        auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+        Vector2 size(viewport.Width, viewport.Height);
+#else
+        auto size = app->getModuleEditor()->getEventViewportSize();
+#endif
+        Vector2 uiScale = UILayoutUtils::CalculateScreenSpaceScale(size.x, size.y);
+        Vector2 virtualCanvas = Vector2(size.x, size.y) / uiScale;
+
+        Vector2 position = rootTransform->getPosition();
+        Vector2 baseSize = rootTransform->getBaseSize();
+        Vector2 scale = rootTransform->getScale();
+        Vector2 pivot = rootTransform->getPivot();
+
+        Vector2 anchorMin = rootTransform->getAnchorMin();
+        Vector2 anchorMax = rootTransform->getAnchorMax();
+        StretchMode stretchMode = rootTransform->getStretchMode();
+
+        float anchorMinPixelX = virtualCanvas.x * std::max(0.0f, std::min(1.0f, anchorMin.x));
+        float anchorMinPixelY = virtualCanvas.y * std::max(0.0f, std::min(1.0f, anchorMin.y));
+        float anchorMaxPixelX = virtualCanvas.x * std::max(0.0f, std::min(1.0f, anchorMax.x));
+        float anchorMaxPixelY = virtualCanvas.y * std::max(0.0f, std::min(1.0f, anchorMax.y));
+
+        float stretchW = std::max(0.0f, anchorMaxPixelX - anchorMinPixelX);
+        float stretchH = std::max(0.0f, anchorMaxPixelY - anchorMinPixelY);
+
+        float width = baseSize.x * scale.x;
+        float height = baseSize.y * scale.y;
+        float referenceX = anchorMinPixelX + position.x;
+        float referenceY = anchorMinPixelY + position.y;
+
+        if (stretchMode == StretchMode::BOTH)
+        {
+            width = stretchW * scale.x;
+            height = stretchH * scale.y;
+            referenceX = ((anchorMinPixelX + anchorMaxPixelX) * 0.5f) + position.x;
+            referenceY = ((anchorMinPixelY + anchorMaxPixelY) * 0.5f) + position.y;
+        }
+        else if (stretchMode == StretchMode::HORIZONTAL)
+        {
+            width = stretchW;
+            float baseAspectRatio = (baseSize.y > 0.0f) ? (baseSize.x / baseSize.y) : 1.0f;
+            height = width / baseAspectRatio;
+            referenceX = ((anchorMinPixelX + anchorMaxPixelX) * 0.5f) + position.x;
+        }
+        else if (stretchMode == StretchMode::VERTICAL)
+        {
+            height = stretchH;
+            float baseAspectRatio = (baseSize.y > 0.0f) ? (baseSize.x / baseSize.y) : 1.0f;
+            width = height * baseAspectRatio;
+            referenceY = ((anchorMinPixelY + anchorMaxPixelY) * 0.5f) + position.y;
+        }
+
+        // Top-left bounds of the background track
+        float trackMinX = referenceX - (pivot.x * width);
+        float trackMinY = referenceY - (pivot.y * height);
+
+        float pct = m_fillAmount.y; // Slider progress percentage (0.0f to 1.0f)
+
+        // Pull thumb data to compute constraints and offsets
+        Vector2 thumbAnchor = m_thumbTransform->getAnchorMin();
+        Vector2 thumbPivot = m_thumbTransform->getPivot();
+        Vector2 thumbSize = m_thumbTransform->getBaseSize() * m_thumbTransform->getScale();
+
+        if (m_fillMethod == FillMethod::Horizontal)
+        {
+            // Calculate radius to prevent the thumb from spilling outside the track bounds
+            float thumbRadius = thumbSize.x / 2.0f;
+            float minRangeX = thumbRadius;
+            float maxRangeX = width - thumbRadius;
+
+            // Map the percentage into the safe inner range
+            float localX = minRangeX + (pct * (maxRangeX - minRangeX));
+
+            if (m_fillOrigin == FillOrigin::HorizontalRight)
+            {
+                localX = width - localX;
+            }
+
+            // Convert back to absolute screen canvas coordinates
+            float targetVirtualX = trackMinX + localX;
+
+            // Offset by thumb's own anchor position
+            float thumbAnchorPixelX = virtualCanvas.x * thumbAnchor.x;
+            float thumbLocalX = targetVirtualX - thumbAnchorPixelX;
+
+            // Pivot correction if thumb isn't centered at 0.5
+            thumbLocalX += (thumbPivot.x - 0.5f) * thumbSize.x;
+
+            m_thumbTransform->setPosition(Vector2(thumbLocalX, m_thumbTransform->getPosition().y));
+        }
+        else if (m_fillMethod == FillMethod::Vertical)
+        {
+            float thumbRadius = thumbSize.y / 2.0f;
+            float minRangeY = thumbRadius;
+            float maxRangeY = height - thumbRadius;
+
+            float localY = minRangeY + (pct * (maxRangeY - minRangeY));
+
+            // Viewport Y grows downward: 0% is at the bottom (maxRangeY), 100% is at the top (minRangeY)
+            float targetVirtualY = trackMinY + (height - localY);
+
+            if (m_fillOrigin == FillOrigin::VerticalTop)
+            {
+                targetVirtualY = trackMinY + localY;
+            }
+
+            float thumbAnchorPixelY = virtualCanvas.y * thumbAnchor.y;
+            float thumbLocalY = targetVirtualY - thumbAnchorPixelY;
+
+            thumbLocalY += (thumbPivot.y - 0.5f) * thumbSize.y;
+
+            m_thumbTransform->setPosition(Vector2(m_thumbTransform->getPosition().x, thumbLocalY));
+        }
+    }
+}
+
 
 void UISlider::setFillAmount(const Vector2& amount)
 {
@@ -57,6 +198,211 @@ void UISlider::setFillStart(float start)
 void UISlider::setFillEnd(float end)
 {
     m_fillAmount.y = end;
+    applyToImage();
+}
+
+void UISlider::onPointerEnter(PointerEventData& data)
+{
+    //solo para texturas
+}
+
+void UISlider::onPointerExit(PointerEventData& data)
+{
+    //solo para texturas
+}
+
+void UISlider::onPointerDown(PointerEventData& data)
+{
+    if (!isActive()) return;
+
+    updateFillAmountFromPointerPosition(data.position);
+}
+
+void UISlider::onPointerDrag(PointerEventData& data)
+{
+    if (!isActive()) return;
+
+    updateFillAmountFromPointerPosition(data.position);
+}
+
+void UISlider::onPointerUp(PointerEventData& data)
+{
+    //solo para texturas
+}
+
+void UISlider::onPointerClick(PointerEventData& data)
+{
+    updateFillAmountFromPointerPosition(data.position);
+}
+
+void UISlider::updateFillAmountFromPointerPosition(const Vector2& mousePos)
+{
+    if (!getOwner()) return;
+
+    Transform2D* rootTransform = getOwner()->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
+    if (!rootTransform) return;
+
+#ifdef GAME_RELEASE
+    auto viewport = app->getModuleD3D12()->getSwapChain()->getViewport();
+    Vector2 size(viewport.Width, viewport.Height);
+#else
+    auto size = app->getModuleEditor()->getEventViewportSize();
+#endif
+
+    Vector2 uiScale(1.0f, 1.0f);
+    uiScale = UILayoutUtils::CalculateScreenSpaceScale(size.x, size.y);
+
+    Vector2 virtualMousePos(0.0f, 0.0f);
+    if (uiScale.x > 0.0f) virtualMousePos.x = mousePos.x / uiScale.x;
+    if (uiScale.y > 0.0f) virtualMousePos.y = mousePos.y / uiScale.y;
+
+    Vector2 lonaVirtual = Vector2(size.x, size.y) / uiScale;
+    Vector2 position = rootTransform->getPosition();
+    Vector2 baseSize = rootTransform->getBaseSize();
+    Vector2 scale = rootTransform->getScale();
+    Vector2 pivot = rootTransform->getPivot();
+
+    Vector2 anchorMin = rootTransform->getAnchorMin();
+    Vector2 anchorMax = rootTransform->getAnchorMax();
+    StretchMode stretchMode = rootTransform->getStretchMode();
+
+    float anchorMinPixelX = lonaVirtual.x * std::max(0.0f, std::min(1.0f, anchorMin.x));
+    float anchorMinPixelY = lonaVirtual.y * std::max(0.0f, std::min(1.0f, anchorMin.y));
+    float anchorMaxPixelX = lonaVirtual.x * std::max(0.0f, std::min(1.0f, anchorMax.x));
+    float anchorMaxPixelY = lonaVirtual.y * std::max(0.0f, std::min(1.0f, anchorMax.y));
+
+    float stretchW = std::max(0.0f, anchorMaxPixelX - anchorMinPixelX);
+    float stretchH = std::max(0.0f, anchorMaxPixelY - anchorMinPixelY);
+
+    float width = baseSize.x * scale.x;
+    float height = baseSize.y * scale.y;
+    float referenceX = anchorMinPixelX + position.x;
+    float referenceY = anchorMinPixelY + position.y;
+
+    if (stretchMode == StretchMode::BOTH)
+    {
+        width = stretchW * scale.x;
+        height = stretchH * scale.y;
+        referenceX = ((anchorMinPixelX + anchorMaxPixelX) * 0.5f) + position.x;
+        referenceY = ((anchorMinPixelY + anchorMaxPixelY) * 0.5f) + position.y;
+    }
+    else if (stretchMode == StretchMode::HORIZONTAL)
+    {
+        width = stretchW;
+
+        float baseAspectRatio = (baseSize.y > 0.0f) ? (baseSize.x / baseSize.y) : 1.0f;
+        height = width / baseAspectRatio;
+
+        referenceX = ((anchorMinPixelX + anchorMaxPixelX) * 0.5f) + position.x;
+    }
+    else if (stretchMode == StretchMode::VERTICAL)
+    {
+        height = stretchH;
+        float baseAspectRatio = (baseSize.y > 0.0f) ? (baseSize.x / baseSize.y) : 1.0f;
+        width = height * baseAspectRatio;
+
+        referenceY = ((anchorMinPixelY + anchorMaxPixelY) * 0.5f) + position.y;
+    }
+
+    float globalPosX = referenceX - (pivot.x * width);
+    float globalPosY = referenceY - (pivot.y * height);
+
+    float newPercentage = 0.0f;
+
+    switch (m_fillMethod)
+    {
+    case FillMethod::Horizontal:
+    {
+        float minX = globalPosX;
+        if (width > 0.0f)
+        {
+            newPercentage = (virtualMousePos.x - minX) / width;
+        }
+        if (m_fillOrigin == FillOrigin::HorizontalRight)
+        {
+            newPercentage = 1.0f - newPercentage;
+        }
+        break;
+    }
+
+    case FillMethod::Vertical:
+    {
+        float minY = globalPosY;
+        if (height > 0.0f)
+        {
+            newPercentage = 1.0f - ((virtualMousePos.y - minY) / height);
+        }
+        if (m_fillOrigin == FillOrigin::VerticalTop)
+        {
+            newPercentage = 1.0f - newPercentage;
+        }
+        break;
+    }
+
+    case FillMethod::Radial90:
+    case FillMethod::Radial180:
+    case FillMethod::Radial360:
+    {
+        Vector2 centroGeometrico = Vector2(globalPosX + (width / 2.0f), globalPosY + (height / 2.0f));
+        Vector2 dir = virtualMousePos - centroGeometrico;
+
+        if (dir.LengthSquared() < 0.001f) {
+            newPercentage = m_fillAmount.y;
+            break;
+        }
+
+        float mouseAngle = atan2f(-dir.y, dir.x);
+        if (mouseAngle < 0.0f) mouseAngle += 2.0f * M_PI;
+
+        float startAngleOffset = M_PI / 2.0f;
+        float maxApertureAngle = 2.0f * M_PI;
+
+        if (m_fillMethod == FillMethod::Radial180)
+        {
+            maxApertureAngle = M_PI;
+        }
+        else if (m_fillMethod == FillMethod::Radial90)
+        {
+            maxApertureAngle = M_PI / 2.0f;
+        }
+
+        bool clockwise = true;
+        if (m_fillMethod == FillMethod::Radial360)
+        {
+            clockwise = (m_fillOrigin != FillOrigin::Radial360CounterClockwise);
+        }
+        else
+        {
+            clockwise = (static_cast<int>(m_fillOrigin) & 4) == 0;
+        }
+
+        float relativeAngle = 0.0f;
+        if (clockwise)
+        {
+            relativeAngle = startAngleOffset - mouseAngle;
+        }
+        else
+        {
+            relativeAngle = mouseAngle - startAngleOffset;
+        }
+
+        if (relativeAngle < 0.0f) relativeAngle += 2.0f * M_PI;
+        if (maxApertureAngle > 0.0f)
+        {
+            newPercentage = relativeAngle / maxApertureAngle;
+        }
+        if (m_fillMethod != FillMethod::Radial360 && newPercentage > 1.0f)
+        {
+            newPercentage = m_fillAmount.y;
+        }
+
+        break;
+    }
+    }
+
+    newPercentage = std::clamp(newPercentage, 0.0f, 1.0f);
+    m_fillAmount.y = newPercentage;
+
     applyToImage();
 }
 
@@ -181,6 +527,32 @@ void UISlider::drawUi()
         }
     }
 
+    ImGui::Separator();
+
+    if(m_thumbTransform)
+    {
+		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Assigned (UID %llu)", m_thumbComponentUid);
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
+	}
+
+    ImGui::Button("Drop Thumb GameObject Here (Transform2D needed)");
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
+        {
+            GameObject* droppedGameObject = *(GameObject**)payload->Data;
+            if (droppedGameObject)
+            {
+                m_thumbTransform = droppedGameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
+				m_thumbComponentUid = m_thumbTransform ? m_thumbTransform->getID() : 0;
+            }
+        }
+        ImGui::EndDragDropTarget();
+	}
+
     if (changed)
     {
         applyToImage();
@@ -208,4 +580,28 @@ void UISlider::serialize(IArchive& archive)
 
 	archive.serializeStringEnum(m_fillMethod, "FillMethod", FillMethodToString, StringToFillMethod);
 	archive.serialize(m_fillOrigin, "FillOrigin");
+
+    archive.serialize(m_thumbComponentUid, "ThumbComponentUID");
+    
+}
+
+void UISlider::fixReferences(const SceneReferenceResolver& resolver)
+{
+    m_thumbTransform = nullptr;
+
+    if (m_thumbComponentUid != 0)
+    {
+        m_thumbTransform = static_cast<Transform2D*>(resolver.getClonedComponent(m_thumbComponentUid));
+    }
+
+    if (m_thumbTransform)
+    {
+        GameObject* thumbGo = m_thumbTransform->getOwner();
+        if (thumbGo)
+        {
+            thumbGo->setRaycastTarget(false);
+        }
+    }
+
+    applyToImage();
 }
