@@ -538,7 +538,7 @@ void UISlider::drawUi()
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "None");
 	}
 
-    ImGui::Button("Drop Thumb GameObject Here");
+    ImGui::Button("Drop Thumb GameObject Here (Transform2D needed)");
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("GAME_OBJECT"))
@@ -547,7 +547,7 @@ void UISlider::drawUi()
             if (droppedGameObject)
             {
                 m_thumbTransform = droppedGameObject->GetComponentAs<Transform2D>(ComponentType::TRANSFORM2D);
-                m_thumbComponentUid = m_thumbTransform->getID();
+				m_thumbComponentUid = m_thumbTransform ? m_thumbTransform->getID() : 0;
             }
         }
         ImGui::EndDragDropTarget();
