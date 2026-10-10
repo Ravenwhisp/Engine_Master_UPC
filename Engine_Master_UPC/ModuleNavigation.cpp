@@ -289,8 +289,8 @@ void ModuleNavigation::rebuildNavMeshDebugLines()
             for (int j = 0; j < nv; ++j)
             {
                 // skip internal edges
-                if (p->neis[j] != 0)
-                    continue;
+                /*if (p->neis[j] != 0)
+                    continue;*/
 
                 const unsigned short v0 = p->verts[j];
                 const unsigned short v1 = p->verts[(j + 1) % nv];
@@ -595,12 +595,18 @@ std::vector<NavModifierVolumeData> ModuleNavigation::collectNavModifierVolumes(S
                 // if component is enabled -> add it to the data
                 if (navComp->getEnabled())
                 {
+                    const Matrix worldMatrix = transformComp->getGlobalMatrix();
+
                     NavModifierVolumeData volume;
+
                     volume.position = transformComp->getGlobalMatrix().Translation();
                     volume.halfExtents = navComp->getHalfExtents();
+                    volume.inverseWorldMatrix = worldMatrix.Invert();
+
                     volume.areaType = navComp->getAreaType();
                     volume.enabled = navComp->getEnabled();
                     volume.priority = navComp->getPriority();
+
                     data.push_back(volume);
                 }
             }

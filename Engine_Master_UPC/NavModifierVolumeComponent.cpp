@@ -71,20 +71,81 @@ void NavModifierVolumeComponent::debugDraw()
 	if (!transform)
 		return;
 
-	Vector3 position = transform->getGlobalMatrix().Translation();
+	const Matrix worldMatrix = transform->getGlobalMatrix();
+	const Vector3& h = m_halfExtents;
 
-	Vector3 min = position - m_halfExtents;
-	Vector3 max = position + m_halfExtents;
+	// Box corners in local space
+	const Vector3 localCorners[8] =
+	{
+		{ -h.x, -h.y, -h.z },
+		{  h.x, -h.y, -h.z },
+		{  h.x, -h.y,  h.z },
+		{ -h.x, -h.y,  h.z },
 
-	if (m_areaType == NavAreaType::Default)
-		dd::aabb(&min.x, &max.x, dd::colors::Green);
+		{ -h.x,  h.y, -h.z },
+		{  h.x,  h.y, -h.z },
+		{  h.x,  h.y,  h.z },
+		{ -h.x,  h.y,  h.z }
+	};
 
-	if (m_areaType == NavAreaType::Spectral)
-		dd::aabb(&min.x, &max.x, dd::colors::Blue);
+	// Transform corners into world space
+	Vector3 worldCorners[8];
 
-	if (m_areaType == NavAreaType::Blocked)
-		dd::aabb(&min.x, &max.x, dd::colors::Red);
+	for (int i = 0; i < 8; ++i)
+	{
+		worldCorners[i] = Vector3::Transform(localCorners[i], worldMatrix);
+	}
 
-	if(m_areaType == NavAreaType::DashGap)
-		dd::aabb(&min.x, &max.x, dd::colors::Yellow);
+	const float* color = dd::colors::Green;
+
+	switch (m_areaType)
+	{
+	case NavAreaType::Spectral:
+		color = dd::colors::Blue;
+		break;
+
+	case NavAreaType::Blocked:
+		color = dd::colors::Red;
+		break;
+
+	case NavAreaType::DashGap:
+		color = dd::colors::Yellow;
+		break;
+
+	default:
+		break;
+	}
+
+	// 12 edges of the box
+	const int edges[12][2] =
+	{
+		{0, 1}, {1, 2}, {2, 3}, {3, 0},
+		{4, 5}, {5, 6}, {6, 7}, {7, 4},
+		{0, 4}, {1, 5}, {2, 6}, {3, 7}
+	};
+
+	for (const auto& edge : edges)
+	{
+		dd::line(
+			ddConvert(worldCorners[edge[0]]),
+			ddConvert(worldCorners[edge[1]]),
+			color
+		);
+	}
+	//Vector3 position = transform->getGlobalMatrix().Translation();
+
+	//Vector3 min = position - m_halfExtents;
+	//Vector3 max = position + m_halfExtents;
+
+	//if (m_areaType == NavAreaType::Default)
+	//	dd::aabb(&min.x, &max.x, dd::colors::Green);
+
+	//if (m_areaType == NavAreaType::Spectral)
+	//	dd::aabb(&min.x, &max.x, dd::colors::Blue);
+
+	//if (m_areaType == NavAreaType::Blocked)
+	//	dd::aabb(&min.x, &max.x, dd::colors::Red);
+
+	//if(m_areaType == NavAreaType::DashGap)
+	//	dd::aabb(&min.x, &max.x, dd::colors::Yellow);
 }
