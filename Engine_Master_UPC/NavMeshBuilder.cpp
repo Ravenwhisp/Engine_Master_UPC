@@ -353,13 +353,14 @@ NavAreaType NavMeshBuilder::resolveAreaForPoint(
 
     for (const auto& volume : modifierVolumes)
     {
-        Vector3 min = volume.position - volume.halfExtents;
-        Vector3 max = volume.position + volume.halfExtents;
+        // Transform world-space point into volume local space
+        const Vector3 localPoint = Vector3::Transform(point, volume.inverseWorldMatrix);
+        const Vector3& halfExtents = volume.halfExtents;
 
-        // AABB check if point is inside volume
-        if (point.x >= min.x && point.x <= max.x &&
-            point.y >= min.y && point.y <= max.y &&
-            point.z >= min.z && point.z <= max.z)
+        // Check if point is inside the local box
+        if (std::abs(localPoint.x) <= halfExtents.x &&
+            std::abs(localPoint.y) <= halfExtents.y &&
+            std::abs(localPoint.z) <= halfExtents.z)
         {
             if (volume.priority > bestPriority)
             {
