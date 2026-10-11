@@ -83,6 +83,9 @@ public:
 	void moveComponent(size_t fromIndex, size_t toIndex);
 	int findComponentIndex(const Component* component) const;
 
+	void setRaycastTarget(bool enabled) { m_isRaycastTarget = enabled; }
+	bool isRaycastTarget() const { return m_isRaycastTarget; }
+
 	void onTransformChange();
 	void onTransformDirty();
 	void onHierarchyActiveChange();
@@ -102,6 +105,7 @@ private:
 	bool m_active = true;
 	bool m_isStatic = false;
 	bool m_isSnapshotClone = false;
+	bool m_isRaycastTarget = true;
 	Layer m_layer = Layer::DEFAULT;
 	Tag m_tag = Tag::DEFAULT;
 

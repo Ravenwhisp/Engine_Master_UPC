@@ -1,5 +1,6 @@
 #pragma once
-#include "Globals.h"
+#include "SimpleMath.h"
+#include <cstdint>
 
 enum class PointerButton : uint8_t
 {
