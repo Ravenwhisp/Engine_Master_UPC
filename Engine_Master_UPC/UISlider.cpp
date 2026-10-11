@@ -7,6 +7,7 @@
 #include "Transform2D.h"
 #include "Application.h"
 #include "ModuleEditor.h"
+#include "ModuleD3D12.h"
 #include "UILayoutUtils.h"
 #include "SceneReferenceResolver.h"
 
