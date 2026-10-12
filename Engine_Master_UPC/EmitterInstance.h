@@ -28,6 +28,8 @@ public:
 	void setParticlesToSpawn(float particles) { m_particlesToSpawn = particles; }
 
 	float getCurrentTime() const { return m_currentTime; }
+	bool isEmissionEnabled() const { return m_emissionEnabled; }
+	void setEmissionEnabled(bool enabled) { m_emissionEnabled = enabled; }
 
 	void eraseIndexOnLocation(bool isNew, unsigned int vectorPosition);
 
@@ -44,6 +46,7 @@ private:
 	//std::vector<unsigned int> m_alivesPerLifetimeOrder; <- TO DO, for proper spawning
 
 	float m_currentTime = 0.f;
+	bool m_emissionEnabled = true;
 
 	void freeParticleSlots();
 	void manageNewParticles();
