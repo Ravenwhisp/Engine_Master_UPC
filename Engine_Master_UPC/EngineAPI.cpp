@@ -3193,6 +3193,16 @@ ENGINE_API bool ParticleSystemAPI::isPlaying(ParticleSystemComponent* particleSy
     return particleSystem ? particleSystem->getLocalTimeScale() > 0.f : false;
 }
 
+ENGINE_API void ParticleSystemAPI::setEmissionEnabled(ParticleSystemComponent* particleSystem, bool enabled)
+{
+    if (!particleSystem)
+    {
+        return;
+    }
+
+	particleSystem->setEmissionEnabled(enabled);
+}
+
 ENGINE_API void ParticleSystemAPI::reset(ParticleSystemComponent* particleSystem)
 {
     if (!particleSystem)

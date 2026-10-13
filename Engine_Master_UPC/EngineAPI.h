@@ -444,6 +444,8 @@ namespace ParticleSystemAPI
     ENGINE_API void stop(ParticleSystemComponent* particleSystem);
     ENGINE_API bool isPlaying(ParticleSystemComponent* particleSystem);
 
+	ENGINE_API void setEmissionEnabled(ParticleSystemComponent* particleSystem, bool enabled);
+
     ENGINE_API void reset(ParticleSystemComponent* particleSystem); // resets the particles
 }
 

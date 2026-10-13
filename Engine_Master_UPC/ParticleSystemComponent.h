@@ -32,6 +32,8 @@ public:
     void setLocalTimeScale(float value) { m_localTimeScale = value; }
     float deltaTime() const;
 
+	void setEmissionEnabled(bool enabled);
+
     void drawUi() override;
 
     void update() override;
