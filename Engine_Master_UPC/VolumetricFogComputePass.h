@@ -6,6 +6,7 @@
 
 #include <d3d12.h>
 #include <memory>
+#include <array>
 #include <wrl/client.h>
 
 using Microsoft::WRL::ComPtr;
@@ -61,6 +62,8 @@ private:
     std::unique_ptr<Texture> m_lightingVolume;
     std::unique_ptr<Texture> m_integratedVolume;
 
+    std::array<std::unique_ptr<Texture>, 2> m_historyVolumes;
+
     VolumetricFog::GridConstants m_gridConstants{};
     VolumetricFog::MediumConstants m_mediumConstants{};
     VolumetricFog::LightingConstants m_lightingConstants{};
@@ -70,6 +73,8 @@ private:
     D3D12_RESOURCE_STATES m_lightingVolumeState = D3D12_RESOURCE_STATE_COMMON;
     D3D12_RESOURCE_STATES m_integratedVolumeState = D3D12_RESOURCE_STATE_COMMON;
 
+    std::array<D3D12_RESOURCE_STATES, 2> m_historyVolumeStates{ D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COMMON };
+
     D3D12_GPU_VIRTUAL_ADDRESS m_pointLightsCBAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS m_spotLightsCBAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
@@ -77,6 +82,9 @@ private:
 
     float m_animationTime = 0.0f;
     uint32_t m_lastAnimationFrame = 0xFFFFFFFFu;
+
+    uint32_t m_historyWriteIndex = 0;
+    bool m_historyValid = false;
 
     bool m_hasShadowData = false;
     bool m_enabled = false;

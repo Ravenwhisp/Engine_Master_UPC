@@ -455,10 +455,10 @@ void VolumetricFogComputePass::ensureVolumes()
     if (m_mediumVolume == nullptr)
     {
         m_mediumVolume.reset(app->getModuleResources()->createVolumeTexture(
-                VolumetricFog::GRID_WIDTH,
-                VolumetricFog::GRID_HEIGHT,
-                VolumetricFog::GRID_DEPTH,
-                DXGI_FORMAT_R16G16B16A16_FLOAT));
+            VolumetricFog::GRID_WIDTH,
+            VolumetricFog::GRID_HEIGHT,
+            VolumetricFog::GRID_DEPTH,
+            DXGI_FORMAT_R16G16B16A16_FLOAT));
 
         m_mediumVolume->setName(L"VolumetricFog_Medium");
     }
@@ -466,10 +466,10 @@ void VolumetricFogComputePass::ensureVolumes()
     if (m_lightingVolume == nullptr)
     {
         m_lightingVolume.reset(app->getModuleResources()->createVolumeTexture(
-                VolumetricFog::GRID_WIDTH,
-                VolumetricFog::GRID_HEIGHT,
-                VolumetricFog::GRID_DEPTH,
-                DXGI_FORMAT_R16G16B16A16_FLOAT));
+            VolumetricFog::GRID_WIDTH,
+            VolumetricFog::GRID_HEIGHT,
+            VolumetricFog::GRID_DEPTH,
+            DXGI_FORMAT_R16G16B16A16_FLOAT));
 
         m_lightingVolume->setName(L"VolumetricFog_Lighting");
     }
@@ -477,12 +477,38 @@ void VolumetricFogComputePass::ensureVolumes()
     if (m_integratedVolume == nullptr)
     {
         m_integratedVolume.reset(app->getModuleResources()->createVolumeTexture(
-                VolumetricFog::GRID_WIDTH,
-                VolumetricFog::GRID_HEIGHT,
-                VolumetricFog::GRID_DEPTH,
-                DXGI_FORMAT_R16G16B16A16_FLOAT));
+            VolumetricFog::GRID_WIDTH,
+            VolumetricFog::GRID_HEIGHT,
+            VolumetricFog::GRID_DEPTH,
+            DXGI_FORMAT_R16G16B16A16_FLOAT));
 
         m_integratedVolume->setName(L"VolumetricFog_Integrated");
+    }
+
+    if (m_historyVolumes[0] == nullptr)
+    {
+        m_historyVolumes[0].reset(app->getModuleResources()->createVolumeTexture(
+            VolumetricFog::GRID_WIDTH,
+            VolumetricFog::GRID_HEIGHT,
+            VolumetricFog::GRID_DEPTH,
+            DXGI_FORMAT_R16G16B16A16_FLOAT));
+
+        m_historyVolumes[0]->setName(L"VolumetricFog_History0");
+        m_historyVolumeStates[0] = D3D12_RESOURCE_STATE_COMMON;
+        m_historyValid = false;
+    }
+
+    if (m_historyVolumes[1] == nullptr)
+    {
+        m_historyVolumes[1].reset(app->getModuleResources()->createVolumeTexture(
+            VolumetricFog::GRID_WIDTH,
+            VolumetricFog::GRID_HEIGHT,
+            VolumetricFog::GRID_DEPTH,
+            DXGI_FORMAT_R16G16B16A16_FLOAT));
+
+        m_historyVolumes[1]->setName(L"VolumetricFog_History1");
+        m_historyVolumeStates[1] = D3D12_RESOURCE_STATE_COMMON;
+        m_historyValid = false;
     }
 }
 
