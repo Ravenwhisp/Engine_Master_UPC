@@ -178,6 +178,7 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 
     m_lightingConstants.samplingJitterStrength = settings.samplingJitterStrength;
     m_lightingConstants.samplingJitterEnabled = settings.samplingJitterEnabled ? 1u : 0u;
+    m_lightingConstants.optimizedShadowFilterEnabled = settings.optimizedShadowFilterEnabled ? 1u : 0u;
 
     const LightComponent* directionalLight = findVolumetricDirectionalLight();
 

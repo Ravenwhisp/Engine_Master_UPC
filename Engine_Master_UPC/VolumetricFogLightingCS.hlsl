@@ -38,6 +38,44 @@ RWTexture3D<float4> lightingVolume : register(u0);
 
 static const float PI = 3.14159265359f;
 
+// Fog-only approximation. Keep the original cascade selection, coverage test,
+// comparison depth, sampler and strength; reduce only the number of PCF taps.
+float ComputeVolumetricShadow(float3 worldPosition)
+{
+    if (shadowsEnabled == 0u)
+        return 1.0f;
+
+    // Retain the exact original path for A/B and for single-comparison shadows.
+    if (optimizedShadowFilterEnabled == 0u || pcfEnabled == 0u || pcfRadius == 0u)
+    {
+        uint selectedCascadeIndex;
+        return ComputeShadow(worldPosition, float3(0.0f, 0.0f, 0.0f), selectedCascadeIndex);
+    }
+
+    uint count = clamp(cascadeCount, 1u, (uint) MAX_SHADOW_CASCADES);
+    [loop]
+    for (uint index = 0u; index < count; ++index)
+    {
+        float4 projected = mul(float4(worldPosition, 1.0f), cascadeLightViewProjection[index]);
+        float3 ndc = projected.xyz / projected.w;
+        float2 uv = float2(ndc.x * 0.5f + 0.5f, 0.5f - ndc.y * 0.5f);
+        if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f || ndc.z < 0.0f || ndc.z > 1.0f)
+            continue;
+
+        // One bilinear comparison at the center of each quadrant of the
+        // original square footprint. This approximates, not reproduces, box PCF.
+        float2 offset = GetCascadeTexelSize(index) * ((float(pcfRadius) + 0.5f) * 0.5f);
+        float depth = ndc.z - shadowBias;
+        float visibility = 0.25f * (
+            CompareCascade(index, uv + float2(-offset.x, -offset.y), depth) +
+            CompareCascade(index, uv + float2( offset.x, -offset.y), depth) +
+            CompareCascade(index, uv + float2(-offset.x,  offset.y), depth) +
+            CompareCascade(index, uv + float2( offset.x,  offset.y), depth));
+        return lerp(1.0f - shadowStrength, 1.0f, visibility);
+    }
+    return 1.0f;
+}
+
 float HenyeyGreenstein(float cosTheta, float g)
 {
     float g2 = g * g;
@@ -165,8 +203,7 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
         if (debugDisableShadows == 0)
         {
-            uint selectedCascadeIndex;
-            shadow = ComputeShadow(worldPosition, float3(0.0f, 0.0f, 0.0f), selectedCascadeIndex);
+            shadow = ComputeVolumetricShadow(worldPosition);
         }
 
         inScattering += medium.rgb * lightColor * lightIntensity * phase * shadow;

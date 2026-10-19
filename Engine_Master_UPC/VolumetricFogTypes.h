@@ -95,7 +95,7 @@ namespace VolumetricFog
         float samplingJitterStrength = 1.0f;
         uint32_t samplingJitterEnabled = 0;
         uint32_t pointLightCullingEnabled = 0;
-        uint32_t samplingPadding1 = 0;
+        uint32_t optimizedShadowFilterEnabled = 0;
     };
 
     static constexpr uint32_t INTEGRATION_GROUP_SIZE_X = 8;

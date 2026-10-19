@@ -404,6 +404,9 @@ void SceneConfig::drawVolumetricFogSettings()
         ImGui::Separator();
         ImGui::Text("Debug");
 
+        ImGui::Checkbox("Optimized Shadow Filter (Fog Only)###VolFogOptimizedShadows", &fog.optimizedShadowFilterEnabled);
+        drawTooltip("Approximates directional shadow PCF with four bilinear comparisons for fog only. Disable to compare with the original filter. Surface shadows are unaffected. Not saved with the scene.");
+
         ImGui::Checkbox("Point Light Block Culling###VolFogPointLightCulling", &fog.pointLightCullingEnabled);
         drawTooltip("Uses conservative per-block point light lists for fog. Disable to compare with the original lighting path. Compare Point culling + Lighting GPU times. Not saved with the scene.");
 

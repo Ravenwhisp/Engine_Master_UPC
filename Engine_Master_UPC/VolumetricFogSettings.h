@@ -23,6 +23,7 @@ struct VolumetricFogSettings
     bool debugDisablePointLights = false;
     bool debugDisableSpotLights = false;
     bool pointLightCullingEnabled = true; // Runtime A/B switch; not serialized yet.
+    bool optimizedShadowFilterEnabled = true; // Runtime A/B switch; fog only.
 
     bool enabled = false;
 
