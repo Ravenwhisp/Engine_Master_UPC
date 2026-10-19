@@ -19,6 +19,11 @@ struct VolumetricFogSettings
     VolumetricFogDebugView debugView = VolumetricFogDebugView::Final;
     float debugSlice = 0.5f;
 
+    // Temporary profiling controls; intentionally not serialized with the scene.
+    bool debugDisablePointLights = false;
+    bool debugDisableSpotLights = false;
+    bool pointLightCullingEnabled = true; // Runtime A/B switch; not serialized yet.
+
     bool enabled = false;
 
     // Dimensionless global density scale.

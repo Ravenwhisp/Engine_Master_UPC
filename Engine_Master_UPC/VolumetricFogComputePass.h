@@ -39,6 +39,7 @@ private:
 
     void createLightingRootSignature();
     void createLightingPipelineState();
+    void createPointLightCullingResources();
 
     void createIntegrationRootSignature();
     void createIntegrationPipelineState();
@@ -54,6 +55,9 @@ private:
     ComPtr<ID3D12PipelineState> m_mediumPipelineState;
     ComPtr<ID3D12RootSignature> m_lightingRootSignature;
     ComPtr<ID3D12PipelineState> m_lightingPipelineState;
+    ComPtr<ID3D12PipelineState> m_pointLightCullingPipelineState;
+    ComPtr<ID3D12Resource> m_pointLightMasks;
+    D3D12_RESOURCE_STATES m_pointLightMasksState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
     ComPtr<ID3D12RootSignature> m_integrationRootSignature;
     ComPtr<ID3D12PipelineState> m_integrationPipelineState;
 

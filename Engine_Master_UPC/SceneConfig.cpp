@@ -404,6 +404,14 @@ void SceneConfig::drawVolumetricFogSettings()
         ImGui::Separator();
         ImGui::Text("Debug");
 
+        ImGui::Checkbox("Point Light Block Culling###VolFogPointLightCulling", &fog.pointLightCullingEnabled);
+        drawTooltip("Uses conservative per-block point light lists for fog. Disable to compare with the original lighting path. Compare Point culling + Lighting GPU times. Not saved with the scene.");
+
+        ImGui::Checkbox("Disable Point Lights (Fog Only)###VolFogDisablePointLights", &fog.debugDisablePointLights);
+        drawTooltip("Temporary GPU profiling control. Excludes all point lights from fog lighting only; surface lighting is unchanged. Not saved with the scene.");
+        ImGui::Checkbox("Disable Spot Lights (Fog Only)###VolFogDisableSpotLights", &fog.debugDisableSpotLights);
+        drawTooltip("Temporary GPU profiling control. Excludes all spot lights from fog lighting only; surface lighting is unchanged. Not saved with the scene.");
+
         static const char* DEBUG_VIEW_NAMES[] = {
             "Final",
             "Medium / Extinction Slice",

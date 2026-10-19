@@ -4,52 +4,7 @@
 #define SHADOW_CB_REGISTER b1
 #include "CascadeShadowMaps.hlsli"
 
-cbuffer LightingConstants : register(b0)
-{
-    float4x4 inverseView;
-
-    float2 projectionScale;
-    float nearDistance;
-    float maxDistance;
-
-    float3 cameraPosition;
-    float anisotropy;
-
-    float3 lightDirection;
-    float lightIntensity;
-
-    float3 lightColor;
-    uint hasDirectionalLight;
-
-    uint gridWidth;
-    uint gridHeight;
-    uint gridDepth;
-    uint debugDisableShadows;
-
-    float samplingJitterStrength;
-    uint samplingJitterEnabled;
-    uint samplingPadding0;
-    uint samplingPadding1;
-};
-
-#define MAX_POINT_LIGHTS 256
-
-struct PointLight
-{
-    float3 position;
-    float radius;
-
-    float3 color;
-    float intensity;
-};
-
-cbuffer PointLightsCB : register(b2)
-{
-    uint pointLightCount;
-    uint3 pointLightPadding;
-
-    PointLight pointLights[MAX_POINT_LIGHTS];
-};
+#include "VolumetricFogLightingData.hlsli"
 
 #define MAX_SPOT_LIGHTS 64
 
@@ -78,6 +33,7 @@ cbuffer SpotLightsCB : register(b3)
 };
 
 Texture3D<float4> mediumVolume : register(t0);
+StructuredBuffer<uint> blockLightMasks : register(t1);
 RWTexture3D<float4> lightingVolume : register(u0);
 
 static const float PI = 3.14159265359f;
@@ -218,10 +174,28 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     uint activePointLightCount = min(pointLightCount, (uint) MAX_POINT_LIGHTS);
 
-    [loop]
-    for (uint pointIndex = 0; pointIndex < activePointLightCount; ++pointIndex)
+    if (pointLightCullingEnabled != 0u)
     {
-        inScattering += ComputePointVolumetricScattering(pointLights[pointIndex], worldPosition, viewDirection, medium.rgb);
+        uint3 block = dispatchThreadID / uint3(FOG_LIGHT_BLOCK_X, FOG_LIGHT_BLOCK_Y, FOG_LIGHT_BLOCK_Z);
+        uint maskBase = GetFogLightBlockIndex(block) * FOG_POINT_LIGHT_MASK_WORDS;
+        // Ascending indices preserve the original order of floating-point additions.
+        for (uint word = 0u; word < (activePointLightCount + 31u) / 32u; ++word)
+        {
+            uint mask = blockLightMasks[maskBase + word];
+            [loop]
+            while (mask != 0u)
+            {
+                uint pointIndex = word * 32u + (uint) firstbitlow(mask);
+                mask &= mask - 1u;
+                inScattering += ComputePointVolumetricScattering(pointLights[pointIndex], worldPosition, viewDirection, medium.rgb);
+            }
+        }
+    }
+    else
+    {
+        [loop]
+        for (uint pointIndex = 0; pointIndex < activePointLightCount; ++pointIndex)
+            inScattering += ComputePointVolumetricScattering(pointLights[pointIndex], worldPosition, viewDirection, medium.rgb);
     }
     
     uint activeSpotLightCount = min(spotLightCount, (uint) MAX_SPOT_LIGHTS);
