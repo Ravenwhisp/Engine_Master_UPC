@@ -8,6 +8,7 @@
 #include "ModuleDescriptors.h"
 #include "ModuleTime.h"
 #include "ModuleD3D12.h"
+#include "ModuleRender.h"
 #include "RingBuffer.h"
 
 #include "RenderContext.h"
@@ -15,6 +16,7 @@
 #include "Texture.h"
 #include "VolumetricFogSettings.h"
 #include "VolumetricFogTypes.h"
+#include "VolumetricFogLightBlocks.h"
 #include "GameObject.h"
 #include "LightComponent.h"
 #include "Lights.h"
@@ -29,6 +31,11 @@
 
 namespace
 {
+    constexpr uint32_t FOG_BLOCK_COUNT_X = (VolumetricFog::GRID_WIDTH + FOG_LIGHT_BLOCK_X - 1) / FOG_LIGHT_BLOCK_X;
+    constexpr uint32_t FOG_BLOCK_COUNT_Y = (VolumetricFog::GRID_HEIGHT + FOG_LIGHT_BLOCK_Y - 1) / FOG_LIGHT_BLOCK_Y;
+    constexpr uint32_t FOG_BLOCK_COUNT_Z = (VolumetricFog::GRID_DEPTH + FOG_LIGHT_BLOCK_Z - 1) / FOG_LIGHT_BLOCK_Z;
+    static_assert(LightDefaults::MAX_POINT_LIGHTS == FOG_POINT_LIGHT_CAPACITY, "Fog masks must cover every point light.");
+
     bool getCameraNearDistance(const Matrix& projection, float& nearDistance)
     {
         if (std::abs(projection._33) <= 0.000001f) return false;
@@ -59,6 +66,7 @@ VolumetricFogComputePass::VolumetricFogComputePass(ComPtr<ID3D12Device4> device)
     createMediumPipelineState();
     createLightingRootSignature();
     createLightingPipelineState();
+    createPointLightCullingResources();
     createIntegrationRootSignature();
     createIntegrationPipelineState();
 }
@@ -204,6 +212,8 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
         const LightData& data = light->getData();
 
         if (data.type != LightType::POINT && data.type != LightType::SPOT) continue;
+        if (data.type == LightType::POINT && settings.debugDisablePointLights) continue;
+        if (data.type == LightType::SPOT && settings.debugDisableSpotLights) continue;
         if (!data.common.affectVolumetricFog) continue;
         if (data.common.intensity <= 0.0f || data.common.volumetricIntensity <= 0.0f) continue;
 
@@ -249,6 +259,7 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 
     m_pointLightsCBAddress = ctx.ringBuffer->allocate(&pointLightsCB, sizeof(VolumetricPointLightsConstantBuffer));
     if (m_pointLightsCBAddress == 0) return;
+    m_lightingConstants.pointLightCullingEnabled = settings.pointLightCullingEnabled && pointLightsCB.pointLightCount > 0 ? 1u : 0u;
 
     m_spotLightsCBAddress = ctx.ringBuffer->allocate(&spotLightsCB, sizeof(VolumetricSpotLightsConstantBuffer));
     if (m_spotLightsCBAddress == 0) return;
@@ -266,6 +277,10 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getHeap() };
 
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+    // Temporary panel timings. Sequential scopes keep the existing CPU timer valid.
+    ModuleRender* render = app->getModuleRender();
+    uint32_t profileIndex = render->beginRenderPassProfile(commandList, "Volumetric fog Medium");
 
     transitionVolume(commandList, m_mediumVolume.get(), m_mediumVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
@@ -286,6 +301,26 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     END_EVENT(commandList);
 
     transitionVolume(commandList, m_mediumVolume.get(), m_mediumVolumeState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    render->endRenderPassProfile(commandList, profileIndex);
+    profileIndex = render->beginRenderPassProfile(commandList, "Volumetric fog Point culling");
+    if (m_lightingConstants.pointLightCullingEnabled != 0)
+    {
+        BEGIN_EVENT(commandList, "VolumetricFog::CullPointLights");
+        auto toWrite = CD3DX12_RESOURCE_BARRIER::Transition(m_pointLightMasks.Get(), m_pointLightMasksState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        commandList->ResourceBarrier(1, &toWrite);
+        commandList->SetComputeRootSignature(m_lightingRootSignature.Get());
+        commandList->SetPipelineState(m_pointLightCullingPipelineState.Get());
+        commandList->SetComputeRoot32BitConstants(0, sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), &m_lightingConstants, 0);
+        commandList->SetComputeRootConstantBufferView(9, m_pointLightsCBAddress);
+        commandList->SetComputeRootUnorderedAccessView(12, m_pointLightMasks->GetGPUVirtualAddress());
+        commandList->Dispatch(FOG_BLOCK_COUNT_X, FOG_BLOCK_COUNT_Y, FOG_BLOCK_COUNT_Z);
+        auto toRead = CD3DX12_RESOURCE_BARRIER::Transition(m_pointLightMasks.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        commandList->ResourceBarrier(1, &toRead);
+        m_pointLightMasksState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        END_EVENT(commandList);
+    }
+    render->endRenderPassProfile(commandList, profileIndex);
+    profileIndex = render->beginRenderPassProfile(commandList, "Volumetric fog Lighting");
 
     BEGIN_EVENT(commandList, "VolumetricFog::Lighting");
 
@@ -306,6 +341,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetComputeRootConstantBufferView(9, m_pointLightsCBAddress);
     commandList->SetComputeRootConstantBufferView(10, m_spotLightsCBAddress);
+    commandList->SetComputeRootShaderResourceView(11, m_pointLightMasks->GetGPUVirtualAddress());
 
     commandList->SetComputeRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
@@ -318,6 +354,8 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     END_EVENT(commandList);
 
     transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    render->endRenderPassProfile(commandList, profileIndex);
+    profileIndex = render->beginRenderPassProfile(commandList, "Volumetric fog Integrate");
     transitionVolume(commandList, m_integratedVolume.get(), m_integratedVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
     BEGIN_EVENT(commandList, "VolumetricFog::Integrate");
@@ -339,6 +377,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     transitionVolume(commandList, m_mediumVolume.get(), m_mediumVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     transitionVolume(commandList, m_integratedVolume.get(), m_integratedVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    render->endRenderPassProfile(commandList, profileIndex);
 
 }
 
@@ -382,7 +421,7 @@ void VolumetricFogComputePass::createLightingRootSignature()
         shadowRange[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 20 + i, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[11] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[13] = {};
     rootParameters[0].InitAsConstants(sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[1].InitAsDescriptorTable(1, &mediumRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[2].InitAsDescriptorTable(1, &lightingRange, D3D12_SHADER_VISIBILITY_ALL);
@@ -393,6 +432,8 @@ void VolumetricFogComputePass::createLightingRootSignature()
     rootParameters[5].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[9].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[10].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[11].InitAsShaderResourceView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[12].InitAsUnorderedAccessView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     const auto shadowSamplers = makeShadowSamplers(D3D12_SHADER_VISIBILITY_ALL);
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -414,6 +455,20 @@ void VolumetricFogComputePass::createLightingPipelineState()
     psoDesc.CS = CD3DX12_SHADER_BYTECODE(computeShaderBlob.Get());
 
     DXCall(m_device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_lightingPipelineState)));
+}
+
+void VolumetricFogComputePass::createPointLightCullingResources()
+{
+    ComPtr<ID3DBlob> shader;
+    ThrowIfFailed(D3DReadFileToBlob(L"VolumetricFogCullPointLightsCS.cso", &shader));
+    D3D12_COMPUTE_PIPELINE_STATE_DESC desc{};
+    desc.pRootSignature = m_lightingRootSignature.Get();
+    desc.CS = CD3DX12_SHADER_BYTECODE(shader.Get());
+    DXCall(m_device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&m_pointLightCullingPipelineState)));
+
+    const size_t bufferBytes = size_t(FOG_BLOCK_COUNT_X) * FOG_BLOCK_COUNT_Y * FOG_BLOCK_COUNT_Z * FOG_POINT_LIGHT_MASK_WORDS * sizeof(uint32_t);
+    m_pointLightMasks = app->getModuleResources()->createDefaultBuffer(bufferBytes,
+        D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, m_pointLightMasksState, "VolumetricFog Point Light Masks");
 }
 
 void VolumetricFogComputePass::createIntegrationRootSignature()

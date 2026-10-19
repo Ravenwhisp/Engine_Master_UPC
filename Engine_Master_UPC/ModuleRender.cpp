@@ -885,14 +885,16 @@ void ModuleRender::renderScene(ID3D12GraphicsCommandList4* commandList, const Re
 
     {
         PERF_RENDER("ModuleRender::renderScene::VolumetricFogComputePass");
-        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Volumetric fog compute");
+        // Temporary breakdown: do not nest timings or double-count the GPU total.
+        const uint32_t profileIndex = beginRenderPassProfile(commandList, "Volumetric fog prepare");
 
         if (m_volumetricFogComputePass != nullptr)
         {
             m_volumetricFogComputePass->prepare(ctx);
-            m_volumetricFogComputePass->apply(commandList);
         }
         endRenderPassProfile(commandList, profileIndex);
+        if (m_volumetricFogComputePass != nullptr)
+            m_volumetricFogComputePass->apply(commandList);
     }
 
     {
