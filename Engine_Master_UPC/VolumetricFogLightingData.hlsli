@@ -21,7 +21,7 @@ cbuffer LightingConstants : register(b0)
     float samplingJitterStrength;
     uint samplingJitterEnabled;
     uint pointLightCullingEnabled;
-    uint samplingPadding1;
+    uint optimizedShadowFilterEnabled;
 };
 
 #define MAX_POINT_LIGHTS FOG_POINT_LIGHT_CAPACITY
