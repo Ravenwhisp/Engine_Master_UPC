@@ -39,6 +39,64 @@ RWTexture3D<float4> lightingVolume : register(u0);
 
 static const float PI = 3.14159265359f;
 
+float FilterFogShadowProjection(float3 ndc, uint index, float2 offset)
+{
+    float2 uv = float2(ndc.x * 0.5f + 0.5f, 0.5f - ndc.y * 0.5f);
+    float depth = ndc.z - shadowBias;
+    float visibility = 0.25f * (
+        CompareCascade(index, uv + float2(-offset.x, -offset.y), depth) +
+        CompareCascade(index, uv + float2( offset.x, -offset.y), depth) +
+        CompareCascade(index, uv + float2(-offset.x,  offset.y), depth) +
+        CompareCascade(index, uv + float2( offset.x,  offset.y), depth));
+    return lerp(1.0f - shadowStrength, 1.0f, visibility);
+}
+
+// Cache only when a convex clip-volume test proves the entire segment uses
+// the same first covering cascade. Endpoints choosing the same cascade alone
+// would NOT exclude an earlier cascade intersecting the segment's interior.
+bool PrepareFogShadowSegment(float3 startPosition, float3 endPosition,
+    out uint selectedCascade, out float4 projectedStart, out float4 projectedEnd,
+    out float2 filterOffset)
+{
+    selectedCascade = MAX_SHADOW_CASCADES;
+    projectedStart = projectedEnd = 0.0f;
+    filterOffset = 0.0f;
+    uint count = clamp(cascadeCount, 1u, (uint)MAX_SHADOW_CASCADES);
+    [loop]
+    for (uint index = 0u; index < count; ++index)
+    {
+        float4 a = mul(float4(startPosition, 1.0f), cascadeLightViewProjection[index]);
+        float4 b = mul(float4(endPosition, 1.0f), cascadeLightViewProjection[index]);
+        if (a.w <= 0.0f || b.w <= 0.0f)
+            return false;
+
+        float3 na = a.xyz / a.w;
+        float3 nb = b.xyz / b.w;
+        float3 low = min(na, nb);
+        float3 high = max(na, nb);
+        // Conservative margin: boundary cases retain the original per-sample path.
+        const float margin = 0.0001f;
+        bool outside = high.x < -1.0f - margin || low.x > 1.0f + margin ||
+                       high.y < -1.0f - margin || low.y > 1.0f + margin ||
+                       high.z < -margin || low.z > 1.0f + margin;
+        if (outside)
+            continue;
+
+        bool inside = all(low > float3(-1.0f + margin, -1.0f + margin, margin)) &&
+                      all(high < float3(1.0f - margin, 1.0f - margin, 1.0f - margin));
+        if (!inside)
+            return false;
+
+        selectedCascade = index;
+        projectedStart = a;
+        projectedEnd = b;
+        filterOffset = GetCascadeTexelSize(index) * ((float(pcfRadius) + 0.5f) * 0.5f);
+        return true;
+    }
+    // Every cascade excludes the complete segment: all queries would return lit.
+    return true;
+}
+
 // Fog-only approximation. Keep the original cascade selection, coverage test,
 // comparison depth, sampler and strength; reduce only the number of PCF taps.
 float ComputeVolumetricShadow(float3 worldPosition, out uint selectedCascadeIndex)
@@ -67,13 +125,7 @@ float ComputeVolumetricShadow(float3 worldPosition, out uint selectedCascadeInde
         // One bilinear comparison at the center of each quadrant of the
         // original square footprint. This approximates, not reproduces, box PCF.
         float2 offset = GetCascadeTexelSize(index) * ((float(pcfRadius) + 0.5f) * 0.5f);
-        float depth = ndc.z - shadowBias;
-        float visibility = 0.25f * (
-            CompareCascade(index, uv + float2(-offset.x, -offset.y), depth) +
-            CompareCascade(index, uv + float2( offset.x, -offset.y), depth) +
-            CompareCascade(index, uv + float2(-offset.x,  offset.y), depth) +
-            CompareCascade(index, uv + float2( offset.x,  offset.y), depth));
-        return lerp(1.0f - shadowStrength, 1.0f, visibility);
+        return FilterFogShadowProjection(ndc, index, offset);
     }
     return 1.0f;
 }
@@ -86,7 +138,7 @@ float ComputeVolumetricShadow(float3 worldPosition)
 
 float ComputeFogSegmentShadow(uint3 froxel, uint3 gridSize, float extinction)
 {
-    if (shadowsEnabled == 0u)
+    if (shadowsEnabled == 0u || shadowStrength == 0.0f)
         return 1.0f;
 
     // Use shared slice boundaries, independent of density jitter. Adjacent
@@ -110,6 +162,20 @@ float ComputeFogSegmentShadow(uint3 froxel, uint3 gridSize, float extinction)
             startPosition.y, endPosition.y, heightFogBaseHeight, heightFogFalloff);
         if (tau <= 0.0f || averageDensity <= 0.0f)
             return 1.0f;
+        uint segmentCascade = MAX_SHADOW_CASCADES;
+        float4 projectedStart = 0.0f;
+        float4 projectedEnd = 0.0f;
+        float2 filterOffset = 0.0f;
+        bool reuseProjection = false;
+        // Amortize setup only for multiple samples with the accepted four-tap filter.
+        if (sampleCount >= 4u && optimizedShadowFilterEnabled != 0u &&
+            pcfEnabled != 0u && pcfRadius != 0u)
+        {
+            reuseProjection = PrepareFogShadowSegment(startPosition, endPosition,
+                segmentCascade, projectedStart, projectedEnd, filterOffset);
+            if (reuseProjection && segmentCascade == MAX_SHADOW_CASCADES)
+                return 1.0f;
+        }
         [loop]
         for (uint i = 0u; i < sampleCount; ++i)
         {
@@ -119,10 +185,30 @@ float ComputeFogSegmentShadow(uint3 froxel, uint3 gridSize, float extinction)
             float localDensity = uniformFogDensity + heightFogDensity * FogHeightAverage(
                 y0, y1, heightFogBaseHeight, heightFogFalloff);
             float localTau = tau * inverseSampleCount * (localDensity / averageDensity);
-            float weight = transmission * FogAbsorbedFraction(localTau);
-            sum += weight * ComputeVolumetricShadow(lerp(startPosition, endPosition, t));
+            // Share the exponential between absorption and transmission. Retain
+            // the original small-depth series to avoid cancellation.
+            float x = max(localTau, 0.0f);
+            float stepTransmission = exp(-x);
+            float absorption = x < 0.01f
+                ? x * (1.0f - x * 0.5f + x * x / 6.0f)
+                : 1.0f - stepTransmission;
+            float weight = transmission * absorption;
+            float visibility;
+            if (reuseProjection)
+            {
+                // Matrix multiplication is linear: interpolate in homogeneous
+                // space, then divide by w, preserving the original sample locations.
+                float4 projected = lerp(projectedStart, projectedEnd, t);
+                visibility = FilterFogShadowProjection(
+                    projected.xyz / projected.w, segmentCascade, filterOffset);
+            }
+            else
+            {
+                visibility = ComputeVolumetricShadow(lerp(startPosition, endPosition, t));
+            }
+            sum += weight * visibility;
             weights += weight;
-            transmission *= exp(-localTau);
+            transmission *= stepTransmission;
         }
         return weights > 0.0f ? sum / weights : 1.0f;
     }
@@ -276,6 +362,13 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
     float sampleOffset = GetFogSampleOffset(dispatchThreadID, samplingJitterEnabled, samplingJitterStrength);
 
     float4 medium = mediumVolume.Load(int4(dispatchThreadID, 0));
+    // Exactly zero scattering cannot contribute light. Extinction remains in
+    // mediumVolume and is still integrated normally; diagnostic slices run above.
+    if (all(medium.rgb == 0.0f))
+    {
+        lightingVolume[dispatchThreadID] = 0.0f;
+        return;
+    }
 
     float3 worldPosition = GetFroxelWorldPositionJittered(
     dispatchThreadID,
