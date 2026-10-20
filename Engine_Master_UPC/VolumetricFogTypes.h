@@ -96,6 +96,13 @@ namespace VolumetricFog
         uint32_t samplingJitterEnabled = 0;
         uint32_t pointLightCullingEnabled = 0;
         uint32_t optimizedShadowFilterEnabled = 0;
+        uint32_t shadowDiagnostic = 0;
+        uint32_t shadowSampleCount = 32;
+        uint32_t shadowDiagnosticPadding[2] = {};
+        float heightFogDensity = 0.0f;
+        float heightFogBaseHeight = 0.0f;
+        float heightFogFalloff = 0.0f;
+        float uniformFogDensity = 0.0f;
     };
 
     static constexpr uint32_t INTEGRATION_GROUP_SIZE_X = 8;

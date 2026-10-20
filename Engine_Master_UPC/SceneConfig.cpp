@@ -1,4 +1,4 @@
-#include "Globals.h"
+﻿#include "Globals.h"
 #include "SceneConfig.h"
 
 #include "Application.h"
@@ -259,29 +259,30 @@ void SceneConfig::drawVolumetricFogSettings()
 
     if (ImGui::CollapsingHeader("Volumetric Fog"))
     {
+        ImGui::TextDisabled("General / Global Fog");
         ImGui::Checkbox("Enabled###VolFogEnabled", &fog.enabled);
-        drawTooltip("Enables or disables the complete volumetric fog system for this scene.");
+        drawTooltip("Enables volumetric fog for this scene.");
 
         ImGui::Separator();
 
         ImGui::DragFloat("Density###VolFogDensity", &fog.density, 0.01f, 0.0f, 10.0f, "%.3f");
-        drawTooltip("Global fog density multiplier. Higher values make the fog thicker and cause objects to lose visibility more quickly.");
+        drawTooltip("Uniform fog density, added to Height Fog. Higher values make the fog thicker.");
 
         ImGui::DragFloat("Scattering Coefficient###VolFogScattering", &fog.scatteringCoefficient, 0.001f, 0.0f, 1.0f, "%.4f");
-        drawTooltip("Controls how strongly light is scattered by the fog. Higher values make illuminated fog, light shafts and volumetric lighting more visible.");
+        drawTooltip("How much light the fog scatters. Higher values brighten illuminated fog.");
 
         ImGui::DragFloat("Extinction Coefficient###VolFogExtinction", &fog.extinctionCoefficient, 0.001f, 0.0f, 1.0f, "%.4f");
-        drawTooltip("Controls how quickly light and scene visibility are attenuated while travelling through the fog. Higher values make distant objects disappear faster.");
+        drawTooltip("How quickly fog blocks light. Must be at least as high as scattering.");
 
         ImGui::TextDisabled("Extinction must be greater than or equal to scattering.");
 
         ImGui::Separator();
 
         ImGui::SliderFloat("Anisotropy (g)###VolFogAnisotropy", &fog.anisotropy, -0.99f, 0.99f, "%.2f");
-        drawTooltip("Controls the preferred scattering direction. 0 produces roughly uniform scattering, positive values favour forward scattering and negative values favour backward scattering.");
+        drawTooltip("Scattering direction: 0 is uniform, positive is forward, negative is backward.");
 
         ImGui::DragFloat("Max Distance###VolFogMaxDistance", &fog.maxDistance, 1.0f, 1.0f, 1000.0f, "%.1f");
-        drawTooltip("Maximum camera distance covered by the volumetric fog volume. Increasing it makes fog affect farther parts of the scene, but spreads the available depth slices over a larger range.");
+        drawTooltip("Fog coverage from the camera. Longer distances reduce depth detail.");
 
         fog.sanitize();
 
@@ -290,157 +291,201 @@ void SceneConfig::drawVolumetricFogSettings()
         // -----------------------------------------------------------------
 
         ImGui::Separator();
-        ImGui::Text("Exponential Height Fog");
-
-        ImGui::Checkbox("Enabled###VolumetricFogHeightEnabled", &fog.heightFogEnabled);
-        drawTooltip("Adds extra volumetric fog density based on world-space height. The fog is densest at and below Base Height and decreases exponentially above it.");
-
-        if (fog.heightFogEnabled)
+        if (ImGui::TreeNodeEx("Exponential Height Fog###VolFogHeightSection", ImGuiTreeNodeFlags_SpanAvailWidth))
         {
-            ImGui::DragFloat("Density###VolumetricFogHeightDensity", &fog.heightFogDensity, 0.01f, 0.0f, 10.0f, "%.3f");
-            drawTooltip("Additional fog density contributed by the height fog at and below Base Height. This is added to the global volumetric fog density.");
 
-            ImGui::DragFloat("Base Height###VolumetricFogHeightBase", &fog.heightFogBaseHeight, 0.1f, -10000.0f, 10000.0f, "%.2f");
-            drawTooltip("World-space Y position where the height fog reaches its configured Density. Below this height the density remains constant; above it the fog decreases exponentially.");
+            ImGui::Checkbox("Enabled###VolumetricFogHeightEnabled", &fog.heightFogEnabled);
+            drawTooltip("Adds fog below Base Height that fades above it. Shadow sampling adds GPU cost.");
 
-            ImGui::DragFloat("Height Falloff###VolumetricFogHeightFalloff", &fog.heightFogFalloff, 0.001f, 0.0f, 10.0f, "%.4f");
-            drawTooltip("Controls how quickly the height fog disappears above Base Height. Higher values keep the fog concentrated near the ground, while lower values allow it to extend higher.");
+            if (fog.heightFogEnabled)
+        {
+                ImGui::DragFloat("Density###VolumetricFogHeightDensity", &fog.heightFogDensity, 0.01f, 0.0f, 10.0f, "%.3f");
+                drawTooltip("Extra density at and below Base Height, added to global fog.");
+
+                ImGui::DragFloat("Base Height###VolumetricFogHeightBase", &fog.heightFogBaseHeight, 0.1f, -10000.0f, 10000.0f, "%.2f");
+                drawTooltip("World Y height where fog starts thinning. Density is constant below it.");
+
+                ImGui::DragFloat("Height Falloff###VolumetricFogHeightFalloff", &fog.heightFogFalloff, 0.001f, 0.0f, 10.0f, "%.4f");
+                drawTooltip("How quickly fog thins above Base Height. Higher values create a thinner layer.");
+            }
+
+            ImGui::TreePop();
         }
-
-        fog.sanitize();
 
         // -----------------------------------------------------------------
         // Distance Fog
         // -----------------------------------------------------------------
 
         ImGui::Separator();
-        ImGui::Text("Distance Fog");
-
-        ImGui::Checkbox("Enabled###VolumetricFogDistanceEnabled", &fog.distanceFogEnabled);
-        drawTooltip("Enables an additional artist-controlled fog layer based on camera distance. Useful for hiding distant empty areas and controlling background visibility independently from the physical volumetric fog.");
-
-        if (fog.distanceFogEnabled)
+        if (ImGui::TreeNodeEx("Distance Fog###VolFogDistanceSection", ImGuiTreeNodeFlags_SpanAvailWidth))
         {
-            ImGui::DragFloat("Start Distance###VolumetricFogDistanceStart", &fog.distanceFogStart, 1.0f, 0.0f, 10000.0f, "%.1f");
-            drawTooltip("Distance from the camera where the distance fog starts appearing. Objects closer than this are not affected by this additional fog layer.");
 
-            ImGui::DragFloat("End Distance###VolumetricFogDistanceEnd", &fog.distanceFogEnd, 1.0f, 0.0f, 10000.0f, "%.1f");
-            drawTooltip("Distance where the distance fog reaches its maximum opacity. The fog smoothly increases between Start Distance and End Distance.");
+            ImGui::Checkbox("Enabled###VolumetricFogDistanceEnabled", &fog.distanceFogEnabled);
+            drawTooltip("Adds a colored haze to hide distant areas.");
 
-            ImGui::SliderFloat("Max Opacity###VolumetricFogDistanceMaxOpacity", &fog.distanceFogMaxOpacity, 0.0f, 1.0f, "%.2f");
-            drawTooltip("Maximum strength of the distance fog. 0 means no effect and 1 allows distant areas to become completely covered by the fog color.");
+            if (fog.distanceFogEnabled)
+        {
+                ImGui::DragFloat("Start Distance###VolumetricFogDistanceStart", &fog.distanceFogStart, 1.0f, 0.0f, 10000.0f, "%.1f");
+                drawTooltip("Camera distance where the haze begins.");
 
-            float fogColor[3] = { fog.distanceFogColorR, fog.distanceFogColorG, fog.distanceFogColorB };
+                ImGui::DragFloat("End Distance###VolumetricFogDistanceEnd", &fog.distanceFogEnd, 1.0f, 0.0f, 10000.0f, "%.1f");
+                drawTooltip("Camera distance where the haze reaches Max Opacity.");
 
-            if (ImGui::ColorEdit3("Fog Color###VolumetricFogDistanceColor", fogColor))
-            {
-                fog.distanceFogColorR = fogColor[0];
-                fog.distanceFogColorG = fogColor[1];
-                fog.distanceFogColorB = fogColor[2];
+                ImGui::SliderFloat("Max Opacity###VolumetricFogDistanceMaxOpacity", &fog.distanceFogMaxOpacity, 0.0f, 1.0f, "%.2f");
+                drawTooltip("Maximum haze coverage: 0 is transparent, 1 fully covers the background.");
+
+                float fogColor[3] = { fog.distanceFogColorR, fog.distanceFogColorG, fog.distanceFogColorB };
+
+                if (ImGui::ColorEdit3("Fog Color###VolumetricFogDistanceColor", fogColor))
+                {
+                    fog.distanceFogColorR = fogColor[0];
+                    fog.distanceFogColorG = fogColor[1];
+                    fog.distanceFogColorB = fogColor[2];
+                }
+
+                drawTooltip("Color blended into distant areas.");
             }
 
-            drawTooltip("Target color used by the distance fog. Distant pixels gradually blend towards this color as the fog amount increases.");
+            ImGui::TreePop();
         }
-
-        fog.sanitize();
 
         // -----------------------------------------------------------------
         // Animation
         // -----------------------------------------------------------------
 
         ImGui::Separator();
-        ImGui::Text("Animation");
-
-        ImGui::Checkbox("Animate Density###VolumetricFogAnimateDensity", &fog.animateDensity);
-        drawTooltip("Adds animated world-space noise to the fog density. Useful for making the fog look less uniform and creating slowly moving fog patterns.");
-
-        if (fog.animateDensity)
+        if (ImGui::TreeNodeEx("Animation###VolFogAnimationSection", ImGuiTreeNodeFlags_SpanAvailWidth))
         {
-            ImGui::DragFloat("Noise Scale###VolumetricFogNoiseScale", &fog.noiseScale, 0.001f, 0.001f, 1.0f);
-            drawTooltip("Controls the size of the density noise pattern. Lower values create large smooth fog formations, while higher values create smaller and more frequent variations.");
 
-            ImGui::SliderFloat("Noise Strength###VolumetricFogNoiseStrength", &fog.noiseStrength, 0.0f, 1.0f);
-            drawTooltip("Controls how strongly the noise modifies fog density. 0 keeps the fog homogeneous, while 1 applies the full density variation.");
+            ImGui::Checkbox("Animate Density###VolumetricFogAnimateDensity", &fog.animateDensity);
+            drawTooltip("Moves a noise pattern through the fog density. Adds GPU work.");
 
-            float windDirection[3] = { fog.windDirectionX, fog.windDirectionY, fog.windDirectionZ };
+            if (fog.animateDensity)
+        {
+                ImGui::DragFloat("Noise Scale###VolumetricFogNoiseScale", &fog.noiseScale, 0.001f, 0.001f, 1.0f);
+                drawTooltip("Lower values create large formations; higher values create finer patterns.");
 
-            if (ImGui::DragFloat3("Wind Direction###VolumetricFogWindDirection", windDirection, 0.01f))
-            {
-                fog.windDirectionX = windDirection[0];
-                fog.windDirectionY = windDirection[1];
-                fog.windDirectionZ = windDirection[2];
+                ImGui::SliderFloat("Noise Strength###VolumetricFogNoiseStrength", &fog.noiseStrength, 0.0f, 1.0f);
+                drawTooltip("Density variation: 0 is uniform, 1 uses the full noise pattern.");
+
+                float windDirection[3] = { fog.windDirectionX, fog.windDirectionY, fog.windDirectionZ };
+
+                if (ImGui::DragFloat3("Wind Direction###VolumetricFogWindDirection", windDirection, 0.01f))
+                {
+                    fog.windDirectionX = windDirection[0];
+                    fog.windDirectionY = windDirection[1];
+                    fog.windDirectionZ = windDirection[2];
+                }
+
+                drawTooltip("Direction of fog movement in world space.");
+
+                ImGui::DragFloat("Wind Speed###VolumetricFogWindSpeed", &fog.windSpeed, 0.01f, 0.0f, 100.0f);
+                drawTooltip("Speed of the moving fog pattern.");
             }
 
-            drawTooltip("World-space direction used to move the animated fog pattern. The direction is normalized internally.");
-
-            ImGui::DragFloat("Wind Speed###VolumetricFogWindSpeed", &fog.windSpeed, 0.01f, 0.0f, 100.0f);
-            drawTooltip("Controls how fast the animated fog pattern moves along the wind direction.");
+            ImGui::TreePop();
         }
 
-        fog.sanitize();
+        ImGui::Separator();
+        if (ImGui::TreeNodeEx("Lighting / Quality###VolFogQualitySection", ImGuiTreeNodeFlags_SpanAvailWidth))
+        {
+            ImGui::SliderInt("Shadow Samples###VolFogShadowSamples", &fog.shadowSampleCount, 1, 32);
+            drawTooltip("More samples reduce shadow bands but cost more GPU time. Used with Height Fog or the Shadow Sampling view.");
+            ImGui::Checkbox("Optimized Shadow Filter###VolFogOptimizedShadows", &fog.optimizedShadowFilterEnabled);
+            drawTooltip("Cheaper shadow filtering for fog. Disabling it can increase GPU cost.");
+            ImGui::Checkbox("Point Light Culling###VolFogPointLightCulling", &fog.pointLightCullingEnabled);
+            drawTooltip("Skips point lights that cannot reach the fog cell to save GPU time.");
+            ImGui::TreePop();
+        }
 
         // -----------------------------------------------------------------
         // Sampling
         // -----------------------------------------------------------------
 
         ImGui::Separator();
-        ImGui::Text("Sampling");
-
-        ImGui::Checkbox("Sampling Jitter###VolumetricFogSamplingJitter", &fog.samplingJitterEnabled);
-        drawTooltip("Offsets the volumetric sample position inside each depth slice using a stable Interleaved Gradient Noise pattern. This helps break up visible banding and regular froxel patterns.");
-
-        if (fog.samplingJitterEnabled)
+        if (ImGui::TreeNodeEx("Sampling / Smoothing###VolFogSamplingSection", ImGuiTreeNodeFlags_SpanAvailWidth))
         {
-            ImGui::SliderFloat("Jitter Strength###VolumetricFogSamplingJitterStrength", &fog.samplingJitterStrength, 0.0f, 1.0f, "%.2f");
-            drawTooltip("Controls how far samples can move away from the center of each depth slice. 0 samples every froxel at its center, while 1 applies the full jitter pattern.");
-        }
 
-        fog.sanitize();
+            ImGui::Checkbox("Sampling Jitter###VolumetricFogSamplingJitter", &fog.samplingJitterEnabled);
+            drawTooltip("Offsets density samples to break up regular patterns. Can introduce noise.");
+
+            if (fog.samplingJitterEnabled)
+        {
+                ImGui::Checkbox("Blue Noise Jitter###VolFogBlueNoise", &fog.blueNoiseJitterEnabled);
+                drawTooltip("Uses blue noise instead of the original jitter pattern.");
+                ImGui::SliderFloat("Jitter Strength###VolumetricFogSamplingJitterStrength", &fog.samplingJitterStrength, 0.0f, 1.0f, "%.2f");
+                drawTooltip("Sample displacement: 0 is centered, 1 uses the full jitter range.");
+            }
+
+            ImGui::Checkbox("Fog Spatial Smoothing###VolFogSpatialSmoothing", &fog.spatialSmoothingEnabled);
+            drawTooltip("Softens fog noise without frame history. Adds GPU cost to Apply.");
+            if (fog.spatialSmoothingEnabled)
+        {
+                ImGui::SliderFloat("Smoothing Strength###VolFogSmoothingStrength", &fog.spatialSmoothingStrength, 0.0f, 1.0f, "%.2f");
+                drawTooltip("Blends more strongly with nearby fog. High values soften small details.");
+            }
+
+            ImGui::TreePop();
+        }
 
         // -----------------------------------------------------------------
         // Debug
         // -----------------------------------------------------------------
 
         ImGui::Separator();
-        ImGui::Text("Debug");
-
-        ImGui::Checkbox("Optimized Shadow Filter (Fog Only)###VolFogOptimizedShadows", &fog.optimizedShadowFilterEnabled);
-        drawTooltip("Approximates directional shadow PCF with four bilinear comparisons for fog only. Disable to compare with the original filter. Surface shadows are unaffected. Not saved with the scene.");
-
-        ImGui::Checkbox("Point Light Block Culling###VolFogPointLightCulling", &fog.pointLightCullingEnabled);
-        drawTooltip("Uses conservative per-block point light lists for fog. Disable to compare with the original lighting path. Compare Point culling + Lighting GPU times. Not saved with the scene.");
-
-        ImGui::Checkbox("Disable Point Lights (Fog Only)###VolFogDisablePointLights", &fog.debugDisablePointLights);
-        drawTooltip("Temporary GPU profiling control. Excludes all point lights from fog lighting only; surface lighting is unchanged. Not saved with the scene.");
-        ImGui::Checkbox("Disable Spot Lights (Fog Only)###VolFogDisableSpotLights", &fog.debugDisableSpotLights);
-        drawTooltip("Temporary GPU profiling control. Excludes all spot lights from fog lighting only; surface lighting is unchanged. Not saved with the scene.");
-
-        static const char* DEBUG_VIEW_NAMES[] = {
-            "Final",
-            "Medium / Extinction Slice",
-            "Lighting Slice",
-            "Lighting Slice - No Shadows",
-            "Accumulated Scattering",
-            "Transmittance"
-        };
-
-        int debugView = static_cast<int>(fog.debugView);
-
-        if (ImGui::Combo("Debug View###VolumetricFogDebugView", &debugView, DEBUG_VIEW_NAMES, IM_ARRAYSIZE(DEBUG_VIEW_NAMES)))
+        if (ImGui::TreeNodeEx("Debug###VolFogDebugSection", ImGuiTreeNodeFlags_SpanAvailWidth))
         {
-            fog.debugView = static_cast<VolumetricFogDebugView>(debugView);
+
+            ImGui::Checkbox("Disable Point Lights (Fog Only)###VolFogDisablePointLights", &fog.debugDisablePointLights);
+            drawTooltip("Excludes point lights from fog only, for debugging. Not saved with the scene.");
+            ImGui::Checkbox("Disable Spot Lights (Fog Only)###VolFogDisableSpotLights", &fog.debugDisableSpotLights);
+            drawTooltip("Excludes spot lights from fog only, for debugging. Not saved with the scene.");
+
+            static const char* DEBUG_VIEW_NAMES[] = {
+                "Final",
+                "Medium / Extinction Slice",
+                "Lighting Slice",
+                "Lighting Slice - No Shadows",
+                "Accumulated Scattering",
+                "Transmittance",
+                "Final - Shadow Sampling",
+                "Shadow Visibility Slice",
+                "Shadow Cascade Slice"
+            };
+
+            int debugView = static_cast<int>(fog.debugView);
+
+            if (ImGui::Combo("Debug View###VolumetricFogDebugView", &debugView, DEBUG_VIEW_NAMES, IM_ARRAYSIZE(DEBUG_VIEW_NAMES)))
+        {
+                fog.debugView = static_cast<VolumetricFogDebugView>(debugView);
+            }
+
+            static const char* DEBUG_VIEW_TOOLTIPS[] = {
+                "Final scene with fog.",
+                "Light absorption in one fog layer.",
+                "Local lighting in one fog layer, before accumulation.",
+                "Local fog lighting with shadow queries disabled.",
+                "Fog light accumulated toward the camera.",
+                "Remaining scene visibility: white is clear, black is opaque.",
+                "Final image using Shadow Samples. More samples cost more GPU time.",
+                "Shadow visibility: black is shadow, white is lit, magenta is unavailable.",
+                "Shadow cascade colors: red, green, blue, yellow. Magenta means no coverage."
+            };
+            drawTooltip(DEBUG_VIEW_TOOLTIPS[static_cast<int>(fog.debugView)]);
+
+            if (fog.debugView == VolumetricFogDebugView::Medium ||
+                fog.debugView == VolumetricFogDebugView::ShadowVisibility ||
+                fog.debugView == VolumetricFogDebugView::ShadowCascades ||
+                fog.debugView == VolumetricFogDebugView::Lighting ||
+                fog.debugView == VolumetricFogDebugView::LightingNoShadows)
+        {
+                ImGui::SliderFloat("Debug Slice###VolumetricFogDebugSlice", &fog.debugSlice, 0.0f, 1.0f);
+                drawTooltip("Layer to inspect: 0 is nearest to the camera, 1 is farthest.");
+            }
+            ImGui::TreePop();
         }
 
-        drawTooltip("Selects a volumetric fog debug visualization. Medium shows fog extinction, Lighting shows local volumetric lighting, Lighting No Shadows ignores shadow maps, Accumulated Scattering shows integrated fog light, and Transmittance shows how much scene light survives through the fog.");
-
-        if (fog.debugView == VolumetricFogDebugView::Medium ||
-            fog.debugView == VolumetricFogDebugView::Lighting ||
-            fog.debugView == VolumetricFogDebugView::LightingNoShadows)
-        {
-            ImGui::SliderFloat("Debug Slice###VolumetricFogDebugSlice", &fog.debugSlice, 0.0f, 1.0f);
-            drawTooltip("Selects which depth slice of the volumetric grid is displayed. 0 shows slices near the camera and 1 shows slices near the maximum fog distance.");
-        }
-
+        fog.sanitize();
         ImGui::Separator();
 
         if (ImGui::Button("Reset Defaults###VolFogResetDefaults"))
@@ -448,7 +493,7 @@ void SceneConfig::drawVolumetricFogSettings()
             fog = VolumetricFogSettings{};
         }
 
-        drawTooltip("Restores all volumetric fog settings to their default values.");
+        drawTooltip("Resets every fog setting, including quality and debug options.");
     }
 }
 

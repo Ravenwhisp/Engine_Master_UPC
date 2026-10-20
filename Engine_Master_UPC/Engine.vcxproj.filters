@@ -2971,4 +2971,9 @@
       <Filter>Resources\Application</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="VolumetricFogBlueNoise.h" />
+    <None Include="VolumetricFogSampling.hlsli" />
+    <None Include="VolumetricFogHeight.hlsli" />
+  </ItemGroup>
 </Project>

@@ -17,6 +17,7 @@
 #include "VolumetricFogSettings.h"
 #include "VolumetricFogTypes.h"
 #include "VolumetricFogLightBlocks.h"
+#include "VolumetricFogBlueNoise.h"
 #include "GameObject.h"
 #include "LightComponent.h"
 #include "Lights.h"
@@ -62,6 +63,8 @@ namespace
 
 VolumetricFogComputePass::VolumetricFogComputePass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
+    m_blueNoise = app->getModuleResources()->createDefaultBuffer(
+        FOG_BLUE_NOISE, sizeof(FOG_BLUE_NOISE), "Fog blue noise");
     createMediumRootSignature();
     createMediumPipelineState();
     createLightingRootSignature();
@@ -77,6 +80,7 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 {
     m_enabled = false;
     m_pointLightsCBAddress = 0;
+    m_lightingCBAddress = 0;
     m_spotLightsCBAddress = 0;
     m_gridConstants = {};
     m_mediumConstants = {};
@@ -162,7 +166,9 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_mediumConstants.heightFogEnabled = settings.heightFogEnabled ? 1u : 0u;
 
     m_mediumConstants.samplingJitterStrength = settings.samplingJitterStrength;
-    m_mediumConstants.samplingJitterEnabled = settings.samplingJitterEnabled ? 1u : 0u;
+    // Shared shader encoding: 0 centered, 1 IGN, 2 blue noise.
+    m_mediumConstants.samplingJitterEnabled = settings.samplingJitterEnabled
+        ? (settings.blueNoiseJitterEnabled ? 2u : 1u) : 0u;
 
     m_lightingConstants.inverseView = m_gridConstants.inverseView;
     m_lightingConstants.projectionScale = m_gridConstants.projectionScale;
@@ -177,8 +183,14 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_lightingConstants.debugDisableShadows = !m_hasShadowData || settings.debugView == VolumetricFogDebugView::LightingNoShadows ? 1u : 0u;
 
     m_lightingConstants.samplingJitterStrength = settings.samplingJitterStrength;
-    m_lightingConstants.samplingJitterEnabled = settings.samplingJitterEnabled ? 1u : 0u;
+    m_lightingConstants.samplingJitterEnabled = m_mediumConstants.samplingJitterEnabled;
     m_lightingConstants.optimizedShadowFilterEnabled = settings.optimizedShadowFilterEnabled ? 1u : 0u;
+    m_lightingConstants.shadowDiagnostic = static_cast<uint32_t>(settings.debugView);
+    m_lightingConstants.shadowSampleCount = static_cast<uint32_t>(std::clamp(settings.shadowSampleCount, 1, 32));
+    m_lightingConstants.heightFogDensity = settings.heightFogEnabled ? settings.heightFogDensity : 0.0f;
+    m_lightingConstants.heightFogBaseHeight = settings.heightFogBaseHeight;
+    m_lightingConstants.heightFogFalloff = settings.heightFogFalloff;
+    m_lightingConstants.uniformFogDensity = settings.density;
 
     const LightComponent* directionalLight = findVolumetricDirectionalLight();
 
@@ -264,6 +276,8 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 
     m_spotLightsCBAddress = ctx.ringBuffer->allocate(&spotLightsCB, sizeof(VolumetricSpotLightsConstantBuffer));
     if (m_spotLightsCBAddress == 0) return;
+    m_lightingCBAddress = ctx.ringBuffer->allocate(&m_lightingConstants, sizeof(m_lightingConstants));
+    if (m_lightingCBAddress == 0) return;
 
     m_enabled = m_mediumVolume != nullptr && m_lightingVolume != nullptr && m_integratedVolume != nullptr;
 }
@@ -292,6 +306,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetComputeRootSignature(m_mediumRootSignature.Get());
     commandList->SetComputeRoot32BitConstants(0, sizeof(VolumetricFog::MediumConstants) / sizeof(uint32_t), &m_mediumConstants, 0);
     commandList->SetComputeRootDescriptorTable(1, m_mediumVolume->getUAV().gpu);
+    commandList->SetComputeRootShaderResourceView(2, m_blueNoise->GetGPUVirtualAddress());
 
     const uint32_t groupCountX = (VolumetricFog::GRID_WIDTH + VolumetricFog::INJECT_GROUP_SIZE_X - 1) / VolumetricFog::INJECT_GROUP_SIZE_X;
     const uint32_t groupCountY = (VolumetricFog::GRID_HEIGHT + VolumetricFog::INJECT_GROUP_SIZE_Y - 1) / VolumetricFog::INJECT_GROUP_SIZE_Y;
@@ -311,7 +326,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
         commandList->ResourceBarrier(1, &toWrite);
         commandList->SetComputeRootSignature(m_lightingRootSignature.Get());
         commandList->SetPipelineState(m_pointLightCullingPipelineState.Get());
-        commandList->SetComputeRoot32BitConstants(0, sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), &m_lightingConstants, 0);
+        commandList->SetComputeRootConstantBufferView(0, m_lightingCBAddress);
         commandList->SetComputeRootConstantBufferView(9, m_pointLightsCBAddress);
         commandList->SetComputeRootUnorderedAccessView(12, m_pointLightMasks->GetGPUVirtualAddress());
         commandList->Dispatch(FOG_BLOCK_COUNT_X, FOG_BLOCK_COUNT_Y, FOG_BLOCK_COUNT_Z);
@@ -327,7 +342,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetPipelineState(m_lightingPipelineState.Get());
     commandList->SetComputeRootSignature(m_lightingRootSignature.Get());
-    commandList->SetComputeRoot32BitConstants(0, sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), &m_lightingConstants, 0);
+    commandList->SetComputeRootConstantBufferView(0, m_lightingCBAddress);
     commandList->SetComputeRootDescriptorTable(1, m_mediumVolume->getSRV().gpu);
     commandList->SetComputeRootDescriptorTable(2, m_lightingVolume->getUAV().gpu);
 
@@ -343,6 +358,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetComputeRootConstantBufferView(9, m_pointLightsCBAddress);
     commandList->SetComputeRootConstantBufferView(10, m_spotLightsCBAddress);
     commandList->SetComputeRootShaderResourceView(11, m_pointLightMasks->GetGPUVirtualAddress());
+    commandList->SetComputeRootShaderResourceView(13, m_blueNoise->GetGPUVirtualAddress());
 
     commandList->SetComputeRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
@@ -387,9 +403,10 @@ void VolumetricFogComputePass::createMediumRootSignature()
     CD3DX12_DESCRIPTOR_RANGE uavRange;
     uavRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[2] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
     rootParameters[0].InitAsConstants(sizeof(VolumetricFog::MediumConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[1].InitAsDescriptorTable(1, &uavRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[2].InitAsShaderResourceView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
@@ -422,8 +439,8 @@ void VolumetricFogComputePass::createLightingRootSignature()
         shadowRange[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 20 + i, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[13] = {};
-    rootParameters[0].InitAsConstants(sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
+    CD3DX12_ROOT_PARAMETER rootParameters[14] = {};
+    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[1].InitAsDescriptorTable(1, &mediumRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[2].InitAsDescriptorTable(1, &lightingRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
@@ -435,6 +452,7 @@ void VolumetricFogComputePass::createLightingRootSignature()
     rootParameters[10].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[11].InitAsShaderResourceView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[12].InitAsUnorderedAccessView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[13].InitAsShaderResourceView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     const auto shadowSamplers = makeShadowSamplers(D3D12_SHADER_VISIBILITY_ALL);
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;

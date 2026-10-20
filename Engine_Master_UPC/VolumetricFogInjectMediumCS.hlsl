@@ -1,4 +1,5 @@
-#include "VolumetricFogCommon.hlsli"
+#include "VolumetricFogSampling.hlsli"
+#include "VolumetricFogHeight.hlsli"
 
 cbuffer MediumConstants : register(b0)
 {
@@ -106,7 +107,7 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
 
-    float sampleOffset = GetFroxelSampleOffset(dispatchThreadID.xy, samplingJitterEnabled, samplingJitterStrength);
+    float sampleOffset = GetFogSampleOffset(dispatchThreadID, samplingJitterEnabled, samplingJitterStrength);
 
     float3 worldPosition = GetFroxelWorldPositionJittered(
         dispatchThreadID,
@@ -119,8 +120,12 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     if (heightFogEnabled != 0)
     {
-        float heightAboveBase = max(worldPosition.y - heightFogBaseHeight, 0.0f);
-        float exponentialDensity = heightFogDensity * exp(-heightFogFalloff * heightAboveBase);
+        float3 segmentStart = GetFroxelWorldPositionJittered(
+            dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView, 0.0f);
+        float3 segmentEnd = GetFroxelWorldPositionJittered(
+            dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView, 1.0f);
+        float exponentialDensity = heightFogDensity * FogHeightAverage(
+            segmentStart.y, segmentEnd.y, heightFogBaseHeight, heightFogFalloff);
 
         effectiveDensity += exponentialDensity;
     }
