@@ -57,6 +57,7 @@ private:
     ComPtr<ID3D12PipelineState> m_lightingPipelineState;
     ComPtr<ID3D12PipelineState> m_pointLightCullingPipelineState;
     ComPtr<ID3D12Resource> m_pointLightMasks;
+    ComPtr<ID3D12Resource> m_blueNoise;
     D3D12_RESOURCE_STATES m_pointLightMasksState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
     ComPtr<ID3D12RootSignature> m_integrationRootSignature;
     ComPtr<ID3D12PipelineState> m_integrationPipelineState;
@@ -75,6 +76,7 @@ private:
     D3D12_RESOURCE_STATES m_integratedVolumeState = D3D12_RESOURCE_STATE_COMMON;
 
     D3D12_GPU_VIRTUAL_ADDRESS m_pointLightsCBAddress = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS m_lightingCBAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS m_spotLightsCBAddress = 0;
     D3D12_GPU_VIRTUAL_ADDRESS m_shadowCBAddress = 0;
     std::array<D3D12_GPU_DESCRIPTOR_HANDLE, MAX_SHADOW_CASCADES> m_cascadeShadowMapSRVs{};

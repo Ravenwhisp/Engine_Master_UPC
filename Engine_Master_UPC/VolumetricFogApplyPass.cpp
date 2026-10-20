@@ -152,6 +152,10 @@ void VolumetricFogApplyPass::prepare(const RenderContext& ctx)
         static_cast<uint32_t>(settings.debugView);
 
     m_constants.debugSlice = settings.debugSlice;
+    m_constants.spatialSmoothingEnabled = settings.spatialSmoothingEnabled ? 1u : 0u;
+    m_constants.spatialSmoothingStrength = settings.spatialSmoothingStrength;
+    m_constants.inverseGridWidth = 1.0f / float(grid.gridWidth);
+    m_constants.inverseGridHeight = 1.0f / float(grid.gridHeight);
 
     m_constants.distanceFogEnabled =
         settings.distanceFogEnabled ? 1u : 0u;

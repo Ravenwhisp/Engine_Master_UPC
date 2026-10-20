@@ -11,19 +11,23 @@ enum class VolumetricFogDebugView : uint32_t
     Lighting = 2,
     LightingNoShadows = 3,
     AccumulatedScattering = 4,
-    Transmittance = 5
+    Transmittance = 5,
+    ShadowReference = 6,
+    ShadowVisibility = 7,
+    ShadowCascades = 8
 };
 
 struct VolumetricFogSettings
 {
     VolumetricFogDebugView debugView = VolumetricFogDebugView::Final;
     float debugSlice = 0.5f;
+    int shadowSampleCount = 32;
 
-    // Temporary profiling controls; intentionally not serialized with the scene.
+    // Per-scene lighting and diagnostic controls.
     bool debugDisablePointLights = false;
     bool debugDisableSpotLights = false;
-    bool pointLightCullingEnabled = true; // Runtime A/B switch; not serialized yet.
-    bool optimizedShadowFilterEnabled = true; // Runtime A/B switch; fog only.
+    bool pointLightCullingEnabled = true;
+    bool optimizedShadowFilterEnabled = true;
 
     bool enabled = false;
 
@@ -47,7 +51,12 @@ struct VolumetricFogSettings
     float heightFogBaseHeight = 0.0f;
     float heightFogFalloff = 0.1f;
 
-    // Static IGN sampling jitter.
+    // Optional sampling and reconstruction filters.
+    bool blueNoiseJitterEnabled = false;
+    bool spatialSmoothingEnabled = false;
+    float spatialSmoothingStrength = 0.5f;
+
+    // Static sampling jitter (IGN or blue noise).
     bool samplingJitterEnabled = false;
     float samplingJitterStrength = 1.0f;
 
@@ -83,8 +92,10 @@ struct VolumetricFogSettings
         heightFogFalloff = std::max(heightFogFalloff, 0.0f);
 
         samplingJitterStrength = std::clamp(samplingJitterStrength, 0.0f, 1.0f);
+        spatialSmoothingStrength = std::clamp(spatialSmoothingStrength, 0.0f, 1.0f);
 
         debugSlice = std::clamp(debugSlice, 0.0f, 1.0f);
+        shadowSampleCount = std::clamp(shadowSampleCount, 1, 32);
 
         noiseScale = std::max(noiseScale, 0.0001f);
         noiseStrength = std::clamp(noiseStrength, 0.0f, 1.0f);
@@ -98,7 +109,7 @@ struct VolumetricFogSettings
         distanceFogColorG = std::max(distanceFogColorG, 0.0f);
         distanceFogColorB = std::max(distanceFogColorB, 0.0f);
 
-        if (static_cast<uint32_t>(debugView) > static_cast<uint32_t>(VolumetricFogDebugView::Transmittance))
+        if (static_cast<uint32_t>(debugView) > static_cast<uint32_t>(VolumetricFogDebugView::ShadowCascades))
         {
             debugView = VolumetricFogDebugView::Final;
         }
@@ -142,11 +153,21 @@ struct VolumetricFogSettings
         uint32_t debugViewValue = static_cast<uint32_t>(debugView);
         archive.serialize(debugViewValue, "DebugView");
         archive.serialize(debugSlice, "DebugSlice");
+        archive.serialize(debugDisablePointLights, "DebugDisablePointLights");
+        archive.serialize(debugDisableSpotLights, "DebugDisableSpotLights");
+        archive.serialize(pointLightCullingEnabled, "PointLightCullingEnabled");
+        archive.serialize(optimizedShadowFilterEnabled, "OptimizedShadowFilterEnabled");
+        archive.serialize(blueNoiseJitterEnabled, "BlueNoiseJitterEnabled");
+        archive.serialize(spatialSmoothingEnabled, "SpatialSmoothingEnabled");
+        archive.serialize(spatialSmoothingStrength, "SpatialSmoothingStrength");
+        uint32_t samples = static_cast<uint32_t>(std::clamp(shadowSampleCount, 1, 32));
+        archive.serialize(samples, "ShadowSampleCount");
 
         if (archive.mode() == ArchiveMode::Input)
         {
+            shadowSampleCount = static_cast<int>(std::clamp(samples, 1u, 32u));
             debugView =
-                debugViewValue <= static_cast<uint32_t>(VolumetricFogDebugView::Transmittance)
+                debugViewValue <= static_cast<uint32_t>(VolumetricFogDebugView::ShadowCascades)
                 ? static_cast<VolumetricFogDebugView>(debugViewValue)
                 : VolumetricFogDebugView::Final;
 

@@ -41,6 +41,11 @@ private:
         float distanceFogColorG = 0.25f;
         float distanceFogColorB = 0.25f;
         uint32_t padding1 = 0;
+
+        uint32_t spatialSmoothingEnabled = 0;
+        float spatialSmoothingStrength = 0.5f;
+        float inverseGridWidth = 0.0f;
+        float inverseGridHeight = 0.0f;
     };
 
     void createRootSignature();

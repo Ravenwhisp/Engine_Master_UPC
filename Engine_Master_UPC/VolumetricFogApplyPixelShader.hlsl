@@ -21,6 +21,11 @@ cbuffer ApplyConstants : register(b0)
     float distanceFogColorG;
     float distanceFogColorB;
     uint padding1;
+
+    uint spatialSmoothingEnabled;
+    float spatialSmoothingStrength;
+    float inverseGridWidth;
+    float inverseGridHeight;
 };
 
 Texture3D<float4> mediumVolume : register(t0);
@@ -54,6 +59,44 @@ float4 SampleIntegratedVolume(float2 uv, float normalizedDepth)
     return integratedVolume.SampleLevel(linearClampSampler, float3(uv, saturate(volumeZ)), 0.0f);
 }
 
+float4 SmoothIntegratedFog(float2 uv, float viewDepth, float normalizedDepth, float4 center)
+{
+    if (spatialSmoothingEnabled == 0 || spatialSmoothingStrength <= 0.0f)
+        return center;
+
+    uint width, height;
+    depthTexture.GetDimensions(width, height);
+    // One froxel footprint, rather than one output pixel: the noise lives on
+    // the low-resolution volume. Binomial 3x3 weights retain the center.
+    float2 stepUV = float2(inverseGridWidth, inverseGridHeight);
+    float4 sum = center * 4.0f;
+    float totalWeight = 4.0f;
+    [unroll]
+    for (int y = -1; y <= 1; ++y)
+    {
+        [unroll]
+        for (int x = -1; x <= 1; ++x)
+        {
+            if (x == 0 && y == 0) continue;
+            float2 neighborUV = uv + float2(x, y) * stepUV;
+            if (any(neighborUV < 0.0f) || any(neighborUV >= 1.0f)) continue;
+            int2 pixel = min(int2(neighborUV * float2(width, height)), int2(width, height) - 1);
+            float neighborDepth = LinearizeVolumetricViewDepth(
+                depthTexture.Load(int3(pixel, 0)), projectionA, projectionB);
+            float depthDifference = abs(neighborDepth - viewDepth);
+            // Stop at silhouettes instead of spreading fog across foreground edges.
+            float tolerance = max(0.05f, viewDepth * 0.01f);
+            float edgeWeight = saturate(1.0f - depthDifference / tolerance);
+            float weight = (x == 0 || y == 0 ? 2.0f : 1.0f) * edgeWeight * edgeWeight;
+            // Same integration endpoint for every tap avoids mixing ray lengths.
+            sum += SampleIntegratedVolume(neighborUV, normalizedDepth) * weight;
+            totalWeight += weight;
+        }
+    }
+    // Filter scattering and transmittance together; never sample scene color.
+    return lerp(center, sum / totalWeight, saturate(spatialSmoothingStrength));
+}
+
 float GetDebugSliceZ()
 {
     float slice = round(saturate(debugSlice) * float(gridDepth - 1));
@@ -81,6 +124,15 @@ float GetDistanceFogAmount(float viewDepth)
 
 float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
 {
+    if (debugView == 7u || debugView == 8u)
+    {
+        uint width, height, depth;
+        lightingVolume.GetDimensions(width, height, depth);
+        uint2 xy = min(uint2(saturate(coord) * float2(width, height)), uint2(width - 1u, height - 1u));
+        uint z = (uint)round(saturate(debugSlice) * float(depth - 1u));
+        // No exposure, interpolation or smoothing can hide the raw boundaries.
+        return float4(lightingVolume.Load(int4(xy, z, 0)).rgb, 0.0f);
+    }
     if (debugView == DEBUG_MEDIUM)
     {
         float4 medium = mediumVolume.SampleLevel(linearClampSampler, float3(coord, GetDebugSliceZ()), 0.0f);
@@ -101,6 +153,7 @@ float4 main(float4 position : SV_Position, float2 coord : TEXCOORD0) : SV_TARGET
     float normalizedDepth = GetNormalizedVolumetricDepth(viewDepth, nearDistance, maxDistance);
 
     float4 integrated = SampleIntegratedVolume(coord, normalizedDepth);
+    integrated = SmoothIntegratedFog(coord, viewDepth, normalizedDepth, integrated);
 
     if (debugView == DEBUG_SCATTERING)
         return float4(DebugExposure(integrated.rgb, 1.0f), 0.0f);

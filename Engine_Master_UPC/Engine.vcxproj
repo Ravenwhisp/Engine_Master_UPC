@@ -509,6 +509,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="VolumetricFogSettings.h" />
     <ClInclude Include="VolumetricFogTypes.h" />
     <ClInclude Include="VolumetricFogLightBlocks.h" />
+    <ClInclude Include="VolumetricFogBlueNoise.h" />
     <ClInclude Include="WindowAnimationStateMachine.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
@@ -1087,6 +1088,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="PBRLighting.hlsli" />
     <None Include="SimpleMath.inl" />
     <None Include="VolumetricFogCommon.hlsli" />
+    <None Include="VolumetricFogSampling.hlsli" />
+    <None Include="VolumetricFogHeight.hlsli" />
     <None Include="VolumetricFogLightingData.hlsli" />
   </ItemGroup>
   <ItemGroup>

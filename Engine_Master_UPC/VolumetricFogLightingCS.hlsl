@@ -1,4 +1,5 @@
-#include "VolumetricFogCommon.hlsli"
+#include "VolumetricFogSampling.hlsli"
+#include "VolumetricFogHeight.hlsli"
 #define MAX_SHADOW_CASCADES 4
 
 #define SHADOW_CB_REGISTER b1
@@ -40,15 +41,15 @@ static const float PI = 3.14159265359f;
 
 // Fog-only approximation. Keep the original cascade selection, coverage test,
 // comparison depth, sampler and strength; reduce only the number of PCF taps.
-float ComputeVolumetricShadow(float3 worldPosition)
+float ComputeVolumetricShadow(float3 worldPosition, out uint selectedCascadeIndex)
 {
+    selectedCascadeIndex = MAX_SHADOW_CASCADES;
     if (shadowsEnabled == 0u)
         return 1.0f;
 
     // Retain the exact original path for A/B and for single-comparison shadows.
     if (optimizedShadowFilterEnabled == 0u || pcfEnabled == 0u || pcfRadius == 0u)
     {
-        uint selectedCascadeIndex;
         return ComputeShadow(worldPosition, float3(0.0f, 0.0f, 0.0f), selectedCascadeIndex);
     }
 
@@ -61,6 +62,7 @@ float ComputeVolumetricShadow(float3 worldPosition)
         float2 uv = float2(ndc.x * 0.5f + 0.5f, 0.5f - ndc.y * 0.5f);
         if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f || ndc.z < 0.0f || ndc.z > 1.0f)
             continue;
+        selectedCascadeIndex = index;
 
         // One bilinear comparison at the center of each quadrant of the
         // original square footprint. This approximates, not reproduces, box PCF.
@@ -74,6 +76,78 @@ float ComputeVolumetricShadow(float3 worldPosition)
         return lerp(1.0f - shadowStrength, 1.0f, visibility);
     }
     return 1.0f;
+}
+
+float ComputeVolumetricShadow(float3 worldPosition)
+{
+    uint cascadeIndex;
+    return ComputeVolumetricShadow(worldPosition, cascadeIndex);
+}
+
+float ComputeFogSegmentShadow(uint3 froxel, uint3 gridSize, float extinction)
+{
+    if (shadowsEnabled == 0u)
+        return 1.0f;
+
+    // Use shared slice boundaries, independent of density jitter. Adjacent
+    // slices therefore agree on visibility at their common boundary.
+    float3 startPosition = GetFroxelWorldPositionJittered(
+        froxel, gridSize, projectionScale, nearDistance, maxDistance, inverseView, 0.0f);
+    float3 endPosition = GetFroxelWorldPositionJittered(
+        froxel, gridSize, projectionScale, nearDistance, maxDistance, inverseView, 1.0f);
+    if (shadowDiagnostic == 6u || heightFogDensity > 0.0f)
+    {
+        // The medium stores the exact height-profile average over this segment.
+        // Redistribute its optical depth over subsegments using the same profile.
+        // Its existing animation multiplier is retained, not resampled or delayed.
+        float tau = max(extinction, 0.0f) * length(endPosition - startPosition);
+        uint sampleCount = clamp(shadowSampleCount, 1u, 32u);
+        float inverseSampleCount = rcp(float(sampleCount));
+        float sum = 0.0f;
+        float weights = 0.0f;
+        float transmission = 1.0f;
+        float averageDensity = uniformFogDensity + heightFogDensity * FogHeightAverage(
+            startPosition.y, endPosition.y, heightFogBaseHeight, heightFogFalloff);
+        if (tau <= 0.0f || averageDensity <= 0.0f)
+            return 1.0f;
+        [loop]
+        for (uint i = 0u; i < sampleCount; ++i)
+        {
+            float t = (float(i) + 0.5f) * inverseSampleCount;
+            float y0 = lerp(startPosition.y, endPosition.y, float(i) * inverseSampleCount);
+            float y1 = lerp(startPosition.y, endPosition.y, float(i + 1u) * inverseSampleCount);
+            float localDensity = uniformFogDensity + heightFogDensity * FogHeightAverage(
+                y0, y1, heightFogBaseHeight, heightFogFalloff);
+            float localTau = tau * inverseSampleCount * (localDensity / averageDensity);
+            float weight = transmission * FogAbsorbedFraction(localTau);
+            sum += weight * ComputeVolumetricShadow(lerp(startPosition, endPosition, t));
+            weights += weight;
+            transmission *= exp(-localTau);
+        }
+        return weights > 0.0f ? sum / weights : 1.0f;
+    }
+    float startVisibility = ComputeVolumetricShadow(startPosition);
+    float endVisibility = ComputeVolumetricShadow(endPosition);
+
+    // Integrate a linear visibility transition against Beer-Lambert attenuation.
+    // IntegrateCS subsequently multiplies this average by the segment integral.
+    // This is a reconstruction between two samples, not an exact shadow-volume
+    // intersection: shadow features smaller than a slice can still be missed.
+    float opticalDepth = max(extinction, 0.0f) * length(endPosition - startPosition);
+    float startWeight;
+    if (opticalDepth < 0.05f)
+    {
+        // Series avoids cancellation near zero, including a vacuum.
+        startWeight = 0.5f + opticalDepth / 12.0f
+            - opticalDepth * opticalDepth * opticalDepth / 720.0f;
+    }
+    else
+    {
+        float transmission = exp(-opticalDepth);
+        startWeight = 1.0f - rcp(opticalDepth)
+            + transmission / (1.0f - transmission);
+    }
+    return lerp(endVisibility, startVisibility, saturate(startWeight));
 }
 
 float HenyeyGreenstein(float cosTheta, float g)
@@ -177,7 +251,29 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
 
-    float sampleOffset = GetFroxelSampleOffset(dispatchThreadID.xy, samplingJitterEnabled, samplingJitterStrength);
+    if (shadowDiagnostic == 7u || shadowDiagnostic == 8u)
+    {
+        float3 diagnostic = float3(1.0f, 0.0f, 1.0f);
+        // Do not access shadow resources when the pass has no valid bindings.
+        if (hasDirectionalLight != 0u && debugDisableShadows == 0u)
+        {
+            float3 center = GetFroxelWorldPosition(
+                dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView);
+            uint cascadeIndex;
+            float visibility = ComputeVolumetricShadow(center, cascadeIndex);
+            if (cascadeIndex < MAX_SHADOW_CASCADES)
+            {
+                float rawVisibility = shadowStrength > 0.000001f
+                    ? saturate((visibility - (1.0f - shadowStrength)) / shadowStrength) : 1.0f;
+                diagnostic = shadowDiagnostic == 7u
+                    ? rawVisibility.xxx : GetCascadeDebugColor(cascadeIndex);
+            }
+        }
+        lightingVolume[dispatchThreadID] = float4(diagnostic, 0.0f);
+        return;
+    }
+
+    float sampleOffset = GetFogSampleOffset(dispatchThreadID, samplingJitterEnabled, samplingJitterStrength);
 
     float4 medium = mediumVolume.Load(int4(dispatchThreadID, 0));
 
@@ -203,7 +299,7 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
         if (debugDisableShadows == 0)
         {
-            shadow = ComputeVolumetricShadow(worldPosition);
+            shadow = ComputeFogSegmentShadow(dispatchThreadID, gridSize, medium.a);
         }
 
         inScattering += medium.rgb * lightColor * lightIntensity * phase * shadow;
