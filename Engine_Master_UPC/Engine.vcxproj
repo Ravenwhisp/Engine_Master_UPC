@@ -508,6 +508,8 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <ClInclude Include="VolumetricFogComputePass.h" />
     <ClInclude Include="VolumetricFogSettings.h" />
     <ClInclude Include="VolumetricFogTypes.h" />
+    <ClInclude Include="VolumetricFogLightBlocks.h" />
+    <ClInclude Include="VolumetricFogBlueNoise.h" />
     <ClInclude Include="WindowAnimationStateMachine.h" />
     <ClInclude Include="WindowGame.h" />
     <ClInclude Include="ICacheable.h" />
@@ -1086,6 +1088,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     <None Include="PBRLighting.hlsli" />
     <None Include="SimpleMath.inl" />
     <None Include="VolumetricFogCommon.hlsli" />
+    <None Include="VolumetricFogSampling.hlsli" />
+    <None Include="VolumetricFogHeight.hlsli" />
+    <None Include="VolumetricFogLightingData.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="LightCullingComputeShader.hlsl">
@@ -1704,6 +1709,20 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">4.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="VolumetricFogLightingCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="VolumetricFogCullPointLightsCS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
