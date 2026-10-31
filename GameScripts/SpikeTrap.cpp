@@ -58,6 +58,13 @@ void SpikeTrap::Start()
             GameObjectAPI::getName(getOwner()));
     }
 
+    Transform* spectralEffectTransform = m_spectralAuraT.getReferencedComponent();
+    if (spectralEffectTransform != nullptr)
+    {
+        pauseParticleEmission(spectralEffectTransform);
+		GameObjectAPI::setActive(ComponentAPI::getOwner(spectralEffectTransform), true); // for proper visibility in game
+    }
+
     spikeType = alternativeMode ? 1 : 0;
     setSpikeHeight(0, spikeType == 0 ? waitPositionY : startPositionY);
     setSpikeHeight(1, spikeType == 1 ? waitPositionY : startPositionY);
@@ -256,25 +263,83 @@ void SpikeTrap::damagePlayer(GameObject* player)
 
 void SpikeTrap::addEffect(int type)
 {
-    Transform* effectTransform = type == 0
-        ? m_spikeShineT.getReferencedComponent()
-        : m_spectralAuraT.getReferencedComponent();
-
-    if (effectTransform != nullptr)
+    if (type == 0) 
     {
-        ParticleLifecycle::activate(ComponentAPI::getOwner(effectTransform));
+        Transform* effectTransform = m_spikeShineT.getReferencedComponent();
+
+        if (effectTransform != nullptr)
+        {
+            ParticleLifecycle::activate(ComponentAPI::getOwner(effectTransform));
+        }
+    }
+    else 
+    {
+
+        Transform* effectTransform = m_spectralAuraT.getReferencedComponent();
+
+        if (effectTransform != nullptr)
+        {
+			resumeParticleEmission(effectTransform);
+        }
     }
 }
 
 void SpikeTrap::removeEffect(int type)
 {
-    Transform* effectTransform = type == 0
-        ? m_spikeShineT.getReferencedComponent()
-        : m_spectralAuraT.getReferencedComponent();
-
-    if (effectTransform != nullptr)
+    if (type == 0)
     {
-        ParticleLifecycle::deactivate(ComponentAPI::getOwner(effectTransform));
+        Transform* effectTransform = m_spikeShineT.getReferencedComponent();
+
+        if (effectTransform != nullptr)
+        {
+            ParticleLifecycle::deactivate(ComponentAPI::getOwner(effectTransform));
+        }
+    }
+    else
+    {
+
+        Transform* effectTransform = m_spectralAuraT.getReferencedComponent();
+
+        if (effectTransform != nullptr)
+        {
+            pauseParticleEmission(effectTransform);
+        }
+    }
+}
+
+void SpikeTrap::pauseParticleEmission(Transform* effectTransform)
+{
+    int childs = TransformAPI::getChildCount(effectTransform);
+
+    for (int childNumber = 0; childNumber < childs; ++childNumber) 
+    {
+
+        Transform* childTransform = TransformAPI::getChild(effectTransform, childNumber);
+        GameObject* childObject = ComponentAPI::getOwner(childTransform);
+        ParticleSystemComponent* childParticles = ParticleSystemAPI::getParticleSystemComponent(childObject);
+
+        if (childParticles != nullptr) 
+        {
+            ParticleSystemAPI::setEmissionEnabled(childParticles, false);
+		}
+    }
+}
+
+void SpikeTrap::resumeParticleEmission(Transform* effectTransform)
+{
+    int childs = TransformAPI::getChildCount(effectTransform);
+
+    for (int childNumber = 0; childNumber < childs; ++childNumber)
+    {
+
+        Transform* childTransform = TransformAPI::getChild(effectTransform, childNumber);
+        GameObject* childObject = ComponentAPI::getOwner(childTransform);
+        ParticleSystemComponent* childParticles = ParticleSystemAPI::getParticleSystemComponent(childObject);
+
+        if (childParticles != nullptr)
+        {
+            ParticleSystemAPI::setEmissionEnabled(childParticles, true);
+        }
     }
 }
 

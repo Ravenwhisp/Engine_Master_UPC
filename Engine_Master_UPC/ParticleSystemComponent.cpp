@@ -72,6 +72,14 @@ float ParticleSystemComponent::deltaTime() const
     return m_localTimeScale * m_moduleParticleSystem->deltaTime();
 }
 
+void ParticleSystemComponent::setEmissionEnabled(bool enabled)
+{
+    for (auto& particleState : m_particlesState) 
+    {
+        particleState.setEmissionEnabled(enabled);
+	}
+}
+
 void ParticleSystemComponent::drawUi()
 {
     ImGui::Text("Particle System");

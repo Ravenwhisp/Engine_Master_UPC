@@ -59,6 +59,9 @@ private:
     void addEffect(int type);
     void removeEffect(int type);
 
+    void pauseParticleEmission(Transform* effectTransform);
+	void resumeParticleEmission(Transform* effectTransform);
+
     int spikeType = 0; // 0: normal/Lyriel, 1: spectral/Death
     float currentTime = 0.0f;
     TrapState state = WAIT;

@@ -11,7 +11,7 @@
 void EmitterSpawn::update(EmitterInstance* instance)
 {
 
-	if (!m_looping && instance->getCurrentTime() > m_duration) return;
+	if (!instance->isEmissionEnabled() || !m_looping && instance->getCurrentTime() > m_duration) return;
 
 	float spawn = instance->getParticlesToSpawn();
 	float deltaTime = instance->getParticleSystemComponent()->deltaTime();
