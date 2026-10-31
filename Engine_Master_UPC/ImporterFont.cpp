@@ -11,6 +11,14 @@ namespace fs = std::filesystem;
 
 bool ImporterFont::loadExternal(const std::filesystem::path& path, std::vector<uint8_t>& out)
 {
+    m_lastFontFamilyName.clear();
+    if (path.extension() == ".spritefont")
+    {
+        m_lastFontFamilyName = path.stem().string();
+        out = FileIO::read(path);
+        return !out.empty();
+    }
+
     const std::filesystem::path spritefontPath = runMakeSpriteFont(path);
     if (spritefontPath.empty())
     {

@@ -22,6 +22,8 @@ public:
         archive.serializeRaw(spriteFontData.data(), static_cast<size_t>(dataSize));
     }
 
+    const std::vector<uint8_t>& getSpriteFontData() const { return spriteFontData; }
+
 private:
     std::string fontFamilyName;
     std::vector<uint8_t> spriteFontData;

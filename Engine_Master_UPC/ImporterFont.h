@@ -14,7 +14,7 @@ public:
     bool canImport(const std::filesystem::path& path) const override
     {
         auto ext = path.extension().string();
-        return ext == TTL_EXTENSION;
+        return ext == TTL_EXTENSION || ext == ".spritefont";
     }
 
     Asset* createAssetInstance(AssetId& uid) const override;

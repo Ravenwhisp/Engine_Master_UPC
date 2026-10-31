@@ -249,6 +249,15 @@ void WindowEditorSettings::drawBuildSettings()
                 ++sceneMappings;
             }
 
+            for (const auto& [uid, entry] : app->getModuleAssets()->getIndex().allEntries())
+            {
+                if (entry.type == AssetType::FONT && isValidAsset(entry.contentHash))
+                {
+                    configStr += "font " + std::to_string(uid) + " " + entry.contentHash
+                        + " " + entry.sourcePath.stem().string() + "\n";
+                }
+            }
+
             const std::filesystem::path outPath = std::filesystem::current_path() / "build.cfg";
             FileIO::write(outPath, configStr.c_str(), configStr.size());
             DEBUG_LOG("[WindowEditorSettings] Build config exported to %s (%zu scene name translations).",
