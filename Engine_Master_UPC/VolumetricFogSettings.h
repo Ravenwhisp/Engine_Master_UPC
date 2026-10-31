@@ -11,13 +11,23 @@ enum class VolumetricFogDebugView : uint32_t
     Lighting = 2,
     LightingNoShadows = 3,
     AccumulatedScattering = 4,
-    Transmittance = 5
+    Transmittance = 5,
+    ShadowReference = 6,
+    ShadowVisibility = 7,
+    ShadowCascades = 8
 };
 
 struct VolumetricFogSettings
 {
     VolumetricFogDebugView debugView = VolumetricFogDebugView::Final;
     float debugSlice = 0.5f;
+    int shadowSampleCount = 32;
+
+    // Per-scene lighting and diagnostic controls.
+    bool debugDisablePointLights = false;
+    bool debugDisableSpotLights = false;
+    bool pointLightCullingEnabled = true;
+    bool optimizedShadowFilterEnabled = true;
 
     bool enabled = false;
 
@@ -35,6 +45,21 @@ struct VolumetricFogSettings
     // Maximum world-space distance covered by the volumetric volume.
     float maxDistance = 100.0f;
 
+    // Additional world-space density that decreases exponentially with height.
+    bool heightFogEnabled = false;
+    float heightFogDensity = 1.0f;
+    float heightFogBaseHeight = 0.0f;
+    float heightFogFalloff = 0.1f;
+
+    // Optional sampling and reconstruction filters.
+    bool blueNoiseJitterEnabled = false;
+    bool spatialSmoothingEnabled = false;
+    float spatialSmoothingStrength = 0.5f;
+
+    // Static sampling jitter (IGN or blue noise).
+    bool samplingJitterEnabled = false;
+    float samplingJitterStrength = 1.0f;
+
     bool animateDensity = false;
     float noiseScale = 0.05f;
     float noiseStrength = 0.5f;
@@ -43,28 +68,71 @@ struct VolumetricFogSettings
     float windDirectionZ = 0.0f;
     float windSpeed = 0.25f;
 
+    // Artist-controlled distance fog.
+    bool distanceFogEnabled = false;
+    float distanceFogStart = 50.0f;
+    float distanceFogEnd = 150.0f;
+    float distanceFogMaxOpacity = 1.0f;
+
+    float distanceFogColorR = 0.25f;
+    float distanceFogColorG = 0.25f;
+    float distanceFogColorB = 0.25f;
+
     void sanitize()
     {
         density = (std::max)(0.0f, density);
+
         scatteringCoefficient = (std::max)(0.0f, scatteringCoefficient);
         extinctionCoefficient = (std::max)(scatteringCoefficient, extinctionCoefficient);
+
         anisotropy = std::clamp(anisotropy, -0.99f, 0.99f);
         maxDistance = (std::max)(0.1f, maxDistance);
+
+        heightFogDensity = std::max(heightFogDensity, 0.0f);
+        heightFogFalloff = std::max(heightFogFalloff, 0.0f);
+
+        samplingJitterStrength = std::clamp(samplingJitterStrength, 0.0f, 1.0f);
+        spatialSmoothingStrength = std::clamp(spatialSmoothingStrength, 0.0f, 1.0f);
+
         debugSlice = std::clamp(debugSlice, 0.0f, 1.0f);
+        shadowSampleCount = std::clamp(shadowSampleCount, 1, 32);
+
         noiseScale = std::max(noiseScale, 0.0001f);
         noiseStrength = std::clamp(noiseStrength, 0.0f, 1.0f);
         windSpeed = std::max(windSpeed, 0.0f);
-        if (static_cast<uint32_t>(debugView) > static_cast<uint32_t>(VolumetricFogDebugView::Transmittance)) debugView = VolumetricFogDebugView::Final;
+
+        distanceFogStart = std::max(distanceFogStart, 0.0f);
+        distanceFogEnd = std::max(distanceFogEnd, distanceFogStart + 0.001f);
+        distanceFogMaxOpacity = std::clamp(distanceFogMaxOpacity, 0.0f, 1.0f);
+
+        distanceFogColorR = std::max(distanceFogColorR, 0.0f);
+        distanceFogColorG = std::max(distanceFogColorG, 0.0f);
+        distanceFogColorB = std::max(distanceFogColorB, 0.0f);
+
+        if (static_cast<uint32_t>(debugView) > static_cast<uint32_t>(VolumetricFogDebugView::ShadowCascades))
+        {
+            debugView = VolumetricFogDebugView::Final;
+        }
     }
 
     void serialize(IArchive& archive)
     {
         archive.serialize(enabled, "Enabled");
+
         archive.serialize(density, "Density");
         archive.serialize(scatteringCoefficient, "ScatteringCoefficient");
         archive.serialize(extinctionCoefficient, "ExtinctionCoefficient");
         archive.serialize(anisotropy, "Anisotropy");
         archive.serialize(maxDistance, "MaxDistance");
+
+        archive.serialize(heightFogEnabled, "HeightFogEnabled");
+        archive.serialize(heightFogDensity, "HeightFogDensity");
+        archive.serialize(heightFogBaseHeight, "HeightFogBaseHeight");
+        archive.serialize(heightFogFalloff, "HeightFogFalloff");
+
+        archive.serialize(samplingJitterEnabled, "SamplingJitterEnabled");
+        archive.serialize(samplingJitterStrength, "SamplingJitterStrength");
+
         archive.serialize(animateDensity, "AnimateDensity");
         archive.serialize(noiseScale, "NoiseScale");
         archive.serialize(noiseStrength, "NoiseStrength");
@@ -73,15 +141,37 @@ struct VolumetricFogSettings
         archive.serialize(windDirectionZ, "WindDirectionZ");
         archive.serialize(windSpeed, "WindSpeed");
 
+        archive.serialize(distanceFogEnabled, "DistanceFogEnabled");
+        archive.serialize(distanceFogStart, "DistanceFogStart");
+        archive.serialize(distanceFogEnd, "DistanceFogEnd");
+        archive.serialize(distanceFogMaxOpacity, "DistanceFogMaxOpacity");
+
+        archive.serialize(distanceFogColorR, "DistanceFogColorR");
+        archive.serialize(distanceFogColorG, "DistanceFogColorG");
+        archive.serialize(distanceFogColorB, "DistanceFogColorB");
+
         uint32_t debugViewValue = static_cast<uint32_t>(debugView);
         archive.serialize(debugViewValue, "DebugView");
         archive.serialize(debugSlice, "DebugSlice");
+        archive.serialize(debugDisablePointLights, "DebugDisablePointLights");
+        archive.serialize(debugDisableSpotLights, "DebugDisableSpotLights");
+        archive.serialize(pointLightCullingEnabled, "PointLightCullingEnabled");
+        archive.serialize(optimizedShadowFilterEnabled, "OptimizedShadowFilterEnabled");
+        archive.serialize(blueNoiseJitterEnabled, "BlueNoiseJitterEnabled");
+        archive.serialize(spatialSmoothingEnabled, "SpatialSmoothingEnabled");
+        archive.serialize(spatialSmoothingStrength, "SpatialSmoothingStrength");
+        uint32_t samples = static_cast<uint32_t>(std::clamp(shadowSampleCount, 1, 32));
+        archive.serialize(samples, "ShadowSampleCount");
 
         if (archive.mode() == ArchiveMode::Input)
         {
-            debugView = debugViewValue <= static_cast<uint32_t>(VolumetricFogDebugView::Transmittance) ? static_cast<VolumetricFogDebugView>(debugViewValue) : VolumetricFogDebugView::Final;
+            shadowSampleCount = static_cast<int>(std::clamp(samples, 1u, 32u));
+            debugView =
+                debugViewValue <= static_cast<uint32_t>(VolumetricFogDebugView::ShadowCascades)
+                ? static_cast<VolumetricFogDebugView>(debugViewValue)
+                : VolumetricFogDebugView::Final;
+
             sanitize();
         }
-
     }
 };

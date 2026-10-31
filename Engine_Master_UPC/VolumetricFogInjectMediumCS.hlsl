@@ -1,4 +1,5 @@
-#include "VolumetricFogCommon.hlsli"
+#include "VolumetricFogSampling.hlsli"
+#include "VolumetricFogHeight.hlsli"
 
 cbuffer MediumConstants : register(b0)
 {
@@ -25,6 +26,16 @@ cbuffer MediumConstants : register(b0)
     uint gridDepth;
     uint padding0;
     uint padding1;
+
+    float heightFogDensity;
+    float heightFogBaseHeight;
+    float heightFogFalloff;
+    uint heightFogEnabled;
+
+    float samplingJitterStrength;
+    uint samplingJitterEnabled;
+    uint samplingPadding0;
+    uint samplingPadding1;
 };
 
 RWTexture3D<float4> mediumVolume : register(u0);
@@ -94,11 +105,33 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     float effectiveDensity = density;
 
+    uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
+
+    float sampleOffset = GetFogSampleOffset(dispatchThreadID, samplingJitterEnabled, samplingJitterStrength);
+
+    float3 worldPosition = GetFroxelWorldPositionJittered(
+        dispatchThreadID,
+        gridSize,
+        projectionScale,
+        nearDistance,
+        maxDistance,
+        inverseView,
+        sampleOffset);
+
+    if (heightFogEnabled != 0)
+    {
+        float3 segmentStart = GetFroxelWorldPositionJittered(
+            dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView, 0.0f);
+        float3 segmentEnd = GetFroxelWorldPositionJittered(
+            dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView, 1.0f);
+        float exponentialDensity = heightFogDensity * FogHeightAverage(
+            segmentStart.y, segmentEnd.y, heightFogBaseHeight, heightFogFalloff);
+
+        effectiveDensity += exponentialDensity;
+    }
+
     if (animateDensity != 0)
     {
-        uint3 gridSize = uint3(gridWidth, gridHeight, gridDepth);
-        float3 worldPosition = GetFroxelWorldPosition(dispatchThreadID, gridSize, projectionScale, nearDistance, maxDistance, inverseView);
-
         float3 wind = windDirection;
         float windLength = length(wind);
 

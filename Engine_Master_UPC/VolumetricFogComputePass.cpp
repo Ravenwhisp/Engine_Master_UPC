@@ -7,12 +7,17 @@
 #include "ModuleScene.h"
 #include "ModuleDescriptors.h"
 #include "ModuleTime.h"
+#include "ModuleD3D12.h"
+#include "ModuleRender.h"
+#include "RingBuffer.h"
 
 #include "RenderContext.h"
 #include "Scene.h"
 #include "Texture.h"
 #include "VolumetricFogSettings.h"
 #include "VolumetricFogTypes.h"
+#include "VolumetricFogLightBlocks.h"
+#include "VolumetricFogBlueNoise.h"
 #include "GameObject.h"
 #include "LightComponent.h"
 #include "Lights.h"
@@ -27,6 +32,11 @@
 
 namespace
 {
+    constexpr uint32_t FOG_BLOCK_COUNT_X = (VolumetricFog::GRID_WIDTH + FOG_LIGHT_BLOCK_X - 1) / FOG_LIGHT_BLOCK_X;
+    constexpr uint32_t FOG_BLOCK_COUNT_Y = (VolumetricFog::GRID_HEIGHT + FOG_LIGHT_BLOCK_Y - 1) / FOG_LIGHT_BLOCK_Y;
+    constexpr uint32_t FOG_BLOCK_COUNT_Z = (VolumetricFog::GRID_DEPTH + FOG_LIGHT_BLOCK_Z - 1) / FOG_LIGHT_BLOCK_Z;
+    static_assert(LightDefaults::MAX_POINT_LIGHTS == FOG_POINT_LIGHT_CAPACITY, "Fog masks must cover every point light.");
+
     bool getCameraNearDistance(const Matrix& projection, float& nearDistance)
     {
         if (std::abs(projection._33) <= 0.000001f) return false;
@@ -34,14 +44,32 @@ namespace
         nearDistance = std::abs(projection._43 / projection._33);
         return nearDistance > 0.0f;
     }
+
+    struct VolumetricPointLightsConstantBuffer
+    {
+        uint32_t pointLightCount = 0;
+        uint32_t padding[3] = {};
+
+        GPUPointLight pointLights[LightDefaults::MAX_POINT_LIGHTS]{};
+    };
+
+    struct VolumetricSpotLightsConstantBuffer
+    {
+        uint32_t spotLightCount = 0;
+        uint32_t padding[3] = {};
+        GPUSpotLight spotLights[LightDefaults::MAX_SPOT_LIGHTS]{};
+    };
 }
 
 VolumetricFogComputePass::VolumetricFogComputePass(ComPtr<ID3D12Device4> device) : m_device(device)
 {
+    m_blueNoise = app->getModuleResources()->createDefaultBuffer(
+        FOG_BLUE_NOISE, sizeof(FOG_BLUE_NOISE), "Fog blue noise");
     createMediumRootSignature();
     createMediumPipelineState();
     createLightingRootSignature();
     createLightingPipelineState();
+    createPointLightCullingResources();
     createIntegrationRootSignature();
     createIntegrationPipelineState();
 }
@@ -51,6 +79,9 @@ VolumetricFogComputePass::~VolumetricFogComputePass() = default;
 void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 {
     m_enabled = false;
+    m_pointLightsCBAddress = 0;
+    m_lightingCBAddress = 0;
+    m_spotLightsCBAddress = 0;
     m_gridConstants = {};
     m_mediumConstants = {};
     m_lightingConstants = {};
@@ -129,17 +160,37 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
     m_mediumConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_mediumConstants.gridDepth = VolumetricFog::GRID_DEPTH;
 
+    m_mediumConstants.heightFogDensity = settings.heightFogDensity;
+    m_mediumConstants.heightFogBaseHeight = settings.heightFogBaseHeight;
+    m_mediumConstants.heightFogFalloff = settings.heightFogFalloff;
+    m_mediumConstants.heightFogEnabled = settings.heightFogEnabled ? 1u : 0u;
+
+    m_mediumConstants.samplingJitterStrength = settings.samplingJitterStrength;
+    // Shared shader encoding: 0 centered, 1 IGN, 2 blue noise.
+    m_mediumConstants.samplingJitterEnabled = settings.samplingJitterEnabled
+        ? (settings.blueNoiseJitterEnabled ? 2u : 1u) : 0u;
+
     m_lightingConstants.inverseView = m_gridConstants.inverseView;
     m_lightingConstants.projectionScale = m_gridConstants.projectionScale;
     m_lightingConstants.nearDistance = m_gridConstants.nearDistance;
     m_lightingConstants.maxDistance = m_gridConstants.maxDistance;
     m_lightingConstants.cameraPosition = ctx.cameraPosition;
     m_lightingConstants.anisotropy = settings.anisotropy;
+
     m_lightingConstants.gridWidth = VolumetricFog::GRID_WIDTH;
     m_lightingConstants.gridHeight = VolumetricFog::GRID_HEIGHT;
     m_lightingConstants.gridDepth = VolumetricFog::GRID_DEPTH;
+    m_lightingConstants.debugDisableShadows = !m_hasShadowData || settings.debugView == VolumetricFogDebugView::LightingNoShadows ? 1u : 0u;
 
-    m_lightingConstants.debugDisableShadows = settings.debugView == VolumetricFogDebugView::LightingNoShadows ? 1u : 0u;
+    m_lightingConstants.samplingJitterStrength = settings.samplingJitterStrength;
+    m_lightingConstants.samplingJitterEnabled = m_mediumConstants.samplingJitterEnabled;
+    m_lightingConstants.optimizedShadowFilterEnabled = settings.optimizedShadowFilterEnabled ? 1u : 0u;
+    m_lightingConstants.shadowDiagnostic = static_cast<uint32_t>(settings.debugView);
+    m_lightingConstants.shadowSampleCount = static_cast<uint32_t>(std::clamp(settings.shadowSampleCount, 1, 32));
+    m_lightingConstants.heightFogDensity = settings.heightFogEnabled ? settings.heightFogDensity : 0.0f;
+    m_lightingConstants.heightFogBaseHeight = settings.heightFogBaseHeight;
+    m_lightingConstants.heightFogFalloff = settings.heightFogFalloff;
+    m_lightingConstants.uniformFogDensity = settings.density;
 
     const LightComponent* directionalLight = findVolumetricDirectionalLight();
 
@@ -153,9 +204,80 @@ void VolumetricFogComputePass::prepare(const RenderContext& ctx)
 
         m_lightingConstants.lightDirection = direction;
         m_lightingConstants.lightColor = lightData.common.color;
-        m_lightingConstants.lightIntensity = lightData.common.intensity;
+        m_lightingConstants.lightIntensity = lightData.common.intensity * lightData.common.volumetricIntensity;
         m_lightingConstants.hasDirectionalLight = 1;
     }
+
+    if (ctx.ringBuffer == nullptr) return;
+
+    VolumetricPointLightsConstantBuffer pointLightsCB{};
+    VolumetricSpotLightsConstantBuffer spotLightsCB{};
+
+    const std::vector<LightComponent*>& lights = app->getModuleScene()->getLightComponents();
+
+    for (const LightComponent* light : lights)
+    {
+        if (light == nullptr || !light->isActive()) continue;
+
+        const GameObject* owner = light->getOwner();
+        if (owner == nullptr || !owner->IsActiveInWindowHierarchy()) continue;
+
+        const LightData& data = light->getData();
+
+        if (data.type != LightType::POINT && data.type != LightType::SPOT) continue;
+        if (data.type == LightType::POINT && settings.debugDisablePointLights) continue;
+        if (data.type == LightType::SPOT && settings.debugDisableSpotLights) continue;
+        if (!data.common.affectVolumetricFog) continue;
+        if (data.common.intensity <= 0.0f || data.common.volumetricIntensity <= 0.0f) continue;
+
+        const Transform* transform = owner->GetTransform();
+        if (transform == nullptr) continue;
+
+        const Matrix& world = transform->getGlobalMatrix();
+        const Vector3 position(world._41, world._42, world._43);
+
+        if (data.type == LightType::POINT)
+        {
+            if (data.parameters.point.radius <= 0.0f) continue;
+            if (pointLightsCB.pointLightCount >= LightDefaults::MAX_POINT_LIGHTS) continue;
+
+            GPUPointLight& gpuLight = pointLightsCB.pointLights[pointLightsCB.pointLightCount++];
+
+            gpuLight.position = position;
+            gpuLight.radius = data.parameters.point.radius;
+            gpuLight.color = data.common.color;
+            gpuLight.intensity = data.common.intensity * data.common.volumetricIntensity;
+
+            continue;
+        }
+
+        if (data.parameters.spot.radius <= 0.0f) continue;
+        if (spotLightsCB.spotLightCount >= LightDefaults::MAX_SPOT_LIGHTS) continue;
+
+        Vector3 direction = transform->getForward();
+        if (direction.LengthSquared() <= 0.000001f) continue;
+        direction.Normalize();
+
+        const SpotLightParameters& spot = data.parameters.spot;
+        GPUSpotLight& gpuLight = spotLightsCB.spotLights[spotLightsCB.spotLightCount++];
+
+        gpuLight.position = position;
+        gpuLight.radius = spot.radius;
+        gpuLight.direction = direction;
+        gpuLight.color = data.common.color;
+        gpuLight.intensity = data.common.intensity * data.common.volumetricIntensity;
+        gpuLight.cosineInnerAngle = std::cos(XMConvertToRadians(spot.innerAngleDegrees));
+        gpuLight.cosineOuterAngle = std::cos(XMConvertToRadians(spot.outerAngleDegrees));
+    }
+
+    m_pointLightsCBAddress = ctx.ringBuffer->allocate(&pointLightsCB, sizeof(VolumetricPointLightsConstantBuffer));
+    if (m_pointLightsCBAddress == 0) return;
+    m_lightingConstants.pointLightCullingEnabled = settings.pointLightCullingEnabled && pointLightsCB.pointLightCount > 0 ? 1u : 0u;
+
+    m_spotLightsCBAddress = ctx.ringBuffer->allocate(&spotLightsCB, sizeof(VolumetricSpotLightsConstantBuffer));
+    if (m_spotLightsCBAddress == 0) return;
+    m_lightingCBAddress = ctx.ringBuffer->allocate(&m_lightingConstants, sizeof(m_lightingConstants));
+    if (m_lightingCBAddress == 0) return;
 
     m_enabled = m_mediumVolume != nullptr && m_lightingVolume != nullptr && m_integratedVolume != nullptr;
 }
@@ -171,10 +293,12 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
 
     commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
+    // Temporary panel timings. Sequential scopes keep the existing CPU timer valid.
+    ModuleRender* render = app->getModuleRender();
+    uint32_t profileIndex = render->beginRenderPassProfile(commandList, "Volumetric fog Medium");
+
     transitionVolume(commandList, m_mediumVolume.get(), m_mediumVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-
-    if (!m_hasShadowData) return;
 
     BEGIN_EVENT(commandList, "VolumetricFog::InjectMedium");
 
@@ -182,6 +306,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     commandList->SetComputeRootSignature(m_mediumRootSignature.Get());
     commandList->SetComputeRoot32BitConstants(0, sizeof(VolumetricFog::MediumConstants) / sizeof(uint32_t), &m_mediumConstants, 0);
     commandList->SetComputeRootDescriptorTable(1, m_mediumVolume->getUAV().gpu);
+    commandList->SetComputeRootShaderResourceView(2, m_blueNoise->GetGPUVirtualAddress());
 
     const uint32_t groupCountX = (VolumetricFog::GRID_WIDTH + VolumetricFog::INJECT_GROUP_SIZE_X - 1) / VolumetricFog::INJECT_GROUP_SIZE_X;
     const uint32_t groupCountY = (VolumetricFog::GRID_HEIGHT + VolumetricFog::INJECT_GROUP_SIZE_Y - 1) / VolumetricFog::INJECT_GROUP_SIZE_Y;
@@ -192,19 +317,49 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     END_EVENT(commandList);
 
     transitionVolume(commandList, m_mediumVolume.get(), m_mediumVolumeState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    render->endRenderPassProfile(commandList, profileIndex);
+    profileIndex = render->beginRenderPassProfile(commandList, "Volumetric fog Point culling");
+    if (m_lightingConstants.pointLightCullingEnabled != 0)
+    {
+        BEGIN_EVENT(commandList, "VolumetricFog::CullPointLights");
+        auto toWrite = CD3DX12_RESOURCE_BARRIER::Transition(m_pointLightMasks.Get(), m_pointLightMasksState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        commandList->ResourceBarrier(1, &toWrite);
+        commandList->SetComputeRootSignature(m_lightingRootSignature.Get());
+        commandList->SetPipelineState(m_pointLightCullingPipelineState.Get());
+        commandList->SetComputeRootConstantBufferView(0, m_lightingCBAddress);
+        commandList->SetComputeRootConstantBufferView(9, m_pointLightsCBAddress);
+        commandList->SetComputeRootUnorderedAccessView(12, m_pointLightMasks->GetGPUVirtualAddress());
+        commandList->Dispatch(FOG_BLOCK_COUNT_X, FOG_BLOCK_COUNT_Y, FOG_BLOCK_COUNT_Z);
+        auto toRead = CD3DX12_RESOURCE_BARRIER::Transition(m_pointLightMasks.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        commandList->ResourceBarrier(1, &toRead);
+        m_pointLightMasksState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        END_EVENT(commandList);
+    }
+    render->endRenderPassProfile(commandList, profileIndex);
+    profileIndex = render->beginRenderPassProfile(commandList, "Volumetric fog Lighting");
 
-    BEGIN_EVENT(commandList, "VolumetricFog::DirectionalLighting");
+    BEGIN_EVENT(commandList, "VolumetricFog::Lighting");
 
     commandList->SetPipelineState(m_lightingPipelineState.Get());
     commandList->SetComputeRootSignature(m_lightingRootSignature.Get());
-    commandList->SetComputeRoot32BitConstants(0, sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), &m_lightingConstants, 0);
+    commandList->SetComputeRootConstantBufferView(0, m_lightingCBAddress);
     commandList->SetComputeRootDescriptorTable(1, m_mediumVolume->getSRV().gpu);
     commandList->SetComputeRootDescriptorTable(2, m_lightingVolume->getUAV().gpu);
 
-    commandList->SetComputeRootConstantBufferView(3, m_shadowCBAddress);
-    commandList->SetComputeRootDescriptorTable(4, m_cascadeShadowMapSRVs[0]);
-    for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
-        commandList->SetComputeRootDescriptorTable(6 + i - 1, m_cascadeShadowMapSRVs[i]);
+    if (m_hasShadowData)
+    {
+        commandList->SetComputeRootConstantBufferView(3, m_shadowCBAddress);
+        commandList->SetComputeRootDescriptorTable(4, m_cascadeShadowMapSRVs[0]);
+
+        for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
+            commandList->SetComputeRootDescriptorTable(6 + i - 1, m_cascadeShadowMapSRVs[i]);
+    }
+
+    commandList->SetComputeRootConstantBufferView(9, m_pointLightsCBAddress);
+    commandList->SetComputeRootConstantBufferView(10, m_spotLightsCBAddress);
+    commandList->SetComputeRootShaderResourceView(11, m_pointLightMasks->GetGPUVirtualAddress());
+    commandList->SetComputeRootShaderResourceView(13, m_blueNoise->GetGPUVirtualAddress());
+
     commandList->SetComputeRootDescriptorTable(5, app->getModuleDescriptors()->getHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).getGPUHandle(ModuleDescriptors::SampleType::LINEAR_CLAMP));
 
     const uint32_t lightingGroupsX = (VolumetricFog::GRID_WIDTH + VolumetricFog::LIGHTING_GROUP_SIZE_X - 1) / VolumetricFog::LIGHTING_GROUP_SIZE_X;
@@ -216,6 +371,8 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     END_EVENT(commandList);
 
     transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    render->endRenderPassProfile(commandList, profileIndex);
+    profileIndex = render->beginRenderPassProfile(commandList, "Volumetric fog Integrate");
     transitionVolume(commandList, m_integratedVolume.get(), m_integratedVolumeState, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
     BEGIN_EVENT(commandList, "VolumetricFog::Integrate");
@@ -237,6 +394,7 @@ void VolumetricFogComputePass::apply(ID3D12GraphicsCommandList4* commandList)
     transitionVolume(commandList, m_mediumVolume.get(), m_mediumVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     transitionVolume(commandList, m_lightingVolume.get(), m_lightingVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     transitionVolume(commandList, m_integratedVolume.get(), m_integratedVolumeState, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    render->endRenderPassProfile(commandList, profileIndex);
 
 }
 
@@ -245,9 +403,10 @@ void VolumetricFogComputePass::createMediumRootSignature()
     CD3DX12_DESCRIPTOR_RANGE uavRange;
     uavRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[2] = {};
+    CD3DX12_ROOT_PARAMETER rootParameters[3] = {};
     rootParameters[0].InitAsConstants(sizeof(VolumetricFog::MediumConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[1].InitAsDescriptorTable(1, &uavRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[2].InitAsShaderResourceView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
     rootSignatureDesc.Init(_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_NONE);
@@ -280,8 +439,8 @@ void VolumetricFogComputePass::createLightingRootSignature()
         shadowRange[i].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 20 + i, 0);
     samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 0);
 
-    CD3DX12_ROOT_PARAMETER rootParameters[9] = {};
-    rootParameters[0].InitAsConstants(sizeof(VolumetricFog::LightingConstants) / sizeof(uint32_t), 0, 0, D3D12_SHADER_VISIBILITY_ALL);
+    CD3DX12_ROOT_PARAMETER rootParameters[14] = {};
+    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[1].InitAsDescriptorTable(1, &mediumRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[2].InitAsDescriptorTable(1, &lightingRange, D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[3].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
@@ -289,6 +448,11 @@ void VolumetricFogComputePass::createLightingRootSignature()
     for (uint32_t i = 1; i < MAX_SHADOW_CASCADES; ++i)
         rootParameters[6 + i - 1].InitAsDescriptorTable(1, &shadowRange[i], D3D12_SHADER_VISIBILITY_ALL);
     rootParameters[5].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[9].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[10].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[11].InitAsShaderResourceView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[12].InitAsUnorderedAccessView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[13].InitAsShaderResourceView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
 
     const auto shadowSamplers = makeShadowSamplers(D3D12_SHADER_VISIBILITY_ALL);
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -310,6 +474,20 @@ void VolumetricFogComputePass::createLightingPipelineState()
     psoDesc.CS = CD3DX12_SHADER_BYTECODE(computeShaderBlob.Get());
 
     DXCall(m_device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&m_lightingPipelineState)));
+}
+
+void VolumetricFogComputePass::createPointLightCullingResources()
+{
+    ComPtr<ID3DBlob> shader;
+    ThrowIfFailed(D3DReadFileToBlob(L"VolumetricFogCullPointLightsCS.cso", &shader));
+    D3D12_COMPUTE_PIPELINE_STATE_DESC desc{};
+    desc.pRootSignature = m_lightingRootSignature.Get();
+    desc.CS = CD3DX12_SHADER_BYTECODE(shader.Get());
+    DXCall(m_device->CreateComputePipelineState(&desc, IID_PPV_ARGS(&m_pointLightCullingPipelineState)));
+
+    const size_t bufferBytes = size_t(FOG_BLOCK_COUNT_X) * FOG_BLOCK_COUNT_Y * FOG_BLOCK_COUNT_Z * FOG_POINT_LIGHT_MASK_WORDS * sizeof(uint32_t);
+    m_pointLightMasks = app->getModuleResources()->createDefaultBuffer(bufferBytes,
+        D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, m_pointLightMasksState, "VolumetricFog Point Light Masks");
 }
 
 void VolumetricFogComputePass::createIntegrationRootSignature()
@@ -395,7 +573,9 @@ const LightComponent* VolumetricFogComputePass::findVolumetricDirectionalLight()
         if (owner == nullptr || !owner->IsActiveInWindowHierarchy()) continue;
 
         const LightData& data = light->getData();
+
         if (data.type != LightType::DIRECTIONAL) continue;
+        if (!data.common.affectVolumetricFog) continue;
 
         if (fallback == nullptr) fallback = light;
         if (data.shadow.castShadows) return light;
