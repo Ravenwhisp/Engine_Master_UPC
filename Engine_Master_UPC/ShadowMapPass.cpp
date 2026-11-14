@@ -149,7 +149,7 @@ void ShadowMapPass::createCommandSignature()
 void ShadowMapPass::createPipelineState()
 {
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"ShadowMapVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"ShadowMapVertexShader.cso", &vertexShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {

@@ -69,8 +69,8 @@ void OcclusionOccluderDepthPass::createPipelineState()
     ComPtr<ID3DBlob> vertexShaderBlob;
     ComPtr<ID3DBlob> pixelShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"OcclusionTargetDepthVS.cso", &vertexShaderBlob));
-    ThrowIfFailed(D3DReadFileToBlob(L"OcclusionTargetDepthPS.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"OcclusionTargetDepthVS.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"OcclusionTargetDepthPS.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {

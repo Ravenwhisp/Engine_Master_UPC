@@ -11,6 +11,7 @@
 #include "ModuleRender.h"
 
 #include <shellapi.h>
+#include <cwchar>
 
 #include "dxgidebug.h"
 
@@ -30,6 +31,46 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
 Application* app = nullptr;
 
+#ifdef GAME_RELEASE
+namespace
+{
+    bool fullscreen = false;
+    WINDOWPLACEMENT windowedPlacement{ sizeof(WINDOWPLACEMENT) };
+    LONG_PTR windowedStyle = 0;
+    LONG_PTR windowedExStyle = 0;
+
+    void toggleFullscreen(HWND hWnd)
+    {
+        if (!fullscreen)
+        {
+            windowedPlacement.length = sizeof(WINDOWPLACEMENT);
+            if (!GetWindowPlacement(hWnd, &windowedPlacement)) return;
+            windowedStyle = GetWindowLongPtrW(hWnd, GWL_STYLE);
+            windowedExStyle = GetWindowLongPtrW(hWnd, GWL_EXSTYLE);
+
+            MONITORINFO monitor{ sizeof(MONITORINFO) };
+            if (!GetMonitorInfoW(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST), &monitor)) return;
+            const RECT& bounds = monitor.rcMonitor;
+            SetWindowLongPtrW(hWnd, GWL_STYLE, (windowedStyle & ~WS_OVERLAPPEDWINDOW) | WS_POPUP);
+            SetWindowLongPtrW(hWnd, GWL_EXSTYLE, windowedExStyle & ~WS_EX_WINDOWEDGE);
+            SetWindowPos(hWnd, HWND_TOP, bounds.left, bounds.top,
+                bounds.right - bounds.left, bounds.bottom - bounds.top,
+                SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+            fullscreen = true;
+        }
+        else
+        {
+            SetWindowLongPtrW(hWnd, GWL_STYLE, windowedStyle);
+            SetWindowLongPtrW(hWnd, GWL_EXSTYLE, windowedExStyle);
+            SetWindowPlacement(hWnd, &windowedPlacement);
+            SetWindowPos(hWnd, nullptr, 0, 0, 0, 0,
+                SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
+            fullscreen = false;
+        }
+    }
+}
+#endif
+
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -43,6 +84,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+
+#ifdef GAME_RELEASE
+    // Relative asset and shader paths must resolve beside the executable even
+    // when launched from a shortcut or another working directory.
+    wchar_t executablePath[MAX_PATH];
+    const DWORD pathLength = GetModuleFileNameW(nullptr, executablePath, MAX_PATH);
+    if (pathLength == 0 || pathLength >= MAX_PATH) return FALSE;
+    wchar_t* separator = wcsrchr(executablePath, L'\\');
+    if (!separator) return FALSE;
+    *separator = L'\0';
+    if (!SetCurrentDirectoryW(executablePath)) return FALSE;
+#endif
 
     // TODO: Place code here.
 
@@ -109,7 +162,11 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
     wcex.hInstance      = hInstance;
+#ifdef GAME_RELEASE
+    wcex.hIcon = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ENGINEDX));
+#else
     wcex.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+#endif
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
     wcex.lpszMenuName   = NULL; 
@@ -150,6 +207,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        return FALSE;
    }
 
+#ifdef GAME_RELEASE
+   toggleFullscreen(hWnd);
+#else
    // Set the window to be the size of the monitor
    MONITORINFO monitor = {};
    monitor.cbSize = sizeof(monitor);
@@ -157,6 +217,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    RECT rect = monitor.rcMonitor;
    SetWindowPos(hWnd, nullptr, static_cast<int>(rect.left), static_cast<int>(rect.top), static_cast<int>(rect.left + rect.right), static_cast<int>(rect.top + rect.bottom), SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
    SetWindowPos(hWnd, nullptr, static_cast<int>(rect.left), static_cast<int>(rect.top), static_cast<int>(rect.left + rect.right), static_cast<int>(rect.top + rect.bottom), 0);
+#endif
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -183,7 +244,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
         {
+#ifndef GAME_RELEASE
             MessageBox(hWnd, L"Initializing engine...", L"Starting Application", MB_OK | MB_USERICON);
+#endif
         }
         break;
     case WM_ACTIVATE:
@@ -238,6 +301,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
     case WM_SIZE:
+        if (!app) break;
         if (wParam == SIZE_MINIMIZED) {
             app->setPaused(true);
         }
@@ -249,13 +313,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_SYSKEYDOWN:
-        if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000)
-        {
-            // This is where you'd implement the classic ALT+ENTER hotkey for fullscreen toggle
-        }
         Keyboard::ProcessMessage(message, wParam, lParam);
         break;
     case WM_KEYDOWN:
+#ifdef GAME_RELEASE
+        if (wParam == VK_F11)
+        {
+            // Ignore key repeat so holding F11 cannot switch modes repeatedly.
+            if ((lParam & (1 << 30)) == 0) toggleFullscreen(hWnd);
+            return 0;
+        }
+#endif
         Keyboard::ProcessMessage(message, wParam, lParam);
         break;
     case WM_KEYUP:

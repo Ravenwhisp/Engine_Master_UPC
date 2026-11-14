@@ -210,7 +210,7 @@ void ShadowFrustumComputePass::createPipelineState()
 {
     ComPtr<ID3DBlob> computeShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"ShadowFrustumComputeShader.cso", &computeShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"ShadowFrustumComputeShader.cso", &computeShaderBlob));
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
     psoDesc.pRootSignature = m_rootSignature.Get();

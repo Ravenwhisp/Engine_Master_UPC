@@ -112,6 +112,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>BoundByDeath</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -122,6 +123,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\Engine_OUT\</OutDir>
     <IntDir>$(SolutionDir)build\tmp\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>BoundByDeath</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -199,6 +201,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GameRelease|Win32'">
+    <ResourceCompile>
+      <PreprocessorDefinitions>GAME_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -213,6 +218,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(OutDir)Engine.lib</ImportLibrary>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -254,6 +260,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GameRelease|x64'">
+    <ResourceCompile>
+      <PreprocessorDefinitions>GAME_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -270,6 +279,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(OutDir)Engine.lib</ImportLibrary>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>

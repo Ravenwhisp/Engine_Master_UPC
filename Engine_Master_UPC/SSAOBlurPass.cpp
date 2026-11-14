@@ -56,10 +56,10 @@ SSAOBlurPass::SSAOBlurPass(ComPtr<ID3D12Device4> device)
         IID_PPV_ARGS(&m_rootSignature)));
 
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"FullscreenTriangleVS.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"FullscreenTriangleVS.cso", &vertexShaderBlob));
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SSAOBlur.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"SSAOBlur.cso", &pixelShaderBlob));
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
     psoDesc.InputLayout = { nullptr, 0 };

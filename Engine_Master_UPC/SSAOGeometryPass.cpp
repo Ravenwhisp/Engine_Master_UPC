@@ -52,10 +52,10 @@ SSAOGeometryPass::SSAOGeometryPass(ComPtr<ID3D12Device4> device)
         IID_PPV_ARGS(&m_rootSignature)));
 
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SSAONormalVS.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"SSAONormalVS.cso", &vertexShaderBlob));
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SSAONormalPS.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"SSAONormalPS.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {

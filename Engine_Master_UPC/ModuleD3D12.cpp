@@ -187,11 +187,11 @@ ComPtr<ID3D12PipelineState> ModuleD3D12::createPipelineStateObject(ID3D12RootSig
 
     // Load the vertex shader.
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"VertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"VertexShader.cso", &vertexShaderBlob));
 
     // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"LightPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"LightPixelShader.cso", &pixelShaderBlob));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =

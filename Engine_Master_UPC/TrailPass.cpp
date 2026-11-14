@@ -48,11 +48,11 @@ TrailPass::TrailPass(ComPtr<ID3D12Device4> device)
 
     // Load the vertex shader.
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"TrailVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"TrailVertexShader.cso", &vertexShaderBlob));
 
     // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"TrailPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"TrailPixelShader.cso", &pixelShaderBlob));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =

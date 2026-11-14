@@ -63,8 +63,8 @@ void FlowMapPass::createPipelineState()
 {
     ComPtr<ID3DBlob> vs;
     ComPtr<ID3DBlob> ps;
-    ThrowIfFailed(D3DReadFileToBlob(L"FlowMapVS.cso", &vs));
-    ThrowIfFailed(D3DReadFileToBlob(L"FlowMapPS.cso", &ps));
+    ThrowIfFailed(loadShaderBlob(L"FlowMapVS.cso", &vs));
+    ThrowIfFailed(loadShaderBlob(L"FlowMapPS.cso", &ps));
 
     D3D12_INPUT_ELEMENT_DESC input[] =
     {

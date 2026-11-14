@@ -47,7 +47,7 @@ SkinningComputePass::SkinningComputePass(ComPtr<ID3D12Device4> device)
         IID_PPV_ARGS(&m_rootSignature)));
 
     ComPtr<ID3DBlob> computeShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SkinningComputeShader.cso", &computeShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"SkinningComputeShader.cso", &computeShaderBlob));
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc = {};
     psoDesc.pRootSignature = m_rootSignature.Get();

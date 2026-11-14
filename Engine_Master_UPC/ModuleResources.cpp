@@ -542,8 +542,8 @@ Texture* ModuleResources::createIrradianceInternal(const IndexBuffer* indexBuffe
 		UINT compileFlags = 0;
 	#endif
 
-	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxIrradianceVertexShader.cso", &skyboxIrradianceVertexShaderBlob)); 
-	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxIrradiancePixelShader.cso", &skyboxIrradiancePixelShaderBlob)); 
+	ThrowIfFailed(loadShaderBlob(L"SkyboxIrradianceVertexShader.cso", &skyboxIrradianceVertexShaderBlob));
+	ThrowIfFailed(loadShaderBlob(L"SkyboxIrradiancePixelShader.cso", &skyboxIrradiancePixelShaderBlob));
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -726,8 +726,8 @@ Texture* ModuleResources::createEnvironmentInternal(const IndexBuffer* indexBuff
 	UINT compileFlags = 0;
 #endif
 
-	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxEnvironmentVertexShader.cso", &skyboxEnvironmentVertexShaderBlob));
-	ThrowIfFailed(D3DReadFileToBlob(L"SkyboxEnvironmentPixelShader.cso", &skyboxEnvironmentPixelShaderBlob));
+	ThrowIfFailed(loadShaderBlob(L"SkyboxEnvironmentVertexShader.cso", &skyboxEnvironmentVertexShaderBlob));
+	ThrowIfFailed(loadShaderBlob(L"SkyboxEnvironmentPixelShader.cso", &skyboxEnvironmentPixelShaderBlob));
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },

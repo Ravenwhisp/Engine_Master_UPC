@@ -60,8 +60,8 @@ FontPass::FontPass(ComPtr<ID3D12Device4> device) : m_device(device)
 
 	ComPtr<ID3DBlob> vertexShaderBlob;
 	ComPtr<ID3DBlob> pixelShaderBlob;
-	ThrowIfFailed(D3DReadFileToBlob(L"FontVertexShader.cso", vertexShaderBlob.GetAddressOf()));
-	ThrowIfFailed(D3DReadFileToBlob(L"FontPixelShader.cso", pixelShaderBlob.GetAddressOf()));
+	ThrowIfFailed(loadShaderBlob(L"FontVertexShader.cso", vertexShaderBlob.GetAddressOf()));
+	ThrowIfFailed(loadShaderBlob(L"FontPixelShader.cso", pixelShaderBlob.GetAddressOf()));
 
 	D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 	{

@@ -269,11 +269,11 @@ void TransparentPass::createRootSignature()
 void TransparentPass::createPipelineState()
 {
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"TransparentVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"TransparentVertexShader.cso", &vertexShaderBlob));
 
     // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"TransparentPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"TransparentPixelShader.cso", &pixelShaderBlob));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =

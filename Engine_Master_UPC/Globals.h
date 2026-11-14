@@ -17,6 +17,8 @@
 #include <ctime> // For time()
 #include <wrl.h>
 #include <d3d12.h>
+#include <d3dcompiler.h>
+#include <filesystem>
 #include "d3dx12.h"
 
 
@@ -31,6 +33,20 @@
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 using Microsoft::WRL::ComPtr;
+
+// Resolve compiled shaders from the release data folder while keeping the
+// editor's existing build-output layout.
+inline HRESULT loadShaderBlob(const wchar_t* filename, ID3DBlob** blob)
+{
+#ifdef GAME_RELEASE
+    const std::filesystem::path path = std::filesystem::path(L"Shaders") / filename;
+    if (std::filesystem::exists(path)) return D3DReadFileToBlob(path.c_str(), blob);
+    // The development Game folder still stores shaders beside the executable.
+    return D3DReadFileToBlob(filename, blob);
+#else
+    return D3DReadFileToBlob(filename, blob);
+#endif
+}
 
 #define DEBUG_LOG(format, ...)  debug_log(__FILE__, __LINE__, format, ##__VA_ARGS__)
 #define DEBUG_WARN(format, ...) debug_warn(__FILE__, __LINE__, format, ##__VA_ARGS__)

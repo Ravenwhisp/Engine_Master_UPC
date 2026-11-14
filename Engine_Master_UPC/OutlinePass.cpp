@@ -126,8 +126,8 @@ void OutlinePass::createRootSignature()
 void OutlinePass::createPipelineState()
 {
     ComPtr<ID3DBlob> vertexShaderBlob, pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"OutlineVS.cso", &vertexShaderBlob));
-    ThrowIfFailed(D3DReadFileToBlob(L"OutlinePS.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"OutlineVS.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"OutlinePS.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {

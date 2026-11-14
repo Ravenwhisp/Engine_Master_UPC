@@ -50,8 +50,8 @@ EquirectangularPass::EquirectangularPass(ComPtr<ID3D12Device4> device)
     ComPtr<ID3DBlob> vertexShaderBlob;
     ComPtr<ID3DBlob> pixelShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"EquirectangularVertexShader.cso", &vertexShaderBlob));
-    ThrowIfFailed(D3DReadFileToBlob(L"EquirectangularPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"EquirectangularVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"EquirectangularPixelShader.cso", &pixelShaderBlob));
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },

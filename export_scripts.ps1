@@ -1,7 +1,43 @@
-rm export -Recurse
-mkdir export
+param(
+    [Alias('Mode')]
+    [ValidateSet('Auto', 'Release', 'GameRelease', 'Editor')]
+    [string]$Configuration = 'Auto'
+)
 
-cp .\Engine_OUT\Engine.* .\export
+$ErrorActionPreference = 'Stop'
+$root = $PSScriptRoot
+$output = Join-Path $root 'Engine_OUT'
+$export = Join-Path $root 'export'
+$engineExe = Join-Path $output 'Engine.exe'
+$gameExe = Join-Path $output 'BoundByDeath.exe'
+if ($Configuration -eq 'Auto') {
+    $available = @($engineExe, $gameExe) | Where-Object { Test-Path -LiteralPath $_ } |
+        ForEach-Object { Get-Item -LiteralPath $_ } | Sort-Object LastWriteTime -Descending
+    if ($available.Count -eq 0) { throw 'No engine executable found. Build Release or GameRelease before exporting.' }
+    if ($available.Count -gt 1 -and $available[0].LastWriteTime -eq $available[1].LastWriteTime) {
+        throw 'Both executables have the same timestamp. Specify -Configuration Release or GameRelease.'
+    }
+    $executableName = $available[0].Name
+} else {
+    $executableName = if ($Configuration -eq 'GameRelease') { 'BoundByDeath.exe' } else { 'Engine.exe' }
+}
+$executable = Join-Path $output $executableName
+if (-not (Test-Path -LiteralPath $executable)) {
+    throw "Missing $executableName. Build the $Configuration engine configuration before exporting."
+}
+Write-Output "Exporting $executableName"
+
+Push-Location -LiteralPath $root
+try {
+if (Test-Path -LiteralPath $export) { Remove-Item -LiteralPath $export -Recurse -Force }
+New-Item -ItemType Directory -Path $export | Out-Null
+
+Copy-Item -LiteralPath $executable -Destination $export
+# Gameplay scripts still link against the engine's import library.
+Copy-Item -LiteralPath (Join-Path $output 'Engine.lib') -Destination $export
+Copy-Item -LiteralPath (Join-Path $output 'Engine.exp') -Destination $export
+$symbols = Join-Path $output ($executableName -replace '\.exe$', '.pdb')
+if (Test-Path -LiteralPath $symbols) { Copy-Item -LiteralPath $symbols -Destination $export }
 cp .\Engine_OUT\*.cso .\export
 cp .\Engine_OUT\WinPixEventRuntime.dll .\export
 cp .\Engine_OUT\SDL3.dll .\export
@@ -56,3 +92,6 @@ cp .\Engine_Master_UPC\IFieldContainer.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\ImportSettings.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\MD5.h .\export\EngineDependencies\
 cp .\Engine_Master_UPC\UISheet.h .\export\EngineDependencies\
+} finally {
+    Pop-Location
+}

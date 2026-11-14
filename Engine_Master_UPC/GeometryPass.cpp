@@ -74,8 +74,8 @@ void GeometryPass::createPipelineState()
 {
     ComPtr<ID3DBlob> vsBlob, psBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"GBufferVS.cso", &vsBlob));
-    ThrowIfFailed(D3DReadFileToBlob(L"GBufferPS.cso", &psBlob));
+    ThrowIfFailed(loadShaderBlob(L"GBufferVS.cso", &vsBlob));
+    ThrowIfFailed(loadShaderBlob(L"GBufferPS.cso", &psBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {

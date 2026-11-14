@@ -47,11 +47,11 @@ LineRendererPass::LineRendererPass(ComPtr<ID3D12Device4> device)
 
     // Load the vertex shader.
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"LineRendererVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"LineRendererVertexShader.cso", &vertexShaderBlob));
 
     // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"LineRendererPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"LineRendererPixelShader.cso", &pixelShaderBlob));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =

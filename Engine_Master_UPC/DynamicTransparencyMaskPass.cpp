@@ -54,8 +54,8 @@ void DynamicTransparencyMaskPass::createPipelineState()
     ComPtr<ID3DBlob> vertexShaderBlob;
     ComPtr<ID3DBlob> pixelShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"VertexShader.cso", &vertexShaderBlob));
-    ThrowIfFailed(D3DReadFileToBlob(L"DynamicTransparencyMaskPS.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"VertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"DynamicTransparencyMaskPS.cso", &pixelShaderBlob));
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
     psoDesc.pRootSignature = m_rootSignature.Get();

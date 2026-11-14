@@ -24,10 +24,10 @@ namespace PostProcess
     ComPtr<ID3D12PipelineState> createFullscreenPSO(ID3D12Device4* device, ID3D12RootSignature* rootSignature, const wchar_t* pixelShaderCso, DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, bool additiveBlend)
     {
         ComPtr<ID3DBlob> vertexShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(L"BRDFVertexShader.cso", &vertexShaderBlob));
+        ThrowIfFailed(loadShaderBlob(L"BRDFVertexShader.cso", &vertexShaderBlob));
 
         ComPtr<ID3DBlob> pixelShaderBlob;
-        ThrowIfFailed(D3DReadFileToBlob(pixelShaderCso, &pixelShaderBlob));
+        ThrowIfFailed(loadShaderBlob(pixelShaderCso, &pixelShaderBlob));
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
         desc.InputLayout = { nullptr, 0 };

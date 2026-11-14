@@ -227,7 +227,7 @@ void ShadowCasterCullingPass::createPipelineState()
 {
     ComPtr<ID3DBlob> computeShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"ShadowCasterCullingComputeShader.cso", &computeShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"ShadowCasterCullingComputeShader.cso", &computeShaderBlob));
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
     psoDesc.pRootSignature = m_rootSignature.Get();

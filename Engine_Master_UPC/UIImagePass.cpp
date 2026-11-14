@@ -39,10 +39,10 @@ UIImagePass::UIImagePass(ComPtr<ID3D12Device4> device)
     DXCall(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"UIVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"UIVertexShader.cso", &vertexShaderBlob));
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"UIPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"UIPixelShader.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {

@@ -79,11 +79,11 @@ void PlayerPass::createRootSignature()
 void PlayerPass::createPipelineState()
 {
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"PlayerVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"PlayerVertexShader.cso", &vertexShaderBlob));
 
     // Load the pixel shader.
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"PlayerPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"PlayerPixelShader.cso", &pixelShaderBlob));
 
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =

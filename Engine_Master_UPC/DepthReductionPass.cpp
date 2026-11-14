@@ -93,7 +93,7 @@ void DepthReductionPass::createPipelineStates()
 {
     ComPtr<ID3DBlob> initialShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(
+    ThrowIfFailed(loadShaderBlob(
         L"DepthMinMaxInitialComputeShader.cso",
         &initialShaderBlob));
 
@@ -108,7 +108,7 @@ void DepthReductionPass::createPipelineStates()
 
     ComPtr<ID3DBlob> reductionShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(
+    ThrowIfFailed(loadShaderBlob(
         L"DepthMinMaxReduceComputeShader.cso",
         &reductionShaderBlob));
 

@@ -96,8 +96,8 @@ void DynamicTransparencyFalloffPass::createPipelineState()
     ComPtr<ID3DBlob> vertexShaderBlob;
     ComPtr<ID3DBlob> pixelShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"DynamicTransparencyFalloffVS.cso", &vertexShaderBlob));
-    ThrowIfFailed(D3DReadFileToBlob(L"DynamicTransparencyFalloffPS.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"DynamicTransparencyFalloffVS.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"DynamicTransparencyFalloffPS.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {

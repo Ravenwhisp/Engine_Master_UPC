@@ -53,8 +53,8 @@ void VolumetricFogApplyPass::createPipelineState()
     ComPtr<ID3DBlob> vertexShaderBlob;
     ComPtr<ID3DBlob> pixelShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"VertexShader.cso", &vertexShaderBlob));
-    ThrowIfFailed(D3DReadFileToBlob(L"VolumetricFogApplyPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"VertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"VolumetricFogApplyPixelShader.cso", &pixelShaderBlob));
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc{};
     psoDesc.InputLayout = { nullptr, 0 };

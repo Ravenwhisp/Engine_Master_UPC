@@ -48,7 +48,7 @@ void ForwardPrepass::createRootSignature()
 void ForwardPrepass::createPipelineState()
 {
     ComPtr<ID3DBlob> vsBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"ForwardPrepassVertexShader.cso", &vsBlob));
+    ThrowIfFailed(loadShaderBlob(L"ForwardPrepassVertexShader.cso", &vsBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputLayout[] =
     {

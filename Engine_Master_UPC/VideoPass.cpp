@@ -120,10 +120,10 @@ void VideoPass::createRootSignature()
 void VideoPass::createPipelineState()
 {
 	ComPtr<ID3DBlob> vertexShaderBlob;
-	ThrowIfFailed(D3DReadFileToBlob(L"VideoVertexShader.cso", &vertexShaderBlob));
+	ThrowIfFailed(loadShaderBlob(L"VideoVertexShader.cso", &vertexShaderBlob));
 
 	ComPtr<ID3DBlob> pixelShaderBlob;
-	ThrowIfFailed(D3DReadFileToBlob(L"VideoPixelShader.cso", &pixelShaderBlob));
+	ThrowIfFailed(loadShaderBlob(L"VideoPixelShader.cso", &pixelShaderBlob));
 
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {};
 	depthStencilDesc.DepthEnable = FALSE;

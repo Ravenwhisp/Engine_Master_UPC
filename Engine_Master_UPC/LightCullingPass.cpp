@@ -62,7 +62,7 @@ void LightCullingPass::createRootSignature()
 void LightCullingPass::createPipelineState()
 {
     ComPtr<ID3DBlob> computeShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"LightCullingComputeShader.cso", &computeShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"LightCullingComputeShader.cso", &computeShaderBlob));
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
     psoDesc.pRootSignature = m_rootSignature.Get();

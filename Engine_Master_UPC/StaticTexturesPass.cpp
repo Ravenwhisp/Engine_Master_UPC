@@ -40,8 +40,8 @@ StaticTexturesPass::StaticTexturesPass(ComPtr<ID3D12Device4> device)
     ComPtr<ID3DBlob> vertexShaderBlob;
     ComPtr<ID3DBlob> pixelShaderBlob;
 
-    ThrowIfFailed(D3DReadFileToBlob(L"BRDFVertexShader.cso", &vertexShaderBlob));
-    ThrowIfFailed(D3DReadFileToBlob(L"BRDFPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"BRDFVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"BRDFPixelShader.cso", &pixelShaderBlob));
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC desc{};
     desc.InputLayout = { nullptr, 0 };

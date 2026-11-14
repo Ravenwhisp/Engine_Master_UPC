@@ -262,7 +262,7 @@ void VolumetricFogComputePass::createMediumRootSignature()
 void VolumetricFogComputePass::createMediumPipelineState()
 {
     ComPtr<ID3DBlob> computeShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"VolumetricFogInjectMediumCS.cso", &computeShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"VolumetricFogInjectMediumCS.cso", &computeShaderBlob));
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
     psoDesc.pRootSignature = m_mediumRootSignature.Get();
@@ -303,7 +303,7 @@ void VolumetricFogComputePass::createLightingRootSignature()
 void VolumetricFogComputePass::createLightingPipelineState()
 {
     ComPtr<ID3DBlob> computeShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"VolumetricFogLightingCS.cso", &computeShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"VolumetricFogLightingCS.cso", &computeShaderBlob));
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
     psoDesc.pRootSignature = m_lightingRootSignature.Get();
@@ -337,7 +337,7 @@ void VolumetricFogComputePass::createIntegrationRootSignature()
 void VolumetricFogComputePass::createIntegrationPipelineState()
 {
     ComPtr<ID3DBlob> computeShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"VolumetricFogIntegrateCS.cso", &computeShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"VolumetricFogIntegrateCS.cso", &computeShaderBlob));
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
     psoDesc.pRootSignature = m_integrationRootSignature.Get();

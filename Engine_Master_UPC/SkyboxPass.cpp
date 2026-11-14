@@ -56,10 +56,10 @@ SkyBoxPass::SkyBoxPass(ComPtr<ID3D12Device4> device, SkyBoxSettings& settings) :
 #endif
 
     ComPtr<ID3DBlob> vertexShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SkyBoxVertexShader.cso", &vertexShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"SkyBoxVertexShader.cso", &vertexShaderBlob));
 
     ComPtr<ID3DBlob> pixelShaderBlob;
-    ThrowIfFailed(D3DReadFileToBlob(L"SkyBoxPixelShader.cso", &pixelShaderBlob));
+    ThrowIfFailed(loadShaderBlob(L"SkyBoxPixelShader.cso", &pixelShaderBlob));
 
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
