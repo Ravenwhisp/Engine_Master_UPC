@@ -198,6 +198,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       return FALSE;
    }
 
+#ifdef GAME_RELEASE
+   // Establish the fullscreen client size before the D3D12 swap chain is
+   // created. Resizing it during startup can race resource initialization.
+   toggleFullscreen(hWnd);
+#endif
+
    app = new Application(__argc, __wargv, hWnd);
 
    if(!app->init())
@@ -207,9 +213,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        return FALSE;
    }
 
-#ifdef GAME_RELEASE
-   toggleFullscreen(hWnd);
-#else
+#ifndef GAME_RELEASE
    // Set the window to be the size of the monitor
    MONITORINFO monitor = {};
    monitor.cbSize = sizeof(monitor);
