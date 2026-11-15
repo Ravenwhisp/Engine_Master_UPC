@@ -44,6 +44,9 @@ struct LightDefaults
     static constexpr ShadowCascadeFitMode DEFAULT_SHADOW_CASCADE_FIT_MODE = ShadowCascadeFitMode::FIT_TO_CASCADE;
     static constexpr bool DEFAULT_SHADOW_CASCADE_DEBUG_ENABLED = false;
 
+    static constexpr bool DEFAULT_AFFECT_VOLUMETRIC_FOG = true;
+    static constexpr float DEFAULT_VOLUMETRIC_INTENSITY = 1.0f;
+
 };
 
 enum class LightType : uint8_t
@@ -58,6 +61,9 @@ struct LightCommon
 {
     Vector3 color = Vector3::One;
     float intensity = LightDefaults::DEFAULT_INTENSITY;
+
+    bool affectVolumetricFog = LightDefaults::DEFAULT_AFFECT_VOLUMETRIC_FOG;
+    float volumetricIntensity = LightDefaults::DEFAULT_VOLUMETRIC_INTENSITY;
 };
 
 struct LightShadowSettings

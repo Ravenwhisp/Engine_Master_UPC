@@ -2886,6 +2886,7 @@
     <FxCompile Include="VolumetricFogInjectMediumCS.hlsl" />
     <FxCompile Include="VolumetricFogIntegrateCS.hlsl" />
     <FxCompile Include="VolumetricFogLightingCS.hlsl" />
+    <FxCompile Include="VolumetricFogCullPointLightsCS.hlsl" />
     <FxCompile Include="FlowMapPS.hlsl" />
     <FxCompile Include="FlowMapVS.hlsl" />
     <FxCompile Include="OcclusionTargetDepthVS.hlsl" />
@@ -2969,5 +2970,10 @@
     <Image Include="small.ico">
       <Filter>Resources\Application</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="VolumetricFogBlueNoise.h" />
+    <None Include="VolumetricFogSampling.hlsli" />
+    <None Include="VolumetricFogHeight.hlsli" />
   </ItemGroup>
 </Project>

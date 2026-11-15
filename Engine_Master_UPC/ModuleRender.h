@@ -54,6 +54,8 @@ using Vector3 = DirectX::SimpleMath::Vector3;
 
 class ModuleRender : public Module
 {
+    // Temporary fog diagnostics: reuse the existing timestamp/readback pipeline.
+    friend class VolumetricFogComputePass;
 public:
     struct RenderPassTiming
     {
@@ -127,7 +129,8 @@ private:
 
     SSAOFrameData m_currentSSAOData{};
 
-    static constexpr uint32_t MAX_PROFILED_RENDER_PASSES = 32;
+    // Temporary headroom for the additional fog timing scopes.
+    static constexpr uint32_t MAX_PROFILED_RENDER_PASSES = 40;
     static constexpr uint32_t INVALID_PROFILE_INDEX = UINT32_MAX;
 
     ComPtr<ID3D12QueryHeap> m_timestampQueryHeap;
