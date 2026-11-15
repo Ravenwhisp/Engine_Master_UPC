@@ -25,6 +25,11 @@ bool ScriptLibraryLoader::load()
 
     if (!copyFileToRuntimePath(sourceDllPath, runtimeDllPath))
     {
+#ifdef GAME_RELEASE
+        MessageBoxA(nullptr,
+            "GameScripts.dll is missing or cannot be copied. Build ScriptsProject in Release and place its DLL beside BoundByDeath.exe.",
+            "Bound By Death", MB_OK | MB_ICONERROR);
+#endif
         return false;
     }
 
@@ -52,6 +57,11 @@ bool ScriptLibraryLoader::load()
     if (m_module == nullptr)
     {
         DEBUG_ERROR("[ScriptLibraryLoader] Failed to load %s", runtimeDllPath.c_str());
+#ifdef GAME_RELEASE
+        MessageBoxA(nullptr,
+            "GameScripts.dll could not load. After updating Game with the GameRelease export, rebuild ScriptsProject in Release so the DLL links to BoundByDeath.exe.",
+            "Bound By Death", MB_OK | MB_ICONERROR);
+#endif
         return false;
     }
 

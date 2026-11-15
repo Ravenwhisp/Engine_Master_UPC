@@ -95,6 +95,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     if (!separator) return FALSE;
     *separator = L'\0';
     if (!SetCurrentDirectoryW(executablePath)) return FALSE;
+
+    constexpr const wchar_t* requiredFiles[] = { L"build.cfg", L"GameScripts.dll", L"Library" };
+    for (const wchar_t* required : requiredFiles)
+    {
+        if (GetFileAttributesW(required) == INVALID_FILE_ATTRIBUTES)
+        {
+            std::wstring message = L"Missing ";
+            message += required;
+            message += L" beside BoundByDeath.exe. Complete the game release files before launching.";
+            MessageBoxW(nullptr, message.c_str(), L"Bound By Death", MB_OK | MB_ICONERROR);
+            return FALSE;
+        }
+    }
 #endif
 
     // TODO: Place code here.

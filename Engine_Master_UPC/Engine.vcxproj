@@ -247,6 +247,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(OutDir)Engine_Release.lib</ImportLibrary>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -279,7 +280,7 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <ImportLibrary>$(OutDir)Engine.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)Engine_GameRelease.lib</ImportLibrary>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -1734,6 +1735,9 @@ $(SolutionDir)3rdParty\RecastNavigation\DebugUtils\Include;
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Target Name="RecordExportConfiguration" AfterTargets="Build" Condition="'$(Platform)' == 'x64' And ('$(Configuration)' == 'Release' Or '$(Configuration)' == 'GameRelease')">
+    <WriteLinesToFile File="$(OutDir)last_build_configuration.txt" Lines="$(Configuration)" Overwrite="true" />
+  </Target>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

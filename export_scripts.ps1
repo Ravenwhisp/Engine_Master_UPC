@@ -8,22 +8,28 @@ $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $output = Join-Path $root 'Engine_OUT'
 $export = Join-Path $root 'export'
-$engineExe = Join-Path $output 'Engine.exe'
-$gameExe = Join-Path $output 'BoundByDeath.exe'
-if ($Configuration -eq 'Auto') {
-    $available = @($engineExe, $gameExe) | Where-Object { Test-Path -LiteralPath $_ } |
-        ForEach-Object { Get-Item -LiteralPath $_ } | Sort-Object LastWriteTime -Descending
-    if ($available.Count -eq 0) { throw 'No engine executable found. Build Release or GameRelease before exporting.' }
-    if ($available.Count -gt 1 -and $available[0].LastWriteTime -eq $available[1].LastWriteTime) {
-        throw 'Both executables have the same timestamp. Specify -Configuration Release or GameRelease.'
-    }
-    $executableName = $available[0].Name
-} else {
-    $executableName = if ($Configuration -eq 'GameRelease') { 'BoundByDeath.exe' } else { 'Engine.exe' }
+$buildMarker = Join-Path $output 'last_build_configuration.txt'
+if (-not (Test-Path -LiteralPath $buildMarker)) {
+    throw 'No build marker found. Build Release or GameRelease with the updated engine project before exporting.'
 }
+$lastBuild = (Get-Content -LiteralPath $buildMarker -TotalCount 1).Trim()
+if ($lastBuild -notin @('Release', 'GameRelease')) { throw "Unsupported last build configuration: $lastBuild" }
+if ($Configuration -eq 'Auto') { $Configuration = $lastBuild }
+if ($Configuration -eq 'Editor') { $Configuration = 'Release' }
+if ($Configuration -ne $lastBuild) {
+    throw "Last build was $lastBuild, but $Configuration was requested. Build $Configuration before exporting."
+}
+$executableName = if ($Configuration -eq 'GameRelease') { 'BoundByDeath.exe' } else { 'Engine.exe' }
+$importBaseName = if ($Configuration -eq 'GameRelease') { 'Engine_GameRelease' } else { 'Engine_Release' }
 $executable = Join-Path $output $executableName
-if (-not (Test-Path -LiteralPath $executable)) {
-    throw "Missing $executableName. Build the $Configuration engine configuration before exporting."
+$runtimeDlls = @('WinPixEventRuntime.dll', 'SDL3.dll', 'avcodec-63.dll', 'avdevice-63.dll', 'avfilter-12.dll', 'avformat-63.dll', 'avutil-61.dll', 'swresample-7.dll', 'swscale-10.dll')
+foreach ($required in @($executableName, "$importBaseName.lib", "$importBaseName.exp") + $runtimeDlls) {
+    if (-not (Test-Path -LiteralPath (Join-Path $output $required))) {
+        throw "Missing $required in Engine_OUT. Build $Configuration and restore its runtime dependencies before exporting."
+    }
+}
+if (-not (Get-ChildItem -LiteralPath $output -Filter '*.cso' -File | Select-Object -First 1)) {
+    throw 'No compiled shaders found in Engine_OUT. Build the shaders before exporting.'
 }
 Write-Output "Exporting $executableName"
 
@@ -34,13 +40,14 @@ New-Item -ItemType Directory -Path $export | Out-Null
 
 Copy-Item -LiteralPath $executable -Destination $export
 # Gameplay scripts still link against the engine's import library.
-Copy-Item -LiteralPath (Join-Path $output 'Engine.lib') -Destination $export
-Copy-Item -LiteralPath (Join-Path $output 'Engine.exp') -Destination $export
+Copy-Item -LiteralPath (Join-Path $output "$importBaseName.lib") -Destination (Join-Path $export 'Engine.lib')
+Copy-Item -LiteralPath (Join-Path $output "$importBaseName.exp") -Destination (Join-Path $export 'Engine.exp')
 $symbols = Join-Path $output ($executableName -replace '\.exe$', '.pdb')
 if (Test-Path -LiteralPath $symbols) { Copy-Item -LiteralPath $symbols -Destination $export }
 cp .\Engine_OUT\*.cso .\export
-cp .\Engine_OUT\WinPixEventRuntime.dll .\export
-cp .\Engine_OUT\SDL3.dll .\export
+foreach ($dll in $runtimeDlls) {
+    Copy-Item -LiteralPath (Join-Path $output $dll) -Destination $export
+}
 
 mkdir .\export\EngineDependencies
 

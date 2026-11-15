@@ -11,6 +11,11 @@ Engine_OUT/Engine.exe
 Engine_OUT/BoundByDeath.exe
 Engine_OUT/Engine.exp
 Engine_OUT/Engine.lib
+Engine_OUT/Engine_Release.lib
+Engine_OUT/Engine_Release.exp
+Engine_OUT/Engine_GameRelease.lib
+Engine_OUT/Engine_GameRelease.exp
+Engine_OUT/last_build_configuration.txt
 Engine_OUT/GameScripts.dll
 Engine_OUT/imgui.ini
 Engine_OUT/editor_windows.ini
